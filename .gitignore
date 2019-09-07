@@ -29,4 +29,5 @@ tmp/**
 .python-version
 .vs/
 .vscode/settings.json
-hpMCA_settings.json
+.vscode/launch.json
+hpMCA_folder_settings.json
