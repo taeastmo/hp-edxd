@@ -1,0 +1,10 @@
+VERSION: 4
+COMMENT: nickel (Suh, EOS Lazor Q-hydro)
+K0:       180.000
+K0P:       4.0000
+SYMMETRY: CUBIC
+A:      3.5240
+ALPHAT:      0.000000
+DIHKL:   2.0346    100.    1.00    1.00    1.00
+DIHKL:   1.7620    100.    2.00    0.00    0.00
+DIHKL:   1.2459    100.    2.00    2.00    0.00

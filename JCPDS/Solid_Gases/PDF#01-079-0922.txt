@@ -1,0 +1,23 @@
+PDF#01-079-0922: QM=Calculated(C); d=Calculated; I=Calculated
+Neon
+Ne	
+Radiation=CuKa1	Lambda=1.54060	Filter=
+Calibration=	2T=12.581-20.614	I/Ic(RIR)=3.26
+Ref: Calculated from ICSD using POWD-12++ (1997)
+
+Cubic - Powder Diffraction,  Fm-3m (225)	Z=4	mp=
+CELL: 3.258 x 3.258 x 3.258 <90.0 x 90.0 x 90.0>	P.S=cF4 (?)
+Density(c)=3.876	Density(m)=1.51A	Mwt=20.18	Vol=34.58	F(3)=999.9(.0001,3/0)
+Ref: Hemley, R.J., Zha, C.S., Jephcoat, A.P., Mao, H.K., Finger, L.W., Cox, D.E.
+Phys. Rev. B: Condens. Matter, v39 p11820 (1989)
+Strong Lines: 1.88/X 1.63/4 1.15/1 0.00/1 0.00/1 0.00/1 0.00/1 0.00/1 0.00/1 0.00/1
+FIZ=065887: PRE 31.0+2 GPa.
+TEM 300.
+No R value given.
+At least one TF missing.
+See PDF 79-923.
+
+2-Theta    d(Å)   I(f)  ( h k l)   Theta  1/(2d)   2pi/d  n^2  
+ 12.581  1.8810  100.0  ( 1 1 1)   6.290  0.2658  3.3403    3
+ 14.537  1.6290   38.9  ( 2 0 0)   7.269  0.3069  3.8571    4
+ 20.614  1.1519   12.8  ( 2 2 0)  10.307  0.4341  5.4547    8

@@ -1,0 +1,31 @@
+VERSION:   4
+COMMENT: Gold (04-0784, Heinz and Jeanloz 1984)
+K0:       166.6
+K0P:      5.5
+DK0DT:    0.0
+DK0PDT:   0.0
+SYMMETRY: CUBIC
+A:        4.0686
+B:        4.0686
+C:        4.0686
+ALPHA:    90.0
+BETA:     90.0
+GAMMA:    90.0
+VOLUME:   67.349594348856
+ALPHAT:   3e-05
+DALPHADT: 0.0
+Z: 1.0
+EOS: {'equation_of_state': 'jcpds4', 'V_0': 4.068867201132995e-05, 'K_0': 166600000000.0, 'Kprime_0': 5.5, 'dk0dt': 0.0, 'dk0pdt': 0.0, 'alpha_t0': 3e-05, 'd_alpha_dt': 0.0, 'P_0': 0.0, 'alpha_t': 3e-05}
+DIHKL:    2.34901	100	1	1	1
+DIHKL:    2.0343	52	2	0	0
+DIHKL:    1.43847	32	2	2	0
+DIHKL:    1.22673	36	3	1	1
+DIHKL:    1.1745	12	2	2	2
+DIHKL:    1.01715	6	4	0	0
+DIHKL:    0.933401	23	3	3	1
+DIHKL:    0.909767	22	4	2	0
+DIHKL:    0.830499	23	4	2	2
+DIHKL:    0.783002	10	3	3	3
+DIHKL:    0.687719	10	5	3	1
+DIHKL:    0.6781	10	4	4	2
+DIHKL:    0.643302	10	6	2	0

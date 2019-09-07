@@ -1,0 +1,10 @@
+VERSION: 4
+COMMENT: Li FCC 12.73 GPa
+K0:       11.32
+K0P:       3.62
+SYMMETRY: CUBIC
+A:      3.76
+ALPHAT:      4.26E-5
+DIHKL:   2.1708     100.    1.00    1.00    1.00
+DIHKL:   1.880      16.    2.00    0.00    0.00
+DIHKL:   1.3294     30.    2.00    2.00    0.00

@@ -1,0 +1,26 @@
+PDF#01-085-0548: QM=Calculated(C); d=Calculated; I=Calculated
+Helium
+He	
+Radiation=CuKa1	Lambda=1.54060	Filter=
+Calibration=	2T=9.655-19.379	I/Ic(RIR)=0.66
+Ref: Calculated from ICSD using POWD-12++ (1997)
+
+Cubic - Powder Diffraction,  Fm-3m (225)	Z=4	mp=
+CELL: 4.242 x 4.242 x 4.242 <90.0 x 90.0 x 90.0>	P.S=cF4 (Cu)
+Density(c)=0.348	Density(m)=0.35A	Mwt=4.00	Vol=76.33	F(5)=999.9(.0000,5/0)
+Ref: Schuch, A.F., Mills, R.L.
+Phys. Rev. Lett., v6 p596 (1961)
+Strong Lines: 2.45/X 2.12/4 1.50/2 1.28/1 1.22/1 0.00/1 0.00/1 0.00/1 0.00/1 0.00/1
+FIZ=022384: TEM 18.76.
+PRE 1693 ATM.
+Calc.
+density unusual but tolerable.
+No R value given.
+At least one TF missing.
+
+2-Theta    d(Å)   I(f)  ( h k l)  Theta  1/(2d)   2pi/d  n^2  
+  9.655  2.4491  100.0  ( 1 1 1)  4.827  0.2042  2.5655    3
+ 11.153  2.1210   42.4  ( 2 0 0)  5.576  0.2357  2.9624    4
+ 15.797  1.4998   15.4  ( 2 2 0)  7.899  0.3334  4.1894    8
+ 18.546  1.2790   11.9  ( 3 1 1)  9.273  0.3909  4.9125   11
+ 19.379  1.2246    3.1  ( 2 2 2)  9.689  0.4083  5.1310   12
