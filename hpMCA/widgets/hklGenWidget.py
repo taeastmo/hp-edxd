@@ -104,22 +104,24 @@ class hklGenWidget(QtWidgets.QWidget):
         self.lattice_opts_steps = {}
         self.lattice_parameters = ('a','b','c',
                                 'alpha',"beta",'gamma')
+        default_step = 0.1
+        default_decimals = 4
         for s in self.lattice_parameters:
             lattice_opt = QtWidgets.QWidget()
             _lattice_opt_layout = QtWidgets.QHBoxLayout()
             _lattice_opt_layout.setContentsMargins(0, 0, 0, 0)
             opt_lbl = QtWidgets.QLabel(s)
             opt = DoubleSpinBoxAlignRight()
-            opt.setDecimals(4)
+            opt.setDecimals(default_decimals)
             opt.setValue(0.)
-            opt.setSingleStep(.1)
+            opt.setSingleStep(default_step)
             opt.setMinimumWidth(90)
             opt.setMaximum(1000)
             opt.valueChanged.connect(partial(self.lattice_parameter_edited_callback, s))
             opt_step = DoubleMultiplySpinBoxAlignRight()
-            opt_step.setDecimals(3)
+            opt_step.setDecimals(default_decimals)
             opt_step.setMinimumWidth(60)
-            opt_step.setValue(0.1)
+            opt_step.setValue(default_step)
             opt_step.editingFinished.connect(partial(self.update_lattice_param_step, s))
             _lattice_opt_layout.addWidget(opt_lbl)
             _lattice_opt_layout.addWidget(opt)
