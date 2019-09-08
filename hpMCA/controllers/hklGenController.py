@@ -65,6 +65,7 @@ class hklGenController():
             pass
     
     def lattice_parameter_edited_callback(self, param):
+        
         print(param)
         if not self.current_cell is None:
             self.current_cell.set_lattice_param(param)

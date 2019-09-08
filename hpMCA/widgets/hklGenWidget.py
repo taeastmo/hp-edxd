@@ -112,6 +112,7 @@ class hklGenWidget(QtWidgets.QWidget):
             opt = DoubleSpinBoxAlignRight()
             opt.setDecimals(4)
             opt.setValue(0.)
+            opt.setSingleStep(.1)
             opt.setMinimumWidth(90)
             opt.setMaximum(1000)
             opt.valueChanged.connect(partial(self.lattice_parameter_edited_callback, s))
@@ -119,12 +120,13 @@ class hklGenWidget(QtWidgets.QWidget):
             opt_step.setDecimals(3)
             opt_step.setMinimumWidth(60)
             opt_step.setValue(0.1)
+            opt_step.editingFinished.connect(partial(self.update_lattice_param_step, s))
             _lattice_opt_layout.addWidget(opt_lbl)
             _lattice_opt_layout.addWidget(opt)
             _lattice_opt_layout.addWidget(opt_step)
             lattice_opt.setLayout(_lattice_opt_layout)
             self.lattice_opts[s] = opt
-            self.lattice_opts_steps[s] = opt
+            self.lattice_opts_steps[s] = opt_step
             self._lattice_layout.addWidget(lattice_opt)
         self.lattice_widget.setLayout(self._lattice_layout)
 
@@ -175,6 +177,8 @@ class hklGenWidget(QtWidgets.QWidget):
         
         #header_view.hide()
         s#elf.cell_tw.setItemDelegate(NoRectDelegate())
+
+        
      
         self.setAcceptDrops(True) 
 
@@ -186,6 +190,10 @@ class hklGenWidget(QtWidgets.QWidget):
             }
         """)
 
+    def update_lattice_param_step(self, lattice_parameter):
+        opt_step = self.lattice_opts_steps[lattice_parameter]
+        value = round(opt_step.value(), 4)
+        self.lattice_opts[lattice_parameter].setSingleStep(value)
         
     # ###############################################################################################
     # Now comes all the cell tw stuff
@@ -205,7 +213,7 @@ class hklGenWidget(QtWidgets.QWidget):
 
     def lattice_parameter_edited_callback(self, key):
         opt = self.lattice_opts[key]
-        new_val = opt.value()
+        new_val = round(opt.value(), 6)
         param = {key:new_val}
         self.lattice_parameter_edited_signal.emit(param)
 
