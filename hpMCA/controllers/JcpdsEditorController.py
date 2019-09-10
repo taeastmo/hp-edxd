@@ -33,6 +33,7 @@ from hpMCA.widgets.JcpdsEditorWidget import JcpdsEditorWidget
 # imports for type hinting in PyCharm -- DO NOT DELETE
 from hpMCA.models.jcpds import jcpds
 #from ...model.DioptasModel import DioptasModel
+from functools import partial
 
 
 
@@ -68,7 +69,7 @@ class JcpdsEditorController(QtCore.QObject):
         self.active = False
         self.create_connections()
         self.previous_header_item_index_sorted = None
-        self.active = False
+        
         self.phase_ind = -1
 
         if jcpds_phase is not None:
@@ -111,22 +112,38 @@ class JcpdsEditorController(QtCore.QObject):
 
         self.jcpds_widget.symmetry_cb.currentIndexChanged.connect(self.symmetry_changed)
 
-        self.jcpds_widget.lattice_a_sb.valueChanged.connect(self.lattice_a_changed)
-        self.jcpds_widget.lattice_b_sb.valueChanged.connect(self.lattice_b_changed)
-        self.jcpds_widget.lattice_c_sb.valueChanged.connect(self.lattice_c_changed)
+        #
+        # Lattice Parameter fields
+        self.jcpds_widget.lattice_a_sb.valueChanged.connect(partial(self.param_sb_changed,
+                                                                    widget=self.jcpds_widget.lattice_a_sb,
+                                                                    param='a0'))
+        self.jcpds_widget.lattice_b_sb.valueChanged.connect(partial(self.param_sb_changed,
+                                                                    widget=self.jcpds_widget.lattice_b_sb,
+                                                                    param='b0'))
+        self.jcpds_widget.lattice_c_sb.valueChanged.connect(partial(self.param_sb_changed,
+                                                                    widget=self.jcpds_widget.lattice_c_sb,
+                                                                    param='c0'))
 
         self.jcpds_widget.lattice_ab_sb.valueChanged.connect(self.lattice_ab_changed)
         self.jcpds_widget.lattice_ca_sb.valueChanged.connect(self.lattice_ca_changed)
         self.jcpds_widget.lattice_cb_sb.valueChanged.connect(self.lattice_cb_changed)
 
-        self.jcpds_widget.lattice_alpha_sb.valueChanged.connect(self.lattice_alpha_changed)
-        self.jcpds_widget.lattice_beta_sb.valueChanged.connect(self.lattice_beta_changed)
-        self.jcpds_widget.lattice_gamma_sb.valueChanged.connect(self.lattice_gamma_changed)
+        self.jcpds_widget.lattice_alpha_sb.valueChanged.connect(partial(self.param_sb_changed,
+                                                                        widget=self.jcpds_widget.lattice_alpha_sb,
+                                                                        param='alpha0'))
+        self.jcpds_widget.lattice_beta_sb.valueChanged.connect(partial(self.param_sb_changed,
+                                                                       widget=self.jcpds_widget.lattice_beta_sb,
+                                                                       param='beta0'))
+        self.jcpds_widget.lattice_gamma_sb.valueChanged.connect(partial(self.param_sb_changed,
+                                                                        widget=self.jcpds_widget.lattice_gamma_sb,
+                                                                        param='gamma0'))
 
         self.jcpds_widget.lattice_length_step_txt.editingFinished.connect(self.lattice_length_step_changed)
         self.jcpds_widget.lattice_angle_step_txt.editingFinished.connect(self.lattice_angle_step_changed)
         self.jcpds_widget.lattice_ratio_step_txt.editingFinished.connect(self.lattice_ratio_step_changed)
 
+
+        # EOS signals
         self.jcpds_widget.lattice_eos_z_txt.editingFinished.connect(self.lattice_eos_z_edited)
         self.jcpds_widget.eos_widget.param_edited_signal.connect(self.eos_param_edited)
         self.jcpds_widget.eos_widget.eos_type_edited_signal.connect(self.eos_type_edited)
@@ -185,68 +202,31 @@ class JcpdsEditorController(QtCore.QObject):
         self.phase_modified.emit()
 
     def symmetry_changed(self):
-        new_symmetry = str(self.jcpds_widget.symmetry_cb.currentText()).upper()
-        self.jcpds_phase.params['symmetry'] = new_symmetry
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
+        self.phase_model.set_param(self.phase_ind, 'symmetry',
+                                   str(self.jcpds_widget.symmetry_cb.currentText()).upper())
 
-    def lattice_a_changed(self):
-        self.jcpds_phase.params['a0'] = float(self.jcpds_widget.lattice_a_sb.value())
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
+    def param_sb_changed(self, widget, param):
+        self.phase_model.set_param(self.phase_ind, param, widget.value())
 
-    def lattice_b_changed(self):
-        self.jcpds_phase.params['b0'] = float(self.jcpds_widget.lattice_b_sb.value())
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
+    def param_txt_changed(self, widget, param):
+        self.phase_model.set_param(self.phase_ind, param, float(widget.text()))
 
-    def lattice_c_changed(self):
-        self.jcpds_phase.params['c0'] = float(self.jcpds_widget.lattice_c_sb.value())
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
 
     def lattice_ab_changed(self):
         ab_ratio = float(self.jcpds_widget.lattice_ab_sb.value())
-        self.jcpds_phase.params['a0'] = self.jcpds_phase.params['b0'] * ab_ratio
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
+        self.phase_model.set_param(self.phase_ind, 'a0',
+                                   self.jcpds_phase.params['b0'] * ab_ratio)
 
     def lattice_ca_changed(self):
         ca_ratio = float(self.jcpds_widget.lattice_ca_sb.value())
-        self.jcpds_phase.params['c0'] = self.jcpds_phase.params['a0'] * ca_ratio
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
+        self.phase_model.set_param(self.phase_ind, 'c0',
+                                   self.jcpds_phase.params['a0'] * ca_ratio)
 
     def lattice_cb_changed(self):
         cb_ratio = float(self.jcpds_widget.lattice_cb_sb.value())
-        self.jcpds_phase.params['c0'] = self.jcpds_phase.params['b0'] * cb_ratio
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
+        self.phase_model.set_param(self.phase_ind, 'c0',
+                                   self.jcpds_phase.params['b0'] * cb_ratio)
 
-    def lattice_alpha_changed(self):
-        self.jcpds_phase.params['alpha0'] = float(self.jcpds_widget.lattice_alpha_sb.value())
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
-
-    def lattice_beta_changed(self):
-        self.jcpds_phase.params['beta0'] = float(self.jcpds_widget.lattice_beta_sb.value())
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
-
-    def lattice_gamma_changed(self):
-        self.jcpds_phase.params['gamma0'] = float(self.jcpds_widget.lattice_gamma_sb.value())
-        self.update_view()
-        self.phase_modified.emit()
-        self.lattice_param_changed.emit()
 
     def lattice_length_step_changed(self):
         value = float(str(self.jcpds_widget.lattice_length_step_txt.text()))
@@ -290,15 +270,13 @@ class JcpdsEditorController(QtCore.QObject):
 
     def reflections_delete_btn_click(self):
         rows = self.jcpds_widget.get_selected_reflections()
-        if len(rows):
-
-            self.phase_model.delete_multiple_reflections(self.phase_ind, rows)
-            if self.jcpds_widget.reflection_table_model.rowCount() >= min(rows) + 1:
-                self.jcpds_widget.reflection_table_view.selectRow(min(rows))
-            else:
-                self.jcpds_widget.reflection_table_view.selectRow(
-                    self.jcpds_widget.reflection_table_model.rowCount() - 1)
-
+        self.phase_model.delete_multiple_reflections(self.phase_ind, rows)
+        if self.jcpds_widget.reflection_table_model.rowCount() >= min(rows) + 1:
+            self.jcpds_widget.reflection_table_view.selectRow(min(rows))
+        else:
+            self.jcpds_widget.reflection_table_view.selectRow(
+                self.jcpds_widget.reflection_table_model.rowCount() - 1)
+                
     def reflections_add_btn_click(self):
         self.phase_model.add_reflection(self.phase_ind)
         self.jcpds_widget.reflection_table_view.selectRow(self.jcpds_widget.reflection_table_model.rowCount() - 1)
@@ -414,9 +392,7 @@ class JcpdsEditorController(QtCore.QObject):
         self.phase_modified.emit()
         self.show_phase(self.jcpds_phase)
 
-    def show_view(self):
-        self.active = True
-        self.jcpds_widget.raise_widget()
+    
 
     def close_view(self):
         self.active = False
