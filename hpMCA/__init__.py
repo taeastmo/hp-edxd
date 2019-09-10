@@ -95,6 +95,6 @@ def main():
     # autoload a file, using for debugging
     controller.openFile(filename='resources/20181010-Au-wire-50um-15deg.000')
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Metals/au.jcpds'])
-    # window.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
+    controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
 
     return app.exec_()

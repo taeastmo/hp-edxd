@@ -286,6 +286,7 @@ class JcpdsEditorController(QtCore.QObject):
         self.jcpds_phase.set_EOS(params)
         
         self.phase_modified.emit()
+        self.update_view()
 
     def reflections_delete_btn_click(self):
         rows = self.jcpds_widget.get_selected_reflections()
