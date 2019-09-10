@@ -106,6 +106,19 @@ class PhaseModel(QtCore.QObject):
         for phase in self.phases:
             phase.compute_d(pressure=P)
 
+    def set_param(self, ind, param, value):
+        """
+        Sets one of the jcpds parameters for the phase with index ind to a certain value. Automatically emits the
+        phase_changed signal.
+        """
+
+        self.phases[ind].params[param] = value
+        self.phases[ind].compute_v0()
+        self.phases[ind].compute_d0()
+        self.phases[ind].compute_d()
+        self.get_lines_d(ind)
+        self.phase_changed.emit(ind)
+
     def get_lines_d(self, ind):
         reflections = self.phases[ind].get_reflections()
         res = np.zeros((len(reflections), 5))

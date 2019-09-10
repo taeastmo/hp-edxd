@@ -112,6 +112,8 @@ class JcpdsEditorController(QtCore.QObject):
 
         self.jcpds_widget.symmetry_cb.currentIndexChanged.connect(self.symmetry_changed)
 
+        
+
         #
         # Lattice Parameter fields
         self.jcpds_widget.lattice_a_sb.valueChanged.connect(partial(self.param_sb_changed,
@@ -393,10 +395,6 @@ class JcpdsEditorController(QtCore.QObject):
         self.show_phase(self.jcpds_phase)
 
     
-
-    def close_view(self):
-        self.active = False
-        self.jcpds_widget.close()
 
     def view_closed(self, _):
         self.close_view()

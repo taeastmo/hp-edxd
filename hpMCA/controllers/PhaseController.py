@@ -28,7 +28,7 @@ from hpMCA.controllers.JcpdsEditorController import JcpdsEditorController
 from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
 from hpMCA.models.PhaseModel import PhaseModel
 from hpMCA.widgets.PhaseWidget import PhaseWidget
-from hpMCA.widgets.PhaseWidget2 import PhaseWidget as  PhaseWidget2
+#from hpMCA.widgets.PhaseWidget2 import PhaseWidget as  PhaseWidget2
 import utilities.hpMCAutilities as mcaUtil
 
 # imports for type hinting in PyCharm -- DO NOT DELETE
@@ -70,7 +70,7 @@ class PhaseController(object):
         self.wavelength = 0.406626
         self.cif_conversion_dialog = CifConversionParametersDialog()
         self.phase_model = PhaseModel()
-        self.jcpds_editor_controller = JcpdsEditorController(self.phase_widget, phase_model=self.phase_model)
+        self.jcpds_editor_controller = JcpdsEditorController(None, phase_model=self.phase_model)
         self.phase_lw_items = []
         self.create_signals()
         self.update_temperature_step()
@@ -142,25 +142,6 @@ class PhaseController(object):
         
 
 
-        
-
-
-    def connect(self): 
-        self.model.phase_model.phase_added.connect(self.add_phase_plot)
-        self.model.phase_model.phase_removed.connect(self.pattern_widget.del_phase)
-
-        self.model.phase_model.phase_changed.connect(self.update_phase_lines)
-        self.model.phase_model.phase_changed.connect(self.update_phase_legend)
-        self.model.phase_model.phase_changed.connect(self.update_phase_color)
-        self.model.phase_model.phase_changed.connect(self.update_phase_visible)
-
-        self.model.phase_model.reflection_added.connect(self.reflection_added)
-        self.model.phase_model.reflection_deleted.connect(self.reflection_deleted)
-
-        # pattern signals
-        self.pattern_widget.view_box.sigRangeChangedManually.connect(self.update_all_phase_lines)
-        self.pattern_widget.pattern_plot.autoBtn.clicked.connect(self.update_all_phase_lines)
-        self.model.pattern_changed.connect(self.pattern_data_changed)
 
 
     def file_dragged_in(self,files):
@@ -207,7 +188,7 @@ class PhaseController(object):
         filenames = kwargs.get('filenames', None)
 
         if filenames is None:
-            filenames = open_files_dialog(self.phase_widget, "Load Phase(s).",
+            filenames = open_files_dialog(None, "Load Phase(s).",
                                           self.directories.phase )
 
             
@@ -216,7 +197,7 @@ class PhaseController(object):
             
             mcaUtil.save_folder_settings(self.directories)
             progress_dialog = QtWidgets.QProgressDialog("Loading multiple phases.", "Abort Loading", 0, len(filenames),
-                                                        self.phase_widget)
+                                                        None)
             progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
             progress_dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
             progress_dialog.show()
