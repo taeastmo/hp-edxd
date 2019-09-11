@@ -93,7 +93,7 @@ class MyDict(dict):
     def __setitem__(self, key, value):
         if key in ['comments', 'a0', 'b0', 'c0', 'alpha0', 'beta0', 'gamma0',
                    'symmetry', 'k0', 'k0p0', 'dk0dt', 'dk0pdt',
-                   'alpha_t0', 'd_alpha_dt', 'reflections']:
+                   'alpha_t0', 'd_alpha_dt', 'reflections', 'eos']:
             self.__setitem__('modified', True)
         super(MyDict, self).__setitem__(key, value)
 
