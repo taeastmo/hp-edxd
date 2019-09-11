@@ -155,4 +155,9 @@ class PhaseInPatternController(object):
     def reflection_deleted(self, phase_ind, reflection_ind):
         self.pattern_widget.phases[phase_ind].remove_line(reflection_ind)
 
-    
+    def get_unit(self):
+        """
+        returns the unit currently selected in the GUI
+                possible values: 'tth', 'q', 'd'
+        """
+        return self.unit
