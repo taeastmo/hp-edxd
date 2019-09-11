@@ -67,6 +67,12 @@ class PhaseInPatternController(object):
         #self.pattern_widget.pattern_plot.autoBtn.clicked.connect(self.update_all_phase_lines)
         self.plotController.dataPlotUpdated.connect(self.pattern_data_changed)
 
+        self.plotController.unitUpdated.connect(self.unit_updated)
+       
+
+    def unit_updated(self):
+        self.update_all_phase_lines()
+        self.pattern_data_changed()
     
     def add_phase_plot(self):
         """
