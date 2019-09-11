@@ -272,12 +272,13 @@ class JcpdsEditorController(QtCore.QObject):
 
     def reflections_delete_btn_click(self):
         rows = self.jcpds_widget.get_selected_reflections()
-        self.phase_model.delete_multiple_reflections(self.phase_ind, rows)
-        if self.jcpds_widget.reflection_table_model.rowCount() >= min(rows) + 1:
-            self.jcpds_widget.reflection_table_view.selectRow(min(rows))
-        else:
-            self.jcpds_widget.reflection_table_view.selectRow(
-                self.jcpds_widget.reflection_table_model.rowCount() - 1)
+        if len(rows):
+            self.phase_model.delete_multiple_reflections(self.phase_ind, rows)
+            if self.jcpds_widget.reflection_table_model.rowCount() >= min(rows) + 1:
+                self.jcpds_widget.reflection_table_view.selectRow(min(rows))
+            else:
+                self.jcpds_widget.reflection_table_view.selectRow(
+                    self.jcpds_widget.reflection_table_model.rowCount() - 1)
                 
     def reflections_add_btn_click(self):
         self.phase_model.add_reflection(self.phase_ind)
@@ -389,10 +390,7 @@ class JcpdsEditorController(QtCore.QObject):
         fp.close()
 
     def reload_file_btn_clicked(self):
-        self.jcpds_phase.reload_file()
-        self.canceled_editor.emit(self.jcpds_phase)
-        self.phase_modified.emit()
-        self.show_phase(self.jcpds_phase)
+        self.phase_model.reload(self.phase_ind)
 
     
 

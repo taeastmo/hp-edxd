@@ -397,11 +397,11 @@ class PltWidget(pg.PlotWidget):
 
     
 
-    def add_phase(self, name, positions, intensities, baseline):
+    def add_phase(self, name, positions, intensities, baseline, color):
         self.phases.append(PhasePlot(self.pattern_plot, \
                         self.phases_legend, positions, intensities, \
-                        name, baseline, line_width=2))
-        return self.phases[-1].color
+                        name, baseline, line_width=2,color=color))
+        
 
     def set_phase_color(self, ind, color):
         self.phases[ind].set_color(color)
