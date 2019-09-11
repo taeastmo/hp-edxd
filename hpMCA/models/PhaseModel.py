@@ -138,16 +138,44 @@ class PhaseModel(QtCore.QObject):
         self.phase_changed.emit(ind)
 
     def set_pressure(self, ind, pressure):
+        """
+        Sets the pressure of a phase with index ind. In case same_conditions is true, all phase pressures will be
+        updated.
+        """
+        if self.same_conditions:
+            for j in range(len(self.phases)):
+                self._set_pressure(j, pressure)
+                self.phase_changed.emit(j)
+        else:
+            self._set_pressure(ind, pressure)
+            self.phase_changed.emit(ind)
+
+    def _set_pressure(self, ind, pressure):
         self.phases[ind].compute_d(pressure=pressure)
         self.get_lines_d(ind)
 
     def set_temperature(self, ind, temperature):
-        self.phases[ind].compute_d(temperature=temperature)
-        self.get_lines_d(ind)
+        """
+        Sets the temperature of a phase with index ind. In case same_conditions is true, all phase temperatures will be
+        updated.
+        """
+        if self.same_conditions:
+            for j in range(len(self.phases)):
+                self._set_temperature(j, temperature)
+                self.phase_changed.emit(j)
+        else:
+            self._set_temperature(ind, temperature)
+            self.phase_changed.emit(ind)
+
+    def _set_temperature(self, ind, temperature):
+        if self.phases[ind].has_thermal_expansion():
+            self.phases[ind].compute_d(temperature=temperature)
+            self.get_lines_d(ind)
 
     def set_pressure_temperature(self, ind, pressure, temperature):
         self.phases[ind].compute_d(temperature=temperature, pressure=pressure)
         self.get_lines_d(ind)
+        self.phase_changed.emit(ind)
 
     def set_pressure_all(self, P):
         for phase in self.phases:
