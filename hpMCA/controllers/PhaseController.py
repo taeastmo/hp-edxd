@@ -98,9 +98,6 @@ class PhaseController(object):
         self.phase_widget.raise_widget()
 
     def create_signals(self):
-        
-        
-
         self.connect_click_function(self.phase_widget.add_btn, self.add_btn_click_callback)
         self.connect_click_function(self.phase_widget.delete_btn, self.remove_btn_click_callback)
         self.connect_click_function(self.phase_widget.clear_btn, self.clear_phases)
@@ -117,10 +114,8 @@ class PhaseController(object):
         self.phase_widget.pressure_sb.valueChanged.connect(self.pressure_sb_changed)
         self.phase_widget.temperature_sb.valueChanged.connect(self.temperature_sb_changed)
 
-        #self.phase_widget.show_in_pattern_cb.stateChanged.connect(self.update_phase_legend)
-
         self.phase_widget.phase_tw.currentCellChanged.connect(self.phase_selection_changed)
-        self.phase_widget.color_btn_clicked.connect(self.color_btn_clicked)
+        
         #self.phase_widget.show_cb_state_changed.connect(self.show_cb_state_changed)
 
         self.phase_widget.tth_lbl.valueChanged.connect(self.tth_changed)
@@ -128,7 +123,6 @@ class PhaseController(object):
 
         self.phase_widget.file_dragged_in.connect(self.file_dragged_in)
         
-
         # Color and State
         self.phase_widget.color_btn_clicked.connect(self.color_btn_clicked)
         self.phase_widget.show_cb_state_changed.connect(self.phase_model.set_phase_visible)
@@ -144,10 +138,7 @@ class PhaseController(object):
         
 
     def file_dragged_in(self,files):
-        
         self.add_btn_click_callback(filenames=files)
-
-    
 
     def JCPDS_roi_btn_clicked(self, index):
         # add rois based on selected JCPDS phase
@@ -166,7 +157,6 @@ class PhaseController(object):
             lbl = str(name + " " + reflection.get_hkl())
             rois.append({'channel':channel,'halfwidth':10, 'label':lbl, \
                            'name':name, 'hkl':reflection.get_hkl_list()})
-        
         self.roi_controller.addJCPDSReflections(rois, phase)
 
     
@@ -178,15 +168,11 @@ class PhaseController(object):
         Loads a new phase from jcpds file.
         :return:
         """
-        
-
         filenames = kwargs.get('filenames', None)
 
         if filenames is None:
             filenames = open_files_dialog(None, "Load Phase(s).",
                                           self.directories.phase )
-
-            
         if len(filenames):
             self.directories.phase = os.path.dirname(str(filenames[0]))
             progress_dialog = QtWidgets.QProgressDialog("Loading multiple phases.", "Abort Loading", 0, len(filenames),
@@ -200,9 +186,7 @@ class PhaseController(object):
                 progress_dialog.setValue(ind)
                 progress_dialog.setLabelText("Loading: " + os.path.basename(filename))
                 QtWidgets.QApplication.processEvents()
-
                 self._add_phase(filename)
-
                 if progress_dialog.wasCanceled():
                     break
             progress_dialog.close()
@@ -448,12 +432,11 @@ class PhaseController(object):
         previous_color = button.palette().color(1)
         new_color = QtWidgets.QColorDialog.getColor(previous_color, self.phase_widget)
         if new_color.isValid():
-            color = str(new_color.name())
+            color = new_color.toRgb()
         else:
-            color = str(previous_color.name())
-        self.pattern_widget.set_phase_color(ind, color)
-        #print(color)
-        button.setStyleSheet('background-color:' + color)
+            color = previous_color.toRgb()
+        self.phase_model.set_color(ind, (color.red(), color.green(), color.blue()))
+        button.setStyleSheet('background-color:' + str(color.name()))
 
     def apply_to_all_callback(self):
         self.phase_model.same_conditions = self.phase_widget.apply_to_all_cb.isChecked()

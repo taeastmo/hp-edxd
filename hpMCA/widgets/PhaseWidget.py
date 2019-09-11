@@ -78,7 +78,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self.pressure_step_msb = DoubleMultiplySpinBoxAlignRight()
         self.temperature_step_msb = DoubleMultiplySpinBoxAlignRight()
         self.apply_to_all_cb = QtWidgets.QCheckBox('Apply to all phases')
-        self.show_in_pattern_cb = QtWidgets.QCheckBox('Show in Pattern')
+        #self.show_in_pattern_cb = QtWidgets.QCheckBox('Show in Pattern')
         self.tth_lbl = DoubleSpinBoxAlignRight()
         
         self.tth_step = DoubleMultiplySpinBoxAlignRight()
@@ -98,7 +98,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self._parameter_layout.addWidget(self.temperature_step_msb, 2, 3)
 
         self._parameter_layout.addWidget(self.apply_to_all_cb, 3, 0, 1, 5)
-        self._parameter_layout.addWidget(self.show_in_pattern_cb, 4, 0, 1, 5)
+        #self._parameter_layout.addWidget(self.show_in_pattern_cb, 4, 0, 1, 5)
         self._parameter_layout.addWidget(HorizontalLine(),5,0,1,5)
         self._parameter_layout.addItem(VerticalSpacerItem(), 6, 0)
         self._parameter_layout.addWidget(HorizontalLine(),7,0,1,5)
@@ -180,7 +180,7 @@ class PhaseWidget(QtWidgets.QWidget):
         """)
 
         self.apply_to_all_cb.setChecked(True)
-        self.show_in_pattern_cb.setChecked(True)
+        
 
     # ###############################################################################################
     # Now comes all the phase tw stuff
