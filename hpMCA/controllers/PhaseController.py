@@ -114,8 +114,10 @@ class PhaseController(object):
         self.phase_widget.pressure_step_msb.editingFinished.connect(self.update_pressure_step)
         self.phase_widget.temperature_step_msb.editingFinished.connect(self.update_temperature_step)
 
-        self.phase_widget.pressure_sb.valueChanged.connect(self.pressure_sb_changed)
-        self.phase_widget.temperature_sb.valueChanged.connect(self.temperature_sb_changed)
+        
+
+        self.phase_widget.pressure_sb_value_changed.connect(self.phase_model.set_pressure)
+        self.phase_widget.temperature_sb_value_changed.connect(self.phase_model.set_temperature)
 
         #self.phase_widget.show_in_pattern_cb.stateChanged.connect(self.update_phase_legend)
 
@@ -365,53 +367,7 @@ class PhaseController(object):
         value = self.phase_widget.temperature_step_msb.value()
         self.phase_widget.temperature_sb.setSingleStep(value)
 
-    def pressure_sb_changed(self, val):
-        """
-        Called when pressure spinbox emits a new value. Calculates the appropriate EOS values and updates line
-        positions and intensities.
-        """
-        if self.phase_widget.apply_to_all_cb.isChecked():
-            for ind in range(len(self.phase_model.phases)):
-                self.phase_model.set_pressure(ind, np.float(val))
-                self.phase_widget.set_phase_pressure(ind, val)
-            self.phase_in_pattern_controller.update_all_phase_lines()
-
-        else:
-            cur_ind = self.phase_widget.get_selected_phase_row()
-            self.phase_model.set_pressure(cur_ind, np.float(val))
-            self.phase_widget.set_phase_pressure(cur_ind, val)
-            self.phase_in_pattern_controller.update_phase_lines(cur_ind)
-
-        #self.update_phase_legend()
-        self.update_jcpds_editor()
-
-    def temperature_sb_changed(self, val):
-        """
-        Called when temperature spinbox emits a new value. Calculates the appropriate EOS values and updates line
-        positions and intensities.
-        """
-        if self.phase_widget.apply_to_all_cb.isChecked():
-            for ind in range(len(self.phase_model.phases)):
-                self.update_temperature(ind, val)
-            self.phase_in_pattern_controller.update_all_phase_lines()
-
-        else:
-            cur_ind = self.phase_widget.get_selected_phase_row()
-            self.update_temperature(cur_ind, val)
-            self.phase_in_pattern_controller.update_phase_lines(cur_ind)
-        
-        self.update_jcpds_editor()
-
-    def update_temperature(self, ind, val):
-        if self.phase_model.phases[ind].has_thermal_expansion():
-            self.phase_model.set_temperature(ind, np.float(val))
-            self.phase_widget.set_phase_temperature(ind, val)
-        else:
-            self.phase_model.set_temperature(ind, 298)
-            self.phase_widget.set_phase_temperature(ind, '-')
-        
-
-                
+    
 
     def phase_selection_changed(self, row, col, prev_row, prev_col):
         cur_ind = row

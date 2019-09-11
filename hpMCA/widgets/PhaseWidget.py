@@ -38,6 +38,9 @@ class PhaseWidget(QtWidgets.QWidget):
     show_cb_state_changed = QtCore.pyqtSignal(int, bool)
     file_dragged_in = QtCore.pyqtSignal(list)
 
+    pressure_sb_value_changed = QtCore.Signal(int, float)
+    temperature_sb_value_changed = QtCore.Signal(int, float)
+
     def __init__(self):
         super(PhaseWidget, self).__init__()
         
@@ -98,7 +101,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self._parameter_layout.addWidget(self.temperature_step_msb, 2, 3)
 
         self._parameter_layout.addWidget(self.apply_to_all_cb, 3, 0, 1, 5)
-        self._parameter_layout.addWidget(self.show_in_pattern_cb, 4, 0, 1, 5)
+        #self._parameter_layout.addWidget(self.show_in_pattern_cb, 4, 0, 1, 5)
         self._parameter_layout.addWidget(HorizontalLine(),5,0,1,5)
         self._parameter_layout.addItem(VerticalSpacerItem(), 6, 0)
         self._parameter_layout.addWidget(HorizontalLine(),7,0,1,5)
@@ -124,7 +127,7 @@ class PhaseWidget(QtWidgets.QWidget):
 
         self.phase_show_cbs = []
         self.phase_color_btns = []
-        self.phase_roi_btns = [] #add ROIs (RH)
+        #self.phase_roi_btns = [] #add ROIs (RH)
         self.show_parameter_in_pattern = True
         header_view = QtWidgets.QHeaderView(QtCore.Qt.Horizontal, self.phase_tw)
         self.phase_tw.setHorizontalHeader(header_view)
@@ -135,8 +138,22 @@ class PhaseWidget(QtWidgets.QWidget):
         header_view.setResizeMode(4, QtWidgets.QHeaderView.ResizeToContents)
         header_view.hide()
         self.phase_tw.setItemDelegate(NoRectDelegate())
+
+        self.pressure_sb.valueChanged.connect(self.pressure_sb_changed)
+        self.temperature_sb.valueChanged.connect(self.temperature_sb_changed)
+
      
         self.setAcceptDrops(True) 
+
+    def pressure_sb_changed(self):
+        cur_ind = self.get_selected_phase_row()
+        pressure = self.pressure_sb.value()
+        self.pressure_sb_value_changed.emit(cur_ind, pressure)
+
+    def temperature_sb_changed(self):
+        cur_ind = self.get_selected_phase_row()
+        temperature = self.temperature_sb.value()
+        self.temperature_sb_value_changed.emit(cur_ind, temperature)
 
     def style_widgets(self):
         self.phase_tw.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
