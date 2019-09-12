@@ -181,6 +181,7 @@ class EosGroupbox(QtWidgets.QWidget):
             layout.addWidget(QtWidgets.QLabel(unit), x, y + 2)
 
     def setEOSparams(self, params):
+        self.blockSignals(True)
         eos = params['equation_of_state']
         if self.equation_of_state != eos:
             if eos in self.EOS_widgets:
@@ -196,6 +197,7 @@ class EosGroupbox(QtWidgets.QWidget):
                 if key in self.scales:
                     param = param / self.scales[key]
                 fields[key].setText(str(param))
+        self.blockSignals(False)
 
 
 class JcpdsEditorWidget(QtWidgets.QWidget):
