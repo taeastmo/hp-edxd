@@ -25,6 +25,8 @@ from hpMCA.controllers.hklGenController import hklGenController
 import utilities.hpMCAutilities as mcaUtil
 from utilities.HelperModule import increment_filename
 
+from epics import PV
+
 Theme = 1   # app style 0=windows 1=dark 
 
 class hpMCA(QObject):
@@ -40,7 +42,8 @@ class hpMCA(QObject):
         self.make_prefs_menu()  # for mac
         self.displayPrefs = DisplayPreferences(self.widget.pg)
 
-        
+        self.McaFilename = PV('16BMB:McaFilename')
+                    
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
@@ -276,6 +279,7 @@ class hpMCA(QObject):
                         self.mca.acqOn()
                     elif acquiring == 0:
                         self.mca.acqOff()
+                    self.update_titlebar()
             else:
                 self.mca = mcaTemp
                 mcaUtil.displayErrorMessage( 'init')
@@ -332,7 +336,9 @@ class hpMCA(QObject):
                 fileout, success = self.mca.write_file(
                     file=filename, netcdf=0)
                 if success:
-                    self.update_titlebar()
+                    #self.update_titlebar()
+                    self.update_epics_filename()
+                    
                     self.working_directories.savedata = os.path.dirname(
                         str(fileout))  # working directory xrd files
                     mcaUtil.save_folder_settings(self.working_directories)
@@ -348,6 +354,11 @@ class hpMCA(QObject):
                     mcaUtil.displayErrorMessage('fs')
             else:
                 mcaUtil.displayErrorMessage('fs')
+
+    def update_epics_filename(self):
+        if self.mca != None:
+            name = self.mca.get_name_base()
+            self.McaFilename.put(name)
 
     def openFile(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
@@ -392,7 +403,7 @@ class hpMCA(QObject):
     ########################################################################################
 
     def update_titlebar(self):
-        name = self.mca.get_name_base()
+        name = self.mca.name
         if name != '':
             name += ' - '
         self.widget.setWindowTitle(name + u'hpMCA')

@@ -102,9 +102,12 @@ class MCA():  #
         return self.name
 
     def get_name_base(self):
-        name = os.path.basename(self.get_name())
+        name = os.path.basename(self.file_name)
         
         return name
+
+
+    
 
     ########################################################################
     def set_name(self, name):

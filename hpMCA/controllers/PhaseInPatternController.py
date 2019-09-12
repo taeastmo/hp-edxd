@@ -18,12 +18,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from ....model.util.calc import convert_units
-from ....model.util.HelperModule import get_partial_index
+from utilities.calc import convert_units
+from utilities.HelperModule import get_partial_index
 
 # imports for type hinting in PyCharm -- DO NOT DELETE
-from ....model.DioptasModel import DioptasModel
-from ....widgets.integration import IntegrationWidget
+#from ....model.DioptasModel import DioptasModel
+#from ....widgets.integration import IntegrationWidget
 
 
 class PhaseInPatternController(object):
@@ -31,7 +31,7 @@ class PhaseInPatternController(object):
     PhaseInPatternController handles all the interaction between the phases and the pattern view.
     """
 
-    def __init__(self, integration_widget, dioptas_model):
+    def __init__(self, plotController, phaseController,  pattern_widget, phase_model):
         """
         :param integration_widget: Reference to an IntegrationWidget
         :param dioptas_model: reference to DioptasModel object
@@ -39,48 +39,68 @@ class PhaseInPatternController(object):
         :type integration_widget: IntegrationWidget
         :type dioptas_model: DioptasModel
         """
-        self.model = dioptas_model
-        self.integration_widget = integration_widget
-        self.pattern_widget = integration_widget.pattern_widget
+        self.phase_controller = phaseController
+        self.plotController  = plotController
+        self.phase_model = phase_model
+        #self.integration_widget = integration_widget
+        self.pattern_widget = pattern_widget
+        self.wavelength = 0.406626
+        self.unit = self.plotController.get_unit()
+        self.tth = self.phase_controller.getTth()
 
         self.connect()
 
     def connect(self):
-        self.model.phase_model.phase_added.connect(self.add_phase_plot)
-        self.model.phase_model.phase_removed.connect(self.pattern_widget.del_phase)
+        self.phase_model.phase_added.connect(self.add_phase_plot)
+        self.phase_model.phase_removed.connect(self.pattern_widget.del_phase)
 
-        self.model.phase_model.phase_changed.connect(self.update_phase_lines)
-        self.model.phase_model.phase_changed.connect(self.update_phase_legend)
-        self.model.phase_model.phase_changed.connect(self.update_phase_color)
-        self.model.phase_model.phase_changed.connect(self.update_phase_visible)
+        self.phase_model.phase_changed.connect(self.update_phase_lines)
+        self.phase_model.phase_changed.connect(self.update_phase_legend)
+        self.phase_model.phase_changed.connect(self.update_phase_color)
+        self.phase_model.phase_changed.connect(self.update_phase_visible)
 
-        self.model.phase_model.reflection_added.connect(self.reflection_added)
-        self.model.phase_model.reflection_deleted.connect(self.reflection_deleted)
+        self.phase_model.reflection_added.connect(self.reflection_added)
+        self.phase_model.reflection_deleted.connect(self.reflection_deleted)
 
         # pattern signals
-        self.pattern_widget.view_box.sigRangeChangedManually.connect(self.update_all_phase_lines)
-        self.pattern_widget.pattern_plot.autoBtn.clicked.connect(self.update_all_phase_lines)
-        self.model.pattern_changed.connect(self.pattern_data_changed)
+        #self.pattern_widget.view_box.sigRangeChangedManually.connect(self.update_all_phase_lines)
+        #self.pattern_widget.pattern_plot.autoBtn.clicked.connect(self.update_all_phase_lines)
+        self.plotController.dataPlotUpdated.connect(self.pattern_data_changed)
 
+        self.plotController.unitUpdated.connect(self.unit_updated_callback)
+       
+
+    def unit_updated_callback(self):
+        self.update_all_phase_lines()
+        self.pattern_data_changed()
+
+    def tth_update(self, tth):
+        self.tth = tth
+        self.update_all_phase_lines()
+        self.pattern_data_changed()
+    
     def add_phase_plot(self):
         """
         Adds a phase to the Pattern Plot
         """
-        axis_range = self.pattern_widget.pattern_plot.viewRange()
+        axis_range = self.plotController.getRange()
         x_range = axis_range[0]
         y_range = axis_range[1]
+        self.unit = self.plotController.get_unit()
+        
         positions, intensities, baseline = \
-            self.model.phase_model.get_rescaled_reflections(
-                -1, self.model.pattern,
+           self.phase_model.get_rescaled_reflections(
+                -1, 'pattern_placeholder_var',
                 x_range, y_range,
-                self.model.calibration_model.wavelength * 1e10,
-                self.get_unit())
+                self.wavelength,
+                self.unit,
+                tth=self.tth)
 
-        self.pattern_widget.add_phase(self.model.phase_model.phases[-1].name,
+        self.pattern_widget.add_phase(self.phase_model.phases[-1].name,
                                       positions,
                                       intensities,
                                       baseline,
-                                      self.model.phase_model.phase_colors[-1])
+                                      self.phase_model.phase_colors[-1])
 
     def update_phase_lines(self, ind, axis_range=None):
         """
@@ -89,21 +109,24 @@ class PhaseInPatternController(object):
         :param axis_range: list/tuple of visible x_range and y_range -- ((x_min, x_max), (y_min, y_max))
         """
         if axis_range is None:
-            axis_range = self.pattern_widget.view_box.viewRange()
+            axis_range = self.plotController.getRange()
 
         x_range = axis_range[0]
         y_range = axis_range[1]
-        positions, intensities, baseline = self.model.phase_model.get_rescaled_reflections(
-            ind, self.model.pattern,
+        self.unit = self.plotController.get_unit()
+        
+        positions, intensities, baseline = self.phase_model.get_rescaled_reflections(
+            ind, 'pattern_placeholder_var',
             x_range, y_range,
-            self.model.calibration_model.wavelength * 1e10,
-            self.get_unit()
+            self.wavelength,
+            self.unit,
+            tth=self.tth
         )
 
         self.pattern_widget.update_phase_intensities(ind, positions, intensities, y_range[0])
 
     def update_all_phase_lines(self):
-        for ind in range(len(self.model.phase_model.phases)):
+        for ind in range(len(self.phase_model.phases)):
             self.update_phase_lines(ind)
 
     def pattern_data_changed(self):
@@ -113,10 +136,10 @@ class PhaseInPatternController(object):
         self.pattern_widget.update_phase_line_visibilities()
 
     def update_phase_legend(self, ind):
-        name = self.model.phase_model.phases[ind].name
+        name = self.phase_model.phases[ind].name
         parameter_str = ''
-        pressure = self.model.phase_model.phases[ind].params['pressure']
-        temperature = self.model.phase_model.phases[ind].params['temperature']
+        pressure = self.phase_model.phases[ind].params['pressure']
+        temperature = self.phase_model.phases[ind].params['temperature']
         if pressure != 0:
             parameter_str += '{:0.2f} GPa '.format(pressure)
         if temperature != 0 and temperature != 298 and temperature is not None:
@@ -124,10 +147,10 @@ class PhaseInPatternController(object):
         self.pattern_widget.rename_phase(ind, parameter_str + name)
 
     def update_phase_color(self, ind):
-        self.pattern_widget.set_phase_color(ind, self.model.phase_model.phase_colors[ind])
+        self.pattern_widget.set_phase_color(ind, self.phase_model.phase_colors[ind])
 
     def update_phase_visible(self, ind):
-        if self.model.phase_model.phase_visible[ind]:
+        if self.phase_model.phase_visible[ind]:
             self.pattern_widget.show_phase(ind)
         else:
             self.pattern_widget.hide_phase(ind)
@@ -137,16 +160,11 @@ class PhaseInPatternController(object):
         self.update_phase_lines(ind)
 
     def reflection_deleted(self, phase_ind, reflection_ind):
-        self.pattern_widget.phases[phase_ind].delete_line(reflection_ind)
+        self.pattern_widget.phases[phase_ind].remove_line(reflection_ind)
 
     def get_unit(self):
         """
         returns the unit currently selected in the GUI
                 possible values: 'tth', 'q', 'd'
         """
-        if self.integration_widget.pattern_tth_btn.isChecked():
-            return 'tth'
-        elif self.integration_widget.pattern_q_btn.isChecked():
-            return 'q'
-        elif self.integration_widget.pattern_d_btn.isChecked():
-            return 'd'
+        return self.unit

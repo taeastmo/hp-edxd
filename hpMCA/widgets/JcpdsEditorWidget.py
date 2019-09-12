@@ -342,7 +342,7 @@ class JcpdsEditorWidget(QtWidgets.QWidget):
         self.setLayout(self._layout)
 
         self.style_widgets()
-        #self.show()
+        
 
     def style_widgets(self):
         self.lattice_angle_step_txt.setMaximumWidth(60)
@@ -367,12 +367,16 @@ class JcpdsEditorWidget(QtWidgets.QWidget):
         self.reflection_table_view.verticalHeader().setResizeMode(QtWidgets.QHeaderView.Fixed)
 
         self.setWindowFlags(QtCore.Qt.Tool)
-        self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow)
+        #self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow)
         
+
+    def close(self, *args, **kwargs):
+
+        super().close()
 
     def raise_widget(self):
         self.show()
-        #self.setWindowState(self.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
+        self.setWindowState(self.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
         self.activateWindow()
         self.raise_()
 

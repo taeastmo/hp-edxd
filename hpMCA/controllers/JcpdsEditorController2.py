@@ -85,8 +85,6 @@ class JcpdsEditorController(QtCore.QObject):
         self.phase_widget.edit_btn.clicked.connect(self.edit_btn_callback)
         self.phase_widget.phase_tw.currentCellChanged.connect(self.phase_selection_changed)
 
-        
-
         # Information fields
         self.jcpds_widget.comments_txt.editingFinished.connect(self.comments_changed)
         self.jcpds_widget.symmetry_cb.currentIndexChanged.connect(self.symmetry_changed)
@@ -284,8 +282,6 @@ class JcpdsEditorController(QtCore.QObject):
             QtWidgets.QApplication.clipboard().setText(res)
         elif key_press_event == QtGui.QKeySequence.SelectAll:
             self.jcpds_widget.reflection_table_view.selectAll()
-
-            
 
     def reflection_table_scrolled(self):
         self.jcpds_widget.reflection_table_view.resizeColumnsToContents()

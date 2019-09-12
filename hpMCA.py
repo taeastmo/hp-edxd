@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 # TODO :
+# jcpds editing eos updates plot
+
 # move to param based settings scheme like in aEDXD
 # look at roi and xrd cursor plotting, it seems it's triggering re-draw multiple times
 # cellgen
