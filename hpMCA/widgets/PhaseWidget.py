@@ -85,6 +85,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self.tth_lbl = DoubleSpinBoxAlignRight()
         
         self.tth_step = DoubleMultiplySpinBoxAlignRight()
+
         self.get_tth_btn = QtWidgets.QPushButton('Get')
         
 
@@ -187,8 +188,9 @@ class PhaseWidget(QtWidgets.QWidget):
         self.tth_lbl.setMinimum(1)
         self.tth_lbl.setDecimals(5)
         self.tth_step.setMaximum(180)
-        self.tth_step.setMinimum(0.01)
+        self.tth_step.setMinimum(0.001)
         self.tth_step.setValue(1)
+        self.tth_step.setDecimals(3)
 
         self.setStyleSheet("""
             #phase_control_button_widget QPushButton {

@@ -2,7 +2,6 @@
 
 # TODO :
 # jcpds editing eos updates plot
-# editing 2th angle enabled
 
 # move to param based settings scheme like in aEDXD
 # look at roi and xrd cursor plotting, it seems it's triggering re-draw multiple times
