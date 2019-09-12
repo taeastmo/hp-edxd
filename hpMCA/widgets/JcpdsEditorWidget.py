@@ -394,7 +394,7 @@ class JcpdsEditorWidget(QtWidgets.QWidget):
                                                            wavelength)
 
 
-
+    # jcpds V5
     def update_eos_parameters(self, jcpds_phase):
         if 'eos' in jcpds_phase.params and 'z' in jcpds_phase.params:
             self.eos_widget.setEOSparams(jcpds_phase.params['eos'])
