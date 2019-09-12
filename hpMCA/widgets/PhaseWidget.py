@@ -106,7 +106,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self._parameter_layout.addWidget(HorizontalLine(),5,0,1,5)
         self._parameter_layout.addItem(VerticalSpacerItem(), 6, 0)
         self._parameter_layout.addWidget(HorizontalLine(),7,0,1,5)
-        self._parameter_layout.addWidget(QtWidgets.QLabel('2th: '), 8, 0)
+        self._parameter_layout.addWidget(QtWidgets.QLabel(u'2θ:'), 8, 0)
         self._parameter_layout.addWidget(self.tth_lbl, 8, 1)
         self._parameter_layout.addWidget(QtWidgets.QLabel('deg'), 8, 2)
         self._parameter_layout.addWidget(self.tth_step, 8, 3)

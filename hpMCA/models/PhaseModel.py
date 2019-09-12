@@ -16,12 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-""" Modifications:
+""" 
+Modifications:
     October 9, 2018 Ross Hrubiak
         - modified from Dioptas PhaseModel.py v 0.4.0 by Clemens Prescher
-        - made the module standalone, can be used outside of Dioptas
+        - made more standalone, can be used outside of Dioptas
             (removed references to integration, pattern, calibration and possibly other stuff)
-        - compatibility with EDXRD
+        - changed get_phase_line_positions and get_rescaled_reflections for EDXD
+        - compatibile with hpMCA
+        
+    October 11, 2019 Ross Hrubiak
+        - pulled most updates from from Dioptas PhaseModel.py v 0.5.0
+        - added jcpds V5 support: set_eos_type and set_eos_params methods
 
 """
 
@@ -181,6 +187,8 @@ class PhaseModel(QtCore.QObject):
         for phase in self.phases:
             phase.compute_d(pressure=P)
 
+    
+
     def set_param(self, ind, param, value):
         """
         Sets one of the jcpds parameters for the phase with index ind to a certain value. Automatically emits the
@@ -246,7 +254,6 @@ class PhaseModel(QtCore.QObject):
         
 
     def get_phase_line_intensities(self, ind, positions, pattern, x_range, y_range):
-        
         
         max_pattern_intensity = y_range[1]
 
@@ -329,3 +336,29 @@ class PhaseModel(QtCore.QObject):
         """
         for ind in range(len(self.phases)):
             self.del_phase(0)
+
+
+    # jcpds V5 stuff
+
+    def set_eos_params(self, ind, params):
+        phase = self.phases[ind]
+        eos = phase.params['eos']
+        eos_type = eos['equation_of_state']
+        for key in params:
+            if key in eos:
+                phase.set_eos_param(eos_type, key, float(str(params[key])))
+        self.phases[ind].compute_v0()
+        self.phases[ind].compute_d0()
+        self.phases[ind].compute_d()
+        self.get_lines_d(ind)
+        self.phase_changed.emit(ind)
+
+
+    def set_eos_type(self, ind, params):
+        phase = self.phases[ind]
+        phase.set_EOS(params)
+        self.phases[ind].compute_v0()
+        self.phases[ind].compute_d0()
+        self.phases[ind].compute_d()
+        self.get_lines_d(ind)
+        self.phase_changed.emit(ind)

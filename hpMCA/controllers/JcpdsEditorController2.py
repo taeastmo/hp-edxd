@@ -283,8 +283,6 @@ class JcpdsEditorController(QtCore.QObject):
         elif key_press_event == QtGui.QKeySequence.SelectAll:
             self.jcpds_widget.reflection_table_view.selectAll()
 
-            
-
     def reflection_table_scrolled(self):
         self.jcpds_widget.reflection_table_view.resizeColumnsToContents()
 
