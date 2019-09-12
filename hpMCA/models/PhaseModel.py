@@ -340,6 +340,15 @@ class PhaseModel(QtCore.QObject):
 
     # jcpds V5 stuff
 
+    def set_z(self, ind, z):
+        phase = self.phases[ind]
+        phase.set_z(z)
+        self.phases[ind].compute_v0()
+        self.phases[ind].compute_d0()
+        self.phases[ind].compute_d()
+        self.get_lines_d(ind)
+        self.phase_changed.emit(ind)
+
     def set_eos_params(self, ind, params):
         phase = self.phases[ind]
         eos = phase.params['eos']

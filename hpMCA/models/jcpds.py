@@ -114,7 +114,6 @@ class jcpds(object):
         self.params['alpha_t0'] = 0.  # alphat at 298K
         self.params['alpha_t'] = 0.  # alphat at high temp.
         self.params['d_alpha_dt'] = 0.
-        self.params['eos'] = {}
         self.params['vm'] = 0. # molar volume 
         self.params['a0'] = 0.
         self.params['b0'] = 0.
@@ -136,7 +135,8 @@ class jcpds(object):
         
         # jcpds V5 stuff
         self.params['z'] = None
-        self.EOS = {}
+        self.params['eos'] = {} # current eos params
+        self.EOS = {} # placeholder for different types of eos
         self.jcpds4_params_template = {'equation_of_state':'jcpds4',
                                         'V_0':0, 
                                         'K_0':0, 
@@ -610,46 +610,17 @@ class jcpds(object):
         if temperature == 0: temperature = 298.
         # Compute values of K0, K0P and alphat at this temperature
         
-        if self.has_EOS():
-            try:
-                volume_m = self.volume_calc(pressure*1e9,temperature,self.params['eos'])
-                volume = self.Vm_to_V(volume_m)
-                self.params['vm'] = volume_m 
-            except:
-                volume = self.params['v0']
-        else:
-            volume = self.volume_calc(pressure,temperature)
-        self.params['v'] = volume
-
-    '''
-    def old_volume_calc(self, pressure, temperature):
-        volume = self.params['v0']
+        
         try:
-            self.params['alpha_t'] = self.params['alpha_t0'] + self.params['d_alpha_dt'] * (temperature - 298.)
-            self.params['k0p'] = self.params['k0p0'] + self.params['dk0pdt'] * (temperature - 298.)
-
-            if pressure == 0.:
-                volume = self.params['v0'] * (1 + self.params['alpha_t'] * (temperature - 298.))
-            if pressure < 0:
-                if self.params['k0'] <= 0.:
-                    logger.info('K0 is zero, computing zero pressure volume')
-                    volume = self.params['v0']
-                else:
-                    volume = self.params['v0'] * (1 - pressure / self.params['k0'])
-            else:
-                if self.params['k0'] <= 0.:
-                    logger.info('K0 is zero, computing zero pressure volume')
-                    volume = self.params['v0']
-                else:
-                    self.mod_pressure = pressure - \
-                                        self.params['alpha_t'] * self.params['k0'] * (temperature - 298.)
-                    res = minimize(self.bm3_inverse, 1.)
-                    volume = self.params['v0'] / np.float(res.x)
+            volume_m = self.volume_calc(pressure*1e9,temperature,self.params['eos'])
+            volume = self.Vm_to_V(volume_m)
+            self.params['vm'] = volume_m 
         except:
             volume = self.params['v0']
-            logger.info('unknown volume calculation error, computing zero pressure volume')
-        return volume
-    '''
+        
+        self.params['v'] = volume
+
+    
 
     def compute_pressure(self, volume=None, temperature=None):
 
@@ -669,49 +640,7 @@ class jcpds(object):
             P = self.pressure_calc(volume,temperature)
         self.params['pressure'] = P
 
-    '''
-    def old_pressure_calc(self, volume, temperature):
-        v0 = self.params['v0']
-        v_over_v0 = volume/v0
-        v0_v = 1/v_over_v0
-        P = 1.5 * self.params['k0'] * (v0_v ** (7. / 3.) - v0_v ** (5. / 3.)) * \
-                (1 + 0.75 * (self.params['k0p'] - 4.) * (v0_v ** (2. / 3.) - 1.0))
-        return P
-    '''
-    '''
-    def bm3_inverse(self, v0_v):
-        """
-        Returns the value of the third order Birch-Murnaghan equation minus
-        pressure.  It is used to solve for V0/V for a given
-           P, K0 and K0'.
-
-        Inputs:
-           v0_v:   The ratio of the zero pressure volume to the high pressure
-                   volume
-        Outputs:
-           This function returns the value of the third order Birch-Murnaghan
-           equation minus pressure.  \
-
-        Procedure:
-           This procedure simply computes the pressure using V0/V, K0 and K0',
-           and then subtracts the input pressure.
-
-        Example:
-           Compute the difference of the calculated pressure and 100 GPa for
-           V0/V=1.3 for alumina
-           jcpds = obj_new('JCPDS')
-           jcpds->read_file,  'alumina.jcpds'
-           common bm3_common mod_pressure, k0, k0p
-           mod_pressure=100
-           k0 = 100
-           k0p = 4.
-           diff = jcpds_bm3_inverse(1.3)
-        """
-
-        return (1.5 * self.params['k0'] * (v0_v ** (7. / 3.) - v0_v ** (5. / 3.)) *
-                (1 + 0.75 * (self.params['k0p'] - 4.) * (v0_v ** (2. / 3.) - 1.0)) -
-                self.mod_pressure) ** 2
-    '''
+    
 
     def compute_d0(self):
         """
@@ -954,9 +883,6 @@ class jcpds(object):
                 or (self.params['d_alpha_dt'] != 0)
 
     # jcpds V5 
-    # Note: params['eos'] values are in SI units, i.e. Pa, not GPa
-    
-
     def set_EOS(self, params):
         
         eos = params['equation_of_state']
@@ -1064,7 +990,6 @@ class jcpds(object):
     def V_to_Vm(self, V):
         Vm = V/self.params['z']*6.02214076e-7
         return Vm
-
 
 def repair_dict( d):
     d_new = {}

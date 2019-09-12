@@ -125,10 +125,7 @@ class JcpdsEditorController(QtCore.QObject):
 
         # EOS signals
         
-        self.jcpds_widget.lattice_eos_z_txt.editingFinished.connect(partial(self.param_sb_changed,
-                                                                    widget=self.jcpds_widget.lattice_eos_z_txt,
-                                                                    param='z'))
-
+        self.jcpds_widget.lattice_eos_z_txt.editingFinished.connect(self.z_edited)
         self.jcpds_widget.eos_widget.eos_type_edited_signal.connect(self.eos_type_edited)
         self.jcpds_widget.eos_widget.param_edited_signal.connect(self.eos_param_edited)
 
@@ -356,6 +353,11 @@ class JcpdsEditorController(QtCore.QObject):
 
 
     # jcpds 5 stuff
+
+    def z_edited(self):
+        z = float(str(self.jcpds_widget.lattice_eos_z_txt.text()))
+        self.phase_model.set_z(self.phase_ind, z)
+
     def eos_param_edited(self, params):
         self.phase_model.set_eos_params(self.phase_ind, params)
 
