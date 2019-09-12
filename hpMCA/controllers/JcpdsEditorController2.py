@@ -85,8 +85,6 @@ class JcpdsEditorController(QtCore.QObject):
         self.phase_widget.edit_btn.clicked.connect(self.edit_btn_callback)
         self.phase_widget.phase_tw.currentCellChanged.connect(self.phase_selection_changed)
 
-        
-
         # Information fields
         self.jcpds_widget.comments_txt.editingFinished.connect(self.comments_changed)
         self.jcpds_widget.symmetry_cb.currentIndexChanged.connect(self.symmetry_changed)

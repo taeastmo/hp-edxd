@@ -67,10 +67,15 @@ class PhaseInPatternController(object):
         #self.pattern_widget.pattern_plot.autoBtn.clicked.connect(self.update_all_phase_lines)
         self.plotController.dataPlotUpdated.connect(self.pattern_data_changed)
 
-        self.plotController.unitUpdated.connect(self.unit_updated)
+        self.plotController.unitUpdated.connect(self.unit_updated_callback)
        
 
-    def unit_updated(self):
+    def unit_updated_callback(self):
+        self.update_all_phase_lines()
+        self.pattern_data_changed()
+
+    def tth_update(self, tth):
+        self.tth = tth
         self.update_all_phase_lines()
         self.pattern_data_changed()
     
@@ -82,6 +87,7 @@ class PhaseInPatternController(object):
         x_range = axis_range[0]
         y_range = axis_range[1]
         self.unit = self.plotController.get_unit()
+        
         positions, intensities, baseline = \
            self.phase_model.get_rescaled_reflections(
                 -1, 'pattern_placeholder_var',
@@ -108,6 +114,7 @@ class PhaseInPatternController(object):
         x_range = axis_range[0]
         y_range = axis_range[1]
         self.unit = self.plotController.get_unit()
+        
         positions, intensities, baseline = self.phase_model.get_rescaled_reflections(
             ind, 'pattern_placeholder_var',
             x_range, y_range,

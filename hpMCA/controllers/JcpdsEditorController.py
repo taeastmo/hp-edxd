@@ -52,7 +52,7 @@ class JcpdsEditorController(QtCore.QObject):
 
     phase_modified = QtCore.pyqtSignal()
 
-    def __init__(self, parent_widget, phase_model=None, jcpds_phase=None):
+    def __init__(self, phase_widget, phase_model=None, jcpds_phase=None):
         """
         :param dioptas_model: Reference to DioptasModel object
         :param jcpds_phase: Reference to JcpdsPhase object
@@ -61,8 +61,8 @@ class JcpdsEditorController(QtCore.QObject):
         :type jcpds_phase: jcpds
         """
         super(JcpdsEditorController, self).__init__()
-        self.phase_widget = parent_widget
-        self.jcpds_widget = JcpdsEditorWidget(parent_widget)
+        self.phase_widget = phase_widget
+        self.jcpds_widget = JcpdsEditorWidget(phase_widget)
         self.wavelength = 0.406626
 
         self.phase_model = phase_model
@@ -106,14 +106,15 @@ class JcpdsEditorController(QtCore.QObject):
 
     def create_connections(self):
 
-        self.phase_modified.connect(self.update_filename)
+        #self.phase_modified.connect(self.update_filename)
 
-        self.jcpds_widget.comments_txt.editingFinished.connect(self.comments_changed)
-
-        self.jcpds_widget.symmetry_cb.currentIndexChanged.connect(self.symmetry_changed)
-
+        # Phase Widget Signals
+        self.phase_widget.edit_btn.clicked.connect(self.edit_btn_callback)
+        self.phase_widget.phase_tw.currentCellChanged.connect(self.phase_selection_changed)
         
-
+        # Information fields
+        self.jcpds_widget.comments_txt.editingFinished.connect(self.comments_changed)
+        self.jcpds_widget.symmetry_cb.currentIndexChanged.connect(self.symmetry_changed)
         #
         # Lattice Parameter fields
         self.jcpds_widget.lattice_a_sb.valueChanged.connect(partial(self.param_sb_changed,
@@ -161,34 +162,30 @@ class JcpdsEditorController(QtCore.QObject):
         self.jcpds_widget.reflections_clear_btn.clicked.connect(self.reflections_clear_btn_click)
         self.jcpds_widget.reflection_table_model.reflection_edited.connect(self.reflection_table_changed)
 
-
         # Table Widgets events
         self.jcpds_widget.reflection_table_view.keyPressEvent = self.reflection_table_key_pressed
         self.jcpds_widget.reflection_table_view.verticalScrollBar().valueChanged.connect(self.reflection_table_scrolled)
         self.jcpds_widget.reflection_table_view.horizontalHeader().sectionClicked.connect(
             self.horizontal_header_clicked)
-        #
 
-#
         # Button fields
         self.jcpds_widget.reload_file_btn.clicked.connect(self.reload_file_btn_clicked)
         self.jcpds_widget.save_as_btn.clicked.connect(self.save_as_btn_clicked)
-
         #
         # # Closing and opening
         self.jcpds_widget.closeEvent = self.view_closed
 
-    
-
     def edit_btn_callback(self):
         selected_row = self.phase_widget.get_selected_phase_row()
         if selected_row >= 0:
-            self.show_phase(self.model.phase_model.phases[selected_row])
+            self.show_phase(self.phase_model.phases[selected_row])
             self.show_view()
+
+    
 
     def phase_selection_changed(self, row, *_):
         if self.active:
-            self.show_phase(self.model.phase_model.phases[row])
+            self.show_phase(self.phase_model.phases[row])
 
     def phase_changed(self, ind):
         if self.active and self.phase_ind == ind:
