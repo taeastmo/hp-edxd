@@ -181,6 +181,7 @@ class EosGroupbox(QtWidgets.QWidget):
             layout.addWidget(QtWidgets.QLabel(unit), x, y + 2)
 
     def setEOSparams(self, params):
+        self.blockSignals(True)
         eos = params['equation_of_state']
         if self.equation_of_state != eos:
             if eos in self.EOS_widgets:
@@ -196,6 +197,7 @@ class EosGroupbox(QtWidgets.QWidget):
                 if key in self.scales:
                     param = param / self.scales[key]
                 fields[key].setText(str(param))
+        self.blockSignals(False)
 
 
 class JcpdsEditorWidget(QtWidgets.QWidget):
@@ -421,8 +423,15 @@ class JcpdsEditorWidget(QtWidgets.QWidget):
         self.lattice_eos_c_txt.setText('{0:.4f}'.format(jcpds_phase.params['c']))
 
         self.lattice_eos_volume_txt.setText('{0:.4f}'.format(jcpds_phase.params['v']))
-        self.lattice_eos_molar_volume_txt.setText('{0:.4e}'.format(jcpds_phase.params['vm']))
-
+        
+        # jcpds V5
+        if 'vm' in jcpds_phase.params.keys():
+            vm = jcpds_phase.params['vm']
+            vm_txt = '{0:.4e}'.format(vm)
+        else:
+            vm_txt = ''
+        self.lattice_eos_molar_volume_txt.setText(vm_txt)
+        
         try:
             if not self.lattice_ab_sb.hasFocus():
                 self.lattice_ab_sb.setValue(jcpds_phase.params['a0'] / float(jcpds_phase.params['b0']))

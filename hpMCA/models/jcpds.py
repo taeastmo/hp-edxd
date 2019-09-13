@@ -134,7 +134,7 @@ class jcpds(object):
         self.reflections = []
         
         # jcpds V5 stuff
-        self.params['z'] = None
+        self.params['z'] = 1
         self.params['eos'] = {} # current eos params
         self.EOS = {} # placeholder for different types of eos
         self.jcpds4_params_template = {'equation_of_state':'jcpds4',
@@ -285,6 +285,8 @@ class jcpds(object):
                     self.params['z'] = float(value)
                 elif tag == 'EOS:':
                     try:
+                        value = value.replace("'", '"')
+                        value = value.replace('nan','"nan"')
                         params = json.loads(value)
                         self.set_EOS(params)
                     except:
@@ -394,16 +396,9 @@ class jcpds(object):
            j.write_file('alumina_new.jcpds')
         """
         fp = open(filename, 'w')
-
-        ver = 'VERSION:   4\n'
-
         # jcpds V5
-        for key in self.EOS:
-            eos = self.EOS[key]
-            # v = 5 if an EOS is specified (other than jcpds4 style)
-            if eos.params['equation_of_state'] != 'jcpds4':
-                ver = 'VERSION:   5\n'
-                break
+        ver = 'VERSION:   5\n'
+
 
         fp.write(ver)
         for comment in self.params['comments']:
@@ -424,17 +419,10 @@ class jcpds(object):
         fp.write('DALPHADT: ' + str(self.params['d_alpha_dt']) + '\n')
 
         # jcpds V5
-        for key in self.EOS:
-            eos = self.EOS[key]
-            # only write Z: line if an EOS is specified (other than jcpds4 style)
-            if eos.params['equation_of_state'] != 'jcpds4':
-                fp.write('Z: ' + str(self.params['z']) + '\n')
-                break
-        for key in self.EOS:
-            eos = self.EOS[key]
-            if eos.params['equation_of_state'] != 'jcpds4':
-                s = 'EOS: ' + json.dumps(repair_dict(eos.params)) + '\n'
-                fp.write(s)
+        fp.write('Z: ' + str(self.params['z']) + '\n')
+        eos = self.params['eos']
+        s = 'EOS: ' + json.dumps(repair_dict(eos)) + '\n'
+        fp.write(s)
 
     
         reflections = self.get_reflections()
