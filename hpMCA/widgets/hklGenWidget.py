@@ -52,6 +52,11 @@ class hklGenWidget(QtWidgets.QWidget):
         self.save_list_btn = QtWidgets.QPushButton('Save List')
         self.load_list_btn = QtWidgets.QPushButton('Load List')
 
+        # 2th
+        self.tth_lbl = DoubleSpinBoxAlignRight()
+        self.tth_step = DoubleMultiplySpinBoxAlignRight()
+        self.get_tth_btn = QtWidgets.QPushButton('Get')
+
         self._button_layout.addWidget(self.add_btn,0)
         #self._button_layout.addWidget(self.edit_btn,0)
         self._button_layout.addWidget(self.delete_btn,0)
@@ -130,7 +135,22 @@ class hklGenWidget(QtWidgets.QWidget):
             self.lattice_opts[s] = opt
             self.lattice_opts_steps[s] = opt_step
             self._lattice_layout.addWidget(lattice_opt)
+
+
+        self.tth_widget = QtWidgets.QWidget()
+        self._tth_layout = QtWidgets.QGridLayout()
+        self._tth_layout.addWidget(QtWidgets.QLabel(u'2θ:'), 0, 0)
+        self._tth_layout.addWidget(self.tth_lbl, 0, 1)
+        self._tth_layout.addWidget(QtWidgets.QLabel('deg'), 0, 2)
+        self._tth_layout.addWidget(self.tth_step, 0, 3)
+        self._tth_layout.addWidget(self.get_tth_btn, 0, 4)
+        self.tth_widget.setLayout(self._tth_layout)
+        self._lattice_layout.addWidget(self.tth_widget)
+
         self.lattice_widget.setLayout(self._lattice_layout)
+
+        
+
 
 
         self._body_layout = QtWidgets.QHBoxLayout()
@@ -161,7 +181,7 @@ class hklGenWidget(QtWidgets.QWidget):
 
         self.hkl_widget = QtWidgets.QTextEdit()
         self.hkl_widget.setMaximumWidth(175)
-        #self._body_layout.addWidget(self.hkl_widget)
+        self._body_layout.addWidget(self.hkl_widget)
 
         self._layout.addLayout(self._body_layout)
 
@@ -185,6 +205,20 @@ class hklGenWidget(QtWidgets.QWidget):
         self.setAcceptDrops(True) 
 
     def style_widgets(self):
+
+      
+        self.tth_step.setMaximumWidth(75)
+        self.get_tth_btn.setMaximumWidth(75)
+
+        self.tth_lbl.setMaximum(179.0)
+        self.tth_lbl.setMinimum(1)
+        self.tth_lbl.setDecimals(5)
+        self.tth_step.setMaximum(180)
+        self.tth_step.setMinimum(0.001)
+        self.tth_step.setValue(1)
+        self.tth_step.setDecimals(3)
+
+        
         
         self.setStyleSheet("""
             #cell_control_button_widget QPushButton {
