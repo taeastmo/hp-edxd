@@ -40,7 +40,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         self.actionhklGen = QtWidgets.QAction(self)
         self.actionhklGen.setText("hklGen")
         self.actionhklGen.setEnabled(False)
-        self.menuDisplay.addAction(self.actionhklGen)
+        #self.menuDisplay.addAction(self.actionhklGen)
 
     def menu_items_set_enabled(self, enabled):
         self.actionSave_As.setEnabled(enabled)

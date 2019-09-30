@@ -631,7 +631,7 @@ class epicsMCA(MCA):
 
     def handle_mca_callback_erase_start(self, Status):
         #print('handle_mca_callback_erase_start: ' + str(Status))
-        if Status == 'Acquire':
+        if Status == 'Acquire' or Status == '1':
             if self.acq_status == 'off':
                 self.acqOn()
 
@@ -642,7 +642,7 @@ class epicsMCA(MCA):
 
     def handle_mca_callback_start(self, Status):
         #print('handle_mca_callback_start: ' + Status)
-        if Status == 'Acquire':
+        if Status == 'Acquire' or Status == '1':
             if self.acq_status == 'off':
                 self.acqOn()
                 #print('start: ' + str(Status))

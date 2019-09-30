@@ -23,11 +23,13 @@ from PyQt5 import QtWidgets, QtCore
 import copy
 
 from hpMCA.models.hklGenModel import hklGenModel_viewModel
+
 #from utilities.HelperModule import get_base_name
 #from hpMCA.controllers.JcpdsEditorController import JcpdsEditorController
 #from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
 #from hpMCA.models.PhaseModel import PhaseModel
 from hpMCA.widgets.hklGenWidget import hklGenWidget
+from hpMCA.controllers.hklCellInPatternController import hklCellInPatternController
 
 import utilities.hpMCAutilities as mcaUtil
 
@@ -39,11 +41,16 @@ class hklGenController():
 
     def __init__(self, plotWidget, mcaModel, plotController, roiController):
 
+
+        self.pattern = mcaModel
         self.model = hklGenModel_viewModel()
+
         self.hklGen_widget = hklGenWidget(self.model)
+        self.hkl_cell_in_pattern_controller = hklCellInPatternController(plotController,self, plotWidget,self.model)
         self.active = False
         self.current_cell = None
         self.create_connections()
+        self.tth = self.getTth()
 
     def create_connections(self):
         self.hklGen_widget.add_btn.clicked.connect(self.add_btn_callback)
@@ -56,6 +63,14 @@ class hklGenController():
         self.hklGen_widget.lattice_parameter_edited_signal.connect(self.lattice_parameter_edited_callback)
 
         self.hklGen_widget.cell_selection_edited_signal.connect(self.cell_selection_edited_callback)
+
+        # 2th 
+        self.hklGen_widget.tth_lbl.valueChanged.connect(self.tth_changed)
+        self.hklGen_widget.tth_step.editingFinished.connect(self.update_tth_step)
+        self.connect_click_function(self.hklGen_widget.get_tth_btn, self.get_2th_btn_callcack)
+
+    def connect_click_function(self, emitter, function):
+        emitter.clicked.connect(function)
 
     def cell_selection_edited_callback(self, ind):
         try:
@@ -88,12 +103,12 @@ class hklGenController():
         name = self.current_cell.get_spacegroup()
         self.model.set_cell_name(ind,name)
         '''
-        '''
+        
         hkl_str=''
         for hkl in hkl_reflections[0]:
             hkl_str=hkl_str+str(hkl[0])+' '+str(hkl[1])+' '+str(hkl[2])+' '+str(round(hkl[3],4)) +'<br>'
         self.hklGen_widget.hkl_widget.setText(hkl_str)
-        '''
+        
 
     def symmetry_edited_callback(self, symmetry):
         if not self.current_cell is None:
@@ -146,3 +161,24 @@ class hklGenController():
     def show_view(self):
         self.active = True
         self.hklGen_widget.raise_widget()
+
+
+    # 2th
+    def tth_changed(self):
+        try:
+            self.tth = np.clip(float(self.hklGen_widget.tth_lbl.text()),.001,179)
+            self.hkl_cell_in_pattern_controller.tth_update(self.tth)
+        except:
+            pass
+
+    def update_tth_step(self):
+        value = self.hklGen_widget.tth_step.value()
+        self.hklGen_widget.tth_lbl.setSingleStep(value) 
+
+    def get_2th_btn_callcack(self):
+        tth = self.getTth()
+        self.hklGen_widget.tth_lbl.setValue(tth)
+
+    def getTth(self):
+        tth = self.pattern.get_calibration()[0].two_theta
+        return tth
