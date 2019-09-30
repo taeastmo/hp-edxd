@@ -1,7 +1,8 @@
 # -*- coding: utf8 -*-
-# Dioptas - GUI program for fast processing of 2D X-ray data
-# Copyright (C) 2017  Clemens Prescher (clemens.prescher@gmail.com)
-# Institute for Geology and Mineralogy, University of Cologne
+# hpMCA - GUI program for acquring, viewing and analysis of 
+# energy-dispersive x-ray diffraction.
+# Copyright (C) 2018-2019  R. Hrubiak (hrubiak@anl.gov)
+# Argonne National Laboratory
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,29 +18,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
 import copy
-
 from hpMCA.models.PhaseModel import PhaseLoadError
 from utilities.HelperModule import get_base_name
 from hpMCA.controllers.PhaseInPatternController import PhaseInPatternController
-#from hpMCA.controllers.PhaseInCakeController import PhaseInCakeController
 from hpMCA.controllers.JcpdsEditorController import JcpdsEditorController
 from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
 from hpMCA.models.PhaseModel import PhaseModel
 from hpMCA.widgets.PhaseWidget import PhaseWidget
-
-#from hpMCA.widgets.PhaseWidget2 import PhaseWidget as  PhaseWidget2
 import utilities.hpMCAutilities as mcaUtil
-
-# imports for type hinting in PyCharm -- DO NOT DELETE
-##from ...model.DioptasModel import DioptasModel
-#from ...widgets.integration import IntegrationWidget
-
-
-
 
 class PhaseController(object):
     """
@@ -68,18 +57,19 @@ class PhaseController(object):
         
         self.pattern_widget = plotWidget
         self.phase_widget = PhaseWidget()
-        # testing dioptas 0.5 widgets
-        #self.phase_widget2 = PhaseWidget2()
-        #self.phase_widget2.show()
         self.wavelength = 0.406626
         self.cif_conversion_dialog = CifConversionParametersDialog()
         self.phase_model = PhaseModel()
 
-        self.phase_in_pattern_controller = PhaseInPatternController(self.plotController, phaseController=self, pattern_widget=plotWidget, phase_model=self.phase_model)
-        #self.phase_in_cake_controller = PhaseInCakeController(plotWidget, dioptas_model)
-        
+        self.phase_in_pattern_controller = \
+                    PhaseInPatternController(self.plotController, 
+                                            phaseController=self, 
+                                            pattern_widget=plotWidget, 
+                                            phase_model=self.phase_model)
 
-        self.jcpds_editor_controller = JcpdsEditorController(self.phase_widget, phase_model=self.phase_model)
+        self.jcpds_editor_controller = \
+                    JcpdsEditorController(self.phase_widget, 
+                                            phase_model=self.phase_model)
         self.phase_lw_items = []
         self.create_signals()
         self.update_temperature_step()
@@ -133,12 +123,8 @@ class PhaseController(object):
         self.phase_model.phase_removed.connect(self.phase_removed)
         self.phase_model.phase_changed.connect(self.phase_changed)
         
-
     def file_dragged_in(self,files):
-        
         self.add_btn_click_callback(filenames=files)
-
-    
 
     def JCPDS_roi_btn_clicked(self, index):
         # add rois based on selected JCPDS phase

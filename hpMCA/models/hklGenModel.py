@@ -180,6 +180,17 @@ class Cell():
 
 class hklGenModel_viewModel(QStandardItemModel):
 
+    phase_added = pyqtSignal()
+    phase_removed = pyqtSignal()
+
+    phase_changed = pyqtSignal()
+    phase_changed = pyqtSignal()
+    phase_changed = pyqtSignal()
+    phase_changed = pyqtSignal()
+
+    reflection_added = pyqtSignal()
+    reflection_deleted = pyqtSignal()
+
     def __init__(self, parent=None):
         header = [ 'Use', 'Color', 'Cell']
         super().__init__(0, len(header), parent)
