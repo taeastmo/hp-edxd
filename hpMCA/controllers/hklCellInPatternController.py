@@ -126,14 +126,20 @@ class hklCellInPatternController(object):
         self.pattern_widget.update_phase_intensities(ind, positions, intensities, y_range[0])
 
     def update_all_phase_lines(self):
+        pass
+        '''
         for ind in range(len(self.phase_model.phases)):
             self.update_phase_lines(ind)
+        '''
 
     def pattern_data_changed(self):
         """
         Function is called after the pattern data has changed.
         """
+        pass
+        '''
         self.pattern_widget.update_phase_line_visibilities()
+        '''
 
     def update_phase_legend(self, ind):
         name = self.phase_model.phases[ind].name
