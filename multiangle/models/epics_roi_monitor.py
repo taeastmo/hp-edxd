@@ -14,6 +14,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# Principal author: R. Hrubiak (hrubiak@anl.gov)
+# Copyright (C) 2018-2019 ANL, Lemont, USA
+
+
 from epics import caput, caget, PV
 from epics.utils import BYTES2STR
 import numpy as np

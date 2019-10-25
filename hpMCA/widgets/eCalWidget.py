@@ -13,6 +13,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+# Principal author: R. Hrubiak (hrubiak@anl.gov)
+# Copyright (C) 2018-2019 ANL, Lemont, USA
+
+
 """
 Creates a GUI window to calibrate energy for an Mca.
 

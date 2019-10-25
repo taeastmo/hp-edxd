@@ -13,12 +13,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-""" 
-    By:
-        Ross Hrubiak, 2018 10 28
+# Principal author: R. Hrubiak (hrubiak@anl.gov)
+# Copyright (C) 2018-2019 ANL, Lemont, USA
 
-
-"""
 import hpMCA.models.Xrf as Xrf
 from hpMCA.models.Xrf_model import atom
 from functools import partial
