@@ -14,6 +14,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# Principal author: R. Hrubiak (hrubiak@anl.gov)
+# Copyright (C) 2018-2019 ANL, Lemont, USA
+
+
 
 from functools import partial
 from PyQt5 import QtWidgets, QtCore, QtGui
