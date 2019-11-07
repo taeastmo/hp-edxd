@@ -18,3 +18,7 @@
 from hpMCA import main
 
 main()
+
+
+# ext2 = pg.TextItem("test", anchor=(0.5, -1.0))
+# fills = [pg.FillBetweenItem(curves[i], curves[i+1], brushes[i]) for i in range(3)]
