@@ -100,7 +100,7 @@ class RoiController(QObject):
     def save_peaks(self):
         img_filename, _ = os.path.splitext(os.path.basename(self.mca.name))
         filename = save_file_dialog(
-            self.mcaController, "Save ROI's Data.",
+            self.mcaController.widget, "Save ROI's Data.",
             os.path.join(self.mcaController.working_directories.savedata,
                         img_filename + '.csv'),
             ('Comma separated values (*.csv)'))
