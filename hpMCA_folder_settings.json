@@ -1,5 +1,6 @@
 {
     "export_ext": ".xy",
     "phase": "JCPDS/Metals",
-    "savedata": "/Users/hrubiak/Documents/GitHub/hp-edxd/resources"
+    "savedata": "/Users/hrubiak/Documents/GitHub/hp-edxd/resources",
+    "savedata": "resources"
 }
