@@ -113,6 +113,21 @@ class CifConverter(object):
         jcpds_phase.params['symmetry'] = cif_phase.symmetry
         jcpds_phase.params['comments'] = [cif_phase.comments]
 
+        # jcpds V5 stuff
+        jcpds_phase.params['z'] = 1
+        jcpds_phase.params['eos'] = {} # current eos params
+        jcpds_phase.EOS = {} # placeholder for different types of eos
+        jcpds_phase.jcpds4_params_template = {'equation_of_state':'jcpds4',
+                                        'V_0':0, 
+                                        'K_0':0, 
+                                        'Kprime_0':0,
+                                        'dk0dt':0, 
+                                        'dk0pdt':0,
+                                        'alpha_t0':0,
+                                        'd_alpha_dt':0}
+
+        jcpds_phase.set_EOS(jcpds_phase.jcpds4_params_template)
+
         return jcpds_phase
 
     def _calculate_hkl_within_sphere_and_min_d_spacing(self, cif_phase):
