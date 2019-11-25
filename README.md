@@ -7,4 +7,4 @@ pyqt5 5.9.2 <br>
 pyqtgraph 0.10.0<br>
 pyepics 3.4.0<br>
 burnman 0.9.0<br>
-PyCifRW 4.3 <br>
+PyCifRW 4.4.1 <br>

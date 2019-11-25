@@ -119,8 +119,8 @@ class CifConverter(object):
         jcpds_phase.EOS = {} # placeholder for different types of eos
         jcpds_phase.jcpds4_params_template = {'equation_of_state':'jcpds4',
                                         'V_0':0, 
-                                        'K_0':0, 
-                                        'Kprime_0':0,
+                                        'K_0':100e9, 
+                                        'Kprime_0':4,
                                         'dk0dt':0, 
                                         'dk0pdt':0,
                                         'alpha_t0':0,
