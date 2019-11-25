@@ -122,6 +122,13 @@ class PhaseModel(QtCore.QObject):
         self.get_lines_d(-1)
         self.phase_added.emit()
         self.phase_changed.emit(len(self.phases) - 1)
+
+    def save_phase_as(self, ind, filename):
+        """
+        Save the phase specified with ind as a jcpds file.
+        """
+        self.phases[ind].save_file(filename)
+        self.phase_changed.emit(ind)
     
     def del_phase(self, ind):
         """
