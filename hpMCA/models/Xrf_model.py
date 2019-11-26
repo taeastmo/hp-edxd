@@ -93,7 +93,7 @@ class atom():
     def get_parameter (self, line, parameter):
         line = line.upper()
         for l in self.all_lines:
-                  if  line == l.upper(): return self.all_lines[l][parameter]
+            if  line == l.upper(): return self.all_lines[l][parameter]
         return None
 
     def get_lines (self):
