@@ -32,7 +32,9 @@ import sys
 import os
 import time
 
-from qtpy import QtWidgets
+
+from PyQt5 import QtWidgets
+import pyqtgraph
 
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
 #calibrants_path = os.path.join(resources_path, 'calibrants')
