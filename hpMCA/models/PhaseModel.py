@@ -266,7 +266,7 @@ class PhaseModel(QtCore.QObject):
         
         max_pattern_intensity = y_range[1]
 
-        baseline = 1
+        baseline = .5
         phase_line_intensities = self.reflections[ind][:, 1]
         # search for reflections within current pattern view range
         phase_line_intensities_in_range = phase_line_intensities[(positions > x_range[0]) & (positions < x_range[1])]

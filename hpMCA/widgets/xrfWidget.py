@@ -132,6 +132,7 @@ class xrfWidget(QtWidgets.QWidget):
         #self.xrf_tw.setColumnWidth(0, 35)
 
         self.plotController.unitUpdated.connect(self.update_x_scale)
+        self.plotController.dataPlotUpdated.connect(self.update_all_xrf_lines)
 
     def set_mca(self, mca):
         self.mca = mca
@@ -356,6 +357,9 @@ class xrfWidget(QtWidgets.QWidget):
 
     def clear_xrf(self):
         self.show_state_changed(0,False)
+
+    def update_all_xrf_lines(self):
+        self.update_xrf_lines (self.get_current_symbol())
     
 
     def update_xrf_lines(self, symbol, ind=0, axis_range=None):
@@ -392,7 +396,7 @@ class xrfWidget(QtWidgets.QWidget):
                 intensities.append(intensity)
 
             self.pattern_widget.update_xrf_intensities(
-                ind, positions, intensities, 1)
+                ind, positions, intensities, .5)
             line_str = ''
             for tag in lines:
                 if lines[tag][0]>0 and lines[tag][0] >0:
