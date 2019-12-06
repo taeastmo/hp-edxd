@@ -66,7 +66,7 @@ class PhaseInPatternController(object):
         # pattern signals
         #self.pattern_widget.view_box.sigRangeChangedManually.connect(self.update_all_phase_lines)
         #self.pattern_widget.pattern_plot.autoBtn.clicked.connect(self.update_all_phase_lines)
-        self.plotController.dataPlotUpdated.connect(self.pattern_data_changed)
+        self.plotController.dataPlotUpdated.connect(self.update_all_phase_lines)
 
         self.plotController.unitUpdated.connect(self.unit_updated_callback)
        

@@ -37,7 +37,7 @@ from hpMCA.controllers.mcaPlotController import plotController
 from hpMCA.controllers.RoiController import RoiController
 from hpMCA.controllers.OverlayController import OverlayController
 from hpMCA.controllers.DisplayPrefsController import DisplayPreferences
-from hpMCA.controllers.hklGenController import hklGenController
+#from hpMCA.controllers.hklGenController import hklGenController
 
 import utilities.hpMCAutilities as mcaUtil
 from utilities.HelperModule import increment_filename
@@ -263,7 +263,7 @@ class hpMCA(QObject):
         self.fluorescence_controller.xrf_selection_updated_signal.connect(self.xrf_updated)
 
         #initialize hklGen controller
-        self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
+        #self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
         
         
         self.controllers_initialized = True

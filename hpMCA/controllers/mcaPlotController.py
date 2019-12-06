@@ -28,7 +28,7 @@ class plotController(QObject):
     unitUpdated = pyqtSignal(str)
     logScaleYUpdated = pyqtSignal(bool)
     selectedRoiChanged =pyqtSignal(str)
-    dataPlotUpdated=pyqtSignal()
+    dataPlotUpdated=pyqtSignal(dict)
 
     def __init__(self, plotWidget, mcaModel, mainController, horzScale='E'):
         super().__init__()
@@ -90,7 +90,8 @@ class plotController(QObject):
         pg = self.pg  
         pg.plotData(xAxis, data, roiHorz,roiData,xLabel,'MCA, '+ self.elapsed.start_time[:-3])
         self.update_cursors_text()
-        self.dataPlotUpdated.emit()
+        update = {'x_range':[min(xAxis),max(xAxis)], 'y_range':[min(data),max(data)]}
+        self.dataPlotUpdated.emit(update)
         
     ########################################################################################
     ########################################################################################

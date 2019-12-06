@@ -1,6 +1,8 @@
 {
-    "data_color": "#f4ea2a",
+    "data_color": "#ffff0a",
     "plot_background_color": "#171717",
     "roi_cursor_color": "#ff00bc",
-    "rois_color": "#00b4ff"
+    "rois_color": "#00b4ff",
+    "roi_cursor_color": "#fc02ff",
+    "rois_color": "#00aeff"
 }
