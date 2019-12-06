@@ -26,7 +26,7 @@ __version__ = get_versions()['version']
 del get_versions
 
 if __version__ == "0+unknown":
-    __version__ = "0.2.0"
+    __version__ = "0.1.0"
 
 import sys
 import os
@@ -38,17 +38,17 @@ import pyqtgraph
 
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
 #calibrants_path = os.path.join(resources_path, 'calibrants')
-icons_path = os.path.join(resources_path, 'icons')
+#icons_path = os.path.join(resources_path, 'icons')
 #data_path = os.path.join(resources_path, 'data')
 #style_path = os.path.join(resources_path, 'style')
 
-from ._desktop_shortcuts import make_shortcut
+#from ._desktop_shortcuts import make_shortcut
 
-from .widgets.UtilityWidgets import ErrorMessageBox
-
-
+#from .widgets.UtilityWidgets import ErrorMessageBox
 
 
+
+'''
 
 def excepthook(exc_type, exc_value, traceback_obj):
     """
@@ -89,7 +89,7 @@ def excepthook(exc_type, exc_value, traceback_obj):
     errorbox = ErrorMessageBox()
     errorbox.setText(str(notice) + str(msg) + str(version_info))
     errorbox.exec_()
-
+'''
 
 def main():
     app = QtWidgets.QApplication([])
