@@ -153,7 +153,9 @@ class multiangleController(QObject):
         print(args)
 
     def run_callback(self, *args, **kwargs):   
+
         tth_set = self.model.get_data()
+        
         print(tth_set)
         self.sweep_controller.set_exp_conditions(tth_set)
         rep = int(self.widget.iterations_control.text())
@@ -161,7 +163,12 @@ class multiangleController(QObject):
         self.sweep_controller.start()
 
     def test_callback(self, *args, **kwargs):   
+        header = self.widget.tth_tv.header()
+        sort_column = header.sortIndicatorSection()
+        sort_order = header.sortIndicatorOrder()
+        #print(sort_order)
         tth_set = self.model.get_data()
+      
         print(tth_set)
 
     def stop_callback(self, *args, **kwargs):

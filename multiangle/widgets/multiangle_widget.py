@@ -177,6 +177,7 @@ class multiangleWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.button_widget)
         self._body_layout = QtWidgets.QHBoxLayout()
         self.tth_tv = QtWidgets.QTreeView()
+        self.tth_tv.sortByColumn(0, 0)
         self.tth_tv.setSortingEnabled(True)
         self.tth_tv.setModel(self.multiangle_model)
 
