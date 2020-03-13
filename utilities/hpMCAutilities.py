@@ -115,29 +115,53 @@ class Preferences():
       pass
 
 def readconfig(config_file):
-        with open(config_file,'r') as f:
-            print('config file exists: ' + str(os.path.exists(config_file)))
-            config_dict = json.loads(f.read())
-        return config_dict 
+   exists = os.path.exists(config_file)
+   print('config file exists: ' + str(exists))
+   if exists:
+      with open(config_file,'r') as f:
+         config_dict = json.loads(f.read())
+   else:
+      config_dict = { 
+                     "inputdataformat": 1,
+                     "inputdatadirectory": "./aEDXD/mca_spectra/", 
+                     "outputsavedirectory": "./aEDXD/mca_spectra/Analysis_Output/",
+                     "mcadata": None,
+                     "mca_adc_shapingtime": 0.000004, 
+                     "sq_par": None, 
+                     "rho": 0.079598, 
+                     "bin_size": 8,                     
+                     "Emin": 31.0,             
+                     "Emax": 65.0,             
+                     "polynomial_deg": 3,     
+                     "itr_comp": 1,            
+                     "sq_smoothing_factor": 0.7,                   
+                     "q_spacing": 0.05,       
+                     "r_spacing": 0.05,        
+                     "qmax": 14.0,                         
+                     "rmax": 15.0,            
+                     "hard_core_limit": 1.30                           
+                     }
+
+   return config_dict 
 
 def json_compatible_dict(params):
-    options_out = dict()
-    obj = params
-    for key in obj:
-        if key != 'modified':  # this key is reserved for internal use only
-            item = obj[key]
-            if isinstance(item, np.ndarray):  # ndarrays cant be 'pickled' by the json package
-                item = list(item)
-                if len(item):
-                    if isinstance(item[0], np.ndarray):
-                        ii = []
-                        for i in item:
-                            if isinstance(i, np.ndarray):
-                                i = list(i)
-                            ii.append(i)
-                    item = ii
-            options_out[key] = item
-    return options_out
+   options_out = dict()
+   obj = params
+   for key in obj:
+      if key != 'modified':  # this key is reserved for internal use only
+         item = obj[key]
+         if isinstance(item, np.ndarray):  # ndarrays cant be 'pickled' by the json package
+               item = list(item)
+               if len(item):
+                  if isinstance(item[0], np.ndarray):
+                     ii = []
+                     for i in item:
+                           if isinstance(i, np.ndarray):
+                              i = list(i)
+                           ii.append(i)
+                  item = ii
+         options_out[key] = item
+   return options_out
 
 ############################################################
 class mcaFilePreferences(QtWidgets.QDialog):
