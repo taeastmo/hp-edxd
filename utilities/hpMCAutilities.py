@@ -13,6 +13,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os.path
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from functools import partial
@@ -115,6 +116,7 @@ class Preferences():
 
 def readconfig(config_file):
         with open(config_file,'r') as f:
+            print('config file exists: ' + str(os.path.exists(config_file)))
             config_dict = json.loads(f.read())
         return config_dict 
 
