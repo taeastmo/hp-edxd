@@ -32,6 +32,8 @@ import sys
 import os
 import time
 
+import PyQt5
+from PyQt5 import QtCore
 import pyqtgraph
 from PyQt5 import QtWidgets
 
@@ -44,6 +46,11 @@ icons_path = os.path.join(resources_path, 'icons')
 
 
 def main():
+    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+      PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+    if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+        PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
     app = QtWidgets.QApplication([])
 
     from hpMCA.controllers.hpmca_controller import hpMCA
