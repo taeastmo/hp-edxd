@@ -57,24 +57,9 @@
 #        
 ###############################################################################
 
-from aEDXD.controllers.aEDXD_controller import aEDXD
-import PyQt5
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore
-import sys
+print ('aEDXD.py')
+from aEDXD import main
 
-def run():
-   if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
-      PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-
-   if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
-      PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
-   app = QApplication(sys.argv)
-   app.aboutToQuit.connect(app.deleteLater)
-   controller = aEDXD(app,1)
-   return app.exec_()
-
-if __name__ == '__main__':
-   sys.exit(run())
-    
+print('main imported')
+main()
 

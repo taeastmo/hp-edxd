@@ -38,7 +38,7 @@ from aEDXD.controllers.aEDXD_config_controller import aEDXDConfigController
 
 ############################################################
 
-class aEDXD(QObject):
+class aEDXD_controller(QObject):
     def __init__(self, app, theme):
         super().__init__()
         self.app = app
@@ -50,6 +50,7 @@ class aEDXD(QObject):
         self.display_window.raise_widget()
         self.progress_bar.setValue(0)
         self.setStyle(theme)
+        print('controller initialized')
 
     def closeEvent(self, QCloseEvent, *event):
         self.app.closeAllWindows()
