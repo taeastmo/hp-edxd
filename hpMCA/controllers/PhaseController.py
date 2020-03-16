@@ -22,13 +22,13 @@ import os
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
 import copy
-from hpMCA.models.PhaseModel import PhaseLoadError
+from hpmca.models.PhaseModel import PhaseLoadError
 from utilities.HelperModule import get_base_name
-from hpMCA.controllers.PhaseInPatternController import PhaseInPatternController
-from hpMCA.controllers.JcpdsEditorController import JcpdsEditorController
-from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
-from hpMCA.models.PhaseModel import PhaseModel
-from hpMCA.widgets.PhaseWidget import PhaseWidget
+from hpmca.controllers.PhaseInPatternController import PhaseInPatternController
+from hpmca.controllers.JcpdsEditorController import JcpdsEditorController
+from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
+from hpmca.models.PhaseModel import PhaseModel
+from hpmca.widgets.PhaseWidget import PhaseWidget
 import utilities.hpMCAutilities as mcaUtil
 
 class PhaseController(object):

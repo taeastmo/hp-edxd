@@ -16,14 +16,14 @@
 # Principal author: R. Hrubiak (hrubiak@anl.gov)
 # Copyright (C) 2018-2019 ANL, Lemont, USA
 
-import hpMCA.models.Xrf as Xrf
-from hpMCA.models.Xrf_model import atom
+import hpmca.models.Xrf as Xrf
+from hpmca.models.Xrf_model import atom
 from functools import partial
 import time
 import copy
 from PyQt5 import QtWidgets, QtCore
 import numpy as np
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 
 class xrfWidget(QtWidgets.QWidget):

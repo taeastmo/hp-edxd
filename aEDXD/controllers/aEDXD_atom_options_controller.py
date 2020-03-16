@@ -19,7 +19,7 @@ from functools import partial
 from PyQt5 import QtWidgets, QtCore
 import copy
 import pyqtgraph as pg
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
 from aEDXD.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
 from aEDXD.widgets.aEDXD_atom_options_widget import aEDXDAtomWidget

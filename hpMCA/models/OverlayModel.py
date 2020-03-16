@@ -27,8 +27,8 @@ import numpy as np
 from numpy import sin, pi
 
 from utilities.HelperModule import FileNameIterator, get_base_name
-from hpMCA.widgets.UtilityWidgets import xyPatternParametersDialog, selectDetectorDialog
-from hpMCA.models.mcaModel import MCA
+from hpmca.widgets.UtilityWidgets import xyPatternParametersDialog, selectDetectorDialog
+from hpmca.models.mcaModel import MCA
 
 logger = logging.getLogger(__name__)
 

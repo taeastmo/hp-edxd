@@ -58,7 +58,7 @@
 ###############################################################################
 
 print ('aEDXD.py')
-from aEDXD import main
+from aedxd import main
 
 print('main imported')
 main()

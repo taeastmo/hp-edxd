@@ -18,9 +18,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from  PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog, QWidget, QLabel
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
-from hpMCA.widgets.PltWidget import plotWindow
+from hpmca.widgets.PltWidget import plotWindow
 from functools import partial
 import copy
 

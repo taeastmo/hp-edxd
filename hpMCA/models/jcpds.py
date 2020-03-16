@@ -70,7 +70,7 @@ import os.path
 from burnman.eos.equation_of_state import EquationOfState
 from burnman.eos.helper import create as create_eos
 from .birch_murnaghan_thermal import JCPDS4
-from hpMCA.models.eos_definitions import equations_of_state
+from hpmca.models.eos_definitions import equations_of_state
 
 class jcpds_reflection:
     """

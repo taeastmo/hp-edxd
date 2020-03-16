@@ -31,10 +31,10 @@ from copy import deepcopy
 import numpy as np
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from hpMCA.widgets.UtilityWidgets import save_file_dialog
-from hpMCA.widgets.JcpdsEditorWidget import JcpdsEditorWidget
+from hpmca.widgets.UtilityWidgets import save_file_dialog
+from hpmca.widgets.JcpdsEditorWidget import JcpdsEditorWidget
 # imports for type hinting in PyCharm -- DO NOT DELETE
-from hpMCA.models.jcpds import jcpds
+from hpmca.models.jcpds import jcpds
 #from ...model.DioptasModel import DioptasModel
 from functools import partial
 

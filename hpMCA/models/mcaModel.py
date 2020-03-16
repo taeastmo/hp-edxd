@@ -21,8 +21,8 @@ import utilities.centroid as centroid
 import copy
 import json
 import time
-from hpMCA.models.mcareader import McaReader
-from hpMCA.widgets.UtilityWidgets import xyPatternParametersDialog
+from hpmca.models.mcareader import McaReader
+from hpmca.widgets.UtilityWidgets import xyPatternParametersDialog
 import os
 
 class MCA():  # 

@@ -22,9 +22,9 @@ import os
 
 import numpy as np
 from PyQt5 import QtWidgets
-from hpMCA.widgets.UtilityWidgets import open_files_dialog
-from hpMCA.widgets.OverlayWidget import OverlayWidget
-from hpMCA.models.OverlayModel import OverlayModel
+from hpmca.widgets.UtilityWidgets import open_files_dialog
+from hpmca.widgets.OverlayWidget import OverlayWidget
+from hpmca.models.OverlayModel import OverlayModel
 
 # imports for type hinting in PyCharm -- DO NOT DELETE
 #from ...widgets.integration import IntegrationWidget

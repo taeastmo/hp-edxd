@@ -462,7 +462,7 @@ class Ui_hpMCA(object):
         self.actionPressure.setText(_translate("hpMCA", "Pressure"))
         self.actionDisplayPrefs.setText(_translate("hpMCA", "Colors options"))
 
-from hpMCA.widgets.PltWidget import PltWidget
+from hpmca.widgets.PltWidget import PltWidget
 
 if __name__ == "__main__":
     import sys
@@ -470,6 +470,6 @@ if __name__ == "__main__":
     hpMCA = QtWidgets.QMainWindow()
     ui = Ui_hpMCA()
     ui.setupUi(hpMCA)
-    hpMCA.show()
+    hpmca.show()
     sys.exit(app.exec_())
 

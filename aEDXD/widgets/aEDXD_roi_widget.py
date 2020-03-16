@@ -21,9 +21,9 @@ from PyQt5 import QtWidgets, QtCore
 import copy
 import pyqtgraph as pg
 from pyqtgraph import QtCore, mkPen, mkColor, hsvColor
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
-from hpMCA.widgets.PltWidget import CustomViewBox, PltWidget
+from hpmca.widgets.PltWidget import CustomViewBox, PltWidget
 
 class aEDXDRoiWidget(QtWidgets.QWidget):
 

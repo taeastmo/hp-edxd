@@ -22,7 +22,7 @@ import numpy as np
 from functools import partial
 import json
 import copy
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from pathlib import Path
 from utilities.HelperModule import calculate_color
@@ -32,7 +32,7 @@ from aEDXD.widgets.aEDXD_files_widget import aEDXDFilesWidget
 from aEDXD.models.aEDXD_spectra_model import Spectra
 from utilities.hpMCAutilities import readconfig
 from aEDXD.controllers.aEDXD_peak_cut_controller import aEDXDPeakCutController
-from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 
 ############################################################
 

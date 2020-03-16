@@ -24,7 +24,7 @@ if __version__ == "0+unknown":
 '''
 __version__ = "0.5.0"
 
-from aEDXD.controllers.aEDXD_controller import aEDXD_controller
+from aedxd.controllers.aEDXD_controller import aEDXD_controller
 import PyQt5
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore

@@ -25,7 +25,7 @@ import copy
 from multiangle.utilities.utilities import optimize_tth, tth_e_to_d, d_to_q
 import time
 
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
 
 from aEDXD.widgets.aEDXD_widget import customWidget

@@ -22,7 +22,7 @@ import numpy as np
 from functools import partial
 import json, h5py
 import copy
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from pathlib import Path
 from utilities.HelperModule import calculate_color
@@ -32,7 +32,7 @@ from utilities.HelperModule import getInterpolatedCounts
 from aEDXD.widgets.aEDXD_options_widget import aEDXDOptionsWidget
 from aEDXD.controllers.aEDXD_atom_options_controller import aEDXDAtomController
 from aEDXD.controllers.aEDXD_files_controller import aEDXDFilesController
-from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from utilities.hpMCAutilities import displayErrorMessage, json_compatible_dict
 
 

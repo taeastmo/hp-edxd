@@ -36,8 +36,8 @@ Modifications:
 import numpy as np
 
 from PyQt5 import QtCore
-from hpMCA.models.jcpds import jcpds
-from hpMCA.models.cif import CifConverter
+from hpmca.models.jcpds import jcpds
+from hpmca.models.cif import CifConverter
 from utilities.HelperModule import calculate_color
 
 

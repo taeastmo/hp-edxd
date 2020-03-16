@@ -20,12 +20,12 @@ import copy
 import utilities.centroid
 import numpy as np
 import os
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
-from hpMCA.widgets.RoiWidget import RoiWidget, plotFitWindow
-from hpMCA.widgets.PressureWidget import PressureWidget
-from hpMCA.models.mcaModel import  McaROI
+from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpmca.widgets.RoiWidget import RoiWidget, plotFitWindow
+from hpmca.widgets.PressureWidget import PressureWidget
+from hpmca.models.mcaModel import  McaROI
 from PyQt5.QtCore import pyqtSignal, QObject
 
 class RoiController(QObject):

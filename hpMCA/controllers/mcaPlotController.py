@@ -18,7 +18,7 @@ from scipy import interpolate
 import copy
 from numpy import pi
 from PyQt5.QtCore import pyqtSignal, QObject
-from hpMCA.controllers.RoiController import RoiController
+from hpmca.controllers.RoiController import RoiController
 from utilities.HelperModule import getInterpolatedCounts
 
 class plotController(QObject):

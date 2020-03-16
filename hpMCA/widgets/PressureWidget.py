@@ -22,10 +22,10 @@
 from functools import partial
 
 from PyQt5 import QtWidgets, QtCore
-from hpMCA.models.pressure.LatticeRefinement import latticeRefinement
+from hpmca.models.pressure.LatticeRefinement import latticeRefinement
 import copy
 import pyqtgraph as pg
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 
 

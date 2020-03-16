@@ -18,7 +18,7 @@
 
 from utilities.hpMCAutilities import compare
 from utilities.hpMCAutilities import Preferences
-from hpMCA.widgets.DisplayPrefsWidget import DisplayPreferencesWidget
+from hpmca.widgets.DisplayPrefsWidget import DisplayPreferencesWidget
 from PyQt5.QtCore import QObject
 import json
 from utilities.hpMCAutilities import displayErrorMessage, json_compatible_dict, readconfig

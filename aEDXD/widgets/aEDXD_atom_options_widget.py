@@ -23,7 +23,7 @@ from functools import partial
 from PyQt5 import QtWidgets, QtCore, QtGui
 import copy
 
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
 from aEDXD.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
 

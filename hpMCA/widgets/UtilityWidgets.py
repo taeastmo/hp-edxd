@@ -20,7 +20,7 @@
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 import os
-from hpMCA.widgets.CustomWidgets import FlatButton, CleanLooksComboBox 
+from hpmca.widgets.CustomWidgets import FlatButton, CleanLooksComboBox 
 import copy
 
 #from .. import style_path

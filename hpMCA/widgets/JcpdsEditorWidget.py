@@ -28,11 +28,11 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 
-from hpMCA.widgets.CustomWidgets import NumberTextField, LabelAlignRight, DoubleSpinBoxAlignRight, HorizontalSpacerItem, \
+from hpmca.widgets.CustomWidgets import NumberTextField, LabelAlignRight, DoubleSpinBoxAlignRight, HorizontalSpacerItem, \
     VerticalSpacerItem, FlatButton, CleanLooksComboBox
 
 from utilities.HelperModule import convert_d_to_two_theta
-from hpMCA.models.eos_definitions import equations_of_state
+from hpmca.models.eos_definitions import equations_of_state
 from functools import partial
 import numpy as np
 

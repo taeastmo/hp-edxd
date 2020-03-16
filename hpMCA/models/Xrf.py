@@ -22,7 +22,8 @@
 #           Oct. 12, 2018 : Upgraded to Python 3  Ross Hrubiak
 
 import os
-xrf_file = os.path.join('resources', "xrf_peak_library.txt")
+from .. import data_path
+xrf_file = os.path.join(data_path, "xrf_peak_library.txt")
 #import builtins as exceptions
 class XrfError(BaseException):
    def __init__(self, args=None):

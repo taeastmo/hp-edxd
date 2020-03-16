@@ -15,7 +15,7 @@
 
 
 
-from hpMCA import main
+from hpmca import main
 
 main()
 
