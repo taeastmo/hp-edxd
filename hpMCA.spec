@@ -6,6 +6,9 @@ from sys import platform as _platform
 import burnman
 burnman_path = os.path.dirname(burnman.__file__)
 
+import epics
+epics_path = os.path.dirname(epics.__file__)
+
 extra_datas = [
     ("hpmca/resources", "hpmca/resources"),
     (os.path.join(burnman_path, "data"), "burnman/data")
@@ -22,8 +25,8 @@ elif _platform == "win32" or _platform == "cygwin":
     name = "hpMCA.exe"
 elif _platform == "darwin":
     platform = "Mac"
-    extra_binaries=[ ( '/Users/ross/anaconda3/lib/python3.7/site-packages/epics/clibs/darwin64/libca.dylib', '.' ),
-            ( '/Users/ross/anaconda3/lib/python3.7/site-packages/epics/clibs/darwin64/libComPYEPICS.dylib', '.' )
+    extra_binaries=[ ( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' ),
+            ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
                 ]
     name = "run_hpMCA"
 

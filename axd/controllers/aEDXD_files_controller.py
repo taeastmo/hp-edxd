@@ -28,10 +28,10 @@ from pathlib import Path
 from utilities.HelperModule import calculate_color
 from numpy import arange
 from utilities.HelperModule import getInterpolatedCounts
-from aEDXD.widgets.aEDXD_files_widget import aEDXDFilesWidget
-from aEDXD.models.aEDXD_spectra_model import Spectra
+from axd.widgets.aEDXD_files_widget import aEDXDFilesWidget
+from axd.models.aEDXD_spectra_model import Spectra
 from utilities.hpMCAutilities import readconfig
-from aEDXD.controllers.aEDXD_peak_cut_controller import aEDXDPeakCutController
+from axd.controllers.aEDXD_peak_cut_controller import aEDXDPeakCutController
 from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 
 ############################################################

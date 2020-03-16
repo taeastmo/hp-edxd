@@ -28,8 +28,8 @@ from pathlib import Path
 from utilities.HelperModule import calculate_color
 from numpy import arange
 from utilities.HelperModule import getInterpolatedCounts
-from aEDXD.models.aEDXD_spectra_model import ROI
-from aEDXD.widgets.aEDXD_roi_widget import aEDXDRoiWidget, plotFitWindow
+from axd.models.aEDXD_spectra_model import ROI
+from axd.widgets.aEDXD_roi_widget import aEDXDRoiWidget, plotFitWindow
 from utilities.hpMCAutilities import readconfig
 
 ############################################################

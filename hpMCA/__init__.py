@@ -19,17 +19,19 @@
 # Based on code from Dioptas - GUI program for fast processing of 2D X-ray diffraction data
 
 
+
 __version__ = "0.5.0"
 
 import sys
 import os
 import time
 
-
+'''
 import PyQt5
 from PyQt5 import QtCore
 import pyqtgraph
 from PyQt5 import QtWidgets
+'''
 
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
 calibrants_path = os.path.join(resources_path, 'calibrants')
@@ -38,6 +40,8 @@ data_path = os.path.join(resources_path, 'data')
 style_path = os.path.join(resources_path, 'style')
 
 def main():
+
+  '''
     if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
       PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
@@ -58,3 +62,5 @@ def main():
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
 
     return app.exec_()
+
+    '''

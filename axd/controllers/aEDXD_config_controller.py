@@ -29,9 +29,9 @@ from utilities.HelperModule import calculate_color
 from numpy import arange
 from utilities.HelperModule import getInterpolatedCounts
 
-from aEDXD.widgets.aEDXD_options_widget import aEDXDOptionsWidget
-from aEDXD.controllers.aEDXD_atom_options_controller import aEDXDAtomController
-from aEDXD.controllers.aEDXD_files_controller import aEDXDFilesController
+from axd.widgets.aEDXD_options_widget import aEDXDOptionsWidget
+from axd.controllers.aEDXD_atom_options_controller import aEDXDAtomController
+from axd.controllers.aEDXD_files_controller import aEDXDFilesController
 from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from utilities.hpMCAutilities import displayErrorMessage, json_compatible_dict
 

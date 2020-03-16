@@ -21,9 +21,11 @@ import copy
 import pyqtgraph as pg
 from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
-from aEDXD.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
-from aEDXD.widgets.aEDXD_atom_options_widget import aEDXDAtomWidget
+from axd.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
+from axd.widgets.aEDXD_atom_options_widget import aEDXDAtomWidget
 import numpy as np
+
+
 
 class aEDXDAtomController(QtCore.QObject):
 

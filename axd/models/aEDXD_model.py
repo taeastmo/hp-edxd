@@ -37,7 +37,8 @@ import json
 import numpy as np
 from PyQt5.QtCore import QObject, pyqtSignal
 from utilities.hpMCAutilities import readconfig
-from aEDXD.models.aEDXD_components import primaryBeam, structureFactor, Pdf, PdfInverse
+from axd.models.aEDXD_components import primaryBeam, structureFactor, Pdf, PdfInverse
+from .. import data_path
 
 class aEDXD_model(QObject):
 
@@ -49,7 +50,8 @@ class aEDXD_model(QObject):
     def __init__(self):
         super().__init__()
         # create variables
-        self.config_file = 'aEDXD/resources/aEDXD_defaults.cfg'
+        
+        self.config_file = os.path.join(data_path, "aEDXD_defaults.cfg")
         params = ['inputdataformat',
                 'inputdatadirectory',
                 'outputsavedirectory',

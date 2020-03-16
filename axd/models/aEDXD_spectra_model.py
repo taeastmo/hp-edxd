@@ -16,7 +16,7 @@
 import time
 from numpy import asarray
 from numpy import abs, append, nonzero, array
-from aEDXD.models.aEDXD_functions import *
+from axd.models.aEDXD_functions import *
 import copy
 from PyQt5.QtCore import QObject, pyqtSignal
 from hpmca.models.mcaModel import MCA

@@ -21,7 +21,7 @@ from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Ver
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine, NumberTextField
 from hpmca.widgets.PltWidget import plotWindow
 from functools import partial
-from aEDXD.models.aEDXD_functions import is_e
+from axd.models.aEDXD_functions import is_e
 
 class aEDXDOptionsWidget(QWidget):
 

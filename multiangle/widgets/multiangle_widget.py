@@ -28,7 +28,7 @@ import time
 from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
 
-from aEDXD.widgets.aEDXD_widget import customWidget
+from axd.widgets.aEDXD_widget import customWidget
 
 from utilities.HelperModule import calculate_color
 import numpy as np

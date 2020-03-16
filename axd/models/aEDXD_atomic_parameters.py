@@ -15,13 +15,17 @@
 
 
 import numpy as np
+import os
+from .. import data_path
 
 class aEDXDAtomicParameters():
     
     def __init__(self):
-        self.MKL = read_ascii_table('aEDXD/resources/MKL.dat')
+
+
+        self.MKL = read_ascii_table(os.path.join(data_path, "MKL.dat"))
         
-        self.abc = read_ascii_table('aEDXD/resources/ABC.dat')
+        self.abc = read_ascii_table(os.path.join(data_path, "ABC.dat"))
         
 
     def _lookup_oxidation_states_abc(self,atomic_symbol):

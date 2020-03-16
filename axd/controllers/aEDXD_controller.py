@@ -31,17 +31,20 @@ from numpy import arange
 from PyQt5.QtWidgets import QMainWindow
 from utilities.HelperModule import getInterpolatedCounts
 from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
-from aEDXD.models.aEDXD_model import aEDXD_model
-from aEDXD.widgets.aEDXD_widget import aEDXDWidget
-from aEDXD.controllers.aEDXD_config_controller import aEDXDConfigController
+from axd.models.aEDXD_model import aEDXD_model
+from axd.widgets.aEDXD_widget import aEDXDWidget
+from axd.controllers.aEDXD_config_controller import aEDXDConfigController
 
+from .. import style_path
 
 ############################################################
 
-class aEDXD_controller(QObject):
+class aEDXDController(QObject):
     def __init__(self, app, theme):
         super().__init__()
         self.app = app
+        self.style_path = style_path
+
         self.model = aEDXD_model()
         self.display_window = aEDXDWidget(app)
         self.progress_bar = self.display_window.progress_bar
@@ -50,7 +53,6 @@ class aEDXD_controller(QObject):
         self.display_window.raise_widget()
         self.progress_bar.setValue(0)
         self.setStyle(theme)
-        print('controller initialized')
 
     def closeEvent(self, QCloseEvent, *event):
         self.app.closeAllWindows()
@@ -260,9 +262,10 @@ class aEDXD_controller(QObject):
         self.config_controller.show_rois()
 
     def setStyle(self, Style):
+        print('style:  ' + str(Style))
         if Style==1:
             WStyle = 'plastique'
-            file = open(os.path.join('resources', "stylesheet.qss"))
+            file = open(os.path.join(self.style_path, "stylesheet.qss"))
             stylesheet = file.read()
             self.app.setStyleSheet(stylesheet)
             file.close()

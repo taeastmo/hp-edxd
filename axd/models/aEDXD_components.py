@@ -14,7 +14,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import ast
-from aEDXD.models.aEDXD_functions import *
+from axd.models.aEDXD_functions import *
 import copy
 import os
 import time

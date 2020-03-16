@@ -25,7 +25,7 @@ import copy
 
 from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
-from aEDXD.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
+from axd.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
 
 
 class aEDXDAtomWidget(QtWidgets.QWidget):
