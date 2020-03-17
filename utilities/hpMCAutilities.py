@@ -13,16 +13,21 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os.path
+import os.path, os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from functools import partial
 import json
 import copy
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from pathlib import Path
 import numpy as np
+
+from pathlib import Path
+home_path = os.path.join(str(Path.home()), 'hpMCA')
+if not os.path.exists(home_path):
+   os.mkdir(home_path)
 
 def compare_lists(a,b):
    if len(a) !=len(b):
@@ -115,33 +120,14 @@ class Preferences():
       pass
 
 def readconfig(config_file):
-   exists = os.path.exists(config_file)
-   print('config file exists: ' + str(exists))
-   if exists:
+   
+   config_dict = {}
+   try:
       with open(config_file,'r') as f:
          config_dict = json.loads(f.read())
-   else:
-      config_dict = { 
-                     "inputdataformat": 1,
-                     "inputdatadirectory": "./aEDXD/mca_spectra/", 
-                     "outputsavedirectory": "./aEDXD/mca_spectra/Analysis_Output/",
-                     "mcadata": None,
-                     "mca_adc_shapingtime": 0.000004, 
-                     "sq_par": None, 
-                     "rho": 0.079598, 
-                     "bin_size": 8,                     
-                     "Emin": 31.0,             
-                     "Emax": 65.0,             
-                     "polynomial_deg": 3,     
-                     "itr_comp": 1,            
-                     "sq_smoothing_factor": 0.7,                   
-                     "q_spacing": 0.05,       
-                     "r_spacing": 0.05,        
-                     "qmax": 14.0,                         
-                     "rmax": 15.0,            
-                     "hard_core_limit": 1.30                           
-                     }
-
+   except:
+      pass
+   
    return config_dict 
 
 def json_compatible_dict(params):
@@ -260,7 +246,7 @@ def restore(file, obj):
       
    except:
       ok = False
-      displayErrorMessage( 'opt_read') 
+      #displayErrorMessage( 'opt_read') 
 
    
    if ok:
@@ -272,13 +258,15 @@ def restore(file, obj):
 
 ############################################################
 def restore_file_settings(file):
+   filepath = os.path.join(home_path, file)
    obj = mcaDisplay_options() 
-   return restore(file, obj)
+   return restore(filepath, obj)
 
 ############################################################
 def restore_folder_settings(file):
+   filepath = os.path.join(home_path, file)
    obj = mcaDisplay_file()
-   return restore(file, obj)
+   return restore(filepath, obj)
 
 ############################################################
 def save(options, file):
@@ -294,12 +282,15 @@ def save(options, file):
       displayErrorMessage( 'opt_save') 
 
 ############################################################
-def save_folder_settings(options, file='hpMCA_folder_settings.json'):
-   save(options, file='hpMCA_folder_settings.json')
+def save_folder_settings(options, file = 'hpMCA_folder_settings.json'):
+   filepath = os.path.join(home_path, file)
+   save(options, filepath)
 
 ############################################################
 def save_file_settings(options, file='hpMCA_file_settings.json'):
-   save(options, file='hpMCA_file_settings.json')
+
+   filepath = os.path.join(home_path, file)
+   save(options, filepath)
 
 
 

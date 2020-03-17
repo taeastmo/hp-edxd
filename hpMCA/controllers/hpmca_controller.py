@@ -22,22 +22,22 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog, QMessageBox
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from epics.clibs import *  # makes sure dlls are included in the exe
 
-from hpMCA.models.mcaModel import MCA
-from hpMCA.models.epicsMCA import epicsMCA
+from hpmca.models.mcaModel import MCA
+from hpmca.models.epicsMCA import epicsMCA
 
-from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
-from hpMCA.widgets.eCalWidget import mcaCalibrateEnergy
-from hpMCA.widgets.TthCalWidget import mcaCalibrate2theta
-from hpMCA.widgets.xrfWidget import xrfWidget
-from hpMCA.widgets.hpmcaWidget import hpMCAWidget
+from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpmca.widgets.eCalWidget import mcaCalibrateEnergy
+from hpmca.widgets.TthCalWidget import mcaCalibrate2theta
+from hpmca.widgets.xrfWidget import xrfWidget
+from hpmca.widgets.hpmcaWidget import hpMCAWidget
 
 
-from hpMCA.controllers.PhaseController import PhaseController
-from hpMCA.controllers.mcaPlotController import plotController
-from hpMCA.controllers.RoiController import RoiController
-from hpMCA.controllers.OverlayController import OverlayController
-from hpMCA.controllers.DisplayPrefsController import DisplayPreferences
-#from hpMCA.controllers.hklGenController import hklGenController
+from hpmca.controllers.PhaseController import PhaseController
+from hpmca.controllers.mcaPlotController import plotController
+from hpmca.controllers.RoiController import RoiController
+from hpmca.controllers.OverlayController import OverlayController
+from hpmca.controllers.DisplayPrefsController import DisplayPreferences
+#from hpmca.controllers.hklGenController import hklGenController
 
 import utilities.hpMCAutilities as mcaUtil
 from utilities.HelperModule import increment_filename
@@ -45,8 +45,9 @@ from utilities.HelperModule import increment_filename
 from epics import PV
 
 Theme = 1   # app style 0=windows 1=dark 
+from .. import style_path
 
-class hpMCA(QObject):
+class hpmcaController(QObject):
     key_signal = pyqtSignal(str)
     
     def __init__(self, app):
@@ -54,13 +55,16 @@ class hpMCA(QObject):
         self.app = app  # app object
         global Theme
         self.Theme = Theme
+        self.style_path = style_path
         self.setStyle(self.Theme)
         self.widget = hpMCAWidget(app) 
         self.make_prefs_menu()  # for mac
         self.displayPrefs = DisplayPreferences(self.widget.pg)
 
-        self.McaFilename = PV('16BMB:McaFilename')
-                    
+
+        self.McaFilename = None
+        self.McaFileNameHolder = None
+        self.McaFilename_PV = '16BMB:McaFilename'
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
@@ -68,7 +72,7 @@ class hpMCA(QObject):
         
         self.working_directories = mcaUtil.restore_folder_settings('hpMCA_folder_settings.json')
         self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
-        self.presets = mcaUtil.mcaDisplay_presets()
+        self.presets = mcaUtil.mcaDisplay_presets() 
         self.last_saved = ''
         
         # initialize some stuff
@@ -209,7 +213,10 @@ class hpMCA(QObject):
                 if self.Foreground == 'epics':
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
+                    
+                    self.McaFileNameHolder = self.McaFilename
                     self.epicsMCAholder = self.mca
+            self.McaFilename = None        
             self.mca = mca
             self.blockSignals(True)
             for btn in self.epicsBtns:
@@ -218,8 +225,16 @@ class hpMCA(QObject):
             self.blockSignals(False)
         elif mcaType == 'epics': 
             name = ''
-            if self.epicsMCAholder != None:
+            
+            if self.epicsMCAholder is not None:
                 name = self.epicsMCAholder.name
+            if self.McaFileNameHolder is not None:
+                self.McaFilename = self.McaFileNameHolder
+            else:
+                try:
+                    self.McaFilename = PV(self.McaFilename_PV)
+                except:
+                    pass
             if name == det_or_file :
                 self.mca = self.epicsMCAholder
                 self.mca.toggleEpicsWidgetsEnabled(True)
@@ -238,6 +253,7 @@ class hpMCA(QObject):
             self.roi_controller.set_mca(self.mca)
             self.fluorescence_controller.set_mca(self.mca)
         self.Foreground = mcaType
+        
         return 0
 
     def initControllers(self):
@@ -373,9 +389,10 @@ class hpMCA(QObject):
                 mcaUtil.displayErrorMessage('fs')
 
     def update_epics_filename(self):
-        if self.mca != None:
-            name = self.mca.get_name_base()
-            self.McaFilename.put(name)
+        if self.mca is not None:
+            if self.McaFilename is not None:
+                name = self.mca.get_name_base()
+                self.McaFilename.put(name)
 
     def openFile(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
@@ -401,18 +418,18 @@ class hpMCA(QObject):
                 mcaUtil.displayErrorMessage( 'fr')
 
     def export_pattern(self):
-        if self.mca != None:
+        if self.mca is not None:
             img_filename, _ = os.path.splitext(os.path.basename(self.mca.file_name))
             filename = save_file_dialog(
                 self.widget, "Save Pattern Data.",
                 os.path.join(self.working_directories.savedata,
                             img_filename + self.working_directories.export_ext),
-                ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png);;svg (*.svg)'))
+                ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
             if filename is not '':
                 if filename.endswith('.png'):
                     self.widget.pg.export_plot_png(filename)
-                elif filename.endswith('.svg'):
-                    self.widget.pg.export_plot_svg(filename)
+                #elif filename.endswith('.svg'):
+                #    self.widget.pg.export_plot_svg(filename)
                 else:
                     self.mca.export_pattern(filename, self.unit, self.plotController.units[self.unit])
 
@@ -590,9 +607,10 @@ class hpMCA(QObject):
     ########################################################################################    
 
     def setStyle(self, Style):
+        #print('style:  ' + str(Style))
         if Style==1:
             WStyle = 'plastique'
-            file = open(os.path.join('resources', "stylesheet.qss"))
+            file = open(os.path.join(self.style_path, "stylesheet.qss"))
             stylesheet = file.read()
             self.app.setStyleSheet(stylesheet)
             file.close()

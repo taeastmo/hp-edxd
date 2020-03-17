@@ -21,8 +21,8 @@
 import numpy as np
 
 from qtpy import QtCore
-from hpMCA.models.jcpds import jcpds, jcpds_reflection
-from hpMCA.models.cif import CifConverter
+from hpmca.models.jcpds import jcpds, jcpds_reflection
+from hpmca.models.cif import CifConverter
 from utilities.HelperModule import calculate_color
 
 

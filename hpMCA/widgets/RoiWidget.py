@@ -21,7 +21,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5 import QtWidgets, QtCore
 import copy
 import pyqtgraph as pg
-from hpMCA.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 
 

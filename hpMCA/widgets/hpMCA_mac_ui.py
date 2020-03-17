@@ -10,8 +10,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
-        hpMCA.setObjectName("hpMCA")
-        hpMCA.resize(1236, 715)
+        hpmca.setObjectName("hpMCA")
+        hpmca.resize(1100, 615)
         self.centralwidget = QtWidgets.QWidget(hpMCA)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -372,7 +372,7 @@ class Ui_hpMCA(object):
         self.DisplayLayout.addLayout(self.CursorsLayout)
         self._Layout.addLayout(self.DisplayLayout)
         self.verticalLayout_4.addLayout(self._Layout)
-        hpMCA.setCentralWidget(self.centralwidget)
+        hpmca.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(hpMCA)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1236, 21))
         self.menubar.setObjectName("menubar")
@@ -384,7 +384,7 @@ class Ui_hpMCA(object):
         self.menuDisplay.setObjectName("menuDisplay")
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
-        hpMCA.setMenuBar(self.menubar)
+        hpmca.setMenuBar(self.menubar)
         self.actionBackground = QtWidgets.QAction(hpMCA)
         self.actionBackground.setObjectName("actionBackground")
         self.actionSave_As = QtWidgets.QAction(hpMCA)
@@ -465,7 +465,7 @@ class Ui_hpMCA(object):
 
     def retranslateUi(self, hpMCA):
         _translate = QtCore.QCoreApplication.translate
-        hpMCA.setWindowTitle(_translate("hpMCA", "hpMCA"))
+        hpmca.setWindowTitle(_translate("hpMCA", "hpMCA"))
         self.groupBoxAcq.setTitle(_translate("hpMCA", "Aquisition"))
         self.btnOn.setText(_translate("hpMCA", "On"))
         self.btnOff.setText(_translate("hpMCA", "Off"))
@@ -518,7 +518,7 @@ class Ui_hpMCA(object):
         self.actionPressure.setText(_translate("hpMCA", "Pressure"))
         self.actionDisplayPrefs.setText(_translate("hpMCA", "Colors options"))
 
-from hpMCA.widgets.PltWidget import PltWidget
+from hpmca.widgets.PltWidget import PltWidget
 
 if __name__ == "__main__":
     import sys
@@ -526,6 +526,6 @@ if __name__ == "__main__":
     hpMCA = QtWidgets.QMainWindow()
     ui = Ui_hpMCA()
     ui.setupUi(hpMCA)
-    hpMCA.show()
+    hpmca.show()
     sys.exit(app.exec_())
 

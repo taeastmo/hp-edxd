@@ -12,7 +12,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-6
+
 """aEDXD.py:
    A python script program for amorphous EDXD data analysis"""
 
@@ -57,19 +57,8 @@
 #        
 ###############################################################################
 
-from aEDXD.controllers.aEDXD_controller import aEDXD
-from PyQt5.QtWidgets import QApplication
-from PyQt5 import QtCore
-import sys
 
-def run():
-   QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-   app = QApplication(sys.argv)
-   app.aboutToQuit.connect(app.deleteLater)
-   controller = aEDXD(app,1)
-   return app.exec_()
+from axd import main
 
-if __name__ == '__main__':
-   sys.exit(run())
-    
+main()
 

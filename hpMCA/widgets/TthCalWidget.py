@@ -43,7 +43,7 @@ import math
 
 import utilities.CARSMath as CARSMath
 import functools
-import hpMCA.models.jcpds as jcpds
+import hpmca.models.jcpds as jcpds
 import utilities.centroid as centroid
 
 ############################################################

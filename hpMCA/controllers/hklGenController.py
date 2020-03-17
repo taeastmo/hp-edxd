@@ -20,14 +20,14 @@ import numpy as np
 from PyQt5 import QtWidgets, QtCore
 import copy
 
-from hpMCA.models.hklGenModel import hklGenModel_viewModel
+from hpmca.models.hklGenModel import hklGenModel_viewModel
 
 #from utilities.HelperModule import get_base_name
-#from hpMCA.controllers.JcpdsEditorController import JcpdsEditorController
-#from hpMCA.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
-#from hpMCA.models.PhaseModel import PhaseModel
-from hpMCA.widgets.hklGenWidget import hklGenWidget
-from hpMCA.controllers.hklCellInPatternController import hklCellInPatternController
+#from hpmca.controllers.JcpdsEditorController import JcpdsEditorController
+#from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
+#from hpmca.models.PhaseModel import PhaseModel
+from hpmca.widgets.hklGenWidget import hklGenWidget
+from hpmca.controllers.hklCellInPatternController import hklCellInPatternController
 
 import utilities.hpMCAutilities as mcaUtil
 

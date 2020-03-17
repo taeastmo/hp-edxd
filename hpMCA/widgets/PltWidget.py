@@ -23,8 +23,8 @@ from pyqtgraph import QtCore, mkPen, mkColor, hsvColor
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5.QtGui import QColor, QPen
 from utilities.HelperModule import calculate_color
-from hpMCA.widgets.ExLegendItem import LegendItem
-from hpMCA.widgets.PhasePlot import PhasePlot
+from hpmca.widgets.ExLegendItem import LegendItem
+from hpmca.widgets.PhasePlot import PhasePlot
 import pyqtgraph.exporters
 import unicodedata
 from numpy import argmax, nan
@@ -303,9 +303,15 @@ class PltWidget(pg.PlotWidget):
                     pass
 
     def export_plot_png(self,filename):
+        self.vLine.hide()
+        self.vLineFast.hide()
         exporter = pg.exporters.ImageExporter(self.plotItem)
+        exporter.params.param('width').setValue(1920, blockSignal=exporter.widthChanged)
+        exporter.params.param('height').setValue(1080, blockSignal=exporter.heightChanged)
         #exporter.parameters()['width']= 200
         exporter.export(filename)
+        self.vLine.show()
+        self.vLineFast.show()
     
     def export_plot_svg(self,filename):
         self.vLine.hide()

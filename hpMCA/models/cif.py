@@ -27,16 +27,16 @@ except ImportError:
 from math import degrees
 
 from CifFile import ReadCif   # PyCifRW 4.4 "pip install PyCifRW"
-from hpMCA.models.jcpds import jcpds
-#from ... import data_path
+from hpmca.models.jcpds import jcpds
+from .. import data_path
 
 import numpy as np
 import json
 
-with open(os.path.join('resources', "atomic_scattering_params.json")) as f:
+with open(os.path.join(data_path, "atomic_scattering_params.json")) as f:
     ATOMIC_SCATTERING_PARAMS = json.load(f)
 
-with open(os.path.join('resources', "periodic_table.json")) as f:
+with open(os.path.join(data_path, "periodic_table.json")) as f:
     PERIODIC_TABLE = json.load(f)
 
 

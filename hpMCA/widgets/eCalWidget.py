@@ -40,7 +40,7 @@ import pyqtgraph as pg
 import copy
 import numpy as Numeric
 import math
-import hpMCA.models.Xrf as Xrf
+import hpmca.models.Xrf as Xrf
 import utilities.CARSMath as CARSMath
 import functools
 

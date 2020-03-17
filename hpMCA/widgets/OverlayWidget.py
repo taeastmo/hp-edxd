@@ -22,9 +22,9 @@ from functools import partial
 
 from PyQt5 import QtWidgets, QtCore
 
-from hpMCA.widgets.CustomWidgets import LabelAlignRight, FlatButton, CheckableFlatButton, DoubleSpinBoxAlignRight, \
+from hpmca.widgets.CustomWidgets import LabelAlignRight, FlatButton, CheckableFlatButton, DoubleSpinBoxAlignRight, \
     VerticalSpacerItem, HorizontalSpacerItem, ListTableWidget, DoubleMultiplySpinBoxAlignRight
-from hpMCA.widgets.CustomWidgets import NoRectDelegate
+from hpmca.widgets.CustomWidgets import NoRectDelegate
 
 
 class OverlayWidget(QtWidgets.QWidget):

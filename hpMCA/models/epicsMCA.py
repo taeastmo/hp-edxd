@@ -42,7 +42,7 @@ import time
 import utilities.hpMCAutilities as hpUtil
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMessageBox
-from hpMCA.models.mcaModel import *
+from hpmca.models.mcaModel import *
 
 class epicsMCA(MCA):
     """

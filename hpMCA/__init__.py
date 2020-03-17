@@ -18,41 +18,45 @@
 
 # Based on code from Dioptas - GUI program for fast processing of 2D X-ray diffraction data
 
-from __future__ import absolute_import
 
-'''
-from ._version import get_versions
 
-__version__ = get_versions()['version']
-del get_versions
+__version__ = "0.5.0"
 
-if __version__ == "0+unknown":
-    __version__ = "0.1.0"
 
-'''
 
 import sys
 import os
 import time
 
+
+import PyQt5
+from PyQt5 import QtCore
 import pyqtgraph
 from PyQt5 import QtWidgets
 
+
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
-#calibrants_path = os.path.join(resources_path, 'calibrants')
+calibrants_path = os.path.join(resources_path, 'calibrants')
 icons_path = os.path.join(resources_path, 'icons')
-#data_path = os.path.join(resources_path, 'data')
-#style_path = os.path.join(resources_path, 'style')
+data_path = os.path.join(resources_path, 'data')
+style_path = os.path.join(resources_path, 'style')
 
-
+from pathlib import Path
+home_path = str(Path.home())
 
 def main():
+  
+    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+      PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+    if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+        PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
     app = QtWidgets.QApplication([])
 
-    from hpMCA.controllers.hpmca_controller import hpMCA
+    from hpmca.controllers.hpmca_controller import hpmcaController
     app.aboutToQuit.connect(app.deleteLater)
 
-    controller = hpMCA(app)
+    controller = hpmcaController(app)
     controller.widget.show()
 
     # autoload a file, using for debugging
@@ -62,3 +66,5 @@ def main():
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
 
     return app.exec_()
+
+    

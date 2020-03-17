@@ -30,9 +30,9 @@ from PyQt5.QtWidgets import QMainWindow
 _platform = platform.system()
 Theme = 1   # app style 0=windows 1=dark 
 if _platform == "Darwin" and Theme == 0: 
-    from hpMCA.widgets.hpMCA_mac_ui import Ui_hpMCA
+    from hpmca.widgets.hpMCA_mac_ui import Ui_hpMCA
 else:
-    from hpMCA.widgets.hpMCA_ui import Ui_hpMCA
+    from hpmca.widgets.hpMCA_ui import Ui_hpMCA
 
 class hpMCAWidget(QMainWindow, Ui_hpMCA):
     file_dragged_in_signal = pyqtSignal(str)
