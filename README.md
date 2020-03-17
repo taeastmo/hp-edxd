@@ -9,3 +9,11 @@ pyqtgraph 0.10.0<br>
 pyepics 3.4.0<br>
 burnman 0.9.0<br>
 PyCifRW 4.4.1 <br>
+
+### Executables
+
+Executable versions for Windows, Mac OS (all 64bit) can be downloaded from:
+
+https://github.com/hrubiak/hp-edxd/releases
+
+The executable versions are self-contained and do not need a python installation.
