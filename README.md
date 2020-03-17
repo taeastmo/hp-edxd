@@ -12,8 +12,8 @@ PyCifRW 4.4.1 <br>
 
 ### Executables
 
-Executable versions for Windows, Mac OsX and Linux (all 64bit) can be downloaded from:
+Executable versions for Windows, Mac OS (all 64bit) can be downloaded from:
 
 https://github.com/hrubiak/hp-edxd/releases
 
-The executable versions are self-contained folders, which do not need any python installation.
+The executable versions are self-contained and do not need a python installation.
