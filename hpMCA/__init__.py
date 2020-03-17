@@ -39,8 +39,10 @@ icons_path = os.path.join(resources_path, 'icons')
 data_path = os.path.join(resources_path, 'data')
 style_path = os.path.join(resources_path, 'style')
 
-def main():
+from pathlib import Path
+home_path = str(Path.home())
 
+def main():
   
     if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
       PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)

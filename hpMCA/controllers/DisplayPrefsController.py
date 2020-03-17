@@ -23,14 +23,20 @@ from PyQt5.QtCore import QObject
 import json
 from utilities.hpMCAutilities import displayErrorMessage, json_compatible_dict, readconfig
 
+import os.path, os
+from pathlib import Path
+home_path = os.path.join(str(Path.home()), 'hpMCA')
+if not os.path.exists(home_path):
+   os.mkdir(home_path)
 
 class DisplayPreferences(Preferences):
     def __init__(self, plot_widget):
         self.plot_widget = plot_widget
         self.colors = self.plot_widget.get_colors()
 
-        self.config_file = 'hpMCA_color_settings.json'
-        prefs, colors = opt_fields()
+        self.config_file = os.path.join(home_path,'hpMCA_color_settings.json')
+
+        prefs, colors = opt_fields(self.config_file)
         
 
         self.widget = DisplayPreferencesWidget(prefs, 
@@ -85,14 +91,16 @@ def save_config(params, filename):
         pass
 
 
-def opt_fields():
+def opt_fields(config_file):
 
-    colors = readconfig('hpMCA_color_settings.json')
+    
+
+    colors = readconfig(config_file)
 
     opts = {'display':
                    {'plot_background_color':
                     {'val': (255, 255, 255),
-                     'desc': 'data binning for better statistics',
+                     'desc': '',
                      'label': 'Background'},
                     'data_color':
                         {'val': '#2F2F2F',
@@ -112,6 +120,7 @@ def opt_fields():
 
 
     prefs = opts['display']
+    
     for c in colors:
         if c in prefs:
             prefs[c]['val']= colors[c]

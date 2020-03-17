@@ -1,5 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 import axd
+axd_path = os.path.dirname(axd.__file__)
+print (axd_path)
+
 block_cipher = None
 from sys import platform as _platform
 
