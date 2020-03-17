@@ -1,27 +1,42 @@
-# -*- coding: utf-8 -*-
-# Dioptas - GUI program for fast processing of 2D X-ray diffraction data
-# Principal author: Clemens Prescher (clemens.prescher@gmail.com)
-# Copyright (C) 2014-2019 GSECARS, University of Chicago, USA
-# Copyright (C) 2015-2018 Institute for Geology and Mineralogy, University of Cologne, Germany
-# Copyright (C) 2019 DESY, Hamburg, Germany
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# -*- coding: utf8 -*-
+
+# DISCLAIMER
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE 
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Principal author: R. Hrubiak (hrubiak@anl.gov)
+# Copyright (C) 2018-2019 ANL, Lemont, USA
+
+# Based on code from Dioptas - GUI program for fast processing of 2D X-ray diffraction data
+
+""" 
+Modifications:
+    October 9, 2018 Ross Hrubiak
+        - modified from Dioptas PhaseModel.py v 0.4.0 by Clemens Prescher
+        - made more standalone, can be used outside of Dioptas
+            (removed references to integration, pattern, calibration and possibly other stuff)
+        - changed get_phase_line_positions and get_rescaled_reflections for EDXD
+        - compatibile with hpMCA
+        
+    October 11, 2019 Ross Hrubiak
+        - pulled most updates from from Dioptas PhaseModel.py v 0.5.0
+        - added jcpds V5 support: set_eos_type and set_eos_params methods
+
+"""
 
 import numpy as np
 
-from qtpy import QtCore
-from hpm.models.jcpds import jcpds, jcpds_reflection
+from PyQt5 import QtCore
+from hpm.models.jcpds import jcpds
 from hpm.models.cif import CifConverter
 from utilities.HelperModule import calculate_color
 
@@ -47,14 +62,17 @@ class PhaseModel(QtCore.QObject):
     num_phases = 0
 
     def __init__(self):
-        super(PhaseModel, self).__init__()
-        self.phases = []  # type: list[jcpds]
+        super().__init__()
+        self.phases = []
         self.reflections = []
         self.phase_files = []
         self.phase_colors = []
         self.phase_visible = []
 
         self.same_conditions = True
+
+    def send_added_signal(self):
+        self.phase_added.emit()
 
     def add_jcpds(self, filename):
         """
@@ -111,7 +129,7 @@ class PhaseModel(QtCore.QObject):
         """
         self.phases[ind].save_file(filename)
         self.phase_changed.emit(ind)
-
+    
     def del_phase(self, ind):
         """
         Deletes the a phase with index ind from the phase list
@@ -174,6 +192,12 @@ class PhaseModel(QtCore.QObject):
         self.get_lines_d(ind)
         self.phase_changed.emit(ind)
 
+    def set_pressure_all(self, P):
+        for phase in self.phases:
+            phase.compute_d(pressure=P)
+
+    
+
     def set_param(self, ind, param, value):
         """
         Sets one of the jcpds parameters for the phase with index ind to a certain value. Automatically emits the
@@ -204,9 +228,6 @@ class PhaseModel(QtCore.QObject):
         self.phase_changed.emit(ind)
 
     def get_lines_d(self, ind):
-        """
-        Gets the reflections from the phase with index ind and saves them in a two-dimensional array.
-        """
         reflections = self.phases[ind].get_reflections()
         res = np.zeros((len(reflections), 5))
         for i, reflection in enumerate(reflections):
@@ -217,6 +238,14 @@ class PhaseModel(QtCore.QObject):
             res[i, 4] = reflection.l
         self.reflections[ind] = res
         return res
+
+    def set_temperature_all(self, T):
+        for phase in self.phases:
+            phase.compute_d(temperature=T)
+
+    def update_all_phases(self):
+        for ind in range(len(self.phases)):
+            self.get_lines_d(ind)
 
     # need to modify this for EDXD mode
     def get_phase_line_positions(self, ind, unit='E', wavelength='0.406626',tth=15):
@@ -231,23 +260,13 @@ class PhaseModel(QtCore.QObject):
         else:
             return [0]*len(positions)
         #print (positions)
+        
 
-
-    # need to modify this for EDXD mode
     def get_phase_line_intensities(self, ind, positions, pattern, x_range, y_range):
-        """
-        Gets the phase line intensities scaled to each other for a specific x and y range and also a maximum intensity
-        based on a specific pattern.
-        :param ind: phase index
-        :param positions: positions of the lines
-        :param pattern: pattern with what it will be plotted
-        :param x_range: x range for which the relative intensities will be calculated
-        :param y_range: y range for which the relative intensities will be calculated
-        :return: array of intensities, baseline representing the start for the lines
-        """
+        
         max_pattern_intensity = y_range[1]
 
-        baseline = 1
+        baseline = .5
         phase_line_intensities = self.reflections[ind][:, 1]
         # search for reflections within current pattern view range
         phase_line_intensities_in_range = phase_line_intensities[(positions > x_range[0]) & (positions < x_range[1])]
@@ -266,22 +285,11 @@ class PhaseModel(QtCore.QObject):
 
     def get_rescaled_reflections(self, ind, pattern, x_range,
                                  y_range, wavelength, unit='E', tth=15):
-
-        """
-        Gets the phase line positions and intensities for a phase with index ind scaled to each other for a specific x
-        and y range and also a maximum intensity based on a specific pattern.
-        :param ind: phase index
-        :param pattern: pattern with what it will be plotted
-        :param x_range: x range for which the relative intensities will be calculated
-        :param y_range: y range for which the relative intensities will be calculated
-        :param wavelength: wavelength in nm
-        :param unit: unit for the positions, possible values: 'tth', 'q', 'd'
-        :return: a tuple with: (array of positions, array of intensities, baseline value)
-        """
         positions = self.get_phase_line_positions(ind, unit, wavelength, tth)
         intensities, baseline = self.get_phase_line_intensities(ind, positions, pattern, x_range, y_range)
         return positions, intensities, baseline
 
+    
     def add_reflection(self, ind):
         """
         Adds an empty reflection to the reflection table of a phase with index ind
@@ -294,6 +302,7 @@ class PhaseModel(QtCore.QObject):
         """
         Deletes a reflection from a phase with index phase index.
         """
+        reflection_ind = int(reflection_ind)
         self.phases[phase_ind].delete_reflection(reflection_ind)
         self.get_lines_d(phase_ind)
         self.reflection_deleted.emit(phase_ind, reflection_ind)
@@ -328,7 +337,7 @@ class PhaseModel(QtCore.QObject):
         self.phases[phase_ind].compute_d0()
         self.phases[phase_ind].compute_d()
         self.get_lines_d(phase_ind)
-        self.phase_changed.emit(phase_ind)
+        self.phase_changed.emit(phase_ind)    
 
     def reset(self):
         """
@@ -336,3 +345,38 @@ class PhaseModel(QtCore.QObject):
         """
         for ind in range(len(self.phases)):
             self.del_phase(0)
+
+
+    # jcpds V5 stuff
+
+    def set_z(self, ind, z):
+        phase = self.phases[ind]
+        phase.set_z(z)
+        self.phases[ind].compute_v0()
+        self.phases[ind].compute_d0()
+        self.phases[ind].compute_d()
+        self.get_lines_d(ind)
+        self.phase_changed.emit(ind)
+
+    def set_eos_params(self, ind, params):
+        phase = self.phases[ind]
+        eos = phase.params['eos']
+        eos_type = eos['equation_of_state']
+        for key in params:
+            if key in eos:
+                phase.set_eos_param(eos_type, key, float(str(params[key])))
+        self.phases[ind].compute_v0()
+        self.phases[ind].compute_d0()
+        self.phases[ind].compute_d()
+        self.get_lines_d(ind)
+        self.phase_changed.emit(ind)
+
+
+    def set_eos_type(self, ind, params):
+        phase = self.phases[ind]
+        phase.set_EOS(params)
+        self.phases[ind].compute_v0()
+        self.phases[ind].compute_d0()
+        self.phases[ind].compute_d()
+        self.get_lines_d(ind)
+        self.phase_changed.emit(ind)

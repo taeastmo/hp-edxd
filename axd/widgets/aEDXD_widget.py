@@ -17,9 +17,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from  PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog, QWidget, QLabel
-from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-from hpmca.widgets.PltWidget import plotWindow
+from hpm.widgets.PltWidget import plotWindow
 from functools import partial
 
 class aEDXDWidget(QMainWindow):

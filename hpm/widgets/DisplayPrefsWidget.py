@@ -14,6 +14,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# Principal author: R. Hrubiak (hrubiak@anl.gov)
+# Copyright (C) 2018-2019 ANL, Lemont, USA
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from  PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog, QWidget, QLabel
@@ -21,19 +24,17 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine, NumberTextField
 from hpm.widgets.PltWidget import plotWindow
 from functools import partial
-from axd.models.aEDXD_functions import is_e
 
-class aEDXDOptionsWidget(QWidget):
+
+class DisplayPreferencesWidget(QWidget):
 
     apply_clicked_signal = QtCore.pyqtSignal(dict)
 
     def __init__(self, fields, title='Options control'):
         super().__init__()
-        
         self.title = title
         self.opts_fields = fields
         self.setupUi()
-        
    
     def raise_widget(self):
         self.show()
@@ -41,9 +42,7 @@ class aEDXDOptionsWidget(QWidget):
         self.activateWindow()
         self.raise_()    
 
-
     def setupUi(self):
-        
         self._layout = QtWidgets.QVBoxLayout()
         self.setWindowTitle(self.title)
         self.button_widget = QtWidgets.QWidget(self)
@@ -61,44 +60,23 @@ class aEDXDOptionsWidget(QWidget):
         
         self.parameter_widget = QtWidgets.QWidget()
         self._parameter_layout = QtWidgets.QGridLayout()
-        self._parameter_layout.addWidget(QtWidgets.QLabel('Parameter'), 0, 1)
-        self._parameter_layout.addWidget(QtWidgets.QLabel('Step'), 0, 3)
+        self._parameter_layout.addWidget(QtWidgets.QLabel('Color'), 0, 1)
+        
         self.opt_controls = {}
         
         i = 1
         for opt in self.opts_fields:
             self._parameter_layout.addWidget(QtWidgets.QLabel(self.opts_fields[opt]['label']), i, 0)
-            self._parameter_layout.addWidget(QtWidgets.QLabel(self.opts_fields[opt]['unit']), i, 2)
-            val=self.opts_fields[opt]['val']
-            e = is_e(val)
-            if e:
-                o = NumberTextField()
-            else:
-                o = DoubleSpinBoxAlignRight()
-            o.setObjectName(opt+"_control")
-            o.setValue(val)
-            o.setToolTip(self.opts_fields[opt]['desc'])
-            o.setMinimum (self.opts_fields[opt]['step']) 
-            o.setMinimumWidth(100)
-            if not e:
-                o.setSingleStep (self.opts_fields[opt]['step'])
-                o_step = DoubleMultiplySpinBoxAlignRight()
-                o_step.setObjectName(opt+"_control_step")
-                o_step.setMinimum (0)
-                step = self.opts_fields[opt]['step']
-                o_step.setValue(self.opts_fields[opt]['step']) 
-            if isinstance( self.opts_fields[opt]['val'], int):
-                o.setDecimals(0)
-                o.setMinimum(1)
-                if not e:
-                    o_step.setMinimum(1)
-                    o_step.setDecimals(0)
-            o_step.valueChanged.connect(partial(self.update_step, opt))
-            self.opt_controls[opt]= {'val':o,'step':o_step}
-            self._parameter_layout.addWidget(o, i, 1)
-            self._parameter_layout.addWidget(o_step, i, 3)
+            cb = FlatButton()
+            cb.setObjectName(opt+"_control")
+            color = self.opts_fields[opt]['val']
+            set_btn_color(cb,color)
+            self._parameter_layout.addWidget(cb)
+            self.opt_controls[opt]= {'control':cb}
+            cb.clicked.connect(partial(self.color_btn_clicked, cb))
             self._parameter_layout.addItem(HorizontalSpacerItem(), i, 4)
             i += 1
+
         self._parameter_layout.addItem(VerticalSpacerItem(), i, 0)
         self.parameter_widget.setLayout(self._parameter_layout)
         self._body_layout = QtWidgets.QHBoxLayout()
@@ -107,7 +85,7 @@ class aEDXDOptionsWidget(QWidget):
         self._layout.addWidget(HorizontalLine())
         self._layout.addWidget(self.button_widget)
         self.setLayout(self._layout)
-        self.retranslateUi(self)
+        
         self.style_widgets()
 
     def style_widgets(self):
@@ -119,28 +97,44 @@ class aEDXDOptionsWidget(QWidget):
             }
         """)
 
-    def update_step(self, opt):
-        o = self. opt_controls[opt]['val']
-        o_step = self. opt_controls[opt]['step']
-        value = o_step.value()
-        o.setSingleStep(value)
-
-    def retranslateUi(self, aEDXDWidget):
-        pass
+    def color_btn_clicked(self, btn):
+        previous_color = btn.palette().color(1)
+        new_color = QtWidgets.QColorDialog.getColor(previous_color, self)
+        if new_color.isValid():
+            color = str(new_color.name())
+        else:
+            color = str(previous_color.name())
+        #print(color)
+        btn.setStyleSheet('background-color:' + color)
 
     def set_params(self,params):
         oc = self.opt_controls
         for opt in params: 
             if opt in oc:
-                control=oc[opt]['val']
+                control=oc[opt]['control']
                 val = params[opt]
                 if val is not None:
-                    control.setValue(val)
+                    set_btn_color(control,val)
 
     def apply(self):
         params = {}
         oc = self.opt_controls
         for opt in oc:
-            control=oc[opt]['val']
-            params[opt]= float(control.value())
+            val =  oc[opt]['control'].palette().color(1)
+            color = (val.red(), val.green(), val.blue())
+            color = rgb2hex(*color)
+            params[opt]= color
         self.apply_clicked_signal.emit(params)
+
+def set_btn_color(btn, color):
+    typ = type(color).__name__
+    if typ == 'tuple':
+        color = rgb2hex(*color)
+    btn.setStyleSheet('background: '+color)
+
+def rgb2hex(r,g,b):
+    return f'#{int(round(r)):02x}{int(round(g)):02x}{int(round(b)):02x}'
+
+
+def hex2rgb(hexcode):
+    return tuple(map(ord,hexcode[1:].decode('hex')))
