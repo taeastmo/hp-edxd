@@ -61,8 +61,10 @@ class hpmcaController(QObject):
         self.make_prefs_menu()  # for mac
         self.displayPrefs = DisplayPreferences(self.widget.pg)
 
-        self.McaFilename = PV('16BMB:McaFilename')
-                    
+
+        self.McaFilename = None
+        self.McaFileNameHolder = None
+        self.McaFilename_PV = '16BMB:McaFilename'
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
@@ -211,7 +213,10 @@ class hpmcaController(QObject):
                 if self.Foreground == 'epics':
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
+                    
+                    self.McaFileNameHolder = self.McaFilename
                     self.epicsMCAholder = self.mca
+            self.McaFilename = None        
             self.mca = mca
             self.blockSignals(True)
             for btn in self.epicsBtns:
@@ -220,8 +225,16 @@ class hpmcaController(QObject):
             self.blockSignals(False)
         elif mcaType == 'epics': 
             name = ''
-            if self.epicsMCAholder != None:
+            
+            if self.epicsMCAholder is not None:
                 name = self.epicsMCAholder.name
+            if self.McaFileNameHolder is not None:
+                self.McaFilename = self.McaFileNameHolder
+            else:
+                try:
+                    self.McaFilename = PV(self.McaFilename_PV)
+                except:
+                    pass
             if name == det_or_file :
                 self.mca = self.epicsMCAholder
                 self.mca.toggleEpicsWidgetsEnabled(True)
@@ -240,6 +253,7 @@ class hpmcaController(QObject):
             self.roi_controller.set_mca(self.mca)
             self.fluorescence_controller.set_mca(self.mca)
         self.Foreground = mcaType
+        
         return 0
 
     def initControllers(self):
@@ -375,9 +389,10 @@ class hpmcaController(QObject):
                 mcaUtil.displayErrorMessage('fs')
 
     def update_epics_filename(self):
-        if self.mca != None:
-            name = self.mca.get_name_base()
-            self.McaFilename.put(name)
+        if self.mca is not None:
+            if self.McaFilename is not None:
+                name = self.mca.get_name_base()
+                self.McaFilename.put(name)
 
     def openFile(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
@@ -403,18 +418,18 @@ class hpmcaController(QObject):
                 mcaUtil.displayErrorMessage( 'fr')
 
     def export_pattern(self):
-        if self.mca != None:
+        if self.mca is not None:
             img_filename, _ = os.path.splitext(os.path.basename(self.mca.file_name))
             filename = save_file_dialog(
                 self.widget, "Save Pattern Data.",
                 os.path.join(self.working_directories.savedata,
                             img_filename + self.working_directories.export_ext),
-                ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png);;svg (*.svg)'))
+                ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
             if filename is not '':
                 if filename.endswith('.png'):
                     self.widget.pg.export_plot_png(filename)
-                elif filename.endswith('.svg'):
-                    self.widget.pg.export_plot_svg(filename)
+                #elif filename.endswith('.svg'):
+                #    self.widget.pg.export_plot_svg(filename)
                 else:
                     self.mca.export_pattern(filename, self.unit, self.plotController.units[self.unit])
 
