@@ -19,7 +19,7 @@ from PyQt5.QtCore import Qt
 from functools import partial
 import json
 import copy
-from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from pathlib import Path
 import numpy as np

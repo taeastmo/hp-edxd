@@ -19,9 +19,9 @@ from numpy import abs, append, nonzero, array
 from axd.models.aEDXD_functions import *
 import copy
 from PyQt5.QtCore import QObject, pyqtSignal
-from hpmca.models.mcaModel import MCA
+from hpm.models.mcaModel import MCA
 import os, os.path, sys, platform
-from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from utilities.BackgroundExtraction import extract_background
 
 class Spectra():

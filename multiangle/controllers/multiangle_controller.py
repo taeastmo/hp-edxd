@@ -26,16 +26,16 @@ import numpy as np
 from functools import partial
 import json
 import copy
-from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 import utilities.hpMCAutilities as mcaUtil
 
 from pathlib import Path
 from utilities.HelperModule import calculate_color
 from numpy import arange
 
-from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from multiangle.widgets.multiangle_widget import multiangleWidget
 from multiangle.models.multiangle_model import multiangleModel
 from multiangle.models.pe_multi_angle_edxd_v2 import MultiangleSweep

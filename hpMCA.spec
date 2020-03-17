@@ -8,7 +8,7 @@ import burnman
 burnman_path = os.path.dirname(burnman.__file__)
 
 extra_datas = [
-    ("hpmca/resources", "hpmca/resources"),
+    ("hpm/resources", "hpm/resources"),
     (os.path.join(burnman_path, "data"), "burnman/data")
 ]
 

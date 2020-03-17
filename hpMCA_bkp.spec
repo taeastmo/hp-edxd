@@ -2,7 +2,7 @@
 
 block_cipher = None
 from sys import platform as _platform
-from hpmca import __version__
+from hpm import __version__
 
 import burnman
 burnman_path = os.path.dirname(burnman.__file__)
@@ -11,7 +11,7 @@ import epics
 epics_path = os.path.dirname(epics.__file__)
 
 extra_datas = [
-    ("hpmca/resources", "hpmca/resources"),
+    ("hpm/resources", "hpm/resources"),
     (os.path.join(burnman_path, "data"), "burnman/data")
 ]
 
@@ -84,7 +84,7 @@ exclude_datas = [
 for exclude_data in exclude_datas:
     a.datas = [x for x in a.datas if exclude_data not in x[0]]
 
-from hpmca import __version__
+from hpm import __version__
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)

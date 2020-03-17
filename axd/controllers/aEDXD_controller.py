@@ -22,15 +22,15 @@ import numpy as np
 from functools import partial
 import json
 import copy
-from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-from hpmca.widgets.PltWidget import plotWindow
+from hpm.widgets.PltWidget import plotWindow
 from pathlib import Path
 from utilities.HelperModule import calculate_color
 from numpy import arange
 from PyQt5.QtWidgets import QMainWindow
 from utilities.HelperModule import getInterpolatedCounts
-from hpmca.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from axd.models.aEDXD_model import aEDXD_model
 from axd.widgets.aEDXD_widget import aEDXDWidget
 from axd.controllers.aEDXD_config_controller import aEDXDConfigController
