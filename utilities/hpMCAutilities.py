@@ -24,6 +24,9 @@ from hpmca.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Ver
 from pathlib import Path
 import numpy as np
 
+from pathlib import Path
+home_path = str(Path.home())
+
 def compare_lists(a,b):
    if len(a) !=len(b):
       return False
@@ -260,7 +263,7 @@ def restore(file, obj):
       
    except:
       ok = False
-      displayErrorMessage( 'opt_read') 
+      #displayErrorMessage( 'opt_read') 
 
    
    if ok:
@@ -272,13 +275,15 @@ def restore(file, obj):
 
 ############################################################
 def restore_file_settings(file):
+   filepath = os.path.join(home_path, file)
    obj = mcaDisplay_options() 
-   return restore(file, obj)
+   return restore(filepath, obj)
 
 ############################################################
 def restore_folder_settings(file):
+   filepath = os.path.join(home_path, file)
    obj = mcaDisplay_file()
-   return restore(file, obj)
+   return restore(filepath, obj)
 
 ############################################################
 def save(options, file):
@@ -294,12 +299,15 @@ def save(options, file):
       displayErrorMessage( 'opt_save') 
 
 ############################################################
-def save_folder_settings(options, file='hpMCA_folder_settings.json'):
-   save(options, file='hpMCA_folder_settings.json')
+def save_folder_settings(options, file = 'hpMCA_folder_settings.json'):
+   filepath = os.path.join(home_path, file)
+   save(options, filepath)
 
 ############################################################
 def save_file_settings(options, file='hpMCA_file_settings.json'):
-   save(options, file='hpMCA_file_settings.json')
+
+   filepath = os.path.join(home_path, file)
+   save(options, filepath)
 
 
 

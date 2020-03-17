@@ -26,12 +26,12 @@ import sys
 import os
 import time
 
-'''
+
 import PyQt5
 from PyQt5 import QtCore
 import pyqtgraph
 from PyQt5 import QtWidgets
-'''
+
 
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
 calibrants_path = os.path.join(resources_path, 'calibrants')
@@ -39,9 +39,11 @@ icons_path = os.path.join(resources_path, 'icons')
 data_path = os.path.join(resources_path, 'data')
 style_path = os.path.join(resources_path, 'style')
 
-def main():
+from pathlib import Path
+home_path = str(Path.home())
 
-  '''
+def main():
+  
     if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
       PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
@@ -63,4 +65,4 @@ def main():
 
     return app.exec_()
 
-    '''
+    

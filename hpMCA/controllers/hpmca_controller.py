@@ -70,7 +70,7 @@ class hpmcaController(QObject):
         
         self.working_directories = mcaUtil.restore_folder_settings('hpMCA_folder_settings.json')
         self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
-        self.presets = mcaUtil.mcaDisplay_presets()
+        self.presets = mcaUtil.mcaDisplay_presets() 
         self.last_saved = ''
         
         # initialize some stuff
