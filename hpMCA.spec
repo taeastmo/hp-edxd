@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+__version__ = '0.5.0'
+
 block_cipher = None
 from sys import platform as _platform
 
@@ -83,7 +85,6 @@ exclude_datas = [
 for exclude_data in exclude_datas:
     a.datas = [x for x in a.datas if exclude_data not in x[0]]
 
-from hpmca import __version__
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
