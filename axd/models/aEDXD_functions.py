@@ -25,13 +25,7 @@ import numpy as np
 from scipy import interpolate
 from scipy.special import erfc
 from scipy.optimize import curve_fit
-import ast, json
-
-
-
-
-
-
+import json
 
 def fversion():
     return __version__

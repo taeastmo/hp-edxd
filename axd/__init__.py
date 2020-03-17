@@ -20,9 +20,6 @@ data_path = os.path.join(resources_path, 'data')
 style_path = os.path.join(resources_path, 'style')
 
 def main():
-
-    print ('Hello')
-
     
     if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
         PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)

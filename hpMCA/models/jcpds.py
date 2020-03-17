@@ -61,7 +61,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-import string, ast, json
+import string, json
 import numpy as np
 from math import isnan
 from scipy.optimize import minimize

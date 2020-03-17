@@ -28,7 +28,7 @@
 #                Scipy 0.15.1
 #                matplotlib 1.4.3
 ###############################################################################
-import ast
+
 import os
 import time
 import sys

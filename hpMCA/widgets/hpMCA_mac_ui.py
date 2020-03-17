@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
         hpmca.setObjectName("hpMCA")
-        hpmca.resize(1236, 715)
+        hpmca.resize(1100, 615)
         self.centralwidget = QtWidgets.QWidget(hpMCA)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.centralwidget)
