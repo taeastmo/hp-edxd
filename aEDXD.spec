@@ -5,6 +5,12 @@ block_cipher = None
 extra_datas = [
     ("axd/resources", "axd/resources")
 ]
+
+import aEDXD
+axd_path = os.path.dirname(aEDXD.__file__)
+print (axd_path)
+
+
 a = Analysis(['aEDXD.py'],
              pathex=['/Users/hrubiak/Documents/GitHub/hp-edxd'],
              binaries=[],
