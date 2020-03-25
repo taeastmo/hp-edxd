@@ -29,7 +29,7 @@ from .. import home_path
 class sxdmController(QObject):
     def __init__(self, app=None):
         super().__init__()
-
+        self.app = app
         self.window = sxdmWidget()
         self.initData()
         

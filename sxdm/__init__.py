@@ -28,6 +28,7 @@ import sys
 import os
 
 import PyQt5
+import pyqtgraph
 from PyQt5 import QtCore
 
 from PyQt5 import QtWidgets
@@ -44,8 +45,9 @@ from pathlib import Path
 home_path = str(Path.home())
 
 def main():
- 
+    
     app = QApplication(sys.argv)
+
     from sxdm.controllers.sxdmController import sxdmController
     app.aboutToQuit.connect(app.deleteLater)
 
@@ -54,5 +56,3 @@ def main():
 
    
     app.exec_()
-
-    del app

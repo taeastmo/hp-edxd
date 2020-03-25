@@ -29,9 +29,9 @@ import pyqtgraph as pg
 class sxdmWidget(QMainWindow):
     def __init__(self):
         super().__init__()
-        
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.initUI()
-        
+        self.resize(600,600)
         
         
     def initUI(self):
@@ -57,7 +57,7 @@ class sxdmWidget(QMainWindow):
 
     def make_img_plot(self):
         ## Create window with GraphicsView widget
-        self.win = pg.GraphicsLayoutWidget()
+        self.win = pg.GraphicsLayoutWidget(self.main_widget)
         self.win.setWindowTitle('pyqtgraph example: ImageItem')
         self.view = self.win.addViewBox()
         ## lock the aspect ratio so pixels are always square
