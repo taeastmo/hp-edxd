@@ -1,21 +1,43 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 __version__ = '0.5.0'
+from sys import platform as _platform
 
 block_cipher = None
 
 import burnman
 burnman_path = os.path.dirname(burnman.__file__)
 
+import epics
+epics_path = os.path.dirname(epics.__file__)
+
 extra_datas = [
     ("hpm/resources", "hpm/resources"),
     (os.path.join(burnman_path, "data"), "burnman/data")
 ]
 
+platform = ''
+extra_binaries=[]
+
+if _platform == "linux" or _platform == "linux2":
+    platform = "Linux"
+    name = "hpMCA"
+elif _platform == "win32" or _platform == "cygwin":
+    platform = "Win"
+    name = "hpMCA.exe"
+elif _platform == "darwin":
+    platform = "Mac"
+    extra_binaries=[ ( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' ),
+            ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
+                ]
+    name = "run_hpMCA"
+
+
+
 a = Analysis(['hpMCA.py'],
-             pathex=['C:\\Users\\hrubiak\\Documents\\GitHub\\hp-edxd'],
-             binaries=[],
-             datas=[],
+             pathex=['/Users/ross/Documents/GitHub/hp-edxd'],
+             binaries=extra_binaries,
+             datas=extra_datas,
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -84,3 +106,9 @@ coll = COLLECT(exe,
                upx=True,
                upx_exclude=[],
                name='hpMCA')
+
+if _platform == "darwin":
+    app = BUNDLE(coll,
+                 name='hpMCA_{}.app'.format(__version__)
+                 
+                 )
