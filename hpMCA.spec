@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import sys
+sys.setrecursionlimit(5000)
 __version__ = '0.5.0'
 from sys import platform as _platform
 

@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 __version__ = '0.5.0'
+import sys
+sys.setrecursionlimit(5000)
 
 block_cipher = None
 from sys import platform as _platform
