@@ -1,7 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-import axd
-axd_path = os.path.dirname(axd.__file__)
-print (axd_path)
+__version__ = '0.5.0'
 
 block_cipher = None
 from sys import platform as _platform
