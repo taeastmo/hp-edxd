@@ -548,12 +548,12 @@ class epicsMCA(MCA):
         pvs = self.pvs['presets']
         pvs['prtm'].put(presets.real_time)
         pvs['pltm'].put(presets.live_time)
-        pvs['pct'].put(presets.total_counts)
-        pvs['pctl'].put(presets.start_channel)
-        pvs['pcth'].put(presets.end_channel)
-        pvs['dwel'].put(presets.dwell)
-        pvs['chas'].put(presets.channel_advance)
-        pvs['pscl'].put(presets.prescale)
+        #pvs['pct'].put(presets.total_counts)
+        #pvs['pctl'].put(presets.start_channel)
+        #pvs['pcth'].put(presets.end_channel)
+        #pvs['dwel'].put(presets.dwell)
+        #pvs['chas'].put(presets.channel_advance)
+        #pvs['pscl'].put(presets.prescale)
         
     def get_elapsed(self):
         """
