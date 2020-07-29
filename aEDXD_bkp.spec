@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
-import axd
-axd_path = os.path.dirname(axd.__file__)
-print (axd_path)
+__version__ = '0.5.0'
+import sys
+sys.setrecursionlimit(5000)
 
 block_cipher = None
 from sys import platform as _platform
@@ -32,9 +32,9 @@ elif _platform == "darwin":
 
 
 a = Analysis(['aEDXD.py'],
-             pathex=['/Users/ross/Documents/GitHub/hp-edxd'],
-             binaries=[],
-             datas=[],
+             pathex=['/Users/ross/GitHub/hp-edxd'],
+             binaries=extra_binaries,
+             datas=extra_datas,
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -82,7 +82,6 @@ exclude_datas = [
 for exclude_data in exclude_datas:
     a.datas = [x for x in a.datas if exclude_data not in x[0]]
 
-__version__ = '0.5'
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)

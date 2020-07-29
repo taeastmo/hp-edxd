@@ -1,8 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-block_cipher = None
+import sys
+sys.setrecursionlimit(5000)
+__version__ = '0.5.0'
 from sys import platform as _platform
-from hpm import __version__
+
+block_cipher = None
 
 import burnman
 burnman_path = os.path.dirname(burnman.__file__)
@@ -84,16 +87,14 @@ exclude_datas = [
 for exclude_data in exclude_datas:
     a.datas = [x for x in a.datas if exclude_data not in x[0]]
 
-from hpm import __version__
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
-
 exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='hpMCA_run',
+          name='hpMCA',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -106,8 +107,7 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='hpMCA_run')
-
+               name='hpMCA')
 
 if _platform == "darwin":
     app = BUNDLE(coll,
