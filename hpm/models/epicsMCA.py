@@ -73,7 +73,7 @@ class epicsMCA(MCA):
     >>> mca = epicsMca('13IDC:mca1')
     >>> print mca.data
     """
-    def __init__(self, record_name='16BMB:aim_adc1', epics_buttons=[], file_options=None, environment_file=None):
+    def __init__(self, record_name='16bmb:aim_adc1', epics_buttons=[], file_options=None, environment_file=None):
         
         super().__init__()
         

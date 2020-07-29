@@ -1,7 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
+
+from sys import platform as _platform
+
 __version__ = '0.5.0'
 import sys
 sys.setrecursionlimit(5000)
+
 
 block_cipher = None
 from sys import platform as _platform
@@ -12,6 +16,9 @@ epics_path = os.path.dirname(epics.__file__)
 import burnman
 burnman_path = os.path.dirname(burnman.__file__)
 
+
+import epics
+epics_path = os.path.dirname(epics.__file__)
 
 extra_datas = [
     ("hpm/resources", "hpm/resources"),
@@ -109,6 +116,7 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
+
                name='hpMCA_run')
 
 
