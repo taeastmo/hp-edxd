@@ -187,6 +187,9 @@ class epicsMCA(MCA):
 
             self.erase_monitor = epicsMonitor(self.pvs['acquire']['eras'], self.handle_mca_callback_erase, autostart=True)      
             self.why_stopped = epicsMonitor(self.pvs['acquire']['swhy'], self.handle_mca_callback_why_stopped, autostart=True)
+
+            self.live_time_preset_monitor = epicsMonitor(self.pvs['presets']['pltm'], self.handle_mca_callback_pltm, autostart=True)  
+            self.real_time_preset_monitor = epicsMonitor(self.pvs['presets']['prtm'], self.handle_mca_callback_prtm, autostart=True)  
             
             # a way to send a signal to the parent controller that new data is ready
             self.dataAcquired = custom_signal(debounce_time=0.25)  
@@ -215,6 +218,8 @@ class epicsMCA(MCA):
         self.stop_monitor.unSetPVmonitor()
         self.erase_monitor.unSetPVmonitor()  
         self.why_stopped.unSetPVmonitor()
+        self.live_time_preset_monitor.unSetPVmonitor()
+        self.real_time_preset_monitor.unSetPVmonitor()
 
         for pv_group in self.pvs:
             p_g = self.pvs[pv_group]
@@ -691,6 +696,14 @@ class epicsMCA(MCA):
                 
     def handle_mca_callback_why_stopped(self, Status):
         #print('handle_mca_callback_why_stopped: ' + str(Status))
+        pass
+
+    def handle_mca_callback_pltm(self, Status):
+        print('handle_mca_callback_pltm: ' + str(Status))
+        pass
+
+    def handle_mca_callback_prtm(self, Status):
+        print('handle_mca_callback_prtm: ' + str(Status))
         pass
    
     #######################################################################
