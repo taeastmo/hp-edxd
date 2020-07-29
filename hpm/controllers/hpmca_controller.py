@@ -64,7 +64,7 @@ class hpmcaController(QObject):
 
         self.McaFilename = None
         self.McaFileNameHolder = None
-        self.McaFilename_PV = '16BMB:McaFilename'
+        self.McaFilename_PV = '16bmb:McaFilename'
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
@@ -296,7 +296,7 @@ class hpmcaController(QObject):
 
     def openDetector(self):
         # initialize epics mca
-        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text='16BMB:aim_adc1')
+        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text='16bmb:aim_adc1')
         if ok:
             mcaTemp = self.mca 
             status = self.initMCA('epics',text)

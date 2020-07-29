@@ -1,17 +1,23 @@
 # -*- mode: python ; coding: utf-8 -*-
+__version__ = '0.5.0'
+import sys
+sys.setrecursionlimit(5000)
 
 import sys
 sys.setrecursionlimit(5000)
 __version__ = '0.5.0'
 from sys import platform as _platform
 
+
 block_cipher = None
+
+import epics
+epics_path = os.path.dirname(epics.__file__)
+
 
 import burnman
 burnman_path = os.path.dirname(burnman.__file__)
 
-import epics
-epics_path = os.path.dirname(epics.__file__)
 
 extra_datas = [
     ("hpm/resources", "hpm/resources"),

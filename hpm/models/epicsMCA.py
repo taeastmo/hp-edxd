@@ -73,7 +73,7 @@ class epicsMCA(MCA):
     >>> mca = epicsMca('13IDC:mca1')
     >>> print mca.data
     """
-    def __init__(self, record_name='16BMB:aim_adc1', epics_buttons=[], file_options=None, environment_file=None):
+    def __init__(self, record_name='16bmb:aim_adc1', epics_buttons=[], file_options=None, environment_file=None):
         
         super().__init__()
         
@@ -548,12 +548,12 @@ class epicsMCA(MCA):
         pvs = self.pvs['presets']
         pvs['prtm'].put(presets.real_time)
         pvs['pltm'].put(presets.live_time)
-        pvs['pct'].put(presets.total_counts)
-        pvs['pctl'].put(presets.start_channel)
-        pvs['pcth'].put(presets.end_channel)
-        pvs['dwel'].put(presets.dwell)
-        pvs['chas'].put(presets.channel_advance)
-        pvs['pscl'].put(presets.prescale)
+        #pvs['pct'].put(presets.total_counts)
+        #pvs['pctl'].put(presets.start_channel)
+        #pvs['pcth'].put(presets.end_channel)
+        #pvs['dwel'].put(presets.dwell)
+        #pvs['chas'].put(presets.channel_advance)
+        #pvs['pscl'].put(presets.prescale)
         
     def get_elapsed(self):
         """
