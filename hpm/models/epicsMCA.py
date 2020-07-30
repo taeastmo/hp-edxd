@@ -699,11 +699,11 @@ class epicsMCA(MCA):
         pass
 
     def handle_mca_callback_pltm(self, Status):
-        print('handle_mca_callback_pltm: ' + str(Status))
+        #print('handle_mca_callback_pltm: ' + str(Status))
         pass
 
     def handle_mca_callback_prtm(self, Status):
-        print('handle_mca_callback_prtm: ' + str(Status))
+        #print('handle_mca_callback_prtm: ' + str(Status))
         pass
    
     #######################################################################
