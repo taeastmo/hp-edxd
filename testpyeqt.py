@@ -1,1 +1,2 @@
-import pyeqt
+from pyeqt import main
+main()
