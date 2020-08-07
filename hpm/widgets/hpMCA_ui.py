@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from pyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton
 
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
@@ -72,8 +73,10 @@ class Ui_hpMCA(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBoxElapsed.sizePolicy().hasHeightForWidth())
         self.groupBoxElapsed.setSizePolicy(sizePolicy)
-        self.groupBoxElapsed.setMinimumSize(QtCore.QSize(170, 70))
-        self.groupBoxElapsed.setMaximumSize(QtCore.QSize(180, 70))
+        self.groupBoxElapsed.setMinimumSize(QtCore.QSize(180, 70))
+        #self.groupBoxElapsed.setMaximumSize(QtCore.QSize(180, 70))
+
+
         self.groupBoxElapsed.setObjectName("groupBoxElapsed")
         self.verticalLayout_11 = QtWidgets.QVBoxLayout(self.groupBoxElapsed)
         self.verticalLayout_11.setObjectName("verticalLayout_11")
@@ -87,7 +90,7 @@ class Ui_hpMCA(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy)
-        self.label.setMinimumSize(QtCore.QSize(50, 0))
+        self.label.setMinimumSize(QtCore.QSize(30, 0))
         self.label.setObjectName("label")
         self.ElapsedlLblVLayout.addWidget(self.label)
         self.label_2 = QtWidgets.QLabel(self.groupBoxElapsed)
@@ -96,7 +99,7 @@ class Ui_hpMCA(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
         self.label_2.setSizePolicy(sizePolicy)
-        self.label_2.setMinimumSize(QtCore.QSize(50, 0))
+        self.label_2.setMinimumSize(QtCore.QSize(30, 0))
         self.label_2.setObjectName("label_2")
         self.ElapsedlLblVLayout.addWidget(self.label_2)
         self.ElapsedHLayout.addLayout(self.ElapsedlLblVLayout)
@@ -123,6 +126,18 @@ class Ui_hpMCA(object):
         self.ElapsedIndicatorVlayout.addWidget(self.lblRealTime)
         self.ElapsedHLayout.addLayout(self.ElapsedIndicatorVlayout)
         self.verticalLayout_11.addLayout(self.ElapsedHLayout)
+
+        self.ElapsedPresetVlayout = QtWidgets.QVBoxLayout()
+        self.ElapsedPresetVlayout.setObjectName("ElapsedPresetVlayout")
+        self.PRTM_pv = pvQDoubleSpinBox("16bmb:aim_adc1.PRTM")
+        self.PLTM_pv = pvQDoubleSpinBox("16bmb:aim_adc1.PLTM")
+        self.PLTM_pv.setDecimals(2)
+        self.PRTM_pv.setDecimals(2)
+        self.ElapsedPresetVlayout.addWidget(self.PRTM_pv)
+        self.ElapsedPresetVlayout.addWidget(self.PLTM_pv)
+        self.ElapsedHLayout.addLayout(self.ElapsedPresetVlayout)
+
+        
         self.ControlsLayout.addWidget(self.groupBoxElapsed)
         self.groupBoxROIs = QtWidgets.QGroupBox(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.MinimumExpanding)

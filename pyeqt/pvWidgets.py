@@ -71,8 +71,9 @@ class pvQDoubleSpinBox(QDoubleSpinBox, pvQWidget):
                     
         QDoubleSpinBox.setMinimum(widget, minimum)
         QDoubleSpinBox.setMaximum(widget, maximum)
-        QDoubleSpinBox.setDecimals(widget, 3)
-        QDoubleSpinBox.setSingleStep(widget, 0.001)
+        
+        QDoubleSpinBox.setKeyboardTracking(widget, False)
+        
 
         QDoubleSpinBox.setKeyboardTracking(widget, False)
 
