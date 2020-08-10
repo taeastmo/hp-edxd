@@ -23,9 +23,6 @@ class Ui_hpMCA(object):
         self.ControlsLayout = QtWidgets.QVBoxLayout()
         self.ControlsLayout.setObjectName("ControlsLayout")
 
-
-
-
         self.groupBoxAcq = QtWidgets.QGroupBox()
         self._groupBoxAcqLayout = QtWidgets.QGridLayout(self.groupBoxAcq)
         
