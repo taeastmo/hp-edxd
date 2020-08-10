@@ -21,6 +21,9 @@ class Ui_hpMCA(object):
         self.ControlsLayout = QtWidgets.QVBoxLayout()
         self.ControlsLayout.setSpacing(20)
         self.ControlsLayout.setObjectName("ControlsLayout")
+
+
+        
         self.groupBoxAcq = QtWidgets.QGroupBox(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
