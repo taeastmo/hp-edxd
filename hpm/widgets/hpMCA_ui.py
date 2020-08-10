@@ -54,6 +54,8 @@ class Ui_hpMCA(object):
         self.PLTM_pv = pvQDoubleSpinBox()
         self.PRTM_pv.setMaximumWidth(70)
         self.PLTM_pv.setMaximumWidth(70)
+        self.PRTM_pv.setToolTip('')
+        self.PLTM_pv.setToolTip('')
 
         self.PRTM_pv.setMinimum(0)
         self.PLTM_pv.setMinimum(0)

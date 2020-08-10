@@ -104,6 +104,7 @@ class hpmcaController(QObject):
        
         #epics related buttons:
         self.epicsBtns = [ui.btnOn,ui.btnOff,ui.btnErase]
+        self.epicsPresets = [ui.PRTM_pv, ui.PLTM_pv]
 
         ui.radioLog.toggled.connect(self.LogScaleSet)
         ui.radioE.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioE))
@@ -203,16 +204,21 @@ class hpmcaController(QObject):
     
 
     def initMCA(self, mcaType, det_or_file):
+        [live_btn, real_btn] = self.epicsPresets
         if mcaType == 'file':      
             mca = MCA()
             mca.auto_process_rois = True
             [fileout, success] = mca.read_file(file=det_or_file, netcdf=0, detector=0)
+            
             if not success:
                 return 1
             if self.mca != None:
                 if self.Foreground == 'epics':
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
+                    
+                
+                    
                     
                     self.McaFileNameHolder = self.McaFilename
                     self.epicsMCAholder = self.mca
@@ -223,6 +229,8 @@ class hpmcaController(QObject):
                 btn.setEnabled(False)
                 btn.setChecked(False)
             self.blockSignals(False)
+            live_btn.disconnect()
+            real_btn.disconnect()
         elif mcaType == 'epics': 
             name = ''
             
@@ -240,12 +248,23 @@ class hpmcaController(QObject):
                 self.mca.toggleEpicsWidgetsEnabled(True)
             else:
                 mca = epicsMCA(det_or_file, self.epicsBtns, self.file_options)
+                
                 if not mca.initOK:
+                    live_btn.disconnect()
+                    real_btn.disconnect()
                     return 1
+                    
+                
+
                 self.mca = mca
                 if self.epicsMCAholder != None:
                     self.epicsMCAholder.unload()
                 self.epicsMCAholder = self.mca
+            record = self.mca.name
+            live_btn.connect(record + '.PRTM')
+            real_btn.connect(record + '.PLTM')
+
+            
         self.mca.auto_process_rois = True
         if self.controllers_initialized:
             self.plotController.set_mca(self.mca)
