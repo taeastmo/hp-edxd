@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from pyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton
+
 
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
@@ -127,15 +127,7 @@ class Ui_hpMCA(object):
         self.ElapsedHLayout.addLayout(self.ElapsedIndicatorVlayout)
         self.verticalLayout_11.addLayout(self.ElapsedHLayout)
 
-        self.ElapsedPresetVlayout = QtWidgets.QVBoxLayout()
-        self.ElapsedPresetVlayout.setObjectName("ElapsedPresetVlayout")
-        self.PRTM_pv = pvQDoubleSpinBox("16bmb:aim_adc1.PRTM")
-        self.PLTM_pv = pvQDoubleSpinBox("16bmb:aim_adc1.PLTM")
-        self.PLTM_pv.setDecimals(2)
-        self.PRTM_pv.setDecimals(2)
-        self.ElapsedPresetVlayout.addWidget(self.PRTM_pv)
-        self.ElapsedPresetVlayout.addWidget(self.PLTM_pv)
-        self.ElapsedHLayout.addLayout(self.ElapsedPresetVlayout)
+       
 
         
         self.ControlsLayout.addWidget(self.groupBoxElapsed)

@@ -135,17 +135,6 @@ class Ui_hpMCA(object):
         self.ElapsedHLayout.addLayout(self.ElapsedIndicatorVlayout)
         self.verticalLayout_11.addLayout(self.ElapsedHLayout)
 
-        self.ElapsedPresetVlayout = QtWidgets.QVBoxLayout()
-        self.ElapsedPresetVlayout.setObjectName("ElapsedPresetVlayout")
-        self.PRTM_pv = pvQDoubleSpinBox("16bmb:aim_adc1.PRTM")
-        self.PLTM_pv = pvQDoubleSpinBox("16bmb:aim_adc1.PLTM")
-        self.PLTM_pv.setDecimals(2)
-        self.PRTM_pv.setDecimals(2)
-        self.PRTM_pv.setSingleStep(0.01)
-        self.PLTM_pv.setSingleStep(0.01)
-        self.ElapsedPresetVlayout.addWidget(self.PRTM_pv)
-        self.ElapsedPresetVlayout.addWidget(self.PLTM_pv)
-        self.ElapsedHLayout.addLayout(self.ElapsedPresetVlayout)
 
         self.ControlsLayout.addWidget(self.groupBoxElapsed)
         self.groupBoxROIs = QtWidgets.QGroupBox(self.centralwidget)
