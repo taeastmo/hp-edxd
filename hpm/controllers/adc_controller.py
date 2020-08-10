@@ -18,99 +18,48 @@ class adcControlWidget(QtWidgets.QWidget):
         super().__init__(parent)
 
 
-    def set_controls_state(self, state):
-        self.blockSignals(True)
-        if state == 'on' or state == 1:
-            self.btnOn.setEnabled(False)
-            self.btnOn.setChecked(True)
-            self.btnOff.setEnabled(True)
-        if state == 'off' or state == 0:
-            self.btnOn.setEnabled(True)
-            self.btnOn.setChecked(False)
-            self.btnOff.setEnabled(False)
-        self.blockSignals(False)
+    def make_AcquisitionButtons_groupbox(self):
 
-
-    def make_AcquisitionButtons_groupbox(self, record_name='16bmb:aim_adc1'):
-
-        groupBoxAcq = QtWidgets.QGroupBox(self.centralwidget)
+        groupBoxAcq = QtWidgets.QGroupBox()
 
         _groupBoxAcqLayout = QtWidgets.QGridLayout(groupBoxAcq)
     
-        btnOn = pvQMessageButton(record_name+".STRT")
-        btnOff = pvQMessageButton(record_name+".STOP")
-        btnErase = pvQMessageButton(record_name+".ERAS")
+        btnOn = pvQMessageButton()
+        btnOff = pvQMessageButton()
+        btnErase = pvQMessageButton()
 
         _groupBoxAcqLayout.addWidget(btnOn,0,0)
         _groupBoxAcqLayout.addWidget(btnOff,0,1)
         _groupBoxAcqLayout.addWidget(btnErase,1,0)
         groupBoxAcq.setLayout(_groupBoxAcqLayout)
 
-        
         return groupBoxAcq
 
     def make_TimeElapsed_groupbox(self):
 
-        self.groupBoxElapsed = QtWidgets.QGroupBox(self.centralwidget)
+        groupBoxElapsed = QtWidgets.QGroupBox()
         
-        self.verticalLayout_11 = QtWidgets.QVBoxLayout(self.groupBoxElapsed)
-        self.verticalLayout_11.setContentsMargins(10, 5, 10, 5)
-        self.verticalLayout_11.setObjectName("verticalLayout_11")
-        self.ElapsedHLayout = QtWidgets.QHBoxLayout()
-        self.ElapsedHLayout.setObjectName("ElapsedHLayout")
-        self.ElapsedlLblVLayout = QtWidgets.QVBoxLayout()
-        self.ElapsedlLblVLayout.setObjectName("ElapsedlLblVLayout")
-        self.label = QtWidgets.QLabel(self.groupBoxElapsed)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy)
-        self.label.setMinimumSize(QtCore.QSize(50, 0))
-        self.label.setObjectName("label")
-        self.ElapsedlLblVLayout.addWidget(self.label)
-        self.label_2 = QtWidgets.QLabel(self.groupBoxElapsed)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy)
-        self.label_2.setMinimumSize(QtCore.QSize(50, 0))
-        self.label_2.setObjectName("label_2")
-        self.ElapsedlLblVLayout.addWidget(self.label_2)
-        self.ElapsedHLayout.addLayout(self.ElapsedlLblVLayout)
-        self.ElapsedIndicatorVlayout = QtWidgets.QVBoxLayout()
-        self.ElapsedIndicatorVlayout.setObjectName("ElapsedIndicatorVlayout")
-        self.lblLiveTime = QtWidgets.QLabel(self.groupBoxElapsed)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lblLiveTime.sizePolicy().hasHeightForWidth())
-        self.lblLiveTime.setSizePolicy(sizePolicy)
-        self.lblLiveTime.setMinimumSize(QtCore.QSize(60, 0))
-        self.lblLiveTime.setMidLineWidth(2)
-        self.lblLiveTime.setObjectName("lblLiveTime")
-        self.ElapsedIndicatorVlayout.addWidget(self.lblLiveTime)
-        self.lblRealTime = QtWidgets.QLabel(self.groupBoxElapsed)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lblRealTime.sizePolicy().hasHeightForWidth())
-        self.lblRealTime.setSizePolicy(sizePolicy)
-        self.lblRealTime.setMinimumSize(QtCore.QSize(60, 0))
-        self.lblRealTime.setObjectName("lblRealTime")
-        self.ElapsedIndicatorVlayout.addWidget(self.lblRealTime)
-        self.ElapsedHLayout.addLayout(self.ElapsedIndicatorVlayout)
-        self.verticalLayout_11.addLayout(self.ElapsedHLayout)
+        _groupBoxElapsedLayout = QtWidgets.QGridLayout(groupBoxElapsed)
+       
+        lblLiveTime_lbl = QtWidgets.QLabel("Live",groupBoxElapsed)
+        lblRealTime_lbl = QtWidgets.QLabel("Real",groupBoxElapsed)
+        
+        lblLiveTime = pvQLabel()
+        lblRealTime = pvQLabel()
 
+        PRTM_pv = pvQDoubleSpinBox()
+        PLTM_pv = pvQDoubleSpinBox()
 
-        self.ElapsedPresetVlayout = QtWidgets.QVBoxLayout()
-        self.ElapsedPresetVlayout.setObjectName("ElapsedPresetVlayout")
-        self.PRTM_pv = pvQDoubleSpinBox(self.record_name+".PRTM")
-        self.PLTM_pv = pvQDoubleSpinBox(self.record_name+".PLTM")
-        self.PLTM_pv.setDecimals(2)
-        self.PRTM_pv.setDecimals(2)
-        self.ElapsedPresetVlayout.addWidget(self.PRTM_pv)
-        self.ElapsedPresetVlayout.addWidget(self.PLTM_pv)
-        self.ElapsedHLayout.addLayout(self.ElapsedPresetVlayout)
-        self.setLayout(self.ElapsedPresetVlayout)
+        _groupBoxElapsedLayout.addWidget(lblLiveTime_lbl,0,0)
+        _groupBoxElapsedLayout.addWidget(lblRealTime_lbl,1,0)
+
+        _groupBoxElapsedLayout.addWidget(lblLiveTime,0,1)
+        _groupBoxElapsedLayout.addWidget(lblRealTime,1,1)
+
+        _groupBoxElapsedLayout.addWidget(PLTM_pv,0,2)
+        _groupBoxElapsedLayout.addWidget(PRTM_pv,1,2)
+
+        groupBoxElapsed.setLayout(_groupBoxElapsedLayout)
+
+        return groupBoxElapsed
+       

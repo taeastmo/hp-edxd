@@ -28,11 +28,8 @@ from PyQt5.QtWidgets import QMainWindow
 #qtCreatorFile = 'hpMCA.ui'
 #Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 _platform = platform.system()
-Theme = 1   # app style 0=windows 1=dark 
-if _platform == "Darwin" and Theme == 0: 
-    from hpm.widgets.hpMCA_mac_ui import Ui_hpMCA
-else:
-    from hpm.widgets.hpMCA_ui import Ui_hpMCA
+
+from hpm.widgets.hpMCA_ui import Ui_hpMCA
 
 class hpMCAWidget(QMainWindow, Ui_hpMCA):
     file_dragged_in_signal = pyqtSignal(str)
