@@ -113,7 +113,7 @@ class Ui_hpMCA(object):
         #self.PLTM_pv.setDecimals(1)
 
         self.lbl_elapsed_header = QtWidgets.QLabel()
-        self._groupBoxElapsedLayout.addWidget(self.lbl_elapsed_header,0,2)
+        #self._groupBoxElapsedLayout.addWidget(self.lbl_elapsed_header,0,2)
         self._groupBoxElapsedLayout.addWidget(self.lblLiveTime_lbl,1,0)
 
         
