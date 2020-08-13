@@ -22,6 +22,9 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
 from hpm.widgets.PltWidget import plotWindow
 from functools import partial
 
+import os
+from .. import style_path, icons_path
+
 class aEDXDWidget(QMainWindow):
     def __init__(self,app):
         super().__init__()
@@ -72,7 +75,48 @@ class aEDXDWidget(QMainWindow):
         self.resize(793, 574)
         self.centralwidget = QtWidgets.QWidget(self)
 
+        self._menu_layout = QtWidgets.QVBoxLayout()
+        self._menu_layout.setContentsMargins(5, 0, 3, 0)
+        self._menu_layout.setSpacing(5)
+
+        self.save_btn = FlatButton()
+        self.load_btn = FlatButton()
+        self.reset_btn = FlatButton()
+        self.export_btn = FlatButton()
+
+        self.angle_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
+        self.spectra_btn = FlatButton()
+        self.atoms_btn = FlatButton()
+        self.sq_btn = FlatButton('Sq')
+        self.pdf_btn = FlatButton('Gr')
+        self.peaks_btn = FlatButton()
+
+
+        self._menu_layout.addSpacerItem(
+            QtWidgets.QSpacerItem(10, 25, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
+        self._menu_layout.addWidget(self.load_btn)
+        self._menu_layout.addWidget(self.save_btn)
+        #self._menu_layout.addWidget(self.export_btn)
+        self._menu_layout.addSpacerItem(
+            QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
+        self._menu_layout.addWidget(self.angle_btn)
+        self._menu_layout.addWidget(self.spectra_btn)
+        self._menu_layout.addWidget(self.atoms_btn)
+        self._menu_layout.addWidget(self.sq_btn)
+        self._menu_layout.addWidget(self.pdf_btn)
+        self._menu_layout.addSpacerItem(
+            QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
+        
+        self._menu_layout.addWidget(self.peaks_btn)
+
+
+        self._menu_layout.addSpacerItem(VerticalSpacerItem())
+
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
+        self.horizontalLayout.setSpacing(2)
+        self.horizontalLayout.setContentsMargins(0,15,0,0)
+
+        self.horizontalLayout.addLayout(self._menu_layout)
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
 
         self.tab_1 = QtWidgets.QWidget()
@@ -132,7 +176,7 @@ class aEDXDWidget(QMainWindow):
         self.file_menu.addMenu(self.file_exp_menu)
         
         self.opts_menu = self.menubar.addMenu('Options')
-        self.tools_files_act = QtWidgets.QAction('Files', self)    
+        self.tools_files_act = QtWidgets.QAction(f'2\N{GREEK SMALL LETTER THETA} Files Input', self)    
         self.opts_menu.addAction(self.tools_files_act)
 
         self.opts_proc_act = QtWidgets.QAction('Spectra', self)        
@@ -182,6 +226,11 @@ class aEDXDWidget(QMainWindow):
             }
         """)
         '''
+
+        self.style_widgets()
+        self.add_tooltips()
+
+
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("aEDXDWidget", "aEDXD"))
@@ -192,6 +241,95 @@ class aEDXDWidget(QMainWindow):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("aEDXDWidget", "S(q)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("aEDXDWidget", "G(r)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), _translate("aEDXDWidget", "S(q) filtered"))
+
+    def style_widgets(self):
+
+            
+        button_height = 32
+        button_width = 32
+
+        icon_size = QtCore.QSize(24, 24)
+        self.save_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'save.ico')))
+        self.save_btn.setIconSize(icon_size)
+        self.save_btn.setMinimumHeight(button_height)
+        self.save_btn.setMaximumHeight(button_height)
+        self.save_btn.setMinimumWidth(button_width)
+        self.save_btn.setMaximumWidth(button_width)
+
+        self.load_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'open.ico')))
+        self.load_btn.setIconSize(icon_size)
+        self.load_btn.setMinimumHeight(button_height)
+        self.load_btn.setMaximumHeight(button_height)
+        self.load_btn.setMinimumWidth(button_width)
+        self.load_btn.setMaximumWidth(button_width)
+
+        self.reset_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'reset.ico')))
+        self.reset_btn.setIconSize(icon_size)
+        self.reset_btn.setMinimumHeight(button_height)
+        self.reset_btn.setMaximumHeight(button_height)
+        self.reset_btn.setMinimumWidth(button_width)
+        self.reset_btn.setMaximumWidth(button_width)
+
+        self.export_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'export.ico')))
+        self.export_btn.setIconSize(icon_size)
+        self.export_btn.setMinimumHeight(button_height)
+        self.export_btn.setMaximumHeight(button_height)
+        self.export_btn.setMinimumWidth(button_width)
+        self.export_btn.setMaximumWidth(button_width)
+
+        #self.angle_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'angle.ico')))
+        #self.angle_btn.setIconSize(icon_size)
+        self.angle_btn.setMinimumHeight(button_height)
+        self.angle_btn.setMaximumHeight(button_height)
+        self.angle_btn.setMinimumWidth(button_width)
+        self.angle_btn.setMaximumWidth(button_width)
+
+        self.spectra_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'spectra.ico')))
+        self.spectra_btn.setIconSize(icon_size)
+        self.spectra_btn.setMinimumHeight(button_height)
+        self.spectra_btn.setMaximumHeight(button_height)
+        self.spectra_btn.setMinimumWidth(button_width)
+        self.spectra_btn.setMaximumWidth(button_width)
+
+        self.atoms_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'atoms1.ico')))
+        self.atoms_btn.setIconSize(icon_size)
+        self.atoms_btn.setMinimumHeight(button_height)
+        self.atoms_btn.setMaximumHeight(button_height)
+        self.atoms_btn.setMinimumWidth(button_width)
+        self.atoms_btn.setMaximumWidth(button_width)
+
+        #self.sq_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'sq1.ico')))
+        self.sq_btn.setIconSize(icon_size)
+        self.sq_btn.setMinimumHeight(button_height)
+        self.sq_btn.setMaximumHeight(button_height)
+        self.sq_btn.setMinimumWidth(button_width)
+        self.sq_btn.setMaximumWidth(button_width)
+
+        #self.pdf_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'pdf1.ico')))
+        self.pdf_btn.setIconSize(icon_size)
+        self.pdf_btn.setMinimumHeight(button_height)
+        self.pdf_btn.setMaximumHeight(button_height)
+        self.pdf_btn.setMinimumWidth(button_width)
+        self.pdf_btn.setMaximumWidth(button_width)
+    
+        self.peaks_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'cut.ico')))
+        self.peaks_btn.setIconSize(icon_size)
+        self.peaks_btn.setMinimumHeight(button_height)
+        self.peaks_btn.setMaximumHeight(button_height)
+        self.peaks_btn.setMinimumWidth(button_width)
+        self.peaks_btn.setMaximumWidth(button_width)
+
+    def add_tooltips(self):
+        self.load_btn.setToolTip('Open Project')
+        self.save_btn.setToolTip('Save Project')
+        self.reset_btn.setToolTip('Reset Project')
+        self.angle_btn.setToolTip(f'2\N{GREEK SMALL LETTER THETA} Files Input')
+        self.spectra_btn.setToolTip('Spectra options')
+        self.atoms_btn.setToolTip('Atoms options')
+        self.sq_btn.setToolTip('Scattering Factor options')
+        self.pdf_btn.setToolTip('PDF options')
+        self.peaks_btn.setToolTip('Peak cutting')
+
 
 class customWidget(QtWidgets.QWidget):
     widget_closed = QtCore.pyqtSignal()

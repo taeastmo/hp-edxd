@@ -181,13 +181,14 @@ def opt_fields(opt):
                                  'desc' : 'for the primary beam model',
                                  'label': 'Polynomial',
                                  'step' : 1,
-                                 'unit' : 'deg.'},
-                            'itr_comp': 
-                                {'val'  : 7, 
-                                 'desc' : 'number of iterations for Compton background estimation',
-                                 'label': 'Number of iterations',
-                                 'step' : 1,
-                                 'unit' : ''}
+                                 'unit' : 'deg.'}
+                            #     ,
+                            #'itr_comp': 
+                            #    {'val'  : 7, 
+                            #     'desc' : 'number of iterations for Compton background estimation',
+                            #     'label': 'Number of iterations',
+                            #     'step' : 1,
+                             #    'unit' : ''}
                             },
                         'sq':
                             {'sq_smoothing_factor': 

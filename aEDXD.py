@@ -43,7 +43,7 @@
 #       3. Fix a but that did not sum intensities from multiple input files
 #   v2.0b:  Author: R. Hrubiak, ANL
 #       1. Upgraded to Python 3.7
-#       2. Changed GUI to PyQt5 and pyqtgraph
+#       2. Created a GUI based on PyQt5 and pyqtgraph
 #       3. Visual peak removal via interactive plot
 #       4. Improved interpolation under removed peaks 
 #       4. GUI options editing / operation possible without a config file

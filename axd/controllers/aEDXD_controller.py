@@ -66,6 +66,8 @@ class aEDXDController(QObject):
     def create_connections(self):
         self.display_window.file_op_act.triggered.connect(self.load_project)
         self.display_window.file_save_act.triggered.connect(self.save_project)
+        self.display_window.save_btn.clicked.connect(self.save_project)
+        self.display_window.load_btn.clicked.connect(self.load_project)
         self.display_window.file_save_hdf5_act.triggered.connect(self.save_hdf5)
         self.display_window.file_exp_sf_act.triggered.connect(self.save_sq)
         self.display_window.file_exp_pdf_act.triggered.connect(self.save_pdf)
@@ -73,11 +75,17 @@ class aEDXDController(QObject):
         self.display_window.file_exp_sf_inv_act.triggered.connect(self.save_sf_inverse)
 
         self.display_window.tools_files_act.triggered.connect(self.show_files)
+        self.display_window.angle_btn.clicked.connect(self.show_files)
         self.display_window.tools_peaks_act.triggered.connect(self.show_rois)
+        self.display_window.peaks_btn.clicked.connect(self.show_rois)
         self.display_window.tools_atoms_act.triggered.connect(self.show_atoms)
+        self.display_window.atoms_btn.clicked.connect(self.show_atoms)
         self.display_window.opts_proc_act.triggered.connect(self.show_options)
+        self.display_window.spectra_btn.clicked.connect(self.show_options)
         self.display_window.opts_sq_act.triggered.connect(self.show_sq_options)
+        self.display_window.sq_btn.clicked.connect(self.show_sq_options)
         self.display_window.opts_gr_act.triggered.connect(self.show_gr_options)
+        self.display_window.pdf_btn.clicked.connect(self.show_gr_options)
         
         self.model.primary_beam_updated.connect(self.primary_beam_updated)
         self.model.structure_factor_updated.connect(self.structure_factor_updated)
