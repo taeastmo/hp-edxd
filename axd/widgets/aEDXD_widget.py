@@ -84,7 +84,7 @@ class aEDXDWidget(QMainWindow):
         self.reset_btn = FlatButton()
         self.export_btn = FlatButton()
 
-        self.angle_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
+        self.angle_btn = FlatButton()
         self.spectra_btn = FlatButton()
         self.atoms_btn = FlatButton()
         self.sq_btn = FlatButton('Sq')
@@ -248,7 +248,7 @@ class aEDXDWidget(QMainWindow):
         button_height = 32
         button_width = 32
 
-        icon_size = QtCore.QSize(24, 24)
+        icon_size = QtCore.QSize(22, 22)
         self.save_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'save.ico')))
         self.save_btn.setIconSize(icon_size)
         self.save_btn.setMinimumHeight(button_height)
@@ -277,8 +277,8 @@ class aEDXDWidget(QMainWindow):
         self.export_btn.setMinimumWidth(button_width)
         self.export_btn.setMaximumWidth(button_width)
 
-        #self.angle_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'angle.ico')))
-        #self.angle_btn.setIconSize(icon_size)
+        self.angle_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'import.ico')))
+        self.angle_btn.setIconSize(icon_size)
         self.angle_btn.setMinimumHeight(button_height)
         self.angle_btn.setMaximumHeight(button_height)
         self.angle_btn.setMinimumWidth(button_width)
@@ -323,7 +323,7 @@ class aEDXDWidget(QMainWindow):
         self.load_btn.setToolTip('Open Project')
         self.save_btn.setToolTip('Save Project')
         self.reset_btn.setToolTip('Reset Project')
-        self.angle_btn.setToolTip(f'2\N{GREEK SMALL LETTER THETA} Files Input')
+        self.angle_btn.setToolTip('EDXD Files Input')
         self.spectra_btn.setToolTip('Spectra options')
         self.atoms_btn.setToolTip('Atoms options')
         self.sq_btn.setToolTip('Scattering Factor options')

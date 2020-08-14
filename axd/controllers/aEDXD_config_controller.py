@@ -202,7 +202,7 @@ def opt_fields(opt):
                                  'desc' : 'for evenly spaced S(q)',
                                  'label': 'q spacing',
                                  'step' : 0.01,
-                                 'unit' : 'A^{-1}'}
+                                 'unit' : u'Å<sup>-1</sup>'}
                             },
                         'gr':
                             {'qmax': 
@@ -210,37 +210,37 @@ def opt_fields(opt):
                                  'desc' : 'q max cut-off, smaller than the measured q_max \n if bigger than the measured q_max, q_max=q_max_meas',
                                  'label': 'q max',
                                  'step' : 0.5,
-                                 'unit' : 'A^{-1}'},                    
+                                 'unit' : u'Å<sup>-1</sup>'},                    
                             'rmax': 
                                 {'val'  : 15.0, 
                                  'desc' : 'r max cut-off, if not defined by pi/q_spacing',
                                  'label': 'r max',
                                  'step' : 0.5,
-                                 'unit' : 'A'},
+                                 'unit' : 'Å'},
                             'r_spacing': 
                                 {'val'  : 0.05, 
                                  'desc' : 'for calculated G(r)',
                                  'label': 'r spacing',
                                  'step' : 0.01,
-                                 'unit' : 'A'},
+                                 'unit' : 'Å'},
                             'hard_core_limit': 
                                 {'val'  : 1.30, 
                                  'desc' : 'G(r) = -4*pi*rho*r, where r < hard_core_limit\n this is an imperical number\n 0, if no need to correct this or rho is unknown',
                                  'label': 'Hard core limit',
                                  'step' : 0.05,
-                                 'unit' : 'A'},
+                                 'unit' : 'Å'},
                             'rho': 
                                 {'val'  : 0.079598, 
                                  'desc' : 'Average number density \nNone, if unknown',
                                  'label': 'Density',
                                  'step' : 0.005,
-                                 'unit' : 'atoms/A^3'},
+                                 'unit' : u'atoms/Å<sup>3</sup>'},
                             'hard_core_limit': 
                                 {'val'  : 1.30, 
                                  'desc' : 'G(r) = -4*pi*rho*r, where r < hard_sphere_limit\n this is an imperical number\n 0, if no need to correct this or rho is unknown',
                                  'label': 'Hard sphere limit',
                                  'step' : 0.05,
-                                 'unit' : 'Angstrom'}
+                                 'unit' : 'Å'}
                             }
 
     }
