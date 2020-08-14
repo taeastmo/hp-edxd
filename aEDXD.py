@@ -48,11 +48,11 @@
 #       4. Improved interpolation under removed peaks 
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
-#       7. TODO Hdf5 compatible
-#       8. TODO self consistency of S(q) check
-#       9. TODO Angle dispersive I(q) input
-#       10.TODO plot errors
-#       11. TODO in-valid config file loading crashes program
+#       7. Plot errors 
+#       8. TODO in-valid config file loading crashes program
+#       9. TODO Hdf5 compatible 
+#       10. TODO self consistency of S(q) check
+#       11. TODO Angle dispersive I(q) input
 #       
 #        
 ###############################################################################
