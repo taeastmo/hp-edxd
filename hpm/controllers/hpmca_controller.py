@@ -358,7 +358,7 @@ class hpmcaController(QObject):
         if self.mca != None:
             filename =  save_file_dialog(self.widget, "Save spectrum file.",
                                     self.working_directories.savedata,
-                                    'Spectrum (*.hpm)', False)
+                                    'Spectrum (*.hpmca)', False)
             if filename != None:
                 if len(filename)>0:
                     self.saveFile(filename)

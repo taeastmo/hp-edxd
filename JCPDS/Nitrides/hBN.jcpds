@@ -1,0 +1,28 @@
+VERSION:   5
+COMMENT: BN
+K0:       100.0
+K0P:      4.0
+DK0DT:    0.0
+DK0PDT:   0.0
+SYMMETRY: HEXAGONAL
+A:        2.50399
+B:        2.50399
+C:        6.6612
+ALPHA:    90.0
+BETA:     90.0
+GAMMA:    120.0
+VOLUME:   36.16998139239856
+ALPHAT:   0.0
+DALPHADT: 0.0
+Z: 1
+EOS: {"equation_of_state": "jcpds4", "V_0": 2.1782e-05, "K_0": 100000000000.0, "Kprime_0": 4.0, "dk0dt": 0.0, "dk0pdt": 0.0, "alpha_t0": 0.0, "d_alpha_dt": 0.0, "P_0": 0.0, "alpha_t": 0.0}
+DIHKL:    3.3306	100	0	0	2
+DIHKL:    2.16852	3	1	0	0
+DIHKL:    2.062	17	1	0	1
+DIHKL:    1.81727	3	1	0	2
+DIHKL:    1.6653	7	0	0	4
+DIHKL:    1.55139	5	1	0	3
+DIHKL:    1.25199	2	1	1	0
+DIHKL:    1.17193	3	1	1	2
+DIHKL:    1.13513	2	1	0	5
+DIHKL:    1.1102	2	0	0	6

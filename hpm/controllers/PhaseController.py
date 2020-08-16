@@ -187,19 +187,19 @@ class PhaseController(object):
             QtWidgets.QApplication.processEvents()
 
     def _add_phase(self, filename):
-        #try:
-        if filename.endswith("jcpds"):
-            self.phase_model.add_jcpds(filename)
-        elif filename.endswith(".cif"):
-            self.cif_conversion_dialog.exec_()
-            self.phase_model.add_cif(filename,
-                                            self.cif_conversion_dialog.int_cutoff,
-                                            self.cif_conversion_dialog.min_d_spacing)
-           #except:
-            #self.integration_widget.show_error_msg(
-            #    'Could not load:\n\n{}.\n\nPlease check if the format of the input file is correct.'. \
-            #        format(e.filename))
-        #    mcaUtil.displayErrorMessage('phase')
+        try:
+            if filename.endswith("jcpds"):
+                self.phase_model.add_jcpds(filename)
+            elif filename.endswith(".cif"):
+                self.cif_conversion_dialog.exec_()
+                self.phase_model.add_cif(filename,
+                                                self.cif_conversion_dialog.int_cutoff,
+                                                self.cif_conversion_dialog.min_d_spacing)
+        except:
+            self.phase_widget.show_error_msg(
+               'Could not load:\n\n{}.\n\nPlease check if the format of the input file is correct.'. \
+                    format(filename))
+            #mcaUtil.displayErrorMessage('phase')
 
       
 
