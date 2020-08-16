@@ -36,6 +36,8 @@ class aEDXDFilesWidget(QWidget):
     file_selection_changed_signal = pyqtSignal(list, list)
     delete_clicked_signal = pyqtSignal(dict)
 
+    drag_drop_signal = pyqtSignal(dict)
+
     customMimeType = "application/x-customTreeWidgetdata"
 
     def __init__(self):
@@ -257,6 +259,7 @@ class aEDXDFilesWidget(QWidget):
         self.top_level_color_btns.append(color_button)
         self.file_trw.setItemWidget(h,0,color_button)
         tth_item = QtWidgets.QLabel('   ' + tth)
+        #tth_item.editingFinished.connect(partial(self.Tth_edit_finished, tth_item))
         tth_item.setStyleSheet("background-color: transparent")
         self.file_trw.setItemWidget(h,1,tth_item)
         self.tth_items.append(tth_item)
@@ -341,7 +344,9 @@ class aEDXDFilesWidget(QWidget):
     
     def file_color_btn_click(self, button):
         self.color_btn_clicked.emit(self.top_level_color_btns.index(button), button)
-        
+
+    def Tth_edit_finished(self, tth_lineEdit):
+        print(tth_lineEdit.text())
     
     def file_show_cb_set_checked(self, ind, state):
         checkbox = self.file_show_cbs[ind]
@@ -373,8 +378,8 @@ class aEDXDFilesWidget(QWidget):
         si = self.file_trw.selectedItems()
         item = si[0]
         ind, files = self.identify_item(item)
-        print(ind)
-        print (files)
+        #print(ind)
+        #print (files)
         if len(ind)>1:
             mimedata = self.file_trw.model().mimeData(self.file_trw.selectedIndexes())
 
@@ -395,8 +400,9 @@ class aEDXDFilesWidget(QWidget):
                 
                 #item = QTreeWidgetItem(parent)
                 ind, files = self.identify_item(parent)
-                print(ind)
-                print (files)
+
+                drag_drop = {'source':decoded_ind,'target':[ind[0],files[0]]}
+                self.drag_drop_signal.emit(drag_drop)
                 event.acceptProposedAction()
 
     def fillItem(self, inItem, outItem):
@@ -417,7 +423,7 @@ class aEDXDFilesWidget(QWidget):
         item = items[0]
         
         ind, _ = self.identify_item(item)
-        print(' encoded [' + str(ind[0]) + ', '+ str(ind[1])+']')
+        #print(' encoded [' + str(ind[0]) + ', '+ str(ind[1])+']')
         
         stream.writeInt32(int(ind[0]))
         stream.writeInt32(int(ind[1]))
@@ -434,6 +440,6 @@ class aEDXDFilesWidget(QWidget):
         ind1 = stream.readInt32()
         ind2 = stream.readInt32()
         
-        print('dencoded [' + str(ind1) + ', '+ str(ind2)+']')
+        #print('dencoded [' + str(ind1) + ', '+ str(ind2)+']')
 
         return [ind1, ind2]

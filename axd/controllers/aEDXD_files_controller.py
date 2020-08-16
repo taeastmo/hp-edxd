@@ -67,8 +67,15 @@ class aEDXDFilesController(QObject):
         self.files_window.delete_clicked_signal.connect(self.delete_clicked)
         self.files_window.clear_btn.clicked.connect(self.clear_clicked)
         self.files_window.cb_state_changed_signal.connect(self.file_cb_changed_callback)
+        self.files_window.drag_drop_signal.connect(self.drag_drop_signal_callback)
         self.peak_cut_controller.cut_peaks_changed_signal.connect(self.data_changed_callback)
         self.peak_cut_controller.roi_window.apply_btn.clicked.connect(self.apply)
+
+    def drag_drop_signal_callback(self, drag_drop):
+        source = drag_drop['source']
+        target = drag_drop['target']
+        print ("source " + str(source))
+        print ("target " + str(target))
 
     def apply(self):
         self.emit_spectra()
