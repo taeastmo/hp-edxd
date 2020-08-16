@@ -66,6 +66,8 @@ class aEDXDController(QObject):
     def create_connections(self):
         self.display_window.file_op_act.triggered.connect(self.load_project)
         self.display_window.file_save_act.triggered.connect(self.save_project)
+        self.display_window.save_btn.clicked.connect(self.save_project)
+        self.display_window.load_btn.clicked.connect(self.load_project)
         self.display_window.file_save_hdf5_act.triggered.connect(self.save_hdf5)
         self.display_window.file_exp_sf_act.triggered.connect(self.save_sq)
         self.display_window.file_exp_pdf_act.triggered.connect(self.save_pdf)
@@ -73,11 +75,17 @@ class aEDXDController(QObject):
         self.display_window.file_exp_sf_inv_act.triggered.connect(self.save_sf_inverse)
 
         self.display_window.tools_files_act.triggered.connect(self.show_files)
+        self.display_window.angle_btn.clicked.connect(self.show_files)
         self.display_window.tools_peaks_act.triggered.connect(self.show_rois)
+        self.display_window.peaks_btn.clicked.connect(self.show_rois)
         self.display_window.tools_atoms_act.triggered.connect(self.show_atoms)
+        self.display_window.atoms_btn.clicked.connect(self.show_atoms)
         self.display_window.opts_proc_act.triggered.connect(self.show_options)
+        self.display_window.spectra_btn.clicked.connect(self.show_options)
         self.display_window.opts_sq_act.triggered.connect(self.show_sq_options)
+        self.display_window.sq_btn.clicked.connect(self.show_sq_options)
         self.display_window.opts_gr_act.triggered.connect(self.show_gr_options)
+        self.display_window.pdf_btn.clicked.connect(self.show_gr_options)
         
         self.model.primary_beam_updated.connect(self.primary_beam_updated)
         self.model.structure_factor_updated.connect(self.structure_factor_updated)
@@ -148,7 +156,7 @@ class aEDXDController(QObject):
         self.disp_sq_filtered()
 
     def save_project(self):
-        filename='saved_config_test.cfg'
+        
         self.config_controller.save_config_file()
 
     def save_hdf5(self):
@@ -157,7 +165,7 @@ class aEDXDController(QObject):
 
     def load_project(self):
         #self.model.reset_model()
-        config_file = 'saved_config_test.cfg'
+        
         self.config_controller.load_config_file()
         
         
@@ -211,7 +219,15 @@ class aEDXDController(QObject):
                     color = colors[i]
                     self.display_window.sq_widget.fig.add_scatter_plot(S_q[i][0],S_q[i][1],color,100)
                     #plt.errorbar(S_q[i][0],S_q[i][1],yerr=S_q[i][2],fmt='.',capsize=1.0)
-                self.display_window.sq_widget.fig.add_line_plot(sf.out_params['q_even'],sf.out_params['sq_even'],Width=2)
+                q_even = sf.out_params['q_even']
+                sq_even = sf.out_params['sq_even']
+                self.display_window.sq_widget.fig.add_line_plot(q_even,sq_even,Width=2)
+
+                S_err = sf.out_params['sq_even_err']
+                S_err_p = sq_even + S_err
+                S_err_n = sq_even - S_err
+                self.display_window.sq_widget.fig.add_fill_between_plot(q_even, S_err_p, S_err_n)
+                #print(S_err)
 
     def disp_pdf(self):
         #self.display_window.tabWidget.setCurrentIndex(4)
@@ -220,7 +236,12 @@ class aEDXDController(QObject):
             pdf = self.model.pdf_object
             r = pdf.out_params['r']
             gr = pdf.out_params['gr']
+            gr_err = pdf.out_params['gr_err']
             self.display_window.pdf_widget.fig.add_line_plot(r,gr,Width=2)
+
+            self.display_window.pdf_widget.fig.add_fill_between_plot(r, gr-gr_err, gr+gr_err)
+
+
             
     def disp_sq_filtered(self):
         #self.display_window.tabWidget.setCurrentIndex(5)
@@ -236,7 +257,10 @@ class aEDXDController(QObject):
             self.display_window.inverse_widget.fig.add_line_plot(qq,sq,Width=2)
             q_inv = sf.out_params['q_inv']
             sq_inv = sf.out_params['sq_inv']
+            sq_inv_err = sf.out_params['sq_inv_err']
             self.display_window.inverse_widget.fig.add_line_plot(q_inv,sq_inv,color = (255,0,0),Width=1)
+
+            self.display_window.inverse_widget.fig.add_fill_between_plot(q_inv, sq_inv-sq_inv_err, sq_inv+sq_inv_err)
         
     def show_display(self):
         self.display_window.raise_widget()

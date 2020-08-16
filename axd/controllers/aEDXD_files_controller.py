@@ -67,8 +67,20 @@ class aEDXDFilesController(QObject):
         self.files_window.delete_clicked_signal.connect(self.delete_clicked)
         self.files_window.clear_btn.clicked.connect(self.clear_clicked)
         self.files_window.cb_state_changed_signal.connect(self.file_cb_changed_callback)
+        self.files_window.drag_drop_signal.connect(self.drag_drop_signal_callback)
         self.peak_cut_controller.cut_peaks_changed_signal.connect(self.data_changed_callback)
         self.peak_cut_controller.roi_window.apply_btn.clicked.connect(self.apply)
+
+    def drag_drop_signal_callback(self, drag_drop):
+        source = drag_drop['source']
+        target = drag_drop['target']
+        filename = source['files']
+        directory = self.model.params['inputdatadirectory']
+        filepath = os.path.join(directory, filename[1])
+        target_tth = target[1]
+
+        self.delete_clicked(source)
+        self.add_file(target_tth, [filepath])
 
     def apply(self):
         self.emit_spectra()
@@ -102,10 +114,14 @@ class aEDXDFilesController(QObject):
                 filename = filenames[0]
                 dirname = os.path.dirname(filename)
                 self.model.params['inputdatadirectory']=dirname
-                self.spectra_model.add_files(tth, filenames)
-                self.files_loaded_callback()
-                self.update_files_widget()
-                self.peak_cut_controller.load_peaks_from_config()
+                self.add_file(tth, filenames)
+                
+
+    def add_file(self, tth, filenames):
+        self.spectra_model.add_files(tth, filenames)
+        self.files_loaded_callback()
+        self.update_files_widget()
+        self.peak_cut_controller.load_peaks_from_config()
 
     def add_group_clicked(self):
         t, okPressed = QtWidgets.QInputDialog.getDouble(
@@ -137,6 +153,7 @@ class aEDXDFilesController(QObject):
             self.files_window.del_group(item)
         #self.files_loaded_callback()
         self.data_changed_callback()    
+        
 
     def clear_clicked(self):
         if len(self.files_window.top_level_items):

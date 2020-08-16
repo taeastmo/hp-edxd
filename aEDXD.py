@@ -43,16 +43,21 @@
 #       3. Fix a but that did not sum intensities from multiple input files
 #   v2.0b:  Author: R. Hrubiak, ANL
 #       1. Upgraded to Python 3.7
-#       2. Changed GUI to PyQt5 and pyqtgraph
+#       2. Created a GUI based on PyQt5 and pyqtgraph
 #       3. Visual peak removal via interactive plot
 #       4. Improved interpolation under removed peaks 
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
-#       7. TODO Hdf5 compatible
-#       8. TODO self consistency of S(q) check
-#       9. TODO Angle dispersive I(q) input
-#       10.TODO plot errors
-#       11. TODO in-valid config file loading crashes program
+#       7. Plot errors 
+#       8. TODO invalid config file loading crashes program
+#       9. TODO Hdf5 compatible 
+#       10. TODO self consistency of S(q) check
+#       11. TODO Angle dispersive I(q) input
+#       12. TODO Q scale for n spectrum view
+#       13. TODO Automatic loading of 2theta from file.
+#       14. TODO Integrate scanning data acquisition and data display
+#       15. TODO Buttons to export data
+#       16. Drag-drop file sorting by 2theta
 #       
 #        
 ###############################################################################

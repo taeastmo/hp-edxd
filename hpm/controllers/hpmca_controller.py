@@ -105,6 +105,18 @@ class hpmcaController(QObject):
         #epics related buttons:
         self.epicsBtns = [ui.btnOn,ui.btnOff,ui.btnErase]
         self.epicsPresets = [ui.PRTM_pv, ui.PLTM_pv]
+        self.epicsElapsedTimeBtns_PRTM = [ui.PRTM_0,
+                                          ui.PRTM_1,
+                                          ui.PRTM_2,
+                                          ui.PRTM_30,
+                                          ui.PRTM_60,
+                                          ui.PRTM_120  ]
+        self.epicsElapsedTimeBtns_PLTM = [ui.PLTM_0,
+                                          ui.PLTM_1,
+                                          ui.PLTM_2,
+                                          ui.PLTM_30,
+                                          ui.PLTM_60,
+                                          ui.PLTM_120  ]
 
         ui.radioLog.toggled.connect(self.LogScaleSet)
         ui.radioE.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioE))
@@ -205,6 +217,8 @@ class hpmcaController(QObject):
 
     def initMCA(self, mcaType, det_or_file):
         [live_btn, real_btn] = self.epicsPresets
+        epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
+        epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
         if mcaType == 'file':      
             mca = MCA()
             mca.auto_process_rois = True
@@ -217,9 +231,6 @@ class hpmcaController(QObject):
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
                     
-                
-                    
-                    
                     self.McaFileNameHolder = self.McaFilename
                     self.epicsMCAholder = self.mca
             self.McaFilename = None        
@@ -231,6 +242,10 @@ class hpmcaController(QObject):
             self.blockSignals(False)
             live_btn.disconnect()
             real_btn.disconnect()
+            for btn in epicsElapsedTimeBtns_PRTM:
+                btn.disconnect()
+            for btn in epicsElapsedTimeBtns_PLTM:
+                btn.disconnect()
         elif mcaType == 'epics': 
             name = ''
             
@@ -263,7 +278,10 @@ class hpmcaController(QObject):
             record = self.mca.name
             live_btn.connect(record + '.PRTM')
             real_btn.connect(record + '.PLTM')
-
+            for btn in epicsElapsedTimeBtns_PRTM:
+                btn.connect(record + '.PRTM')
+            for btn in epicsElapsedTimeBtns_PLTM:
+                btn.connect(record + '.PLTM')
             
         self.mca.auto_process_rois = True
         if self.controllers_initialized:

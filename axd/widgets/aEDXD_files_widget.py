@@ -15,14 +15,16 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal
-
-from  PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog, QWidget, QLabel
+from PyQt5.QtCore import pyqtSignal, QByteArray, QDataStream, QIODevice, Qt
+from PyQt5.QtGui import QDrag
+from  PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog, QWidget, QLabel, QTreeWidget, QTreeWidgetItem, QAbstractItemView
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
 from hpm.widgets.PltWidget import plotWindow
 from functools import partial
 import copy
+
+
 
 class aEDXDFilesWidget(QWidget):
     color_btn_clicked = pyqtSignal(int, QtWidgets.QWidget)
@@ -33,6 +35,10 @@ class aEDXDFilesWidget(QWidget):
     top_level_selection_changed_signal = pyqtSignal(int,float)
     file_selection_changed_signal = pyqtSignal(list, list)
     delete_clicked_signal = pyqtSignal(dict)
+
+    drag_drop_signal = pyqtSignal(dict)
+
+    customMimeType = "application/x-customTreeWidgetdata"
 
     def __init__(self):
         super().__init__()
@@ -74,8 +80,17 @@ class aEDXDFilesWidget(QWidget):
         header_view.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         header_view.setResizeMode(2, QtWidgets.QHeaderView.Stretch)
         header_view.setResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
-        self.file_trw = QtWidgets.QTreeWidget()
-        self.file_trw.setHeaderLabels([' ' + 'Spectra',' ' + f'2\N{GREEK SMALL LETTER THETA}'])
+        self.file_trw = QTreeWidget()
+        self.file_trw.expandAll()
+        #self.file_trw.setSelectionMode(QAbstractItemView.MultiSelection)
+        
+        self.file_trw.setDragEnabled(True)
+        self.file_trw.viewport().setAcceptDrops(True)
+        self.file_trw.dropEvent = self.myDropEvent
+        self.file_trw.startDrag = self.myStartDrag
+        self.file_trw.mimeTypes = self.myMimeTypes
+        self.file_trw.setDropIndicatorShown(True)
+        self.file_trw.setHeaderLabels([' ' + ' ',' ' + f'  2\N{GREEK SMALL LETTER THETA}'])
         #self.file_trw.setAlternatingRowColors(True)
         #self.file_trw.setItemDelegate(NoRectDelegate())
         self.file_trw.currentItemChanged.connect(self.file_selection_changed)
@@ -118,7 +133,7 @@ class aEDXDFilesWidget(QWidget):
         self.tth_items = []
         self.files = {}
 
-    @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
+    #@QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
     def file_selection_changed(self, current, previous):
         if len(self.top_level_items):
             ind,files = self.identify_item(current)
@@ -244,6 +259,7 @@ class aEDXDFilesWidget(QWidget):
         self.top_level_color_btns.append(color_button)
         self.file_trw.setItemWidget(h,0,color_button)
         tth_item = QtWidgets.QLabel('   ' + tth)
+        #tth_item.editingFinished.connect(partial(self.Tth_edit_finished, tth_item))
         tth_item.setStyleSheet("background-color: transparent")
         self.file_trw.setItemWidget(h,1,tth_item)
         self.tth_items.append(tth_item)
@@ -275,6 +291,8 @@ class aEDXDFilesWidget(QWidget):
             self.files[tth].append(filename)
         else:
             self.files[tth]=[filename]
+
+        self.file_trw.expandAll()
 
     def style_widgets(self):
         self.file_trw.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
@@ -326,7 +344,9 @@ class aEDXDFilesWidget(QWidget):
     
     def file_color_btn_click(self, button):
         self.color_btn_clicked.emit(self.top_level_color_btns.index(button), button)
-        
+
+    def Tth_edit_finished(self, tth_lineEdit):
+        print(tth_lineEdit.text())
     
     def file_show_cb_set_checked(self, ind, state):
         checkbox = self.file_show_cbs[ind]
@@ -339,9 +359,87 @@ class aEDXDFilesWidget(QWidget):
     def retranslateUi(self, aEDXDWidget):
         pass
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    aEDXDWidget = aEDXDFilesWidget()
-    aEDXDWidget.show()
-    app.exec_()
+
+
+    ##########
+    ### Treeview drag and drop stuff
+    ##########
+
+    def myMimeTypes(self):
+        mimetypes = QTreeWidget.mimeTypes(self.file_trw)
+        mimetypes.append(self.customMimeType)
+        return mimetypes
+
+    
+
+    def myStartDrag(self, supportedActions):
+        drag = QDrag(self.file_trw)
+
+        si = self.file_trw.selectedItems()
+        item = si[0]
+        ind, files = self.identify_item(item)
+        #print(ind)
+        #print (files)
+        if len(ind)>1:
+            mimedata = self.file_trw.model().mimeData(self.file_trw.selectedIndexes())
+
+            encoded = QByteArray()
+            stream = QDataStream(encoded, QIODevice.WriteOnly)
+            self.encodeData(self.file_trw.selectedItems(), stream)
+            mimedata.setData(self.customMimeType, encoded)
+
+            drag.setMimeData(mimedata)
+            drag.exec_(supportedActions)
+
+    def myDropEvent(self, event):
+        if isinstance(event.source(), QTreeWidget):
+            if event.mimeData().hasFormat(self.customMimeType):
+                encoded = event.mimeData().data(self.customMimeType)
+                parent = self.file_trw.itemAt(event.pos())
+                decoded_ind = self.decodeData(encoded, event.source())
+                tth = float(self.tth_items[decoded_ind[0]].text()) 
+                filename = self.files[str(tth)][decoded_ind[1]]
+
+                ind, files = self.identify_item(parent)
+                
+                file_item = self.file_items[decoded_ind[2]]
+                
+                param = {}
+                param['ind'] = [decoded_ind[0], decoded_ind[1] ]
+                param['files'] = [tth, filename]
+                param['item'] = file_item
+
+                drag_drop = {}
+                drag_drop['source']=param
+                drag_drop['target']=[ind[0],files[0]]
+
+                self.drag_drop_signal.emit(drag_drop)
+                event.acceptProposedAction()
+
+
+    def encodeData(self, items, stream):
+        stream.writeInt32(len(items))
+        item = items[0]
+        file_item_index = self.file_items.index(item)
+        ind, _ = self.identify_item(item)
+        #print(' encoded [' + str(ind[0]) + ', '+ str(ind[1])+']')
+        
+        stream.writeInt32(int(ind[0]))
+        stream.writeInt32(int(ind[1]))
+        stream.writeInt32(int(file_item_index))
+        
+        return stream
+
+    def decodeData(self, encoded, tree):
+        items = []
+        rows = []
+        stream = QDataStream(encoded, QIODevice.ReadOnly)
+        
+        _ = stream.readInt32()
+        ind1 = stream.readInt32()
+        ind2 = stream.readInt32()
+        ind3 = stream.readInt32()
+        
+        #print('dencoded [' + str(ind1) + ', '+ str(ind2)+']')
+
+        return [ind1, ind2, ind3]
