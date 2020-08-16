@@ -397,38 +397,37 @@ class aEDXDFilesWidget(QWidget):
                 encoded = event.mimeData().data(self.customMimeType)
                 parent = self.file_trw.itemAt(event.pos())
                 decoded_ind = self.decodeData(encoded, event.source())
-                
-                #item = QTreeWidgetItem(parent)
-                ind, files = self.identify_item(parent)
+                tth = float(self.tth_items[decoded_ind[0]].text()) 
+                filename = self.files[str(tth)][decoded_ind[1]]
 
-                drag_drop = {'source':decoded_ind,'target':[ind[0],files[0]]}
+                ind, files = self.identify_item(parent)
+                
+                file_item = self.file_items[decoded_ind[2]]
+                
+                param = {}
+                param['ind'] = [decoded_ind[0], decoded_ind[1] ]
+                param['files'] = [tth, filename]
+                param['item'] = file_item
+
+                drag_drop = {}
+                drag_drop['source']=param
+                drag_drop['target']=[ind[0],files[0]]
+
                 self.drag_drop_signal.emit(drag_drop)
                 event.acceptProposedAction()
 
-    def fillItem(self, inItem, outItem):
-        for col in range(inItem.columnCount()):
-            for key in range(Qt.UserRole):
-                role = Qt.ItemDataRole(key)
-                outItem.setData(col, role, inItem.data(col, role))
-
-    def fillItems(self, itFrom, itTo):
-        for ix in range(itFrom.childCount()):
-            it = QTreeWidgetItem(itTo)
-            ch = itFrom.child(ix)
-            self.fillItem(ch, it)
-            self.fillItems(ch, it)
 
     def encodeData(self, items, stream):
         stream.writeInt32(len(items))
         item = items[0]
-        
+        file_item_index = self.file_items.index(item)
         ind, _ = self.identify_item(item)
         #print(' encoded [' + str(ind[0]) + ', '+ str(ind[1])+']')
         
         stream.writeInt32(int(ind[0]))
         stream.writeInt32(int(ind[1]))
+        stream.writeInt32(int(file_item_index))
         
-            
         return stream
 
     def decodeData(self, encoded, tree):
@@ -439,7 +438,8 @@ class aEDXDFilesWidget(QWidget):
         _ = stream.readInt32()
         ind1 = stream.readInt32()
         ind2 = stream.readInt32()
+        ind3 = stream.readInt32()
         
         #print('dencoded [' + str(ind1) + ', '+ str(ind2)+']')
 
-        return [ind1, ind2]
+        return [ind1, ind2, ind3]

@@ -57,6 +57,7 @@
 #       13. TODO Automatic loading of 2theta from file.
 #       14. TODO Integrate scanning data acquisition and data display
 #       15. TODO Buttons to export data
+#       16. Drag-drop file sorting by 2theta
 #       
 #        
 ###############################################################################
