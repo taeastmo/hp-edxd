@@ -65,6 +65,7 @@ class hpmcaController(QObject):
         self.McaFilename = None
         self.McaFileNameHolder = None
         self.McaFilename_PV = '16bmb:McaFilename'
+        self.elapsed_time_presets = ['0','1','2','30','60','120'] 
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
@@ -104,19 +105,23 @@ class hpmcaController(QObject):
        
         #epics related buttons:
         self.epicsBtns = [ui.btnOn,ui.btnOff,ui.btnErase]
+
+        
         self.epicsPresets = [ui.PRTM_pv, ui.PLTM_pv]
         self.epicsElapsedTimeBtns_PRTM = [ui.PRTM_0,
                                           ui.PRTM_1,
                                           ui.PRTM_2,
-                                          ui.PRTM_30,
-                                          ui.PRTM_60,
-                                          ui.PRTM_120  ]
+                                          ui.PRTM_3,
+                                          ui.PRTM_4,
+                                          ui.PRTM_5  ]
         self.epicsElapsedTimeBtns_PLTM = [ui.PLTM_0,
                                           ui.PLTM_1,
                                           ui.PLTM_2,
-                                          ui.PLTM_30,
-                                          ui.PLTM_60,
-                                          ui.PLTM_120  ]
+                                          ui.PLTM_3,
+                                          ui.PLTM_4,
+                                          ui.PLTM_5  ]
+        self.update_elapsed_preset_btn_messages(self.elapsed_time_presets)
+        
 
         ui.radioLog.toggled.connect(self.LogScaleSet)
         ui.radioE.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioE))
@@ -292,6 +297,12 @@ class hpmcaController(QObject):
         self.Foreground = mcaType
         
         return 0
+
+    def update_elapsed_preset_btn_messages(self, elapsed_presets):
+        for i, btn in enumerate(self.epicsElapsedTimeBtns_PLTM):
+            btn.setMessage(message = elapsed_presets[i])
+        for i, btn in enumerate(self.epicsElapsedTimeBtns_PRTM):
+            btn.setMessage(message = elapsed_presets[i])
 
     def initControllers(self):
         #initialize plot model
