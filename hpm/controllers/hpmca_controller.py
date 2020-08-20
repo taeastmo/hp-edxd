@@ -312,6 +312,7 @@ class hpmcaController(QObject):
         self.plotController.staticCursorMovedSignal.connect(self.mouseCursor)
         self.plotController.fastCursorMovedSignal.connect(self.mouseMoved)  
         self.plotController.selectedRoiChanged.connect(self.roi_selection_updated) 
+        self.plotController.envUpdated.connect(self.envs_updated_callback)
         
         #initialize roi controller
         self.roi_controller = self.plotController.roi_controller
@@ -496,7 +497,10 @@ class hpmcaController(QObject):
         elapsed = self.mca.get_elapsed()[0]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
         self.widget.lblRealTime.setText("%0.2f" %(elapsed.real_time))
-        
+
+    def envs_updated_callback(self, envs):
+        #print(envs)
+        pass
 
     def xrf_updated(self,text):
         self.blockSignals(True)
