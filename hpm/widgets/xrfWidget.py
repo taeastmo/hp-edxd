@@ -60,7 +60,7 @@ class xrfWidget(QtWidgets.QWidget):
         self.clear_btn = QtWidgets.QPushButton('Clear')
         self.clear_btn.clicked.connect(self.clear_xrf)
         self._button_layout.addWidget(QtWidgets.QLabel('Search:'),0)
-        self.search_item = s =  QtWidgets.QLineEdit('Fe')
+        self.search_item = s =  QtWidgets.QLineEdit('')
         s.textChanged.connect(lambda:self.search_by_symbol(s.text()))
         self._button_layout.addWidget(self.search_item, 0)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())

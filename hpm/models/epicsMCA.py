@@ -466,11 +466,17 @@ class epicsMCA(MCA):
         Reads the current values of the environment PVs.  Returns a list of
         McaEnvironment objects with Mca.get_environment().
         """
-        if (len(self.env_pvs) > 0):
-            
-            for i in range(len(self.environment)):
-                #self.environment[i].name = self.env_pvs[i].name()
-                self.environment[i].value = self.env_pvs[i].get()
+        try:
+            if (len(self.env_pvs) > 0):
+                
+                for i in range(len(self.environment)):
+                    
+                    val = self.env_pvs[i].get()
+                    if type(val) == float:
+                        val = round(val,12) # python rounding bug workaround
+                    self.environment[i].value = val
+        except:
+            pass
         env = super().get_environment()
         return env
 
@@ -553,12 +559,12 @@ class epicsMCA(MCA):
         pvs = self.pvs['presets']
         pvs['prtm'].put(presets.real_time)
         pvs['pltm'].put(presets.live_time)
-        #pvs['pct'].put(presets.total_counts)
-        #pvs['pctl'].put(presets.start_channel)
-        #pvs['pcth'].put(presets.end_channel)
-        #pvs['dwel'].put(presets.dwell)
-        #pvs['chas'].put(presets.channel_advance)
-        #pvs['pscl'].put(presets.prescale)
+        pvs['pct'].put(presets.total_counts)
+        pvs['pctl'].put(presets.start_channel)
+        pvs['pcth'].put(presets.end_channel)
+        pvs['dwel'].put(presets.dwell)
+        pvs['chas'].put(presets.channel_advance)
+        pvs['pscl'].put(presets.prescale)
         
     def get_elapsed(self):
         """

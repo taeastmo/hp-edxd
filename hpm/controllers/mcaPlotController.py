@@ -48,6 +48,7 @@ class plotController(QObject):
         self.fastCursorPosition = None
         self.logMode = [False, True]
         self.data = mcaModel.data[0]
+        self.envs = []
         self.bottomLabel = ''
         self.LogClip = 0.5
         self.units =  {     'E':'KeV',
@@ -73,6 +74,10 @@ class plotController(QObject):
         self.elapsed = m.get_elapsed()[0]
         self.name = m.get_name()
         self.roi_controller.update_rois()  #this will in turn trigger updateViews()
+        self.envs = m.get_environment()
+        for env in self.envs:
+            
+            print(env.description + ' = '+ str(env.value))
         
     def rois_updated(self, ind, text ):
         self.roi_selection_updated(ind, text)
