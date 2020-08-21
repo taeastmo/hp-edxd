@@ -118,18 +118,27 @@ class aEDXDConfigController(QObject):
 
     def load_config_file(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
+        if filename is not None:
+            if not os.path.exists(filename):
+                filename = None
         if filename is None:
             filename = open_file_dialog(None, "Open config file.")
         if filename:
             config_file = filename
             self.model.set_config_file(config_file)
-            self.model.cofigure()
-            mp = self.model.params
-            self.gr_opts_window.set_params(mp)
-            self.sq_opts_window.set_params(mp)
-            self.opts_window.set_params(mp)
-            self.atom_controller.set_params(mp)
-            self.files_controller.set_params(mp)
+            try:
+                self.model.cofigure()
+            except:
+                pass
+            if self.model.configured:
+                mp = self.model.params
+                self.gr_opts_window.set_params(mp)
+                self.sq_opts_window.set_params(mp)
+                self.opts_window.set_params(mp)
+                self.atom_controller.set_params(mp)
+                self.files_controller.set_params(mp)
+            else:
+                displayErrorMessage( 'opt_read') 
 
     def index_changed(self,ind):
         self.current_tth_index=ind

@@ -86,6 +86,12 @@ class aEDXDController(QObject):
         self.display_window.sq_btn.clicked.connect(self.show_sq_options)
         self.display_window.opts_gr_act.triggered.connect(self.show_gr_options)
         self.display_window.pdf_btn.clicked.connect(self.show_gr_options)
+
+        self.display_window.all_spectra_widget.export_IE_btn.clicked.connect(self.save_data)
+        self.display_window.sq_widget.export_Sq_btn.clicked.connect(self.save_sq)
+        self.display_window.pdf_widget.export_PDF_btn.clicked.connect(self.save_pdf)
+        self.display_window.inverse_widget.export_iSq_btn.clicked.connect(self.save_sf_inverse)
+
         
         self.model.primary_beam_updated.connect(self.primary_beam_updated)
         self.model.structure_factor_updated.connect(self.structure_factor_updated)
@@ -99,6 +105,9 @@ class aEDXDController(QObject):
         key = 'outputsavedirectory'
         if key in self.model.params:
             od = self.model.params[key]
+            if od is not None:
+                if not os.path.exists(od):
+                    od = None
         else: od = None
         filename = save_file_dialog(self.display_window,'Export data files',od)
         if filename:

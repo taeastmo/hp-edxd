@@ -48,7 +48,7 @@ class aEDXDWidget(QMainWindow):
         self.all_spectra_widget = aEDXDAllSpectraWidget(all_spectra_fig_params)
         self.vertical_layout_tab_all_spectra.addWidget(self.all_spectra_widget)
         
-        sq_fig_parameters = 'S(q) Merged and Smoothened', 'S(q)', 'q (A^-1)'
+        sq_fig_parameters = 'S(q) Merged and Smoothened', 'S(q)', u'q (A<sup>-1</sup>)'
         self.sq_widget = aEDXDSqWidget(sq_fig_parameters)
         self.vertical_layout_tab_sq.addWidget(self.sq_widget )
 
@@ -56,7 +56,7 @@ class aEDXDWidget(QMainWindow):
         self.pdf_widget = aEDXDPDFWidget(pdf_fig_parameters)
         self.vertical_layout_tab_pdf.addWidget(self.pdf_widget)
 
-        inverse_fig_parameters = 'S(q) filtered', 'S(q)', 'q (A^-1)' 
+        inverse_fig_parameters = 'S(q) filtered', 'S(q)', u'q (A<sup>-1</sup>)' 
         self.inverse_widget = aEDXDInverseWidget(inverse_fig_parameters)
         self.vertical_layout_tab_inverse.addWidget(self.inverse_widget)
 
@@ -109,42 +109,48 @@ class aEDXDWidget(QMainWindow):
         
         self._menu_layout.addWidget(self.peaks_btn)
 
-
         self._menu_layout.addSpacerItem(VerticalSpacerItem())
 
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setSpacing(2)
-        self.horizontalLayout.setContentsMargins(0,15,0,0)
+        self.horizontalLayout.setContentsMargins(0,15,5,5)
 
         self.horizontalLayout.addLayout(self._menu_layout)
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
 
         self.tab_1 = QtWidgets.QWidget()
         self.vertical_layout_tab_raw = QtWidgets.QVBoxLayout(self.tab_1)
+        self.vertical_layout_tab_raw.setContentsMargins(15,5,15,0)
         self.tabWidget.addTab(self.tab_1, "")
 
         self.tab = QtWidgets.QWidget()
         self.vertical_layout_tab_spectrum = QtWidgets.QVBoxLayout(self.tab)
+        self.vertical_layout_tab_spectrum.setContentsMargins(15,5,15,10)
         self.tabWidget.addTab(self.tab, "")
 
         self.tab_2 = QtWidgets.QWidget()
         self.vertical_layout_tab_all_spectra = QtWidgets.QVBoxLayout(self.tab_2)
+        self.vertical_layout_tab_all_spectra.setContentsMargins(15,10,15,0)
         self.tabWidget.addTab(self.tab_2, "")
 
         self.tab_3 = QtWidgets.QWidget()
         self.vertical_layout_tab_primary_beam = QtWidgets.QVBoxLayout(self.tab_3)
+        self.vertical_layout_tab_primary_beam.setContentsMargins(15,5,15,0)
         self.tabWidget.addTab(self.tab_3, "")
 
         self.tab_4 = QtWidgets.QWidget()
         self.vertical_layout_tab_sq = QtWidgets.QVBoxLayout(self.tab_4)
+        self.vertical_layout_tab_sq.setContentsMargins(15,10,15,0)
         self.tabWidget.addTab(self.tab_4, "")
 
         self.tab_5 = QtWidgets.QWidget()
         self.vertical_layout_tab_pdf = QtWidgets.QVBoxLayout(self.tab_5)
+        self.vertical_layout_tab_pdf.setContentsMargins(15,10,15,0)
         self.tabWidget.addTab(self.tab_5, "")
 
         self.tab_6 = QtWidgets.QWidget()
         self.vertical_layout_tab_inverse = QtWidgets.QVBoxLayout(self.tab_6)
+        self.vertical_layout_tab_inverse.setContentsMargins(15,10,15,0)
         self.tabWidget.addTab(self.tab_6, "")
 
         self.horizontalLayout.addWidget(self.tabWidget)
@@ -165,7 +171,7 @@ class aEDXDWidget(QMainWindow):
         #self.file_menu.addAction(self.file_save_hdf5_act)
 
         self.file_exp_menu = QtWidgets.QMenu('Export', self)
-        self.file_exp_data_act = QtWidgets.QAction('I(q)', self) 
+        self.file_exp_data_act = QtWidgets.QAction('I(E)', self) 
         self.file_exp_menu.addAction(self.file_exp_data_act)
         self.file_exp_sf_act = QtWidgets.QAction('S(q)', self) 
         self.file_exp_menu.addAction(self.file_exp_sf_act)
@@ -234,9 +240,9 @@ class aEDXDWidget(QMainWindow):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("aEDXDWidget", "aEDXD"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("aEDXDWidget", "Spectrum"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("aEDXDWidget", "Raw"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("aEDXDWidget", "All spectra"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("aEDXDWidget", "I(E)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("aEDXDWidget", "EDXD files"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("aEDXDWidget", "All I(E)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("aEDXDWidget", "Incident beam"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("aEDXDWidget", "S(q)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("aEDXDWidget", "G(r)"))
@@ -319,6 +325,8 @@ class aEDXDWidget(QMainWindow):
         self.peaks_btn.setMinimumWidth(button_width)
         self.peaks_btn.setMaximumWidth(button_width)
 
+        
+
     def add_tooltips(self):
         self.load_btn.setToolTip('Open Project')
         self.save_btn.setToolTip('Save Project')
@@ -337,6 +345,14 @@ class customWidget(QtWidgets.QWidget):
         super().__init__()
         self._layout = QtWidgets.QVBoxLayout(self)
         self._layout.setContentsMargins(0,0,0,0)
+        
+        self.top_button_widget = QtWidgets.QWidget()
+        self._top_button_widget_layout = QtWidgets.QHBoxLayout()
+        self._top_button_widget_layout.setContentsMargins(0,0,0,0)
+        self.top_button_widget.setLayout(self._top_button_widget_layout)
+
+        self._layout.addWidget(self.top_button_widget)
+
         self.fig = plotWindow(*fig_params)
         self._layout.addWidget(self.fig)
         self.cursor_fast = QLabel()
@@ -355,6 +371,7 @@ class customWidget(QtWidgets.QWidget):
         self.button_widget = QtWidgets.QWidget()
         self._button_widget_layout = QtWidgets.QHBoxLayout()
         self._button_widget_layout.setContentsMargins(0,0,0,0)
+        
         self.button_widget.setLayout(self._button_widget_layout)
         self._layout.addWidget(self.button_widget)
         self.setLayout(self._layout)
@@ -365,6 +382,12 @@ class customWidget(QtWidgets.QWidget):
     
     def add_button_widget_spacer(self):
         self._button_widget_layout.addSpacerItem(HorizontalSpacerItem())
+
+    def add_top_button_widget_item(self, item):
+        self._top_button_widget_layout.addWidget(item)
+    
+    def add_top_button_widget_spacer(self):
+        self._top_button_widget_layout.addSpacerItem(HorizontalSpacerItem())
 
     def create_connections(self):
         self.fig.fast_cursor.connect(self.update_fast_cursor)
@@ -400,15 +423,29 @@ class aEDXDSpectrumWidget(customWidget):
     def __init__(self, fig_params):
         super().__init__(fig_params)
         
-        self.cut_peak_btn = FlatButton('Add')
-        self.cut_peak_btn.setFixedWidth(90)
+        button_height = 32
+        button_width = 32
+
+        icon_size = QtCore.QSize(22, 22)
+
+        self.cut_peak_btn = FlatButton()
         self.cut_peak_btn.setCheckable(True)
-        self.add_button_widget_item(QtWidgets.QLabel('E cut region:'))
+        self.apply_btn = FlatButton("Apply")
+        self.apply_btn.setMinimumWidth(90)
+
+        
+        self.cut_peak_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'remove.icns')))
+        self.cut_peak_btn.setIconSize(icon_size)
+        self.cut_peak_btn.setMinimumHeight(button_height)
+        self.cut_peak_btn.setMaximumHeight(button_height)
+        self.cut_peak_btn.setMinimumWidth(button_width)
+        self.cut_peak_btn.setMaximumWidth(button_width)
+
+        self.add_button_widget_item(QtWidgets.QLabel('Remove peak'))
         self.add_button_widget_item(self.cut_peak_btn)
-        self.apply_btn = FlatButton('Apply')
-        self.apply_btn.setFixedWidth(90)
-        self.add_button_widget_item(self.apply_btn)
         self.add_button_widget_spacer()
+        self.add_button_widget_item(self.apply_btn)
+        
         
 
 class aEDXDPrimaryBeamWidget(customWidget):
@@ -419,21 +456,80 @@ class aEDXDPrimaryBeamWidget(customWidget):
 class aEDXDSqWidget(customWidget):
     def __init__(self, fig_params):
         super().__init__(fig_params)
+        self.export_Sq_btn = FlatButton()
+        self.export_Sq_btn.setToolTip('Export S(q)')
+
+        button_height = 32
+        button_width = 32
+
+        icon_size = QtCore.QSize(22, 22)
+        self.export_Sq_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'export.ico')))
+        self.export_Sq_btn.setIconSize(icon_size)
+        self.export_Sq_btn.setMinimumHeight(button_height)
+        self.export_Sq_btn.setMaximumHeight(button_height)
+        self.export_Sq_btn.setMinimumWidth(button_width)
+        self.export_Sq_btn.setMaximumWidth(button_width)
+        self.add_top_button_widget_item(self.export_Sq_btn)
+        self.add_top_button_widget_spacer()
         
 
 class aEDXDPDFWidget(customWidget):
     def __init__(self, fig_params):
         super().__init__(fig_params)
+        self.export_PDF_btn = FlatButton()
+        self.export_PDF_btn.setToolTip('Export G(r)')
+
+        button_height = 32
+        button_width = 32
+
+        icon_size = QtCore.QSize(22, 22)
+        self.export_PDF_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'export.ico')))
+        self.export_PDF_btn.setIconSize(icon_size)
+        self.export_PDF_btn.setMinimumHeight(button_height)
+        self.export_PDF_btn.setMaximumHeight(button_height)
+        self.export_PDF_btn.setMinimumWidth(button_width)
+        self.export_PDF_btn.setMaximumWidth(button_width)
+        self.add_top_button_widget_item(self.export_PDF_btn)
+        self.add_top_button_widget_spacer()
         
 
 class aEDXDAllSpectraWidget(customWidget):
     def __init__(self, fig_params):
         super().__init__(fig_params)
+        self.export_IE_btn = FlatButton()
+        self.export_IE_btn.setToolTip('Export All I(E)')
+
+        button_height = 32
+        button_width = 32
+
+        icon_size = QtCore.QSize(22, 22)
+        self.export_IE_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'export.ico')))
+        self.export_IE_btn.setIconSize(icon_size)
+        self.export_IE_btn.setMinimumHeight(button_height)
+        self.export_IE_btn.setMaximumHeight(button_height)
+        self.export_IE_btn.setMinimumWidth(button_width)
+        self.export_IE_btn.setMaximumWidth(button_width)
+        self.add_top_button_widget_item(self.export_IE_btn)
+        self.add_top_button_widget_spacer()
         
 
 class aEDXDInverseWidget(customWidget):
     def __init__(self, fig_params):
         super().__init__(fig_params)
+        self.export_iSq_btn = FlatButton()
+        self.export_iSq_btn.setToolTip('Export Inverse Fourier-filtered S(q)')
+        button_height = 32
+        button_width = 32
+
+        icon_size = QtCore.QSize(22, 22)
+        self.export_iSq_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'export.ico')))
+        self.export_iSq_btn.setIconSize(icon_size)
+        self.export_iSq_btn.setMinimumHeight(button_height)
+        self.export_iSq_btn.setMaximumHeight(button_height)
+        self.export_iSq_btn.setMinimumWidth(button_width)
+        self.export_iSq_btn.setMaximumWidth(button_width)
+        self.add_top_button_widget_item(self.export_iSq_btn)
+        self.add_top_button_widget_spacer()
         
 
 class aEDXDRawWidget(customWidget):

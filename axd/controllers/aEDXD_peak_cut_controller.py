@@ -22,6 +22,7 @@ import numpy as np
 from functools import partial
 import json
 import copy
+from math import isnan
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from pathlib import Path
@@ -211,16 +212,17 @@ class aEDXDPeakCutController(QObject):
 
     def roi_action(self, mode, tth):
         if mode == 'Add':
-            self.display_window.spectrum_widget.cut_peak_btn.setText("Set")
+            #self.display_window.spectrum_widget.cut_peak_btn.setText("Set")
             width = 8
             self.roi_construct(mode, width=width)
         if mode == 'Set':
-            self.display_window.spectrum_widget.cut_peak_btn.setText("Add")
+            #self.display_window.spectrum_widget.cut_peak_btn.setText("Add")
             reg = self.roi_construct(mode)
-            if len(self.spectra_model.tth_groups):
-                group = self.spectra_model.tth_groups[tth]
-                group.add_cut_roi(reg[0],reg[1])
-                self.display_rois()
+            if not reg[1] == 0:
+                if len(self.spectra_model.tth_groups):
+                    group = self.spectra_model.tth_groups[tth]
+                    group.add_cut_roi(reg[0],reg[1])
+                    self.display_rois()
 
     def roi_construct(self, mode, **kwargs):
         if mode == 'Add':
@@ -228,8 +230,13 @@ class aEDXDPeakCutController(QObject):
             self.display_window.spectrum_widget.fig.win.lin_reg_mode(mode,width=width)
         elif mode == 'Set':
             reg = self.display_window.spectrum_widget.fig.win.lin_reg_mode(mode)
+            
             low = reg[0]
             high = reg[1]
+            if isnan(low):
+                low = 0
+            if isnan(high):
+                high = 0
             center = int((low+high)/2)
             half_width = int((high - low)/2)
             return [low,high]

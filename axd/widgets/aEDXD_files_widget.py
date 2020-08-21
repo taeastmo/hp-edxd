@@ -27,18 +27,17 @@ import copy
 
 
 class aEDXDFilesWidget(QWidget):
-    color_btn_clicked = pyqtSignal(int, QtWidgets.QWidget)
-    x_btn_clicked = pyqtSignal(int, QtWidgets.QWidget)
-    cb_state_changed_signal = pyqtSignal(list, list, bool)
-    file_dragged_in = pyqtSignal(list)
+    
+
+    
     widget_closed = pyqtSignal()
-    top_level_selection_changed_signal = pyqtSignal(int,float)
-    file_selection_changed_signal = pyqtSignal(list, list)
+    
+    
     delete_clicked_signal = pyqtSignal(dict)
 
-    drag_drop_signal = pyqtSignal(dict)
+    
 
-    customMimeType = "application/x-customTreeWidgetdata"
+    
 
     def __init__(self):
         super().__init__()
@@ -73,31 +72,24 @@ class aEDXDFilesWidget(QWidget):
         #self._button_layout.addWidget(VerticalLine())
         self.button_widget.setLayout(self._button_layout)
         self._body_layout = QtWidgets.QHBoxLayout()
-        self.file_tw = ListTableWidget(columns=4)
+        '''self.file_tw = ListTableWidget(columns=4)
         header_view = QtWidgets.QHeaderView(QtCore.Qt.Horizontal, self.file_tw)
         self.file_tw.setHorizontalHeader(header_view)
         header_view.setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         header_view.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         header_view.setResizeMode(2, QtWidgets.QHeaderView.Stretch)
-        header_view.setResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)
-        self.file_trw = QTreeWidget()
-        self.file_trw.expandAll()
-        #self.file_trw.setSelectionMode(QAbstractItemView.MultiSelection)
+        header_view.setResizeMode(3, QtWidgets.QHeaderView.ResizeToContents)'''
+        self.file_trw = treeWidget()
         
-        self.file_trw.setDragEnabled(True)
-        self.file_trw.viewport().setAcceptDrops(True)
-        self.file_trw.dropEvent = self.myDropEvent
-        self.file_trw.startDrag = self.myStartDrag
-        self.file_trw.mimeTypes = self.myMimeTypes
-        self.file_trw.setDropIndicatorShown(True)
-        self.file_trw.setHeaderLabels([' ' + ' ',' ' + f'  2\N{GREEK SMALL LETTER THETA}'])
+        #self.file_trw.setHeaderLabels([' ' + f'  2\N{GREEK SMALL LETTER THETA}'])
+        self.file_trw.setHeaderHidden(True)
         #self.file_trw.setAlternatingRowColors(True)
         #self.file_trw.setItemDelegate(NoRectDelegate())
-        self.file_trw.currentItemChanged.connect(self.file_selection_changed)
+        
         header = self.file_trw.header()
         header.setResizeMode(QtWidgets.QHeaderView.Fixed)
         self._body_layout.addWidget(self.file_trw )
-        self.setAcceptDrops(True) 
+        
         self._layout.addWidget(self.button_widget)
         self._layout.addLayout(self._body_layout)
 
@@ -117,7 +109,7 @@ class aEDXDFilesWidget(QWidget):
         self._layout.addWidget(self.button_2_widget)
         
 
-        self.clear_arrays()
+        
 
         self.setLayout(self._layout)
         self.retranslateUi(self)
@@ -125,174 +117,32 @@ class aEDXDFilesWidget(QWidget):
 
         self.del_btn.clicked.connect(self.delete_clicked)
 
-    def clear_arrays(self):
-        self.top_level_color_btns = []
-        self.top_level_items = []
-        self.file_items = []
-        self.file_show_cbs = []
-        self.tth_items = []
-        self.files = {}
+    
 
-    #@QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
-    def file_selection_changed(self, current, previous):
-        if len(self.top_level_items):
-            ind,files = self.identify_item(current)
-
-            if len(ind)==1:
-                self.top_level_selection_changed_signal.emit(ind[0],files[0])
-            if len(ind)==2:
-                self.file_selection_changed_signal.emit(ind,files)
 
     def delete_clicked(self):
+
         trw = self.file_trw
-        if len(self.top_level_items):
+        if len(trw.top_level_items):
             si=trw.selectedItems()
             if len(si):
                 item = si[0]
-                ind, files = self.identify_item(item)
+                ind, files = trw.identify_item(item)
                 self.delete_clicked_signal.emit({'ind':ind, 'files':files, 'item':item})
 
-    def get_selected_tth(self):
-        trw = self.file_trw
-        if len(self.top_level_items):
-            si=trw.selectedItems()
-            if len(si):
-                item = si[0]
-                ind, files = self.identify_item(item)
-                tth = files[0]
-                return tth
-            else :
-                return None
-        else :
-            return None
-
-
-
-    def file_cb_changed(self, checkbox):
-        i = self.file_show_cbs.index(checkbox)
-        file_item=self.file_items[i]
-        ind, files = self.identify_item(file_item)
-        self.cb_state_changed_signal.emit(ind, files, checkbox.isChecked())
-
-
-    def identify_item(self,item):
-        ind=[0]
-        if item in self.top_level_items:
-            p_ind = self.top_level_items.index(item)
-            ind = [p_ind]
-        if item in self.file_items:
-            p = item.parent()
-            c_ind = p.indexOfChild(item)
-            p_ind = self.top_level_items.index(p)
-            ind = [p_ind,c_ind]
-        tth = float(self.tth_items[ind[0]].text()) 
-        files = [tth]
-        if len(ind)==2:
-            filename = self.files[str(tth)][ind[1]]
-            files.append(filename)
-        return ind, files
+   
 
     def remove_trw_item(self, item):
         trw = self.file_trw
         root = trw.invisibleRootItem()
         (item.parent() or root).removeChild(item)
 
-
-    def clear_trw(self):
-        self.file_trw.blockSignals(True)
-        root = self.file_trw.invisibleRootItem()
-        for item in self.top_level_items:
-            (item.parent() or root).removeChild(item)
-        self.file_trw.blockSignals(False)
-        self.clear_arrays()
-
-    def del_file(self, file_item ):
-        self.file_trw.blockSignals(True)
-        ind, files = self.identify_item(file_item)
-        tth = files[0]
-        filename = files[1]
-        i = self.file_items.index(file_item)
-        del self.file_items[i]
-        del self.file_show_cbs[i]
-        for t in self.files:
-            if str(tth) == t:
-                for i, f in enumerate(self.files[t]):
-                    if filename == f:
-                        del self.files[t][i]
-        file_item.parent() .removeChild(file_item)
-        self.file_trw.blockSignals(False)
-        
-        
-                
-    def del_group(self, top_item ):
-        #self.file_trw.blockSignals(True)
-        ind, files = self.identify_item(top_item)
-        tth = files[0]
-        i = self.top_level_items.index(top_item)
-        root = self.file_trw.invisibleRootItem()
-        for item in self.top_level_items:
-            if top_item==item:
-                del self.top_level_color_btns[i]
-                del self.top_level_items[i]
-                del self.tth_items[i]
-                if str(tth) in self.files:
-                    del self.files[str(tth)]
-                (item.parent() or root).removeChild(item)
-                break
-        #self.file_trw.blockSignals(False)
-        
+    
     # ###############################################################################################
     # Now comes all the file tw stuff
     ################################################################################################
 
-    def add_file_group(self, filenames, color, tth,use):
-        self.file_trw.blockSignals(True)
-        current_rows = self.file_trw.currentIndex()
-        h = QtWidgets.QTreeWidgetItem()
-        h.setExpanded(True)
-        self.top_level_items.append(h)
-        self.file_trw.addTopLevelItem(h)
-        color_button = FlatButton()
-        color_button.setStyleSheet("background-color: " + color)
-        color_button.setMaximumHeight(20)
-        color_button.clicked.connect(partial(self.file_color_btn_click, color_button))
-        self.top_level_color_btns.append(color_button)
-        self.file_trw.setItemWidget(h,0,color_button)
-        tth_item = QtWidgets.QLabel('   ' + tth)
-        #tth_item.editingFinished.connect(partial(self.Tth_edit_finished, tth_item))
-        tth_item.setStyleSheet("background-color: transparent")
-        self.file_trw.setItemWidget(h,1,tth_item)
-        self.tth_items.append(tth_item)
-        for i, filename in enumerate(filenames):
-            file_use = use[i]
-            self.add_file(filename,file_use,tth)
-        self.file_trw.setColumnWidth(0, 60)
-        self.select_file(current_rows)
-        self.file_trw.blockSignals(False)
-
-    def add_file(self, filename,file_use,tth):
-        tths = []
-        for tth_i in self.tth_items:
-            tths.append(float(tth_i.text()))
-        ind = tths.index(float(tth))
-        top_level_item = self.top_level_items[ind]
-        file_item = QtWidgets.QTreeWidgetItem(top_level_item)
-        self.file_items.append(file_item)
-        show_cb = QtWidgets.QCheckBox()
-        show_cb.setChecked(file_use)
-        show_cb.stateChanged.connect(partial(self.file_cb_changed, show_cb))
-        show_cb.setStyleSheet("background-color: transparent")
-        self.file_trw.setItemWidget(file_item, 0, show_cb)
-        self.file_show_cbs.append(show_cb)
-        file_label = QLabel('   ' + filename)
-        file_label.setStyleSheet("background-color: transparent")
-        self.file_trw.setItemWidget(file_item,1,file_label)
-        if tth in self.files:
-            self.files[tth].append(filename)
-        else:
-            self.files[tth]=[filename]
-
-        self.file_trw.expandAll()
+    
 
     def style_widgets(self):
         self.file_trw.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
@@ -311,43 +161,101 @@ class aEDXDFilesWidget(QWidget):
             }
         """)
 
-    def select_file(self, ind):
-        self.file_trw.setCurrentIndex(ind)
+  
+    def retranslateUi(self, aEDXDWidget):
+        pass
 
-    def get_selected_file_row(self):
-        selected = self.file_tw.selectionModel().selectedRows()
-        try:
-            row = selected[0].row()
-        except IndexError:
-            row = -1
-        return row
 
-    
+
+
+class treeWidget(QtWidgets.QTreeWidget):
+    customMimeType = "application/x-customTreeWidgetdata"
+    cb_state_changed_signal = pyqtSignal(list, list, bool)
+    file_selection_changed_signal = pyqtSignal(list, list)
+    color_btn_clicked = pyqtSignal(int, QtWidgets.QWidget)
+    top_level_selection_changed_signal = pyqtSignal(int,float)
+    drag_drop_signal = pyqtSignal(dict)
+    files_dragged_in = pyqtSignal(dict)
+
+
+    def __init__(self):
+        super().__init__()
+        self.setAcceptDrops(True) 
+        self.expandAll()
+        #self.setSelectionMode(QAbstractItemView.MultiSelection)
+        #self.setDragEnabled(True)
+        #self.viewport().setAcceptDrops(True)
+ 
+        #self.setDropIndicatorShown(True)
+
+        self.clear_arrays()
+
+        self.currentItemChanged.connect(self.file_selection_changed)
+
+    def clear_arrays(self):
+        self.top_level_color_btns = []
+        self.top_level_items = []
+        self.file_items = []
+        self.file_show_cbs = []
+        self.tth_items = []
+        self.files = {}
+
+
+    def file_cb_changed(self, checkbox):
+        i = self.file_show_cbs.index(checkbox)
+        file_item=self.file_items[i]
+        ind, files = self.identify_item(file_item)
+        self.cb_state_changed_signal.emit(ind, files, checkbox.isChecked())
+
+
+    def file_selection_changed(self, current, previous):
+        if len(self.top_level_items):
+            ind,files = self.identify_item(current)
+
+            if len(ind)==1:
+                self.top_level_selection_changed_signal.emit(ind[0],files[0])
+            if len(ind)==2:
+                self.file_selection_changed_signal.emit(ind,files)
+
     def rename_file(self, ind, name):
-        name_item = self.file_tw.item(ind, 2)
+        name_item = self.item(ind, 2)
         name_item.setText(name)
     
     def set_file_tth(self, ind, P):
-        tth_item = self.file_tw.item(ind, 3)
+        tth_item = self.item(ind, 3)
         try:
             tth_item.setText("{0:.2f} GPa".format(P))
         except ValueError:
             tth_item.setText("{0} GPa".format(P))
 
     def get_file_tth(self, ind):
-        tth_item = self.file_tw.item(ind, 3)
+        tth_item = self.item(ind, 3)
         tth = float(str(tth_item.text()).split()[0])
         return tth
 
     def change_tth_color(self, ind, color):
         self.top_level_color_btns[ind].setStyleSheet('background-color:' + color.name())
     
-    def file_color_btn_click(self, button):
-        self.color_btn_clicked.emit(self.top_level_color_btns.index(button), button)
+    
 
     def Tth_edit_finished(self, tth_lineEdit):
         print(tth_lineEdit.text())
+
     
+
+
+    def get_selected_file_row(self):
+
+        selected = self.selectionModel().selectedRows()
+        try:
+            row = selected[0].row()
+        except IndexError:
+            row = -1
+        return row
+
+    def select_file(self, ind):
+        self.setCurrentIndex(ind)
+
     def file_show_cb_set_checked(self, ind, state):
         checkbox = self.file_show_cbs[ind]
         checkbox.setChecked(state)
@@ -356,48 +264,170 @@ class aEDXDFilesWidget(QWidget):
         checkbox = self.file_show_cbs[ind]
         return checkbox.isChecked()
 
-    def retranslateUi(self, aEDXDWidget):
-        pass
+    def clear_trw(self):
+        self.blockSignals(True)
+        root = self.invisibleRootItem()
+        for item in self.top_level_items:
+            (item.parent() or root).removeChild(item)
+        self.blockSignals(False)
+        self.clear_arrays()
 
+    def del_file(self, file_item ):
 
+        self.blockSignals(True)
+        ind, files = self.identify_item(file_item)
+        tth = files[0]
+        filename = files[1]
+        i = self.file_items.index(file_item)
+        del self.file_items[i]
+        del self.file_show_cbs[i]
+        for t in self.files:
+            if str(tth) == t:
+                for i, f in enumerate(self.files[t]):
+                    if filename == f:
+                        del self.files[t][i]
+        file_item.parent() .removeChild(file_item)
+        self.blockSignals(False)
 
-    ##########
-    ### Treeview drag and drop stuff
-    ##########
+    def del_group(self, top_item ):
 
-    def myMimeTypes(self):
-        mimetypes = QTreeWidget.mimeTypes(self.file_trw)
+        ind, files = self.identify_item(top_item)
+        tth = files[0]
+        i = self.top_level_items.index(top_item)
+        root = self.invisibleRootItem()
+        for item in self.top_level_items:
+            if top_item==item:
+                del self.top_level_color_btns[i]
+                del self.top_level_items[i]
+                del self.tth_items[i]
+                if str(tth) in self.files:
+                    del self.files[str(tth)]
+                (item.parent() or root).removeChild(item)
+                break
+
+    def get_selected_tth(self):
+
+        trw = self
+        if len(self.top_level_items):
+            si=trw.selectedItems()
+            if len(si):
+                item = si[0]
+                ind, files = self.identify_item(item)
+                tth = files[0]
+                return tth
+            else :
+                return None
+        else :
+            return None
+
+    def identify_item(self,item):
+
+        ind=[0]
+        if item in self.top_level_items:
+            p_ind = self.top_level_items.index(item)
+            ind = [p_ind]
+        if item in self.file_items:
+            p = item.parent()
+            c_ind = p.indexOfChild(item)
+            p_ind = self.top_level_items.index(p)
+            ind = [p_ind,c_ind]
+        tth = float(self.tth_items[ind[0]].tthItem.text()) 
+        files = [tth]
+        if len(ind)==2:
+            filename = self.files[str(tth)][ind[1]]
+            files.append(filename)
+        return ind, files
+
+    def add_file_group(self, filenames, color, tth,use):
+        self.blockSignals(True)
+        current_rows = self.currentIndex()
+        h = QtWidgets.QTreeWidgetItem()
+        h.setExpanded(True)
+        self.top_level_items.append(h)
+        self.addTopLevelItem(h)
+
+        tth_item = TthItem(color, tth)
+        tth_item.file_dragged_in.connect(self.tth_item_file_dragged_in_callback)
+        tth_item.color_button.clicked.connect(partial(self.color_btn_click, tth_item.color_button))
+        
+       
+        self.top_level_color_btns.append(tth_item.color_button)
+        self.setItemWidget(h,0,tth_item)
+        
+        
+        #self.setItemWidget(h,1,tth_item)
+        self.tth_items.append(tth_item)
+        for i, filename in enumerate(filenames):
+            file_use = use[i]
+            self.add_file(filename,file_use,tth)
+        self.setColumnWidth(0, 60)
+        self.select_file(current_rows)
+        self.blockSignals(False)
+
+    def color_btn_click(self, button):
+        self.color_btn_clicked.emit(self.top_level_color_btns.index(button), button)    
+
+    def add_file(self, filename,file_use,tth):
+        tths = []
+        for tth_i in self.tth_items:
+            tths.append(float(tth_i.tthItem.text()))
+        ind = tths.index(float(tth))
+        top_level_item = self.top_level_items[ind]
+
+        file_item = QtWidgets.QTreeWidgetItem(top_level_item)
+        self.file_items.append(file_item)
+
+        file_label = FileItem(file_use, filename)
+
+        
+        file_label.show_cb.stateChanged.connect(partial(self.file_cb_changed, file_label.show_cb))
+        
+        self.setItemWidget(file_item, 0, file_label)
+        self.file_show_cbs.append(file_label.show_cb)
+    
+
+        if tth in self.files:
+            self.files[tth].append(filename)
+        else:
+            self.files[tth]=[filename]
+
+        self.expandAll()
+
+    '''
+
+    def mimeTypes(self):
+        mimetypes = QTreeWidget.mimeTypes(self)
         mimetypes.append(self.customMimeType)
         return mimetypes
 
     
 
-    def myStartDrag(self, supportedActions):
-        drag = QDrag(self.file_trw)
+    def startDrag(self, supportedActions):
+        drag = QDrag(self)
 
-        si = self.file_trw.selectedItems()
+        si = self.selectedItems()
         item = si[0]
         ind, files = self.identify_item(item)
         #print(ind)
         #print (files)
         if len(ind)>1:
-            mimedata = self.file_trw.model().mimeData(self.file_trw.selectedIndexes())
+            mimedata = self.model().mimeData(self.selectedIndexes())
 
             encoded = QByteArray()
             stream = QDataStream(encoded, QIODevice.WriteOnly)
-            self.encodeData(self.file_trw.selectedItems(), stream)
+            self.encodeData(self.selectedItems(), stream)
             mimedata.setData(self.customMimeType, encoded)
 
             drag.setMimeData(mimedata)
             drag.exec_(supportedActions)
 
-    def myDropEvent(self, event):
+    def dropEvent(self, event):
         if isinstance(event.source(), QTreeWidget):
             if event.mimeData().hasFormat(self.customMimeType):
                 encoded = event.mimeData().data(self.customMimeType)
-                parent = self.file_trw.itemAt(event.pos())
+                parent = self.itemAt(event.pos())
                 decoded_ind = self.decodeData(encoded, event.source())
-                tth = float(self.tth_items[decoded_ind[0]].text()) 
+                tth = float(self.tth_items[decoded_ind[0]].tthItem.text()) 
                 filename = self.files[str(tth)][decoded_ind[1]]
 
                 ind, files = self.identify_item(parent)
@@ -442,4 +472,105 @@ class aEDXDFilesWidget(QWidget):
         
         #print('dencoded [' + str(ind1) + ', '+ str(ind2)+']')
 
-        return [ind1, ind2, ind3]
+        return [ind1, ind2, ind3]'''
+    
+
+    def tth_item_file_dragged_in_callback(self, dragged_in):
+        self.files_dragged_in.emit(dragged_in)
+        
+    
+class FileItem(QtWidgets.QWidget):
+
+
+    file_dragged_in = pyqtSignal(dict)
+    color_btn_clicked_signal = pyqtSignal(QtWidgets.QWidget)
+   
+    
+    def __init__(self,file_use, filename ):
+        super().__init__()
+
+        
+        self.show_cb = QtWidgets.QCheckBox()
+        self.show_cb.setChecked(file_use)
+        
+        self.show_cb.setStyleSheet("background-color: transparent")
+      
+        self.file_label = QLabel(filename)
+        self.file_label.setStyleSheet("background-color: transparent")
+
+        self._layout = QtWidgets.QHBoxLayout()
+        self._layout.setContentsMargins(1,1,1,1)
+        self._layout.addWidget(self.show_cb)
+        self._layout.addWidget(self.file_label)
+        self._layout.addSpacerItem(HorizontalSpacerItem())
+        self.setLayout(self._layout)
+
+        #self.setAcceptDrops(True) 
+
+
+class TthItem(QtWidgets.QWidget):
+
+
+    file_dragged_in = pyqtSignal(dict)
+    color_btn_clicked_signal = pyqtSignal(QtWidgets.QWidget)
+   
+    
+    def __init__(self,color, text ):
+        super().__init__()
+
+        self.color_button = FlatButton()
+        self.color_button.setStyleSheet("background-color: " + color)
+        self.color_button.setMaximumHeight(18)
+        self.color_button.setMinimumWidth(18)
+        self.color_button.setMaximumWidth(18)
+        
+        self.tthItem = QtWidgets.QLabel(text)
+        self.tthItem.setStyleSheet("background-color: transparent")
+        self._layout = QtWidgets.QHBoxLayout()
+        self._layout.setContentsMargins(1,1,1,1)
+        self._layout.addWidget(self.color_button)
+        self._layout.addWidget(self.tthItem)
+        self._layout.addSpacerItem(HorizontalSpacerItem())
+        self.setLayout(self._layout)
+
+        self.setAcceptDrops(True) 
+        
+        #tth_item.editingFinished.connect(partial(self.Tth_edit_finished, tth_item))
+        
+
+    def dragEnterEvent(self, e):
+        
+        if e.mimeData().hasUrls:
+            e.accept()
+        else: e.reject()
+        
+        
+
+    def dragMoveEvent(self, e):
+        
+        if e.mimeData().hasUrls:
+            e.accept()
+        else: e.reject()
+        
+
+    def dropEvent(self, e):
+        """
+        Drop files directly onto the widget
+
+        File locations are stored in fname
+        :param e:
+        :return:
+        """
+        
+        tth = float(self.tthItem.text())
+        if e.mimeData().hasUrls:
+            e.setDropAction(QtCore.Qt.CopyAction)
+            e.accept()
+            fnames = list()
+            for url in e.mimeData().urls():
+                fname = str(url.toLocalFile())
+                fnames.append(fname)
+            d = {}
+            d[tth]=fnames
+            self.file_dragged_in.emit(d)
+        

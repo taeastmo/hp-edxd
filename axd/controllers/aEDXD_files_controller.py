@@ -61,15 +61,16 @@ class aEDXDFilesController(QObject):
         self.files_window.apply_btn.clicked.connect(self.apply)
         self.files_window.add_btn.clicked.connect(self.add_file_clicked)
         self.files_window.add_tth_btn.clicked.connect(self.add_group_clicked)
-        self.files_window.top_level_selection_changed_signal.connect(self.file_group_selection_changed)
-        self.files_window.file_selection_changed_signal.connect(self.file_selection_changed)
-        self.files_window.color_btn_clicked.connect(self.color_btn_clicked)
+        self.files_window.file_trw.top_level_selection_changed_signal.connect(self.file_group_selection_changed)
+        self.files_window.file_trw.file_selection_changed_signal.connect(self.file_selection_changed)
+        self.files_window.file_trw.color_btn_clicked.connect(self.color_btn_clicked)
         self.files_window.delete_clicked_signal.connect(self.delete_clicked)
         self.files_window.clear_btn.clicked.connect(self.clear_clicked)
-        self.files_window.cb_state_changed_signal.connect(self.file_cb_changed_callback)
-        self.files_window.drag_drop_signal.connect(self.drag_drop_signal_callback)
+        self.files_window.file_trw.cb_state_changed_signal.connect(self.file_cb_changed_callback)
+        self.files_window.file_trw.drag_drop_signal.connect(self.drag_drop_signal_callback)
         self.peak_cut_controller.cut_peaks_changed_signal.connect(self.data_changed_callback)
         self.peak_cut_controller.roi_window.apply_btn.clicked.connect(self.apply)
+        self.files_window.file_trw.files_dragged_in.connect(self.files_dragged_in_callback)
 
     def drag_drop_signal_callback(self, drag_drop):
         source = drag_drop['source']
@@ -81,6 +82,13 @@ class aEDXDFilesController(QObject):
 
         self.delete_clicked(source)
         self.add_file(target_tth, [filepath])
+
+    def files_dragged_in_callback(self, dragged_in):
+    
+        for key in dragged_in:
+            target_tth = key
+            fnames = dragged_in[key]
+            self.add_file(target_tth, fnames)
 
     def apply(self):
         self.emit_spectra()
@@ -106,7 +114,7 @@ class aEDXDFilesController(QObject):
     
 
     def add_file_clicked(self):
-        tth = self.files_window.get_selected_tth()
+        tth = self.files_window.file_trw.get_selected_tth()
         if tth != None:
             directory = self.model.params['inputdatadirectory']
             filenames = open_files_dialog(self.files_window, "Load Overlay(s).", directory=directory) 
@@ -136,7 +144,7 @@ class aEDXDFilesController(QObject):
                 c = (int(color[0]), int(color[1]),int(color[2]))
                 self.colors[t]=c
                 c_str = '#%02x%02x%02x' % c
-                self.files_window.add_file_group([],c_str,str(t),[])
+                self.files_window.file_trw.add_file_group([],c_str,str(t),[])
 
     def delete_clicked(self, param):
         ind = param['ind']
@@ -146,20 +154,20 @@ class aEDXDFilesController(QObject):
             tth = files[0]
             filename=files[1]
             self.spectra_model.remove_file(tth,filename)
-            self.files_window.del_file(item)
+            self.files_window.file_trw.del_file(item)
         elif len(ind)==1:
             tth = files[0]
             self.spectra_model.remove_tth(tth)
-            self.files_window.del_group(item)
+            self.files_window.file_trw.del_group(item)
         #self.files_loaded_callback()
         self.data_changed_callback()    
         
 
     def clear_clicked(self):
-        if len(self.files_window.top_level_items):
+        if len(self.files_window.file_trw.top_level_items):
             self.spectra_model.clear_files()
             self.files_loaded_callback()
-            self.files_window.clear_trw()
+            self.files_window.file_trw.clear_trw()
             self.data_changed_callback()
 
     def file_cb_changed_callback(self, ind, files, state):
@@ -216,7 +224,7 @@ class aEDXDFilesController(QObject):
         tth = self.spectra_model.tth  
         colors = self.colors
         i = 0
-        self.files_window.clear_trw()
+        self.files_window.file_trw.clear_trw()
         for i, t in enumerate(tth):
             files = tth_groups[t].files.keys()
 
@@ -229,7 +237,7 @@ class aEDXDFilesController(QObject):
                 files_base.append(f_b)
             tth = str(t)
             c_str = '#%02x%02x%02x' % colors[t]
-            self.files_window.add_file_group(files_base,c_str,tth,files_use)
+            self.files_window.file_trw.add_file_group(files_base,c_str,tth,files_use)
 
     def set_params(self, set_params):
         self.current_tth_index = None
@@ -274,7 +282,7 @@ class aEDXDFilesController(QObject):
         self.change_tth_color_in_widget(ind, color)
         
     def change_tth_color_in_widget(self, ind, color):
-        self.files_window.change_tth_color(ind, color)
+        self.files_window.file_trw.change_tth_color(ind, color)
 
     def set_currect_tth(self, tth):
         self.current_tth_index = tth

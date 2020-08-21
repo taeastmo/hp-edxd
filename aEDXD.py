@@ -49,7 +49,7 @@
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
 #       7. Plot errors 
-#       8. TODO invalid config file loading crashes program
+#       8. Invalid config file loading does not crash program
 #       9. TODO Hdf5 compatible 
 #       10. TODO self consistency of S(q) check
 #       11. TODO Angle dispersive I(q) input
@@ -58,6 +58,7 @@
 #       14. TODO Integrate scanning data acquisition and data display
 #       15. TODO Buttons to export data
 #       16. Drag-drop file sorting by 2theta
+#       17. TODO In peak cut window only show one 2th at a time
 #       
 #        
 ###############################################################################
