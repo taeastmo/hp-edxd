@@ -176,7 +176,7 @@ class treeWidget(QtWidgets.QTreeWidget):
     top_level_selection_changed_signal = pyqtSignal(int,float)
     drag_drop_signal = pyqtSignal(dict)
     files_dragged_in = pyqtSignal(dict)
-
+    
 
     def __init__(self):
         super().__init__()
@@ -477,6 +477,43 @@ class treeWidget(QtWidgets.QTreeWidget):
 
     def tth_item_file_dragged_in_callback(self, dragged_in):
         self.files_dragged_in.emit(dragged_in)
+
+
+    def dragEnterEvent(self, e):
+        
+        if e.mimeData().hasUrls:
+            e.accept()
+        else: e.reject()
+        
+        
+
+    def dragMoveEvent(self, e):
+        
+        if e.mimeData().hasUrls:
+            e.accept()
+        else: e.reject()
+        
+
+    def dropEvent(self, e):
+        """
+        Drop files directly onto the widget
+
+        File locations are stored in fname
+        :param e:
+        :return:
+        """
+        
+        tth = 'auto'
+        if e.mimeData().hasUrls:
+            e.setDropAction(QtCore.Qt.CopyAction)
+            e.accept()
+            fnames = list()
+            for url in e.mimeData().urls():
+                fname = str(url.toLocalFile())
+                fnames.append(fname)
+            d = {}
+            d[tth]=fnames
+            self.files_dragged_in.emit(d)
         
     
 class FileItem(QtWidgets.QWidget):

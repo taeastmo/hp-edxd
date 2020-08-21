@@ -29,7 +29,7 @@ from utilities.HelperModule import calculate_color
 from numpy import arange
 from utilities.HelperModule import getInterpolatedCounts
 from axd.widgets.aEDXD_files_widget import aEDXDFilesWidget
-from axd.models.aEDXD_spectra_model import Spectra
+from axd.models.aEDXD_spectra_model import Spectra, get_tth_from_file
 from utilities.hpMCAutilities import readconfig
 from axd.controllers.aEDXD_peak_cut_controller import aEDXDPeakCutController
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
@@ -85,10 +85,15 @@ class aEDXDFilesController(QObject):
 
     def files_dragged_in_callback(self, dragged_in):
     
+        
         for key in dragged_in:
             target_tth = key
             fnames = dragged_in[key]
-            self.add_file(target_tth, fnames)
+            if type(target_tth) == str:
+                if target_tth == 'auto':
+                    self.add_files_auto_tth(fnames)
+            else:
+                self.add_file(target_tth, fnames)
 
     def apply(self):
         self.emit_spectra()
@@ -123,6 +128,15 @@ class aEDXDFilesController(QObject):
                 dirname = os.path.dirname(filename)
                 self.model.params['inputdatadirectory']=dirname
                 self.add_file(tth, filenames)
+
+    def add_files_auto_tth(self, filenames):
+        for fname in filenames:
+            target_tth = get_tth_from_file(fname)
+            self.add_tth_to_spectra_model(target_tth)
+            self.spectra_model.add_files(target_tth, [fname])
+        self.files_loaded_callback()
+        self.update_files_widget()
+        self.peak_cut_controller.load_peaks_from_config()
                 
 
     def add_file(self, tth, filenames):
@@ -136,15 +150,18 @@ class aEDXDFilesController(QObject):
                         self.files_window, "Add "+f'2\N{GREEK SMALL LETTER THETA}',
                             "Enter "+f'2\N{GREEK SMALL LETTER THETA}'+" value:", 0, 0, 180, 4)
         if okPressed:
-            tth = self.spectra_model.tth
-            if not t in tth:
-                i = len(tth)
-                self.spectra_model.add_tth(t)
-                color  = calculate_color(i) 
-                c = (int(color[0]), int(color[1]),int(color[2]))
-                self.colors[t]=c
-                c_str = '#%02x%02x%02x' % c
-                self.files_window.file_trw.add_file_group([],c_str,str(t),[])
+            self.add_tth_to_spectra_model(t)
+
+    def add_tth_to_spectra_model(self, t):
+        tth = self.spectra_model.tth
+        if not t in tth:
+            i = len(tth)
+            self.spectra_model.add_tth(t)
+            color  = calculate_color(i) 
+            c = (int(color[0]), int(color[1]),int(color[2]))
+            self.colors[t]=c
+            c_str = '#%02x%02x%02x' % c
+            self.files_window.file_trw.add_file_group([],c_str,str(t),[])
 
     def delete_clicked(self, param):
         ind = param['ind']

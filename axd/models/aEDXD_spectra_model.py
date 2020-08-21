@@ -618,6 +618,7 @@ def read_file(filename, mca_adc_shapingtime):
         if 'LIVE_TIME:' in line: lt_ndx = lines.index(line)
         if 'CAL_OFFSET:' in line: e_offset_ndx = lines.index(line)
         if 'CAL_SLOPE:' in line: e_slope_ndx = lines.index(line)
+        if 'TWO_THETA:' in line: two_theta_ndx = lines.index(line)
         if 'DATA:' in line: 
             firstdataline_ndx = lines.index(line)+1
             break
@@ -625,6 +626,7 @@ def read_file(filename, mca_adc_shapingtime):
     live_time = float(lines[lt_ndx].split()[1])
     e_offset = float(lines[e_offset_ndx].split()[1])
     e_slope = float(lines[e_slope_ndx].split()[1])
+    two_theta = float(lines[two_theta_ndx].split()[1])
     intensityi = np.array(lines[firstdataline_ndx:],dtype=np.float)
     # correct the dead time here: 
     dead_time = real_time-live_time
@@ -634,6 +636,17 @@ def read_file(filename, mca_adc_shapingtime):
     energyi = e_offset + e_slope*np.arange(len(intensityi)) # keV
     f.close()
     return energyi, intensityi
+
+def get_tth_from_file(filename):
+    f = open(filename,'r')
+    lines = f.readlines()
+    for line in lines:
+        if 'TWO_THETA:' in line: 
+            two_theta_ndx = lines.index(line)
+            break
+    f.close()
+    two_theta = float(lines[two_theta_ndx].split()[1])
+    return two_theta
 
 def dataread(mcadata, inputdatadirectory):
     datalist=[]; tth=[]; filelist=[]
