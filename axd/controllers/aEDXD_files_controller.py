@@ -78,7 +78,7 @@ class aEDXDFilesController(QObject):
         filename = source['files']
         directory = self.model.params['inputdatadirectory']
         filepath = os.path.join(directory, filename[1])
-        target_tth = target[1]
+        target_tth = target
 
         self.delete_clicked(source)
         self.add_file(target_tth, [filepath])

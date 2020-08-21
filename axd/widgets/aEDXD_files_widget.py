@@ -183,7 +183,7 @@ class treeWidget(QtWidgets.QTreeWidget):
         self.setAcceptDrops(True) 
         self.expandAll()
         #self.setSelectionMode(QAbstractItemView.MultiSelection)
-        #self.setDragEnabled(True)
+        self.setDragEnabled(True)
         #self.viewport().setAcceptDrops(True)
  
         #self.setDropIndicatorShown(True)
@@ -191,6 +191,7 @@ class treeWidget(QtWidgets.QTreeWidget):
         self.clear_arrays()
 
         self.currentItemChanged.connect(self.file_selection_changed)
+        
 
     def clear_arrays(self):
         self.top_level_color_btns = []
@@ -348,6 +349,7 @@ class treeWidget(QtWidgets.QTreeWidget):
 
         tth_item = TthItem(color, tth)
         tth_item.file_dragged_in.connect(self.tth_item_file_dragged_in_callback)
+        tth_item.file_dragged_in_from_treewidget.connect(self.myDropEvent)
         tth_item.color_button.clicked.connect(partial(self.color_btn_click, tth_item.color_button))
         
        
@@ -393,7 +395,7 @@ class treeWidget(QtWidgets.QTreeWidget):
 
         self.expandAll()
 
-    '''
+    
 
     def mimeTypes(self):
         mimetypes = QTreeWidget.mimeTypes(self)
@@ -421,30 +423,34 @@ class treeWidget(QtWidgets.QTreeWidget):
             drag.setMimeData(mimedata)
             drag.exec_(supportedActions)
 
-    def dropEvent(self, event):
-        if isinstance(event.source(), QTreeWidget):
-            if event.mimeData().hasFormat(self.customMimeType):
-                encoded = event.mimeData().data(self.customMimeType)
-                parent = self.itemAt(event.pos())
-                decoded_ind = self.decodeData(encoded, event.source())
-                tth = float(self.tth_items[decoded_ind[0]].tthItem.text()) 
-                filename = self.files[str(tth)][decoded_ind[1]]
+    def myDropEvent(self, e):
+        
+        for key in e:
+            tth_target = float(key)
+            event = e[key]
+        if event.mimeData().hasFormat(self.customMimeType):
+            encoded = event.mimeData().data(self.customMimeType)
+            parent = self.itemAt(event.pos())
+            decoded_ind = self.decodeData(encoded, event.source())
+            tth = float(self.tth_items[decoded_ind[0]].tthItem.text()) 
+            filename = self.files[str(tth)][decoded_ind[1]]
 
-                ind, files = self.identify_item(parent)
-                
-                file_item = self.file_items[decoded_ind[2]]
-                
-                param = {}
-                param['ind'] = [decoded_ind[0], decoded_ind[1] ]
-                param['files'] = [tth, filename]
-                param['item'] = file_item
+            ind, files = self.identify_item(parent)
+            
+            file_item = self.file_items[decoded_ind[2]]
+            
+            param = {}
+            param['ind'] = [decoded_ind[0], decoded_ind[1] ]
+            param['files'] = [tth, filename]
+            param['item'] = file_item
 
-                drag_drop = {}
-                drag_drop['source']=param
-                drag_drop['target']=[ind[0],files[0]]
-
+            drag_drop = {}
+            drag_drop['source']=param
+            drag_drop['target']=tth_target
+            if tth != tth_target:
                 self.drag_drop_signal.emit(drag_drop)
                 event.acceptProposedAction()
+            
 
 
     def encodeData(self, items, stream):
@@ -472,7 +478,7 @@ class treeWidget(QtWidgets.QTreeWidget):
         
         #print('dencoded [' + str(ind1) + ', '+ str(ind2)+']')
 
-        return [ind1, ind2, ind3]'''
+        return [ind1, ind2, ind3]
     
 
     def tth_item_file_dragged_in_callback(self, dragged_in):
@@ -550,6 +556,7 @@ class TthItem(QtWidgets.QWidget):
 
     file_dragged_in = pyqtSignal(dict)
     color_btn_clicked_signal = pyqtSignal(QtWidgets.QWidget)
+    file_dragged_in_from_treewidget = pyqtSignal(dict)
    
     
     def __init__(self,color, text ):
@@ -576,16 +583,17 @@ class TthItem(QtWidgets.QWidget):
         
 
     def dragEnterEvent(self, e):
+        md = e.mimeData()
         
-        if e.mimeData().hasUrls:
+        if md.hasUrls:
             e.accept()
         else: e.reject()
         
         
 
     def dragMoveEvent(self, e):
-        
-        if e.mimeData().hasUrls:
+        md = e.mimeData()
+        if md.hasUrls:
             e.accept()
         else: e.reject()
         
@@ -598,9 +606,17 @@ class TthItem(QtWidgets.QWidget):
         :param e:
         :return:
         """
+        TW = isinstance(e.source(), QTreeWidget)
+        if TW:
+            tth = self.tthItem.text()
+            self.file_dragged_in_from_treewidget.emit({tth:e})
+            return
         
         tth = float(self.tthItem.text())
-        if e.mimeData().hasUrls:
+        md = e.mimeData()
+        
+            
+        if md.hasUrls:
             e.setDropAction(QtCore.Qt.CopyAction)
             e.accept()
             fnames = list()
