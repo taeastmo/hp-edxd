@@ -49,11 +49,14 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         self.clear_btn = FlatButton('Clear')
         #self.show_fit_btn = FlatButton('Show')
         self.edit_btn = FlatButton('Edit')
+        self.filter_btn = FlatButton(f'Filter 2\N{GREEK SMALL LETTER THETA}')
+        self.filter_btn.setCheckable(True)
+
         
         self._button_layout.addWidget(self.edit_btn)
         self._button_layout.addWidget(self.delete_btn)
         self._button_layout.addWidget(self.clear_btn)
-        #self._button_layout.addWidget(self.show_fit_btn)
+        self._button_layout.addWidget(self.filter_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
 
         self.button_widget.setLayout(self._button_layout)
@@ -102,6 +105,34 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
     def create_connections(self):
         self.roi_tw.currentCellChanged.connect(self.roi_selection_changed)
 
+    
+
+    def style_widgets(self):
+        self.roi_tw.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        self.roi_tw.setMinimumWidth(370)
+        self.roi_tw.setMinimumHeight(110)
+        self.setStyleSheet("""
+            #rois_control_button_widget FlatButton {
+                max-width: 70;
+                min-width: 70;
+            }
+            #rois_control_button_2_widget FlatButton {
+                max-width: 70;
+                min-width: 70;
+            }
+        """)
+
+    def closeEvent(self, event):
+        # Overrides close event to let controller know that widget was closed by user
+        self.widget_closed.emit()
+
+    
+
+
+    ################################################################################################
+    # Now comes all the roi tw stuff
+    ################################################################################################
+
     def roi_selection_changed(self, row, **kwargs):
         tth = None
         name = None
@@ -116,26 +147,9 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
             unit_=' ('+unit_+')'
         self.header[2] = self.default_header[2] + ', '+unit+unit_
         self.roi_tw.setHorizontalHeaderLabels(self.header)
-
-    def style_widgets(self):
-        self.roi_tw.setSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
-        self.roi_tw.setMinimumWidth(350)
-        self.roi_tw.setMinimumHeight(110)
-        self.setStyleSheet("""
-            #rois_control_button_widget FlatButton {
-                max-width: 70;
-                min-width: 70;
-            }
-            #rois_control_button_2_widget FlatButton {
-                max-width: 70;
-                min-width: 70;
-            }
-        """)
-
-
-    ################################################################################################
-    # Now comes all the roi tw stuff
-    ################################################################################################
+    
+    def filter_tth(self, fltr_tth):
+        print(fltr_tth)
 
     def add_roi(self, use, name,tth):
         self.roi_tw.blockSignals(True)
@@ -169,9 +183,7 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         self.roi_tw.setRowHeight(current_rows, 25)
         self.roi_tw.blockSignals(False)
 
-    def closeEvent(self, event):
-        # Overrides close event to let controller know that widget was closed by user
-        self.widget_closed.emit()
+    
         
     def select_roi(self, ind):
         self.roi_tw.selectRow(ind)

@@ -61,7 +61,7 @@ class aEDXDConfigController(QObject):
         self.colors = []
 
     def create_connections(self):
-        self.files_controller.tth_index_changed_signal.connect(self.index_changed)
+        self.files_controller.tth_selection_changed_signal.connect(self.index_changed)
         self.files_controller.apply_clicked_signal.connect(self.apply_files_clicked_readback)
         self.gr_opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 
         self.sq_opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 

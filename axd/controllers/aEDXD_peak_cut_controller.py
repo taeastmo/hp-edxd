@@ -48,21 +48,24 @@ class aEDXDPeakCutController(QObject):
         self.roi_window = aEDXDRoiWidget()
         self.plot_fit_window = plotFitWindow()
         self.create_connections()
-        self.current_tth_index = 0
+        self.current_tth = 0
         self.selectedROI = None
         self.plotFitOpen = False
 
     def create_connections(self):
-        self.display_window.spectrum_widget.cut_peak_btn.clicked.connect(lambda:self.cut_peak_clicked(self.files.current_tth_index,
+        self.display_window.spectrum_widget.cut_peak_btn.clicked.connect(lambda:self.cut_peak_clicked(self.files.current_tth,
                                                           self.display_window.spectrum_widget.cut_peak_btn.isChecked() ))
         self.roi_window.delete_btn.clicked.connect(self.remove_btn_click_callback)
         self.roi_window.clear_btn.clicked.connect(self.clear_btn_click_callback)
         self.roi_window.show_cb_state_changed.connect(self.roi_show_cb_callback)
         self.roi_window.roi_selection_changed_signal.connect(self.roi_selection_changed)
         self.roi_window.edit_btn.clicked.connect(self.show_fit)
+        self.roi_window.filter_btn.clicked.connect(self.filter_btn_callback)
         self.plot_fit_window.widget_closed.connect(self.plot_fit_closed)
         self.plot_fit_window.vLineRight.sigPositionChangeFinished.connect(self.edit_cursor_drag_done)
         self.plot_fit_window.vLineLeft.sigPositionChangeFinished.connect(self.edit_cursor_drag_done)
+
+        self.files.tth_selection_changed_signal.connect(self.tth_index_changed_callback)
 
     def edit_cursor_drag_done(self, line):
         pos1 = round(self.plot_fit_window.vLineRight.getPos()[0],3)
@@ -150,7 +153,16 @@ class aEDXDPeakCutController(QObject):
         spectrum.change_roi_use(ind,checked)
         self.cut_peaks_changed_signal.emit() 
 
+    def filter_btn_callback(self, state):
+        self.display_rois()
+        
+
+    def tth_index_changed_callback(self, index):
+        self.display_rois()
+
     def display_rois(self):
+        fltr_state = self.roi_window.filter_btn.isChecked()
+        tth = str(self.files.current_tth)
         while self.roi_window.roi_tw.rowCount() > 0:
             self.roi_window.del_roi(self.roi_window.roi_tw.rowCount()-1)
         peaks = self.spectra_model.get_cut_peaks()
@@ -159,7 +171,8 @@ class aEDXDPeakCutController(QObject):
             right = '%.3f' % (p['right'])
             name = left +'-'+right
             tth_str=str(p['tth'])
-            self.roi_window.add_roi(True,name,tth_str)
+            if tth == tth_str or not fltr_state:
+                self.roi_window.add_roi(True,name,tth_str)
         self.cut_peaks_changed_signal.emit() 
         
         

@@ -37,7 +37,7 @@ from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_
 ############################################################
 
 class aEDXDFilesController(QObject):
-    tth_index_changed_signal = QtCore.pyqtSignal(int)
+    tth_selection_changed_signal = QtCore.pyqtSignal(float)
     color_changed_signal = QtCore.pyqtSignal(int,tuple)
     files_changed_signal = pyqtSignal()
     apply_clicked_signal = pyqtSignal(dict)
@@ -54,7 +54,7 @@ class aEDXDFilesController(QObject):
         self.peak_cut_controller = aEDXDPeakCutController(self.model,self.spectra_model,self.display_window,self)
         self.create_connections()
         self.colors = {}
-        self.current_tth_index = None
+        self.current_tth = None
 
     def create_connections(self):
         self.display_window.spectrum_widget.apply_btn.clicked.connect(self.apply)
@@ -216,9 +216,9 @@ class aEDXDFilesController(QObject):
         self.display_window.spectrum_widget.fig.clear()
         spectra = self.spectra_model
         if len(spectra.tth):
-            if self.current_tth_index== None:
-                    self.current_tth_index= spectra.tth[0]
-            tth = self.current_tth_index
+            if self.current_tth== None:
+                    self.current_tth= spectra.tth[0]
+            tth = self.current_tth
             group = spectra.tth_groups[tth]
             spectrum_raw = group.spectrum_raw
             spectrum_unscaled = group.spectrum.unscaled
@@ -257,7 +257,7 @@ class aEDXDFilesController(QObject):
             self.files_window.file_trw.add_file_group(files_base,c_str,tth,files_use)
 
     def set_params(self, set_params):
-        self.current_tth_index = None
+        self.current_tth = None
         files  = set_params['mcadata']
         self.spectra_model.inputdatadirectory = self.model.params['inputdatadirectory']
         self.spectra_model.load_files_from_config(files)
@@ -272,7 +272,7 @@ class aEDXDFilesController(QObject):
         p_ind = ind[0]
         c_ind = ind[1]
         i = int(p_ind)
-        if self.current_tth_index != files[0]:
+        if self.current_tth != files[0]:
             self.set_currect_tth(files[0])
         spectra = self.spectra_model
         tth = spectra.tth[i]
@@ -302,7 +302,8 @@ class aEDXDFilesController(QObject):
         self.files_window.file_trw.change_tth_color(ind, color)
 
     def set_currect_tth(self, tth):
-        self.current_tth_index = tth
+        self.current_tth = tth
+        self.tth_selection_changed_signal.emit(tth)
         self.plot_one_data()
 
     def file_group_selection_changed(self, ind,tth):
@@ -317,6 +318,7 @@ class aEDXDFilesController(QObject):
             datas.append(np.asarray([f.energy, f.intensity]))
         filenames = files.keys()
         self.plot_raw_mult(datas, tth, filenames)
+        
 
     def plot_raw_one(self, data, tth, filename):
         colors = self.colors

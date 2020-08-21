@@ -48,19 +48,18 @@
 #       4. Improved interpolation under removed peaks 
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
-#       7. Plot errors 
+#       7. Plotting of errors 
 #       8. Invalid config file loading does not crash program
-#       9. TODO Hdf5 compatible 
-#       10. TODO self consistency of S(q) check
-#       11. TODO Angle dispersive I(q) input
-#       12. TODO Q scale for n spectrum view
-#       13. Automatic loading of 2theta from file.
+#       9. Drag-drop files
+#       10. Automatic loading of 2theta from file.
+#       11. Buttons to export data
+#       12. In peak cut window only show one 2th at a time
+#       13. TODO self consistency of S(q) check
 #       14. TODO Integrate scanning data acquisition and data display
-#       15. TODO Buttons to export data
-#       16. Drag-drop files
-#       17. TODO In peak cut window only show one 2th at a time
+#       15. TODO Angle dispersive I(q) input
+#       16. TODO Hdf5 compatible 
+#       17. TODO Q scale for n spectrum view
 #       18. TODO Undo functionality
-#       19. TODO Edit 2th value for a file
 #       
 #        
 ###############################################################################
