@@ -34,6 +34,8 @@ from axd.controllers.aEDXD_atom_options_controller import aEDXDAtomController
 from axd.controllers.aEDXD_files_controller import aEDXDFilesController
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from utilities.hpMCAutilities import displayErrorMessage, json_compatible_dict
+ 
+from datetime import datetime  # for timestamping the undo functionality
 
 
 ############################################################
@@ -56,20 +58,30 @@ class aEDXDConfigController(QObject):
         self.atom_controller = aEDXDAtomController()
         self.files_controller = aEDXDFilesController(self.model,self.display_window,self)
         
-        self.current_tth_index = 0
+        self.current_tth = 0
         self.create_connections()
         self.colors = []
+        self.undo_params = {}
+        self.undoing = False
+        self.loaded_params = {}
+        
 
     def create_connections(self):
-        self.files_controller.tth_selection_changed_signal.connect(self.index_changed)
+        self.files_controller.tth_selection_changed_signal.connect(self.tth_selection_changed)
         self.files_controller.apply_clicked_signal.connect(self.apply_files_clicked_readback)
         self.gr_opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 
         self.sq_opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 
         self.opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 
         self.atom_controller.apply_clicked_signal.connect(self.apply_clicked_readback) 
+        self.display_window.undo_btn.clicked.connect(self.undo)
+        self.display_window.reset_btn.clicked.connect(self.reset)
        
 
     def apply_clicked_readback(self, params):
+        if not self.undoing:
+            self.back_up_config('apply')
+        else:
+            self.undoing = False
         if 'bin_size' in params :
             cur_bsize = self.files_controller.spectra_model.bin_size
             new_bsize = int(params['bin_size'])
@@ -78,16 +90,52 @@ class aEDXDConfigController(QObject):
                 dataarray, ttharray= self.files_controller.spectra_model.get_dataarray()
                 self.model.dataarray = dataarray
                 self.model.ttharray = ttharray
-                self.files_controller.data_changed_callback()
+                
+                self.files_controller.data_changed_callback()        
         self.model.set_params(params)
         self.params_changed_signal.emit()
 
     def apply_files_clicked_readback(self, params):
+        if not self.undoing:
+            self.back_up_config('files')
+        else:
+            self.undoing = False
         dataarray = params['dataarray']
         ttharray = params['ttharray']
         self.model.dataarray = dataarray
         self.model.ttharray = ttharray
+        self.model.params['mcadata']= params['mcadata']
         self.params_changed_signal.emit()
+
+    def back_up_config(self, action=''):
+        
+        now = datetime.now() # current date and time
+        date_time = now.strftime("%m/%d/%Y, %H:%M:%S.%f")
+        params = copy.copy(self.model.params)
+
+        self.undo_params[date_time] = params
+        #print(self.undo_params.keys())
+
+    def undo(self):
+        if len(self.undo_params) >0 :
+            keys = list(self.undo_params.keys())
+            
+                
+            last_key = keys[-1]
+            prev_params = self.undo_params[last_key]
+            if len(self.undo_params)>1:
+                del self.undo_params[last_key]
+            self.undoing = True
+            self.model.configure_from_dict(prev_params)
+            self.configure_components(prev_params)
+            
+    def reset(self):
+        if len(self.loaded_params):
+            self.model.configure_from_dict(self.loaded_params)
+
+            self.configure_components(self.loaded_params)
+
+
 
     def save_config(self, filename):
         params_out = copy.copy(self.model.params)
@@ -95,11 +143,13 @@ class aEDXDConfigController(QObject):
         params_out['E_cut'] = peaks
         mcadata = self.files_controller.spectra_model.get_file_list()
         params_out['mcadata'] = mcadata
+        
         options_out = json_compatible_dict(params_out)
         try:
             with open(filename, 'w') as outfile:
                 json.dump(options_out, outfile,sort_keys=True, indent=4)
                 outfile.close()
+            self.loaded_params = copy.copy(params_out)
         except:
             displayErrorMessage( 'opt_save') 
 
@@ -127,21 +177,30 @@ class aEDXDConfigController(QObject):
             config_file = filename
             self.model.set_config_file(config_file)
             try:
-                self.model.cofigure()
+                self.model.cofigure_from_file()
             except:
                 pass
             if self.model.configured:
                 mp = self.model.params
-                self.gr_opts_window.set_params(mp)
-                self.sq_opts_window.set_params(mp)
-                self.opts_window.set_params(mp)
-                self.atom_controller.set_params(mp)
-                self.files_controller.set_params(mp)
+                self.configure_components(mp)
+                
+                self.loaded_params = copy.copy(mp)
+                #self.back_up_config()
             else:
                 displayErrorMessage( 'opt_read') 
 
-    def index_changed(self,ind):
-        self.current_tth_index=ind
+    def configure_components(self, mp):
+        
+        self.gr_opts_window.set_params(mp)
+        self.sq_opts_window.set_params(mp)
+        self.opts_window.set_params(mp)
+        self.atom_controller.set_params(mp)
+        self.files_controller.set_params(mp)
+
+
+    def tth_selection_changed(self,tth):
+        # the self.current_tth is not used anymore, but left in place just in case
+        self.current_tth=tth
         #self.bin_cut_controller.index_changed(ind)
 
     #config

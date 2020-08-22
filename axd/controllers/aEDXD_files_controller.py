@@ -96,6 +96,7 @@ class aEDXDFilesController(QObject):
                 self.add_file(target_tth, fnames)
 
     def apply(self):
+        
         self.emit_spectra()
 
     def emit_spectra(self):

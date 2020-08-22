@@ -92,6 +92,7 @@ class aEDXDController(QObject):
         self.display_window.pdf_widget.export_PDF_btn.clicked.connect(self.save_pdf)
         self.display_window.inverse_widget.export_iSq_btn.clicked.connect(self.save_sf_inverse)
 
+      
         
         self.model.primary_beam_updated.connect(self.primary_beam_updated)
         self.model.structure_factor_updated.connect(self.structure_factor_updated)

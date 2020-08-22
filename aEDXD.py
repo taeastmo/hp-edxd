@@ -54,12 +54,12 @@
 #       10. Automatic loading of 2theta from file.
 #       11. Buttons to export data
 #       12. In peak cut window only show one 2th at a time
-#       13. TODO self consistency of S(q) check
+#       13. Undo, reset functionality
 #       14. TODO Integrate scanning data acquisition and data display
-#       15. TODO Angle dispersive I(q) input
+#       15. TODO self consistency of S(q) check
 #       16. TODO Hdf5 compatible 
 #       17. TODO Q scale for n spectrum view
-#       18. TODO Undo functionality
+#       18. TODO Angle dispersive I(q) input
 #       
 #        
 ###############################################################################

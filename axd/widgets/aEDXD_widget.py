@@ -81,6 +81,7 @@ class aEDXDWidget(QMainWindow):
 
         self.save_btn = FlatButton()
         self.load_btn = FlatButton()
+        self.undo_btn = FlatButton()
         self.reset_btn = FlatButton()
         self.export_btn = FlatButton()
 
@@ -96,7 +97,10 @@ class aEDXDWidget(QMainWindow):
             QtWidgets.QSpacerItem(10, 25, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
         self._menu_layout.addWidget(self.load_btn)
         self._menu_layout.addWidget(self.save_btn)
-        #self._menu_layout.addWidget(self.export_btn)
+        self._menu_layout.addSpacerItem(
+            QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
+        self._menu_layout.addWidget(self.undo_btn)
+        self._menu_layout.addWidget(self.reset_btn)
         self._menu_layout.addSpacerItem(
             QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
         self._menu_layout.addWidget(self.angle_btn)
@@ -269,7 +273,14 @@ class aEDXDWidget(QMainWindow):
         self.load_btn.setMinimumWidth(button_width)
         self.load_btn.setMaximumWidth(button_width)
 
-        self.reset_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'reset.ico')))
+        self.undo_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'undo.icns')))
+        self.undo_btn.setIconSize(icon_size)
+        self.undo_btn.setMinimumHeight(button_height)
+        self.undo_btn.setMaximumHeight(button_height)
+        self.undo_btn.setMinimumWidth(button_width)
+        self.undo_btn.setMaximumWidth(button_width)
+
+        self.reset_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'restore.icns')))
         self.reset_btn.setIconSize(icon_size)
         self.reset_btn.setMinimumHeight(button_height)
         self.reset_btn.setMaximumHeight(button_height)
@@ -330,7 +341,8 @@ class aEDXDWidget(QMainWindow):
     def add_tooltips(self):
         self.load_btn.setToolTip('Open Project')
         self.save_btn.setToolTip('Save Project')
-        self.reset_btn.setToolTip('Reset Project')
+        self.undo_btn.setToolTip('Undo')
+        self.reset_btn.setToolTip('Reset to last saved configuration')
         self.angle_btn.setToolTip('EDXD Files Input')
         self.spectra_btn.setToolTip('Spectra options')
         self.atoms_btn.setToolTip('Atoms options')

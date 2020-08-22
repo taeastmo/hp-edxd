@@ -74,7 +74,7 @@ class aEDXD_model(QObject):
         self.params = dict.fromkeys(params)
         self.dataarray = []
         self.ttharray = []
-        self.cofigure()
+        self.cofigure_from_file()
         self.params['mca_adc_shapingtime'] = 4e-6
         self.params['E_cut'] = []
         self.params['mcadata'] = []
@@ -90,6 +90,7 @@ class aEDXD_model(QObject):
     def set_params(self, params):  # used by config controller
         mp = self.params
         for p in params:
+            
             par =params[p]
             typ = type(par).__name__
             if typ == 'float':
@@ -110,9 +111,12 @@ class aEDXD_model(QObject):
             
         return configured
 
-    def cofigure(self):  # read config file
+    def cofigure_from_file(self):  # read config file
         config_dict = readconfig(self.config_file)
         # set the initial values from the default config dictionary
+        self.configure_from_dict(config_dict)
+    
+    def configure_from_dict(self, config_dict):
         params = list(self.params.keys())
         for p in params:
             if p in config_dict:
