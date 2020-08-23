@@ -29,7 +29,7 @@ def main():
     app.aboutToQuit.connect(app.deleteLater)
     from axd.controllers.aEDXD_controller import aEDXDController
     controller = aEDXDController(app,1)
-    controller.config_controller.load_config_file(filename='/Users/ross/GitHub/hp-edxd/resources/P3.3-GPa-T1950-408psa-Fe-scan.cfg')
+    #controller.config_controller.load_config_file(filename='/Users/ross/GitHub/hp-edxd/resources/P3.3-GPa-T1950-408psa-Fe-scan.cfg')
 
     app.exec_()
     del app

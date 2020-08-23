@@ -55,11 +55,13 @@
 #       11. Buttons to export data
 #       12. In peak cut window only show one 2th at a time
 #       13. Undo, reset functionality
-#       14. TODO Integrate scanning data acquisition and data display
-#       15. TODO self consistency of S(q) check
-#       16. TODO Hdf5 compatible 
-#       17. TODO Q scale for n spectrum view
-#       18. TODO Angle dispersive I(q) input
+#       14. TODO Allow different E range for different segments
+#       15. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
+#       16. TODO Integrate scanning data acquisition and data display
+#       17. TODO Hdf5 compatible 
+#       18. TODO Q scale for n spectrum view
+#       19. TODO Angle dispersive I(q) input
+#       20. TODO self consistency of S(q) check
 #       
 #        
 ###############################################################################
