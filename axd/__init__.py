@@ -7,6 +7,7 @@ import os
 import time
 
 import PyQt5
+import pyqtgraph
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtWidgets
