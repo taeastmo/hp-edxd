@@ -296,7 +296,7 @@ class aEDXDController(QObject):
         self.config_controller.show_rois()
 
     def setStyle(self, Style):
-        print('style:  ' + str(Style))
+        #print('style:  ' + str(Style))
         if Style==1:
             WStyle = 'plastique'
             file = open(os.path.join(self.style_path, "stylesheet.qss"))

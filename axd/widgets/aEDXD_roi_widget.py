@@ -51,6 +51,7 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         self.edit_btn = FlatButton('Edit')
         self.filter_btn = FlatButton(f'Filter 2\N{GREEK SMALL LETTER THETA}')
         self.filter_btn.setCheckable(True)
+        self.filter_btn.setChecked(True)
 
         
         self._button_layout.addWidget(self.edit_btn)
