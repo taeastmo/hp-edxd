@@ -41,37 +41,39 @@
 #               matplotlib 1.4.3
 #       2. Add new option to choose input file format
 #       3. Fix a but that did not sum intensities from multiple input files
-#   v2.0b:  Author: R. Hrubiak, ANL
+#   v1.9:  Author: R. Hrubiak, ANL
 #       1. Upgraded to Python 3.7
 #       2. Created a GUI based on PyQt5 and pyqtgraph
 #       3. Visual peak removal via interactive plot
 #       4. Improved interpolation under removed peaks 
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
-#       7. Plotting of errors 
-#       8. Invalid config file loading does not crash program
-#       9. Drag-drop files
-#       10. Automatic loading of 2theta from file.
-#       11. Buttons to export data
-#       12. In peak cut window only show one 2th at a time
-#       13. Undo, reset functionality
-#       14. Input/output directory saving to config file
-#       15. warn to save on exit
-#       16. save file-use tag
-#       17. Periodic table atom picker
-#       18. TODO sequence file loading 
-#       19. TODO Integrate scanning data acquisition and data display
-#       20. TODO better peak cutting based on background function, use LV bg function
-#       21. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
-#       22. TODO improve autonaming of exported files, export all option
-#       23. TODO Allow different E range for different segments 
-#       24. TODO save vs save-as
-#       25. TODO integrate peak cutting screen tools with main view
-#       26. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
-#       27. TODO self consistency of S(q) check
-#       28. TODO expand number of available elements, look up scattering factors in lit
-#       29. TODO Q scale for n spectrum view
-#       29. TODO Optimal parameters not found when Emax 69.5, prorgram crashes
+#   v2.0:  Author: R. Hrubiak, ANL
+#       1.
+#       2. Plotting of calculated uncertainties 
+#       3. Invalid config file loading does not crash program
+#       4. Drag-drop files
+#       5. Automatic loading of 2theta from file.
+#       6. Buttons to export data
+#       7. In peak cut window only show one 2th at a time
+#       8. Undo, reset functionality
+#       9. Input/output directory saving to config file
+#       10. Warn to save on exit
+#       11. Save file-use tag
+#       12. Periodic table atom picker
+#       13. TODO sequence file loading 
+#       14. TODO Integrate scanning data acquisition and data display
+#       15. TODO better peak cutting based on background function, use LV bg function
+#       16. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
+#       17. TODO improve autonaming of exported files, export all option
+#       18. TODO Allow different E range for different segments 
+#       19. TODO save vs save-as
+#       20. TODO integrate peak cutting screen tools with main view
+#       21. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
+#       22. TODO self consistency of S(q) check
+#       23. TODO expand number of available elements, look up scattering factors in lit
+#       24. TODO Q scale for n spectrum view
+#       25. TODO Optimal parameters not found when Emax 69.5, prorgram crashes
 #       
 #        
 ###############################################################################

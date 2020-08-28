@@ -79,7 +79,9 @@ class aEDXDWidget(QMainWindow):
         self._menu_layout.setContentsMargins(5, 0, 3, 0)
         self._menu_layout.setSpacing(5)
 
+        self.save_as_btn = FlatButton()
         self.save_btn = FlatButton()
+        self.save_btn.setEnabled(False)
         self.load_btn = FlatButton()
         self.undo_btn = FlatButton()
         self.reset_btn = FlatButton()
@@ -97,6 +99,7 @@ class aEDXDWidget(QMainWindow):
             QtWidgets.QSpacerItem(10, 25, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
         self._menu_layout.addWidget(self.load_btn)
         self._menu_layout.addWidget(self.save_btn)
+        self._menu_layout.addWidget(self.save_as_btn)
         self._menu_layout.addSpacerItem(
             QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
         self._menu_layout.addWidget(self.undo_btn)
@@ -273,6 +276,13 @@ class aEDXDWidget(QMainWindow):
         self.save_btn.setMinimumWidth(button_width)
         self.save_btn.setMaximumWidth(button_width)
 
+        self.save_as_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'save_as.ico')))
+        self.save_as_btn.setIconSize(icon_size)
+        self.save_as_btn.setMinimumHeight(button_height)
+        self.save_as_btn.setMaximumHeight(button_height)
+        self.save_as_btn.setMinimumWidth(button_width)
+        self.save_as_btn.setMaximumWidth(button_width)
+
         self.load_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'open.ico')))
         self.load_btn.setIconSize(icon_size)
         self.load_btn.setMinimumHeight(button_height)
@@ -348,6 +358,7 @@ class aEDXDWidget(QMainWindow):
     def add_tooltips(self):
         self.load_btn.setToolTip('Open Project')
         self.save_btn.setToolTip('Save Project')
+        self.save_as_btn.setToolTip('Save Project As...')
         self.undo_btn.setToolTip('Undo')
         self.reset_btn.setToolTip('Reset to last saved configuration')
         self.angle_btn.setToolTip('EDXD Files Input')

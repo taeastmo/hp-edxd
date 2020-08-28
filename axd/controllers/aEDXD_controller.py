@@ -66,7 +66,7 @@ class aEDXDController(QObject):
     def create_connections(self):
         self.display_window.file_op_act.triggered.connect(self.load_project)
         self.display_window.file_save_act.triggered.connect(self.save_project)
-        self.display_window.save_btn.clicked.connect(self.save_project)
+        self.display_window.save_as_btn.clicked.connect(self.save_project)
         self.display_window.load_btn.clicked.connect(self.load_project)
         self.display_window.file_save_hdf5_act.triggered.connect(self.save_hdf5)
         self.display_window.file_exp_sf_act.triggered.connect(self.save_sq)
