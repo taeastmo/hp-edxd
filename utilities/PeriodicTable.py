@@ -16,9 +16,9 @@ class PeriodicTable(QWidget):
     element_clicked_signal = pyqtSignal(str)
     def __init__(self, options):
         super().__init__()
-        with open("utilities/elements.json") as f:
+        '''with open("utilities/elements.json") as f:
             self.data = json.load(f)
-            f.close()
+            f.close()'''
         self.setUI(options)
     
     def setUI(self, options):

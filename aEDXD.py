@@ -58,7 +58,7 @@
 #       14. Input/output directory saving to config file
 #       15. warn to save on exit
 #       16. save file-use tag
-#       17. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
+#       17. Periodic table atom picker
 #       18. TODO Q scale for n spectrum view
 #       19. TODO self consistency of S(q) check
 #       20. TODO sequence file loading
@@ -70,6 +70,7 @@
 #       26. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
 #       27. TODO Integrate scanning data acquisition and data display
 #       28. TODO expand number of available elements, look up scattering factors in lit
+#       29. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
 #       
 #        
 ###############################################################################
