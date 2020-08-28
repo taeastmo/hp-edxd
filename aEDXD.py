@@ -59,18 +59,18 @@
 #       15. warn to save on exit
 #       16. save file-use tag
 #       17. Periodic table atom picker
-#       18. TODO Q scale for n spectrum view
-#       19. TODO self consistency of S(q) check
-#       20. TODO sequence file loading
-#       21. TODO better peak cutting based on background function
-#       22. TODO integrate peak cutting screen tools with main view
+#       18. TODO sequence file loading 
+#       19. TODO Integrate scanning data acquisition and data display
+#       20. TODO better peak cutting based on background function, use LV bg function
+#       21. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
+#       22. TODO improve autonaming of exported files, export all option
 #       23. TODO Allow different E range for different segments 
 #       24. TODO save vs save-as
-#       25. TODO improve autonaming of exported files
+#       25. TODO integrate peak cutting screen tools with main view
 #       26. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
-#       27. TODO Integrate scanning data acquisition and data display
+#       27. TODO self consistency of S(q) check
 #       28. TODO expand number of available elements, look up scattering factors in lit
-#       29. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
+#       29. TODO Q scale for n spectrum view
 #       
 #        
 ###############################################################################
