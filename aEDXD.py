@@ -55,19 +55,20 @@
 #       11. Buttons to export data
 #       12. In peak cut window only show one 2th at a time
 #       13. Undo, reset functionality
-#       14. TODO Allow different E range for different segments
-#       15. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
-#       16. TODO Integrate scanning data acquisition and data display
-#       17. TODO Hdf5 compatible, save datafiles in projext files
+#       14. Input/output directory saving to config file
+#       15. warn to save on exit
+#       16. save file-use tag
+#       17. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
 #       18. TODO Q scale for n spectrum view
-#       19. TODO Angle dispersive I(q) input
-#       20. TODO self consistency of S(q) check
-#       21. TODO sequence file loading
-#       22. TODO better peak cutting based on background function
-#       23. TODO integrate peak cutting screen tools with main view
-#       24. TODO file folder not saving correctly
-#       25. TODO save vs save as, warn to save on exit, save parameters in exported files?, save file-use
-#       26. TODO autoname exported files
+#       19. TODO self consistency of S(q) check
+#       20. TODO sequence file loading
+#       21. TODO better peak cutting based on background function
+#       22. TODO integrate peak cutting screen tools with main view
+#       23. TODO Allow different E range for different segments 
+#       24. TODO save vs save-as
+#       25. TODO improve autonaming of exported files
+#       26. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
+#       27. TODO Integrate scanning data acquisition and data display
 #       
 #        
 ###############################################################################

@@ -105,20 +105,32 @@ class aEDXDConfigController(QObject):
         self.model.dataarray = dataarray
         self.model.ttharray = ttharray
         self.model.params['mcadata']= params['mcadata']
+        
+        self.model.params['mcadata_use'] = params['mcadata_use']
         self.params_changed_signal.emit()
+
+    def are_params_saved(self):
+        same = True
+        for p in self.loaded_params:
+            if p in self.model.params:
+                if not self.loaded_params[p] == self.model.params[p]:
+                    same = False
+                    break
+        return same
 
     def back_up_config(self, action=''):
         
         now = datetime.now() # current date and time
         date_time = now.strftime("%m/%d/%Y, %H:%M:%S.%f")
         params = copy.copy(self.model.params)
+        
 
         self.undo_params[date_time] = params
         #print(self.undo_params.keys())
 
     def undo(self):
         if len(self.undo_params) >0 :
-            keys = list(self.undo_params.keys())
+            keys = sorted(list(self.undo_params.keys()))
             
                 
             last_key = keys[-1]
@@ -140,6 +152,8 @@ class aEDXDConfigController(QObject):
     def save_config(self, filename):
         params_out = copy.copy(self.model.params)
         peaks = self.files_controller.spectra_model.get_cut_peaks()
+        file_use = self.files_controller.get_file_use()
+        params_out['mcadata_use'] = file_use
         params_out['E_cut'] = peaks
         mcadata = self.files_controller.spectra_model.get_file_list()
         params_out['mcadata'] = mcadata

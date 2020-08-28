@@ -18,6 +18,7 @@ resources_path = os.path.join(os.path.dirname(__file__), 'resources')
 calibrants_path = os.path.join(resources_path, 'calibrants')
 icons_path = os.path.join(resources_path, 'icons')
 data_path = os.path.join(resources_path, 'data')
+output_path = os.path.join(resources_path, 'output')
 style_path = os.path.join(resources_path, 'style')
 
 def main():

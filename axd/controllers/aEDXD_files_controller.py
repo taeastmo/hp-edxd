@@ -34,6 +34,8 @@ from utilities.hpMCAutilities import readconfig
 from axd.controllers.aEDXD_peak_cut_controller import aEDXDPeakCutController
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 
+from utilities.hpMCAutilities import displayErrorMessage
+
 ############################################################
 
 class aEDXDFilesController(QObject):
@@ -106,6 +108,7 @@ class aEDXDFilesController(QObject):
     def get_spectra(self):
         dataarray, ttharray = self.spectra_model.get_dataarray()
         mcadata = self.spectra_model.get_file_list()
+        mcadata_use = self.spectra_model.get_file_use_list()
         colors = self.colors
         tth = self.spectra_model.tth
         sq_colors=[]
@@ -114,10 +117,12 @@ class aEDXDFilesController(QObject):
             if t in ttharray:
                 sq_colors.append(colors[t])
         self.sq_colors=sq_colors
-        spectra_par = {'dataarray':dataarray, 'ttharray':ttharray, 'mcadata':mcadata}
+        spectra_par = {'dataarray':dataarray, 'ttharray':ttharray, 'mcadata':mcadata, 'mcadata_use': mcadata_use}
         return spectra_par
 
-    
+    def get_file_use(self):
+        mcadata_use = self.spectra_model.get_file_use_list()
+        return  mcadata_use
 
     def add_file_clicked(self):
         tth = self.files_window.file_trw.get_selected_tth()
@@ -257,16 +262,64 @@ class aEDXDFilesController(QObject):
             c_str = '#%02x%02x%02x' % colors[t]
             self.files_window.file_trw.add_file_group(files_base,c_str,tth,files_use)
 
+
+    def check_if_files_exist(self, inputdatadirectory, file_groups):
+        for filegroup in file_groups:
+            files = filegroup[:-1]
+            filepahts = []
+            directory = None
+            for f in files:
+                full = os.path.join(inputdatadirectory, f)
+                ex = os.path.isfile(full)
+                if ex:
+                    directory = inputdatadirectory
+                else:
+                    filename = open_file_dialog(self.display_window, 
+                                "File " + f + " not found. Select new path.",filter = f) 
+                    if filename:
+                        fname = os.path.basename(filename)
+                        if f == fname:
+                            full = filename
+                            dirpath = os.path.dirname(full)
+                            directory=dirpath
+                            inputdatadirectory=dirpath
+                        else:
+                            full = None
+                            directory = None
+                            break
+                    else:
+                        full = None
+                        directory = None
+                        break
+                if full == None:
+                    directory = None
+                    break
+            if directory == None:
+                break
+            directory = inputdatadirectory
+        return directory
+
+
     def set_params(self, set_params):
         self.current_tth = None
-        files  = set_params['mcadata']
-        self.spectra_model.inputdatadirectory = self.model.params['inputdatadirectory']
-        self.spectra_model.load_files_from_config(files)
-        self.model.params['inputdatadirectory']=self.spectra_model.inputdatadirectory
-        self.files_loaded_callback()
-        self.update_files_widget()
-        self.peak_cut_controller.load_peaks_from_config()
-        self.emit_spectra()
+        file_groups  = set_params['mcadata']
+        if 'mcadata_use' in set_params:
+            file_use = set_params['mcadata_use']
+        else:
+            file_use = []
+        inputdatadirectory = self.model.params['inputdatadirectory']
+        directory = self.check_if_files_exist(inputdatadirectory, file_groups)
+        if directory is not None:
+            self.spectra_model.inputdatadirectory = directory
+            self.spectra_model.load_files_from_config(file_groups, file_use)
+            self.model.params['inputdatadirectory']=directory
+            self.files_loaded_callback()
+            self.update_files_widget()
+            self.peak_cut_controller.load_peaks_from_config()
+            self.emit_spectra()
+        else:
+            displayErrorMessage( 'opt_read') 
+
 
 
     def file_selection_changed(self, ind, files):

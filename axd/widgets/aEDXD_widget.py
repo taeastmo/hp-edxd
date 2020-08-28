@@ -26,6 +26,7 @@ import os
 from .. import style_path, icons_path
 
 class aEDXDWidget(QMainWindow):
+    
     def __init__(self,app):
         super().__init__()
         
@@ -67,8 +68,7 @@ class aEDXDWidget(QMainWindow):
         #self.activateWindow()
         #self.raise_()    
     
-    def closeEvent(self, QCloseEvent, *event):
-        self.app.closeAllWindows()
+
 
     def initUi(self):
         

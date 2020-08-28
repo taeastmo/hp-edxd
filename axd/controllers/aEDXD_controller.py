@@ -100,6 +100,29 @@ class aEDXDController(QObject):
         self.model.Sf_filtered_updated.connect(self.sf_filtered_updated)
         
         self.config_controller.params_changed_signal.connect(self.spectra_changed)
+
+        self.display_window.closeEvent = self.close_event
+
+    def close_event(self, QCloseEvent, *event):
+        '''
+        Checks if there is unsaved data before confirming closing of program.
+        Overrides the closeEvent of the main display widget.
+        '''
+        qm = QtGui.QMessageBox
+        ret = qm.Yes
+        progress_saved = self.is_progress_saved()
+        if not progress_saved:
+            ret = qm.question(self.display_window,'', "If you exit without saving the project your progress will be lost. Exit?", qm.Yes | qm.No)
+        if ret == qm.Yes or progress_saved:
+            QCloseEvent.accept()
+            self.app.closeAllWindows()
+        else:
+            
+            QCloseEvent.ignore()
+
+    def is_progress_saved(self):
+        params_saved = self.config_controller.are_params_saved()
+        return params_saved
     
     def save_data(self):
 

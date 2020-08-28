@@ -24,6 +24,8 @@ import os, os.path, sys, platform
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from utilities.BackgroundExtraction import extract_background
 
+from .. import data_path, output_path 
+
 class Spectra():
 
     def __init__(self):
@@ -77,7 +79,7 @@ class Spectra():
                 print(e)
                 print("\nThe file has not been saved!")  
 
-    def load_files_from_config(self, file_groups):
+    def load_files_from_config(self, file_groups, file_uses = []):
         """ loads data into TthGroup objects
             inputs:
             config - a dict in classic aEDXD format containing 'mcadata' key wiht info about files and their 2th values:
@@ -86,39 +88,35 @@ class Spectra():
         """
         self.tth_groups = {}
         self.tth = []
-        for filegroup in file_groups:
+        
+        for i, filegroup in enumerate(file_groups):
             files = filegroup[:-1]
 
             filepahts = []
             for f in files:
                 
                 full = os.path.join(self.inputdatadirectory, f)
-                ex = os.path.isfile(full)
-                if not ex:
-                    filename = open_file_dialog(None, 
-                                "File " + full + " not found. Select new path.") 
-                    if filename:
-                        full = filename
-                        dirpath = os.path.dirname(full)
-                        self.inputdatadirectory=dirpath
-                        
-                    else:
-                        full = None
-                        break
-                if full == None:
-                    break
+              
                 filepahts.append(full)
             
-            tth = filegroup[-1]
-            self.tth.append(tth)
-            self.tth.sort()
-            if tth in self.tth_groups:
-                group = self.tth_groups[tth]
-            else:
-                group = TthGroup(tth,self.bin_size)
-                self.tth_groups[tth]= group
-            
-            group.add_files(filepahts)
+            if len(filepahts):
+                
+                tth = filegroup[-1]
+                self.tth.append(tth)
+                self.tth.sort()
+                if tth in self.tth_groups:
+                    group = self.tth_groups[tth]
+                else:
+                    group = TthGroup(tth,self.bin_size)
+                    self.tth_groups[tth]= group
+                
+                if len(file_uses)>1:
+                    uses = file_uses[i][:-1]
+                else:
+                    uses = []
+
+                group.add_files(filepahts, uses)
+           
 
     def add_files(self, tth, filenames):
         if tth in self.tth_groups:
@@ -190,6 +188,29 @@ class Spectra():
             file_groups.append(file_group)
         return file_groups
 
+    def get_file_use_list(self):
+        """
+        exports a classic mcadata dict item:
+        'mcadata':[['file1','file2','file3', 15.0],
+                        ['file4','file5','file6', 18.0]}
+        """
+        tth = self.tth
+        file_groups = []
+        for t in tth:
+            g = self.tth_groups[t]
+            files = list(g.files.keys())
+            use_files = []
+            for f in files:
+                fl = g.files[f]
+                if fl.use:
+                    use = 1
+                else:
+                    use = 0
+                use_files.append(use)
+            file_group = use_files + [t]
+            file_groups.append(file_group)
+        return file_groups
+
     def clear_files(self):
         while len(list(self.tth_groups.keys())):
             tth = list(self.tth_groups.keys())[0]
@@ -229,11 +250,13 @@ class TthGroup():
         
         #base = os.path.basename(filename)
 
-    def add_files(self, filenames):
-        for filename in filenames:
+    def add_files(self, filenames, uses):
+        for i, filename in enumerate(filenames):
             
             energy, intensity = read_file(filename,self.mca_adc_shapingtime)
             f = FileData(energy,intensity)
+            if len(uses)== len(filenames):
+                f.use = uses[i] == 1
             self.files[filename] = f
             
         self.combine_specra()
