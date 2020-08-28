@@ -32,7 +32,9 @@ elif _platform == "darwin":
 
 
 a = Analysis(['aEDXD.py'],
+
              pathex=['/Users/ross/GitHub/hp-edxd'],
+
              binaries=extra_binaries,
              datas=extra_datas,
              hiddenimports=[],

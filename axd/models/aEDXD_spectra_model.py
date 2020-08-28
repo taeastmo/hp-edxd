@@ -250,7 +250,7 @@ class TthGroup():
         
         #base = os.path.basename(filename)
 
-    def add_files(self, filenames, uses):
+    def add_files(self, filenames, uses=[]):
         for i, filename in enumerate(filenames):
             
             energy, intensity = read_file(filename,self.mca_adc_shapingtime)

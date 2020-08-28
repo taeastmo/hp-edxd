@@ -25,7 +25,7 @@ from axd.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
 from axd.widgets.aEDXD_atom_options_widget import aEDXDAtomWidget
 import numpy as np
 
-
+from utilities.PeriodicTable import PeriodicTableDialog
 
 class aEDXDAtomController(QtCore.QObject):
 
@@ -37,8 +37,28 @@ class aEDXDAtomController(QtCore.QObject):
         
         self.atom_window = aEDXDAtomWidget()
         self.ap = aEDXDAtomicParameters()
+
+        self.available_elements = self.get_available_elements()
         self.sq_pars = []
         self.make_connections()
+        
+    def get_available_elements(self):
+        MKL = self.ap.MKL['str_data']
+        abc = self.ap.abc['str_data']
+        el_abc =[]
+        for row in abc:
+            el_abc.append(row[0])
+
+        el_abc = self.remove_duplicates(el_abc)
+        set1 = {*el_abc}  
+        set2 = {*MKL}  
+    
+        # union of two sets 
+        intersection = set1.intersection(set2)
+        return intersection
+
+    def remove_duplicates(self, x):
+        return list(dict.fromkeys(x))
 
     def make_connections(self):
         self.atom_window.apply_btn.clicked.connect(self.apply)
@@ -56,9 +76,10 @@ class aEDXDAtomController(QtCore.QObject):
         opt_MKL = None
         opt_abc_note =None
         opt_MKL_note =None
-        atom, ok = QtWidgets.QInputDialog.getText(
-                self.atom_window, 'Add atom', 'Enter atom symbol (case sensitive): ', text='')
-        if ok:
+
+        atom = PeriodicTableDialog.showDialog(self.available_elements) 
+
+        if len(atom):
             options_abc=self.ap.get_abc_options(atom)
             opts_abc = []
             for o in options_abc:

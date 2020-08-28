@@ -14,7 +14,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 
 from  PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog, QWidget, QLabel
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
@@ -133,14 +133,19 @@ class aEDXDWidget(QMainWindow):
         self.tabWidget.addTab(self.tab, "")
 
         self.tab_2 = QtWidgets.QWidget()
+          
         self.vertical_layout_tab_all_spectra = QtWidgets.QVBoxLayout(self.tab_2)
         self.vertical_layout_tab_all_spectra.setContentsMargins(15,10,15,0)
         self.tabWidget.addTab(self.tab_2, "")
 
         self.tab_3 = QtWidgets.QWidget()
+       
         self.vertical_layout_tab_primary_beam = QtWidgets.QVBoxLayout(self.tab_3)
         self.vertical_layout_tab_primary_beam.setContentsMargins(15,5,15,0)
         self.tabWidget.addTab(self.tab_3, "")
+
+        
+        
 
         self.tab_4 = QtWidgets.QWidget()
         self.vertical_layout_tab_sq = QtWidgets.QVBoxLayout(self.tab_4)
@@ -239,6 +244,7 @@ class aEDXDWidget(QMainWindow):
 
         self.style_widgets()
         self.add_tooltips()
+       
 
 
     def retranslateUi(self):
@@ -247,6 +253,7 @@ class aEDXDWidget(QMainWindow):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("aEDXDWidget", "I(E)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("aEDXDWidget", "EDXD files"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("aEDXDWidget", "All I(E)"))
+        
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("aEDXDWidget", "Incident beam"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("aEDXDWidget", "S(q)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("aEDXDWidget", "G(r)"))

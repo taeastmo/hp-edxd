@@ -69,6 +69,7 @@
 #       25. TODO improve autonaming of exported files
 #       26. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
 #       27. TODO Integrate scanning data acquisition and data display
+#       28. TODO expand number of available elements, look up scattering factors in lit
 #       
 #        
 ###############################################################################

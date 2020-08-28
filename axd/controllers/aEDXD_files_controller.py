@@ -138,7 +138,8 @@ class aEDXDFilesController(QObject):
     def add_files_auto_tth(self, filenames):
         for fname in filenames:
             target_tth = get_tth_from_file(fname)
-            self.add_tth_to_spectra_model(target_tth)
+            if not target_tth in self.spectra_model.tth:
+                self.add_tth_to_spectra_model(target_tth)
             self.spectra_model.add_files(target_tth, [fname])
         self.files_loaded_callback()
         self.update_files_widget()
@@ -146,6 +147,9 @@ class aEDXDFilesController(QObject):
                 
 
     def add_file(self, tth, filenames):
+
+        dirname = os.path.dirname(filenames[0])
+        self.model.params['inputdatadirectory']=dirname
         self.spectra_model.add_files(tth, filenames)
         self.files_loaded_callback()
         self.update_files_widget()
