@@ -195,6 +195,7 @@ class aEDXDConfigController(QObject):
             except:
                 pass
             if self.model.configured:
+                self.undo_params = {}
                 mp = self.model.params
                 self.configure_components(mp)
                 

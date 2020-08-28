@@ -71,6 +71,7 @@
 #       27. TODO self consistency of S(q) check
 #       28. TODO expand number of available elements, look up scattering factors in lit
 #       29. TODO Q scale for n spectrum view
+#       29. TODO Optimal parameters not found when Emax 69.5, prorgram crashes
 #       
 #        
 ###############################################################################
