@@ -13,6 +13,8 @@ class FileSequenceWidget(QtWidgets.QWidget):
     sequence_accepted_signal = pyqtSignal(str)
     def __init__(self, options=[]):
         super( ).__init__()
+        self._layout = QtWidgets.QVBoxLayout()
+        
 
 
 
