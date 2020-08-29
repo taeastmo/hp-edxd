@@ -295,14 +295,14 @@ class aEDXDWidget(QMainWindow):
         self.load_btn.setMinimumWidth(button_width)
         self.load_btn.setMaximumWidth(button_width)
 
-        self.undo_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'undo.icns')))
+        self.undo_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'undo.ico')))
         self.undo_btn.setIconSize(icon_size)
         self.undo_btn.setMinimumHeight(button_height)
         self.undo_btn.setMaximumHeight(button_height)
         self.undo_btn.setMinimumWidth(button_width)
         self.undo_btn.setMaximumWidth(button_width)
 
-        self.reset_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'restore.icns')))
+        self.reset_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'restore.ico')))
         self.reset_btn.setIconSize(icon_size)
         self.reset_btn.setMinimumHeight(button_height)
         self.reset_btn.setMaximumHeight(button_height)
@@ -469,7 +469,7 @@ class aEDXDSpectrumWidget(customWidget):
         self.apply_btn.setMinimumWidth(90)
 
         
-        self.cut_peak_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'remove.icns')))
+        self.cut_peak_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'remove.ico')))
         self.cut_peak_btn.setIconSize(icon_size)
         self.cut_peak_btn.setMinimumHeight(button_height)
         self.cut_peak_btn.setMaximumHeight(button_height)
