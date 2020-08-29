@@ -14,7 +14,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """aEDXD.py:
-   A python script program for amorphous EDXD data analysis"""
+   A GUI program for amorphous EDXD data analysis
+"""
 
 ###############################################################################
 #   v1.1.1:
