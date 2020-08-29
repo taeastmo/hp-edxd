@@ -64,8 +64,8 @@
 #       12. Periodic table atom picker
 #       13. TODO sequence file loading 
 #       14. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
-#       15. TODO Integrate scanning data acquisition and data display
-#       16. TODO better peak cutting based on background function, use LV bg function
+#       15. TODO better peak cutting based on background function, use LV bg function
+#       16. TODO Integrate scanning data acquisition and data display
 #       17. TODO improve autonaming of exported files, export all option
 #       18. TODO Allow different E range for different segments 
 #       19. TODO Optimal parameters not found when Emax 69.5, prorgram crashes
