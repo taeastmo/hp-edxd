@@ -65,8 +65,11 @@ class aEDXDController(QObject):
 
     def create_connections(self):
         self.display_window.file_op_act.triggered.connect(self.load_project)
-        self.display_window.file_save_act.triggered.connect(self.save_project)
-        self.display_window.save_as_btn.clicked.connect(self.save_project)
+        self.display_window.file_save_act.triggered.connect(self.save_project_as)
+        self.display_window.save_as_btn.clicked.connect(self.save_project_as)
+
+        self.display_window.save_btn.clicked.connect(self.save_project)
+
         self.display_window.load_btn.clicked.connect(self.load_project)
         self.display_window.file_save_hdf5_act.triggered.connect(self.save_hdf5)
         self.display_window.file_exp_sf_act.triggered.connect(self.save_sq)
@@ -102,6 +105,24 @@ class aEDXDController(QObject):
         self.config_controller.params_changed_signal.connect(self.spectra_changed)
 
         self.display_window.closeEvent = self.close_event
+
+        self.model.config_file_set.connect(self.config_file_set_callback)
+
+
+
+    def config_file_set_callback(self, fname):
+        base = os.path.basename(fname)
+        if len(base):
+            title = 'aEDXD - ' + str(base)
+            file_loaded = True
+        else:
+            title = 'aEDXD'
+            file_loaded = False
+        self.display_window.setWindowTitle(title)
+        self.display_window.save_btn.setEnabled(file_loaded)
+        self.display_window.file_save_act.setEnabled(file_loaded)
+        #self.display_window.save_as_btn.setEnabled(file_loaded)
+        
 
     def close_event(self, QCloseEvent, *event):
         '''
@@ -188,9 +209,14 @@ class aEDXDController(QObject):
     def sf_filtered_updated(self):
         self.disp_sq_filtered()
 
-    def save_project(self):
+    def save_project_as(self):
         
         self.config_controller.save_config_file()
+
+    def save_project(self):
+        fname = self.model.config_file
+        if len(fname):
+            self.config_controller.save_config_file(filename=fname)
 
     def save_hdf5(self):
         filename='saved_config_test.cfg'
@@ -215,6 +241,9 @@ class aEDXDController(QObject):
             self.progress_bar.setValue(100)
         else:
             self.clear_plots()
+        if not self.display_window.save_as_btn.isEnabled():
+            self.display_window.save_as_btn.setEnabled(True)
+            self.display_window.file_save_as_act.setEnabled(True)
 
     def clear_plots(self):
         self.display_window.primary_beam_widget.fig.clear()

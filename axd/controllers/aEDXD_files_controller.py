@@ -61,6 +61,8 @@ class aEDXDFilesController(QObject):
     def create_connections(self):
         self.display_window.spectrum_widget.apply_btn.clicked.connect(self.apply)
         self.files_window.apply_btn.clicked.connect(self.apply)
+
+        self.files_window.add_scan.clicked.connect(self.add_scan_clicked)
         self.files_window.add_btn.clicked.connect(self.add_file_clicked)
         self.files_window.add_tth_btn.clicked.connect(self.add_group_clicked)
         self.files_window.file_trw.top_level_selection_changed_signal.connect(self.file_group_selection_changed)
@@ -123,6 +125,10 @@ class aEDXDFilesController(QObject):
     def get_file_use(self):
         mcadata_use = self.spectra_model.get_file_use_list()
         return  mcadata_use
+
+
+    def add_scan_clicked(self):
+        print('load scan')
 
     def add_file_clicked(self):
         tth = self.files_window.file_trw.get_selected_tth()

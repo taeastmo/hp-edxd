@@ -80,6 +80,7 @@ class aEDXDWidget(QMainWindow):
         self._menu_layout.setSpacing(5)
 
         self.save_as_btn = FlatButton()
+        self.save_as_btn.setEnabled(False)
         self.save_btn = FlatButton()
         self.save_btn.setEnabled(False)
         self.load_btn = FlatButton()
@@ -177,8 +178,12 @@ class aEDXDWidget(QMainWindow):
         self.file_menu = self.menubar.addMenu('File')
         self.file_op_act = QtWidgets.QAction('Open project', self)        
         self.file_menu.addAction(self.file_op_act)
-        self.file_save_act = QtWidgets.QAction('Save project', self)        
+        self.file_save_act = QtWidgets.QAction('Save project', self)  
+        self.file_save_act.setEnabled(False)      
         self.file_menu.addAction(self.file_save_act)
+        self.file_save_as_act = QtWidgets.QAction('Save project as...', self)  
+        self.file_save_as_act.setEnabled(False)
+        self.file_menu.addAction(self.file_save_as_act)
         self.file_save_hdf5_act = QtWidgets.QAction('Save to HDF5', self)        
         #self.file_menu.addAction(self.file_save_hdf5_act)
 
@@ -214,16 +219,16 @@ class aEDXDWidget(QMainWindow):
 
         sb = self.statusBar()
         self.progress_bar = QtWidgets.QProgressBar()
-        self.progress_bar.setFixedHeight(15)
+        #self.progress_bar.setFixedHeight(15)
         
-        self.pb_widget = QWidget()
-        self._pb_widget_layout = QtWidgets.QHBoxLayout()
+        #self.pb_widget = QWidget()
+        #self._pb_widget_layout = QtWidgets.QHBoxLayout()
 
-        self._pb_widget_layout.addWidget(QtWidgets.QLabel('Progress: '))
-        self._pb_widget_layout.addWidget(self.progress_bar)
-        self._pb_widget_layout.setContentsMargins(10,0,0,3)
-        self.pb_widget.setLayout(self._pb_widget_layout)
-        sb.addWidget(self.pb_widget)
+        #self._pb_widget_layout.addWidget(QtWidgets.QLabel('Progress: '))
+        #self._pb_widget_layout.addWidget(self.progress_bar)
+        #self._pb_widget_layout.setContentsMargins(10,0,0,3)
+        #self.pb_widget.setLayout(self._pb_widget_layout)
+        #sb.addWidget(self.pb_widget)
         
         '''
         self.setStyleSheet("""

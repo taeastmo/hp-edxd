@@ -51,24 +51,30 @@ class aEDXDFilesWidget(QWidget):
     
     def setupUi(self):
         self._layout = QtWidgets.QVBoxLayout()
-        self.setWindowTitle('Files control')
+        #self._layout.setSpacing(5)
+        self.setWindowTitle('EDXD Files Input Control')
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setObjectName('files_control_button_widget')
         self._button_layout = QtWidgets.QHBoxLayout()
+        self._button_grid_layout = QtWidgets.QGridLayout()
         self._button_layout.setContentsMargins(0, 0, 0, 0)
-        self._button_layout.setSpacing(15)
+        #self._button_layout.set
         self.add_tth_btn = FlatButton('Add '+f'2\N{GREEK SMALL LETTER THETA}')
-        self._button_layout.addWidget(self.add_tth_btn,0)
+        self._button_grid_layout.addWidget(self.add_tth_btn, 1,0)
         self.add_btn = FlatButton('Add files')
-        self._button_layout.addWidget(self.add_btn,0)
+        self._button_grid_layout.addWidget(self.add_btn,1,1)
+        self.add_scan = FlatButton('Load scan')
+        self._button_grid_layout.addWidget(self.add_scan,0,0)
         self.del_btn = FlatButton('Delete')
-        self._button_layout.addWidget(self.del_btn,0)
+        self._button_grid_layout.addWidget(self.del_btn,1,2)
         self.clear_btn = FlatButton('Clear')
-        self._button_layout.addWidget(self.clear_btn,0)
+        self._button_grid_layout.addWidget(self.clear_btn,1,3)
+        self._button_layout.addLayout(self._button_grid_layout)
+        self._button_layout.addSpacerItem(HorizontalSpacerItem())
         #self.from_config_btn = QtWidgets.QPushButton('From config.')
         #self._button_layout.addWidget(self.from_config_btn,0)
         #self._button_layout.addWidget(VerticalLine())
-        self._button_layout.addSpacerItem(HorizontalSpacerItem())
+        #self._button_layout.addSpacerItem(HorizontalSpacerItem())
         #self._button_layout.addWidget(VerticalLine())
         self.button_widget.setLayout(self._button_layout)
         self._body_layout = QtWidgets.QHBoxLayout()
@@ -145,10 +151,10 @@ class aEDXDFilesWidget(QWidget):
     
 
     def style_widgets(self):
-        self.file_trw.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
-        self.file_trw.setMinimumWidth(380)
+        #self.file_trw.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        #self.file_trw.setMinimumWidth(405)
         
-        self.file_trw.setMinimumHeight(120)
+        #self.file_trw.setMinimumHeight(120)
         self.setStyleSheet("""
             
             #files_control_button_widget FlatButton {

@@ -42,6 +42,7 @@ from datetime import datetime  # for timestamping the undo functionality
 
 class aEDXDConfigController(QObject):
     params_changed_signal = QtCore.pyqtSignal()
+    file_loaded_or_saved = QtCore.pyqtSignal()
 
     def __init__(self, model, display_window):
         super().__init__()
@@ -163,7 +164,10 @@ class aEDXDConfigController(QObject):
             with open(filename, 'w') as outfile:
                 json.dump(options_out, outfile,sort_keys=True, indent=4)
                 outfile.close()
+            self.model.set_config_file(filename)
             self.loaded_params = copy.copy(params_out)
+            self.file_loaded_or_saved.emit()
+
         except:
             displayErrorMessage( 'opt_save') 
 
@@ -200,6 +204,7 @@ class aEDXDConfigController(QObject):
                 self.configure_components(mp)
                 
                 self.loaded_params = copy.copy(mp)
+                self.file_loaded_or_saved.emit()
                 #self.back_up_config()
             else:
                 displayErrorMessage( 'opt_read') 

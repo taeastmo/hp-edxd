@@ -47,6 +47,8 @@ class aEDXD_model(QObject):
     G_r_updated = pyqtSignal()
     Sf_filtered_updated = pyqtSignal()
 
+    config_file_set = pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
         # create variables
@@ -86,6 +88,7 @@ class aEDXD_model(QObject):
 
     def set_config_file(self,filename):
         self.config_file = filename
+        self.config_file_set.emit(self.config_file)
 
     def set_params(self, params):  # used by config controller
         mp = self.params
@@ -132,6 +135,8 @@ class aEDXD_model(QObject):
             # mcadata_use parameter is treated separately to maintain backward compatibility with older aEDXD versions
             # mcadata_use it is not a required parameter
             self.params['mcadata_use'] = config_dict['mcadata_use']
+        else:
+            self.params['mcadata_use'] = []
         # flag analysis status 
         self.primary_done = False
         self.sf_normalization_done = False

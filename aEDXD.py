@@ -49,11 +49,11 @@
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
 #   v2.0:  Author: R. Hrubiak, ANL
-#       1.
-#       2. Plotting of calculated uncertainties 
-#       3. Invalid config file loading does not crash program
-#       4. Drag-drop files
-#       5. Automatic loading of 2theta from file.
+#       1. Plotting of calculated uncertainties 
+#       2. Invalid config file loading does not crash program
+#       3. Drag-drop files
+#       4. Automatic loading of 2theta from file.
+#       5. Save and save-as options
 #       6. Buttons to export data
 #       7. In peak cut window only show one 2th at a time
 #       8. Undo, reset functionality
@@ -67,13 +67,13 @@
 #       16. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
 #       17. TODO improve autonaming of exported files, export all option
 #       18. TODO Allow different E range for different segments 
-#       19. TODO save vs save-as
+#       19. TODO Optimal parameters not found when Emax 69.5, prorgram crashes
 #       20. TODO integrate peak cutting screen tools with main view
 #       21. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
 #       22. TODO self consistency of S(q) check
 #       23. TODO expand number of available elements, look up scattering factors in lit
 #       24. TODO Q scale for n spectrum view
-#       25. TODO Optimal parameters not found when Emax 69.5, prorgram crashes
+#       25. 
 #       
 #        
 ###############################################################################
