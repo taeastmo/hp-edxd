@@ -44,7 +44,7 @@ from pathlib import Path
 home_path = str(Path.home())
 
 def main():
-    
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
 
     from sxdm.controllers.sxdmController import sxdmController
