@@ -99,40 +99,41 @@ class aEDXDPeakCutController(QObject):
         if self.plotFitOpen:
             tth = params['tth']
             name = params['name']
-            x_fit=[]
-            y_fit=[]
-            label=""
-            x=[]
-            y=[]
-            ranges = None
-            roi_range= None
-            if tth !=None:
-                spectrum = self.spectra_model.tth_groups[tth].spectrum
-                if len(spectrum.x) :
-                    roi_ind = spectrum.find_roi_by_name(name)
-                    roi = spectrum.rois[roi_ind]
-                    data = roi.peak_cutting['tc_binned']
-                    x = data[0]
-                    y = data[1]
-                    left = min(x)
-                    right = max(x)
-                    r_x =  right-left 
-                    data1 = roi.peak_cutting['tc']
-                    x_fit = spectrum.x
-                    y_fit = spectrum.y
-                    x1 = roi.peak_cutting['interp'][0]
-                    y1 = roi.peak_cutting['interp'][1]
-                    roi_range = [roi.right, roi.left]
-                    if autoscale:
-                        y_fit_min = min(y)
-                        y_fit_max = max(y)
-                        r_y = y_fit_max - y_fit_min
-                        Ymax = y_fit_max+ r_y
-                        Ymin = y_fit_min - r_y
-                        Emin = max([left - r_x, 0])
-                        Emax= min([right + r_x, len(spectrum.x)-1])
-                        ranges = [[Emin,Emax],[Ymin,Ymax]]
-            self.plot_fit_window.set_data(x_fit,y_fit,label,x,y,x1,y1,'E','KeV', ranges, roi_range)
+            if tth is not None and name is not None:
+                x_fit=[]
+                y_fit=[]
+                label=""
+                x=[]
+                y=[]
+                ranges = None
+                roi_range= None
+                if tth !=None:
+                    spectrum = self.spectra_model.tth_groups[tth].spectrum
+                    if len(spectrum.x) :
+                        roi_ind = spectrum.find_roi_by_name(name)
+                        roi = spectrum.rois[roi_ind]
+                        data = roi.peak_cutting['tc_binned']
+                        x = data[0]
+                        y = data[1]
+                        left = min(x)
+                        right = max(x)
+                        r_x =  right-left 
+                        data1 = roi.peak_cutting['tc']
+                        x_fit = spectrum.x
+                        y_fit = spectrum.y
+                        x1 = roi.peak_cutting['interp'][0]
+                        y1 = roi.peak_cutting['interp'][1]
+                        roi_range = [roi.right, roi.left]
+                        if autoscale:
+                            y_fit_min = min(y)
+                            y_fit_max = max(y)
+                            r_y = y_fit_max - y_fit_min
+                            Ymax = y_fit_max+ r_y
+                            Ymin = y_fit_min - r_y
+                            Emin = max([left - r_x, 0])
+                            Emax= min([right + r_x, len(spectrum.x)-1])
+                            ranges = [[Emin,Emax],[Ymin,Ymax]]
+                self.plot_fit_window.set_data(x_fit,y_fit,label,x,y,x1,y1,'E','KeV', ranges, roi_range)
 
     def show_fit(self):
         cur_ind = self.roi_window.get_selected_roi_row()
