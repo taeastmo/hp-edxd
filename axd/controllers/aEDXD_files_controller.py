@@ -35,6 +35,7 @@ from axd.controllers.aEDXD_peak_cut_controller import aEDXDPeakCutController
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 
 from utilities.hpMCAutilities import displayErrorMessage
+from axd.widgets.aEDXD_file_sequence_widget import FileSequenceDialog
 
 ############################################################
 
@@ -128,7 +129,8 @@ class aEDXDFilesController(QObject):
 
 
     def add_scan_clicked(self):
-        print('load scan')
+        
+        atom = FileSequenceDialog.showDialog() 
 
     def add_file_clicked(self):
         tth = self.files_window.file_trw.get_selected_tth()
