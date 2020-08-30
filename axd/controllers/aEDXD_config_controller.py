@@ -112,11 +112,14 @@ class aEDXDConfigController(QObject):
 
     def are_params_saved(self):
         same = True
-        for p in self.loaded_params:
-            if p in self.model.params:
-                if not self.loaded_params[p] == self.model.params[p]:
+        for p in self.model.params:
+            if p in self.loaded_params:
+                if not np.all(self.loaded_params[p] == self.model.params[p]):
                     same = False
                     break
+            else:
+                same = False
+                break
         return same
 
     def back_up_config(self, action=''):
@@ -167,15 +170,18 @@ class aEDXDConfigController(QObject):
             self.model.set_config_file(filename)
             self.loaded_params = copy.copy(params_out)
             self.file_loaded_or_saved.emit()
+            return 0
 
         except:
             displayErrorMessage( 'opt_save') 
+            return 1
 
     def save_config_file(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
         if filename is None:
             filename = save_file_dialog(None, "Save config file.")
-        self.save_config(filename)
+        error = self.save_config(filename)
+        return error
 
     def save_hdf5(self):
         params = self.model.params
@@ -201,9 +207,8 @@ class aEDXDConfigController(QObject):
             if self.model.configured:
                 self.undo_params = {}
                 mp = self.model.params
-                self.configure_components(mp)
-                
                 self.loaded_params = copy.copy(mp)
+                self.configure_components(mp)
                 self.file_loaded_or_saved.emit()
                 #self.back_up_config()
             else:

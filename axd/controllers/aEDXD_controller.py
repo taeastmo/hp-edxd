@@ -65,7 +65,8 @@ class aEDXDController(QObject):
 
     def create_connections(self):
         self.display_window.file_op_act.triggered.connect(self.load_project)
-        self.display_window.file_save_act.triggered.connect(self.save_project_as)
+        self.display_window.file_save_act.triggered.connect(self.save_project)
+        self.display_window.file_save_as_act.triggered.connect(self.save_project_as)
         self.display_window.save_as_btn.clicked.connect(self.save_project_as)
 
         self.display_window.save_btn.clicked.connect(self.save_project)
@@ -119,8 +120,8 @@ class aEDXDController(QObject):
             title = 'aEDXD'
             file_loaded = False
         self.display_window.setWindowTitle(title)
-        self.display_window.save_btn.setEnabled(file_loaded)
-        self.display_window.file_save_act.setEnabled(file_loaded)
+        #self.display_window.save_btn.setEnabled(file_loaded)
+        #self.display_window.file_save_act.setEnabled(file_loaded)
         #self.display_window.save_as_btn.setEnabled(file_loaded)
         
 
@@ -138,7 +139,6 @@ class aEDXDController(QObject):
             QCloseEvent.accept()
             self.app.closeAllWindows()
         else:
-            
             QCloseEvent.ignore()
 
     def is_progress_saved(self):
@@ -216,7 +216,10 @@ class aEDXDController(QObject):
     def save_project(self):
         fname = self.model.config_file
         if len(fname):
-            self.config_controller.save_config_file(filename=fname)
+            error = self.config_controller.save_config_file(filename=fname)
+            if not error:
+                self.display_window.save_btn.setEnabled(False)
+                self.display_window.file_save_act.setEnabled(False)
 
     def save_hdf5(self):
         filename='saved_config_test.cfg'
@@ -244,6 +247,17 @@ class aEDXDController(QObject):
         if not self.display_window.save_as_btn.isEnabled():
             self.display_window.save_as_btn.setEnabled(True)
             self.display_window.file_save_as_act.setEnabled(True)
+        if not self.display_window.save_btn.isEnabled():
+            cf = self.model.config_file 
+            
+            if os.path.isfile(cf):
+                # we don't want to overrite the defaults config file
+                cf_is_default = os.path.basename(cf) == "aEDXD_defaults.cfg"
+                if not cf_is_default:
+                    ps = self.is_progress_saved()
+                    if not ps:
+                        self.display_window.save_btn.setEnabled(True)
+                        self.display_window.file_save_act.setEnabled(True)
 
     def clear_plots(self):
         self.display_window.primary_beam_widget.fig.clear()
