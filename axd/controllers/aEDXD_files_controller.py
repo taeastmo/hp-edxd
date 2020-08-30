@@ -63,6 +63,7 @@ class aEDXDFilesController(QObject):
         self.display_window.spectrum_widget.apply_btn.clicked.connect(self.apply)
         self.files_window.apply_btn.clicked.connect(self.apply)
 
+        self.files_window.add_all_btn.clicked.connect(self.add_all_files_clicked)
         self.files_window.add_scan.clicked.connect(self.add_scan_clicked)
         self.files_window.add_btn.clicked.connect(self.add_file_clicked)
         self.files_window.add_tth_btn.clicked.connect(self.add_group_clicked)
@@ -76,6 +77,15 @@ class aEDXDFilesController(QObject):
         self.peak_cut_controller.cut_peaks_changed_signal.connect(self.data_changed_callback)
         self.peak_cut_controller.roi_window.apply_btn.clicked.connect(self.apply)
         self.files_window.file_trw.files_dragged_in.connect(self.files_dragged_in_callback)
+
+        self.files_window.expand_btn.clicked.connect(partial(self.trw_expand,True))
+        self.files_window.collapse_btn.clicked.connect(partial(self.trw_expand,False))
+
+    def trw_expand(self, expand):
+        if expand:
+            self.files_window.file_trw.expandAll()
+        else:
+            self.files_window.file_trw.collapseAll()
 
     def drag_drop_signal_callback(self, drag_drop):
         source = drag_drop['source']
@@ -128,15 +138,74 @@ class aEDXDFilesController(QObject):
         return  mcadata_use
 
 
-    def add_scan_clicked(self):
+    def add_all_files_clicked(self):
         
-        atom = FileSequenceDialog.showDialog() 
+        tth = self.spectra_model.tth
+        if len(tth):
+            directory = self.model.params['inputdatadirectory']
+            filenames = open_files_dialog(self.files_window, "Select all EDXD files", directory=directory) 
+            mod = len(filenames)%len(self.spectra_model.tth)
+            
+            
+            dirname = os.path.dirname(filenames[0])
+            self.model.params['inputdatadirectory']=dirname
+            for i, f in enumerate(filenames):
+                tth_i = i%len(self.spectra_model.tth)
+                tth = self.spectra_model.tth[tth_i]
+                
+                self.spectra_model.add_files(tth, [f])
+            self.files_loaded_callback()
+            self.update_files_widget()
+            self.peak_cut_controller.load_peaks_from_config()
+        
+
+
+    def add_scan_clicked(self):
+        directory = self.model.params['inputdatadirectory']
+        
+        filename = open_file_dialog(
+            self.files_window, "Load multiangle scan settings", directory=directory)
+        if filename is not '':
+            if filename.endswith('.json') or filename.endswith('.scan'):
+                settings = self.load_settings(filename)
+                self.clear_clicked()
+                
+                for s in settings:
+                    tth = s[0]
+                    self.add_tth_to_spectra_model(tth)
+                
+
+    def ask_to_clear(self):
+        row_count = len(self.spectra_model.tth)
+        if row_count>0:
+            qm = QtWidgets.QMessageBox()
+            ret = qm.question(self.files_window,'Warning', "Clear current scan?", qm.Yes | qm.No)
+            if ret == qm.Yes:
+                self.clear_clicked()
+
+  
+    
+    def load_settings(self, filename):
+        ok = False
+        try:
+            with open(filename) as f:
+                openned_file = json.load(f)
+            ok = True
+        except:
+            ok = False
+        obj = None
+        if ok:
+            key = 'multiangle_settings'
+            if key in openned_file:
+                obj = openned_file[key]
+        
+        return obj
 
     def add_file_clicked(self):
         tth = self.files_window.file_trw.get_selected_tth()
         if tth != None:
             directory = self.model.params['inputdatadirectory']
-            filenames = open_files_dialog(self.files_window, "Load Overlay(s).", directory=directory) 
+            filenames = open_files_dialog(self.files_window, f"Select EDXD file(s) for 2\N{GREEK SMALL LETTER THETA}="+str(tth), directory=directory) 
             if len(filenames):
                 filename = filenames[0]
                 dirname = os.path.dirname(filename)
