@@ -25,6 +25,7 @@ from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_
 from utilities.BackgroundExtraction import extract_background
 
 from .. import data_path, output_path 
+from utilities.filt import spectra_baseline
 
 class Spectra():
 
@@ -151,7 +152,7 @@ class Spectra():
             tth  = peak['tth']
             if tth in self.tth_groups:
                 group = self.tth_groups[tth]
-                group.add_cut_roi(peak['left'],peak['right'])
+                group.add_cut_roi(peak)
 
     def get_cut_peaks(self):
         """
@@ -167,7 +168,12 @@ class Spectra():
             for r, roi in enumerate(rois):
                 left = round(roi.left, 3)
                 right = round(roi.right, 3)
-                peaks.append({'tth':t, 'left':left,'right':right})
+                peak_params = {'tth':t, 'left':left,'right':right}
+                if roi.method == 'baseline':
+                    peak_params['method'] = roi.method
+                    peak_params['wn'] = roi.wn
+                    peak_params['iterations']=roi.iterations
+                peaks.append(peak_params)
         return peaks
 
     def get_file_list(self):
@@ -294,8 +300,10 @@ class TthGroup():
         if len(energy):
             energy = np.mean(energy,0)
             intensity = np.sum(intensity,0)
+        
         [self._energy, self._intensity] = [energy, intensity]
         self.spectrum_raw = copy.deepcopy([energy, intensity])
+
         self.bin()
 
     def bin(self):
@@ -313,9 +321,17 @@ class TthGroup():
         self.bin_size = bsize
         self.bin()
 
-    def add_cut_roi(self, left, right):
-        
+    def add_cut_roi(self, roi_params):
+        left = roi_params['left']
+        right = roi_params['right']
         roi = ROI(left,right)
+        if 'method' in roi_params:
+            roi.method = roi_params['method']
+            if roi.method == 'baseline':
+                if 'wn' in roi_params:
+                    roi.wn = roi_params['wn']
+                if 'iterations' in roi_params:
+                    roi.iterations = roi_params['iterations']
         self.spectrum.add_roi(roi)
 
     
@@ -347,8 +363,12 @@ class Spectrum(QObject):
 
     def set_data(self, x, y):
         self.x = x
+
+        
         self.y = y
         self.y_cut = y
+
+
         
         if self.auto_process:
             self.compute_spectrum()
@@ -390,13 +410,20 @@ class Spectrum(QObject):
             #fastbin
             # this is the part that needs to be improved 
             # spline interploation will be replaced by smooth background function calculation
-            spl = interpolate.UnivariateSpline(
-                    txc,tyc,s = roi.smooth_width)
-            #,w=1/np.sqrt(tyc)
             x_interp = xb[ei-1:ef+1]
-            interp = spl(x_interp)
+            if roi.method == 'baseline':
+                wn = roi.wn
+                iterations = roi.iterations
+                interp = spectra_baseline(yb[ei-1:ef+1],wn,iterations)
+                
+                yb[ei-1:ef+1] = interp
+            elif roi.method == 'spline':
+                spl = interpolate.UnivariateSpline(
+                        txc,tyc,s = roi.smooth_width)
+                #,w=1/np.sqrt(tyc)
+                interp = spl(x_interp)
+                yb[ei-1:ef+1] = interp
             roi.peak_cutting['interp'] = [x_interp,interp]
-            yb[ei-1:ef+1] = interp
             self.y_cut = yb
 
     def find_roi_by_name(self, name):
@@ -593,8 +620,10 @@ class ROI():
         self.x_yfit = []
         self.channels = []
         self.counts = []
+        self.method = 'spline'
         self.smooth_width=40
-        self.iterations=10
+        self.iterations=50
+        self.wn = 0.2
         self.cheb_order=50
         self.peak_cutting={}
         

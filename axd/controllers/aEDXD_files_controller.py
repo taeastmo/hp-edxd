@@ -293,7 +293,7 @@ class aEDXDFilesController(QObject):
             self.colors[t]=c
             i += 1
         
-    def data_changed_callback(self,):  #triggered by signal from peak cut module
+    def data_changed_callback(self):  #triggered by signal from peak cut module
         self.plot_one_data()
         self.disp_alldata()
         

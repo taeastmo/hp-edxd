@@ -24,6 +24,7 @@ from pyqtgraph import QtCore, mkPen, mkColor, hsvColor
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, HorizontalLine
 from hpm.widgets.PltWidget import CustomViewBox, PltWidget
+from axd.widgets.aEDXD_custom_widgets import DoubleSlider
 
 class aEDXDRoiWidget(QtWidgets.QWidget):
 
@@ -65,6 +66,74 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         self._body_layout = QtWidgets.QHBoxLayout()
         self.roi_tw = ListTableWidget(columns=3)
         self._body_layout.addWidget(self.roi_tw, 10)
+
+
+####  Start peak parameters widget
+
+        self.baseline_params_V_layout = QtWidgets.QVBoxLayout()
+
+        self.cut_peak_Wn = DoubleSpinBoxAlignRight()
+        self.cut_peak_Wn.setMinimumWidth(90)
+        self.cut_peak_Wn.setMinimum(0.001)
+        self.cut_peak_Wn.setMaximum(1)
+        self.cut_peak_Wn.setValue(0.2)
+        self.cut_peak_Wn.setDecimals(3)
+        #self.cut_peak_Wn.setSingleStep(0.1)
+
+        
+        self.cut_peak_iter = DoubleSpinBoxAlignRight()
+        self.cut_peak_iter.setMinimumWidth(90)
+        self.cut_peak_iter.setMinimum(1)
+        self.cut_peak_iter.setMaximum(50)
+        self.cut_peak_iter.setValue(50)
+        self.cut_peak_iter.setDecimals(0)
+        #self.cut_peak_iter.setSingleStep(5)
+
+        self.cut_peak_Wn_step = DoubleMultiplySpinBoxAlignRight()
+        self.cut_peak_Wn_step.setDecimals(3)
+        self.cut_peak_Wn_step.setMinimumWidth(70)
+        self.cut_peak_iter_step = DoubleMultiplySpinBoxAlignRight()
+        self.cut_peak_iter_step.setDecimals(0)
+        self.cut_peak_iter_step.setMinimumWidth(70)
+
+        self.cut_peak_Wn_step.valueChanged.connect(partial(self.update_step, \
+                                                    self.cut_peak_Wn,self.cut_peak_Wn_step))
+
+        self.cut_peak_iter_step.valueChanged.connect(partial(self.update_step, \
+                                                    self.cut_peak_iter,self.cut_peak_iter_step))
+
+        self.cut_peak_Wn_step.setValue(0.1)
+        self.cut_peak_iter_step.setValue(5)
+
+        self.cut_peak_label = QtWidgets.QLabel("Peak baseline parameters")
+        self.cut_peak_Wn_label = QtWidgets.QLabel("W<sub>n</sub>")
+        self.cut_peak_iter_label = QtWidgets.QLabel("Iterations")
+
+        self.baseline_params = QtWidgets.QWidget()
+        self.baseline_params_layout = QtWidgets.QGridLayout()
+        self.baseline_params_layout.addWidget(self.cut_peak_label,0,0,1,2)
+        self.baseline_params_layout.addWidget(self.cut_peak_Wn_label,1,0)
+        self.baseline_params_layout.addWidget(self.cut_peak_iter_label,2,0)
+        self.baseline_params_layout.addWidget(self.cut_peak_Wn,1,1)
+        self.baseline_params_layout.addWidget(self.cut_peak_iter,2,1)
+        self.baseline_params_layout.addWidget(self.cut_peak_Wn_step,1,2)
+        self.baseline_params_layout.addWidget(self.cut_peak_iter_step,2,2)
+
+        self.baseline_params_apply_all = QtWidgets.QCheckBox('Apply to all')
+        self.baseline_params_apply_all.setChecked(False)
+        #self.baseline_params_layout.addWidget(self.baseline_params_apply_all,3,0,1,2)
+        
+
+        self.baseline_params.setLayout(self.baseline_params_layout)
+        self.baseline_params_V_layout.addWidget(self.baseline_params)
+        self.baseline_params_V_layout.addSpacerItem(VerticalSpacerItem())
+
+        # End peak parameters widget
+
+        self._body_layout.addLayout(self.baseline_params_V_layout)
+
+
+
         self._layout.addLayout(self._body_layout)
 
         
@@ -82,6 +151,9 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         self._layout.addWidget(HorizontalLine())
         self._layout.addWidget(self.button_2_widget)
         
+
+        
+
 
         self.setLayout(self._layout)
 
@@ -102,6 +174,13 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         #header_view.hide()
         self.roi_tw.setItemDelegate(NoRectDelegate())
         self.create_connections()
+
+
+    def update_step(self, control, step_control):
+        
+        value = step_control.value()
+        control.setSingleStep(value)
+
 
     def create_connections(self):
         self.roi_tw.currentCellChanged.connect(self.roi_selection_changed)
@@ -185,6 +264,7 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         self.roi_tw.blockSignals(False)
 
     
+    
         
     def select_roi(self, ind):
         self.roi_tw.selectRow(ind)
@@ -222,6 +302,8 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
             row = -1
             tth = -1
         return tth
+
+    
 
     def raise_widget(self):
         self.show()
@@ -304,7 +386,7 @@ class plotFitWindow(QtWidgets.QWidget):
     def set_data(self,x_fit=[],y_fit=[],label='',x=[],y=[], x1=[],y1=[],unit='',unit_='', r = None, roi_range=None):
         self.fitPlot.setData(x_fit,y_fit) 
         self.fitPlots.setTitle(label)
-        self.dataPlot.setData(x,y)
+        #self.dataPlot.setData(x,y)
         self.fitPlot2.setData(x1,y1)
         self.fitPlots.setLabel('bottom', unit+' ('+unit_+')')
         #self.fitPlots.getViewBox().enableAutoRange()

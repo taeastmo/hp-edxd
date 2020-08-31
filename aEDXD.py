@@ -63,10 +63,10 @@
 #       11. Save file-use tag
 #       12. Periodic table atom picker
 #       13. Scan sequence files automating sorting and loading 
-#       14. TODO Integrate scanning data acquisition and data display
-#       15. TODO better peak cutting based on background function, use LV bg function
+#       14. Peak cutting based on parametrized baseline extraction, spline still available for legacy projects
+#       15. TODO Integrate scanning data acquisition and data display
 #       16. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
-#       17. TODO improve autonaming of exported files, export all option
+#       17. TODO BUG. changing peak parameters is not detected when checking if config is changed
 #       18. TODO Allow different E range for different segments 
 #       19. TODO Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
 #       20. TODO integrate peak cutting screen tools with main view
@@ -74,7 +74,7 @@
 #       22. TODO self consistency of S(q) check
 #       23. TODO expand number of available elements, look up scattering factors in lit
 #       24. TODO Q scale for n spectrum view
-#       25. 
+#       25. TODO improve autonaming of exported files, export all option
 #       
 #        
 ###############################################################################

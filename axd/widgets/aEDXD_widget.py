@@ -476,12 +476,17 @@ class aEDXDSpectrumWidget(customWidget):
         self.cut_peak_btn.setMinimumWidth(button_width)
         self.cut_peak_btn.setMaximumWidth(button_width)
 
+        
+
         self.add_button_widget_item(QtWidgets.QLabel('Remove peak'))
         self.add_button_widget_item(self.cut_peak_btn)
+        
         self.add_button_widget_spacer()
         self.add_button_widget_item(self.apply_btn)
         
-        
+    
+
+
 
 class aEDXDPrimaryBeamWidget(customWidget):
     def __init__(self, fig_params):
