@@ -37,6 +37,7 @@ class plotController(QObject):
         self.mca = mcaModel
         self.pg = plotWidget
         self.mcaController = mainController
+        
         #initialize roi controller
         
         self.roi_controller = RoiController(self.mca, self.pg, self, self.mcaController)
@@ -70,7 +71,12 @@ class plotController(QObject):
     def update_plot(self):
         #print(str(self.Foreground))
         m = self.mca
-        self.data =  m.get_data()[0]
+        baseline_state = self.mca.baseline_state
+        if baseline_state:
+            self.data = m.get_data()[0] -m.get_baseline()[0]
+        else:
+
+            self.data =  m.get_data()[0]
         self.calibration = m.get_calibration()[0]
         self.elapsed = m.get_elapsed()[0]
         self.name = m.get_name()
@@ -80,6 +86,10 @@ class plotController(QObject):
         for env in self.envs:
             envs [env.description]=env.value
         self.envUpdated.emit(envs)
+
+    def updated_baseline_state(self):
+        self.update_plot()
+        
         
     def rois_updated(self, ind, text ):
         self.roi_selection_updated(ind, text)

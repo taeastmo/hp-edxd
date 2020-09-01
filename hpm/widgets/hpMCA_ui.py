@@ -10,6 +10,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from pyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton
 from hpm.widgets.PltWidget import PltWidget
 
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+    HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
+
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
         #hpMCA.setObjectName("hpMCA")
@@ -65,12 +68,12 @@ class Ui_hpMCA(object):
         self.PLTM_3 = pvQMessageButton()
         self.PLTM_4 = pvQMessageButton()
         self.PLTM_5 = pvQMessageButton()
-        self.PLTM_0.setMaximumWidth(38)
-        self.PLTM_1.setMaximumWidth(38)
-        self.PLTM_2.setMaximumWidth(38)
-        self.PLTM_3.setMaximumWidth(38)
-        self.PLTM_4.setMaximumWidth(38)
-        self.PLTM_5.setMaximumWidth(38)
+        self.PLTM_0.setMaximumWidth(36)
+        self.PLTM_1.setMaximumWidth(36)
+        self.PLTM_2.setMaximumWidth(36)
+        self.PLTM_3.setMaximumWidth(36)
+        self.PLTM_4.setMaximumWidth(36)
+        self.PLTM_5.setMaximumWidth(36)
         self.PLTM_0.setMaximumHeight(15)
         self.PLTM_1.setMaximumHeight(15)
         self.PLTM_2.setMaximumHeight(15)
@@ -82,7 +85,7 @@ class Ui_hpMCA(object):
         self.PLTM_btns = QtWidgets.QWidget()
         self._PLTM_btns_layout = QtWidgets.QGridLayout()
         self._PLTM_btns_layout.setSpacing(2)
-        self._PLTM_btns_layout.setContentsMargins(20,0,0,12)
+        self._PLTM_btns_layout.setContentsMargins(29,0,0,12)
         self._PLTM_btns_layout.addWidget( self.PLTM_0 ,0,0)
         self._PLTM_btns_layout.addWidget( self.PLTM_1 ,0,1)
         self._PLTM_btns_layout.addWidget( self.PLTM_2 ,0,2)
@@ -97,12 +100,12 @@ class Ui_hpMCA(object):
         self.PRTM_3 = pvQMessageButton()
         self.PRTM_4 = pvQMessageButton()
         self.PRTM_5 = pvQMessageButton()
-        self.PRTM_0.setMaximumWidth(38)
-        self.PRTM_1.setMaximumWidth(38)
-        self.PRTM_2.setMaximumWidth(38)
-        self.PRTM_3.setMaximumWidth(38)
-        self.PRTM_4.setMaximumWidth(38)
-        self.PRTM_5.setMaximumWidth(38)
+        self.PRTM_0.setMaximumWidth(36)
+        self.PRTM_1.setMaximumWidth(36)
+        self.PRTM_2.setMaximumWidth(36)
+        self.PRTM_3.setMaximumWidth(36)
+        self.PRTM_4.setMaximumWidth(36)
+        self.PRTM_5.setMaximumWidth(36)
         self.PRTM_0.setMaximumHeight(15)
         self.PRTM_1.setMaximumHeight(15)
         self.PRTM_2.setMaximumHeight(15)
@@ -113,7 +116,7 @@ class Ui_hpMCA(object):
         self.PRTM_btns = QtWidgets.QWidget()
         self._PRTM_btns_layout = QtWidgets.QGridLayout()
         self._PRTM_btns_layout.setSpacing(2)
-        self._PRTM_btns_layout.setContentsMargins(20,0,0,5)
+        self._PRTM_btns_layout.setContentsMargins(29,0,0,5)
         self._PRTM_btns_layout.addWidget( self.PRTM_0 ,0,0)
         self._PRTM_btns_layout.addWidget( self.PRTM_1 ,0,1)
         self._PRTM_btns_layout.addWidget( self.PRTM_2 ,0,2)
@@ -265,7 +268,23 @@ class Ui_hpMCA(object):
         self.radioLin.setChecked(False)
         self.radioLin.setObjectName("radioLin")
         self.LogScaleLayout.addWidget(self.radioLin)
+
+        self.baseline_subtract = QtWidgets.QPushButton()
+        self.baseline_subtract.setText("- bg")
+        self.baseline_subtract.setEnabled(False)
+        self.baseline_subtract.setCheckable(True)
+        self.baseline_subtract.setChecked(False)
+        self.baseline_subtract.setMaximumWidth(45)
+        self.LogScaleLayout.addWidget(self.baseline_subtract)
+
         self.verticalLayout_7.addLayout(self.LogScaleLayout)
+
+        
+        '''self.baseline_box = QtWidgets.QHBoxLayout()
+        self.baseline_box.addWidget(self.baseline_subtract)
+        self.baseline_box.addSpacerItem(HorizontalSpacerItem())
+        self.verticalLayout_7.addLayout(self.baseline_box)'''
+
         self.ControlsLayout.addWidget(self.groupBoxVerticalScale)
         self.groupBoxHorizontalScale = QtWidgets.QGroupBox(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.MinimumExpanding)

@@ -149,6 +149,8 @@ class hpmcaController(QObject):
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
         ui.actionPresets.triggered.connect(self.presets_module)
         ui.actionAbout.triggered.connect(self.about_module)
+
+        ui.baseline_subtract.clicked.connect(self.baseline_subtract_callback)
         
         ui.file_dragged_in_signal.connect(self.file_dragged_in_signal)
 
@@ -644,7 +646,21 @@ class hpmcaController(QObject):
         pg.set_log_mode(False, mode)
         
     def LogScaleSet(self):
-        self.setPlotLogMode(self.widget.radioLog.isChecked())
+        log_scale = self.widget.radioLog.isChecked()
+        self.widget.baseline_subtract.setEnabled( log_scale==False)
+        if log_scale:
+            if self.widget.baseline_subtract.isChecked():
+                self.widget.baseline_subtract.setChecked(False)
+                self.baseline_subtract_callback()
+        self.setPlotLogMode(log_scale)
+
+    def baseline_subtract_callback(self):
+        if self.plotController != None:
+
+            baseline_state = self.widget.baseline_subtract.isChecked()
+            self.mca.baseline_state = baseline_state
+            self.plotController.updated_baseline_state()
+
         
     ########################################################################################
     ########################################################################################
