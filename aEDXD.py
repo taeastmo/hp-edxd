@@ -68,7 +68,7 @@
 #       16. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
 #       17. TODO Allow different E range for different segments 
 #       18. TODO Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
-#       19. TODO integrate peak cutting screen tools with main view
+#       19. TODO integrate peak editing plot view with main view
 #       20. TODO improve autonaming of exported files, export all option
 #       21. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
 #       22. TODO self consistency of S(q) check
