@@ -108,6 +108,7 @@ class aEDXDConfigController(QObject):
         self.model.params['mcadata']= params['mcadata']
         
         self.model.params['mcadata_use'] = params['mcadata_use']
+        self.model.params['E_cut']=params['E_cut']
         self.params_changed_signal.emit()
 
     def are_params_saved(self):

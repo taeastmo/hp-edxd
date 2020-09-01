@@ -79,12 +79,18 @@ class aEDXDPeakCutController(QObject):
                 spectrum = s[0]
                 roi = s[1]
                 roi.wn = wn
+                if roi.method != 'baseline':
+                    roi.method = 'baseline'
+                    iterations= self.roi_window.cut_peak_iter.value()
+                    iterations = int(iterations)
+                    roi.iterations =iterations
                 spectrum.compute_spectrum()
             self.cut_peaks_changed_signal.emit() 
         #print('wn_changed_callback: ' + str(sets))
         
 
     def iter_changed_callback(self, iterations):
+        iterations = int(iterations)
         sets = self.get_rois_to_edit()
         if len(sets):
             iterations = round(iterations,12)
@@ -92,6 +98,9 @@ class aEDXDPeakCutController(QObject):
                 spectrum = s[0]
                 roi = s[1]
                 roi.iterations = iterations
+                if roi.method != 'baseline':
+                    roi.method = 'baseline'
+                    roi.wn = self.roi_window.cut_peak_Wn.value()
                 spectrum.compute_spectrum()
             self.cut_peaks_changed_signal.emit() 
 
@@ -102,7 +111,8 @@ class aEDXDPeakCutController(QObject):
         All = self.roi_window.baseline_params_apply_all.isChecked()
         if not All:
             [spectrum, roi] = self.get_selected_roi()
-            rois = [[spectrum, roi]]
+            if not spectrum is  None and not rois is None:
+                rois = [[spectrum, roi]]
         else:
             rois = self.get_all_displayed_rois()
 
@@ -113,7 +123,8 @@ class aEDXDPeakCutController(QObject):
         params = self.roi_window.get_selected_roi_row()
         tth = params['tth']
         name = params['name']
-        roi = []
+        roi = None
+        spectrum = None
         if tth is not None and name is not None:
             spectrum = self.spectra_model.tth_groups[tth].spectrum
             if len(spectrum.x) :
@@ -281,6 +292,7 @@ class aEDXDPeakCutController(QObject):
         
     def load_peaks_from_config(self):
         conf = self.model.config_file
+        self.spectra_model.set_autoprocess(False)
         if conf != None:
             config_dict = readconfig(self.model.config_file)
             if 'E_cut' in config_dict:
@@ -309,13 +321,16 @@ class aEDXDPeakCutController(QObject):
         """
         Deletes all rois
         """
-        tth = self.spectra_model.tth
-        for t in tth:
-            group = self.spectra_model.tth_groups[float(t)]
-            spectrum = group.spectrum
+
+        displayed_rois = self. get_all_displayed_rois()
+        
+        for dr in displayed_rois:
+            spectrum, roi = dr
+
             spectrum.set_auto_process(False)
-            while len(spectrum.rois):
-                spectrum.del_roi(-1)
+            ind = spectrum.rois.index(roi)
+
+            spectrum.del_roi(ind)
             spectrum.set_auto_process(True)
         self.display_rois()
 

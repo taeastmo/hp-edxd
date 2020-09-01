@@ -122,6 +122,7 @@ class aEDXDFilesController(QObject):
         dataarray, ttharray = self.spectra_model.get_dataarray()
         mcadata = self.spectra_model.get_file_list()
         mcadata_use = self.spectra_model.get_file_use_list()
+        e_cut = self.spectra_model.get_cut_peaks()
         colors = self.colors
         tth = self.spectra_model.tth
         sq_colors=[]
@@ -130,7 +131,7 @@ class aEDXDFilesController(QObject):
             if t in ttharray:
                 sq_colors.append(colors[t])
         self.sq_colors=sq_colors
-        spectra_par = {'dataarray':dataarray, 'ttharray':ttharray, 'mcadata':mcadata, 'mcadata_use': mcadata_use}
+        spectra_par = {'dataarray':dataarray, 'ttharray':ttharray, 'mcadata':mcadata, 'mcadata_use': mcadata_use, 'E_cut':e_cut}
         return spectra_par
 
     def get_file_use(self):
@@ -342,6 +343,8 @@ class aEDXDFilesController(QObject):
             tth = str(t)
             c_str = '#%02x%02x%02x' % colors[t]
             self.files_window.file_trw.add_file_group(files_base,c_str,tth,files_use)
+        
+
 
 
     def check_if_files_exist(self, inputdatadirectory, file_groups):
