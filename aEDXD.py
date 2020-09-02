@@ -75,6 +75,7 @@
 #       23. TODO expand number of available elements, look up scattering factors in lit
 #       24. TODO Q scale for n spectrum view
 #       25. TODO keep row selection consist when adding and deleting items from tableviews
+#       26. TODO multiple iterations of S(q) filtering
 #       
 #        
 ###############################################################################
