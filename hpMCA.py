@@ -17,6 +17,7 @@ from hpm import main
 
 main()
 
+# TODO try smooth_bruckner for baseline subtraction
 # TODO environment_file_display
 # TODO refactor plot display synchronization
 # TODO multi detector display, optional stacked pltwidgets for each detector
