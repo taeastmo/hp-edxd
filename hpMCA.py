@@ -17,7 +17,6 @@ from hpm import main
 
 main()
 
-# TODO background subtract with k edge
 # TODO environment_file_display
 # TODO refactor plot display synchronization
-# TODO multi detector display
+# TODO multi detector display, optional stacked pltwidgets for each detector
