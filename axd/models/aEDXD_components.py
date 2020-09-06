@@ -97,18 +97,20 @@ class primaryBeam(Calculator):
         xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
         qpc = 4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
+        
         # start iteration
-        for itr in range(itr_comp):
-            # re-adjust the primary beam model to fit mean_fqsqure + mean_I_inc 
-            Iq_base = mean_fqsquare + fs*mean_I_inc 
-            # custom fit(func,x,y,p0,yb):
-            ypb = np.sqrt(yp) # Poisson distribution error
-            p_opt,p_stdev,p_cov,p_corp,schi2,r = \
-                            custom_fit(model_func,xp,yp/Iq_base,p0,ypb/Iq_base)
-            y_model = model_func(xp,*p_opt)*Iq_base
-            I_p = model_func(xp,*p_opt)
-            I_p_inc = model_func(xpc,*p_opt)
-            fs = I_p_inc/I_p
+        #for itr in range(itr_comp):
+        # re-adjust the primary beam model to fit mean_fqsqure + mean_I_inc 
+        Iq_base = mean_fqsquare + fs*mean_I_inc 
+        # custom fit(func,x,y,p0,yb):
+        ypb = np.sqrt(yp) # Poisson distribution error
+        p_opt,p_stdev,p_cov,p_corp,schi2,r = \
+                        custom_fit(model_func,xp,yp/Iq_base,p0,ypb/Iq_base)
+        y_model = model_func(xp,*p_opt)*Iq_base
+        I_p = model_func(xp,*p_opt)
+        I_p_inc = model_func(xpc,*p_opt)
+        fs = I_p_inc/I_p
+
         # propagate the mean residual error
         model_mre = np.sqrt(sum((yp/Iq_base - y_model/Iq_base))**2/len(yp))
         # Note that the mean residual error defined here is non-standard.
