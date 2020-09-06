@@ -45,13 +45,15 @@ class aEDXDAtomController(QtCore.QObject):
     def get_available_elements(self):
         MKL = self.ap.MKL['str_data']
         abc = self.ap.abc['str_data']
+        ab5 = self.ap.ab5['str_data']
         el_abc =[]
-        for row in abc:
-            el_abc.append(row[0])
+        for row in ab5:
+            el_abc.append(row)
 
         el_abc = self.remove_duplicates(el_abc)
         set1 = {*el_abc}  
-        set2 = {*MKL}  
+        set2 = {*ab5}  
+        
     
         # union of two sets 
         intersection = set1.intersection(set2)
@@ -95,6 +97,7 @@ class aEDXDAtomController(QtCore.QObject):
                 opt_abc = options_abc[opts_abc[0]]
                 opt_abc_note = opts_abc[0]
             options_MKL=self.ap.get_MKL_options(atom)
+            
             opts_MKL = []
             for o in options_MKL:
                 opts_MKL.append(o)
