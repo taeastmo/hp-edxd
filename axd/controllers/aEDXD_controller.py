@@ -312,8 +312,8 @@ class aEDXDController(QObject):
         if len(self.model.ttharray):
             pdf = self.model.pdf_object
             r = pdf.out_params['r']
-            gr = pdf.out_params['gr']
-            gr_err = pdf.out_params['gr_err']
+            gr = pdf.out_params['gr'] 
+            gr_err = pdf.out_params['gr_err'] 
             self.display_window.pdf_widget.fig.add_line_plot(r,gr,Width=2)
 
             self.display_window.pdf_widget.fig.add_fill_between_plot(r, gr-gr_err, gr+gr_err)

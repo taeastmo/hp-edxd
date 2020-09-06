@@ -119,10 +119,31 @@ def I_base_calc(q,q_comp,p):
               p[i][4]*np.exp(-p[i][5]*s_comp**2)+\
               p[i][6]*np.exp(-p[i][7]*s_comp**2)+\
               p[i][8]*np.exp(-p[i][9]*s_comp**2)+p[i][10]
-        I_inci = p[i][0]-np.array(fqi_comp)**2/p[i][0]*\
+
+        # 2020-09-05 added parenthesis around "p[i][0]-np.array(fqi_comp)**2/p[i][0]"
+        # since they were missing in previous versions
+        # Ref. F. Hajdu, Acta Cryst. (1971). A27, 73
+        I_inci = (p[i][0]-np.array(fqi_comp)**2/p[i][0])*\
                  (1-p[i][11]*(np.exp(-p[i][12]*s_comp)-np.exp(-p[i][13]*s_comp)))
         mean_I_inc += p[i][1]*I_inci
     return mean_fqsquare, mean_fq, mean_I_inc
+
+def I_inc_new(q, param):
+    """*param must have the following structure:
+    [ Z, A1,	B1,	A2,	B2,	A3,	B3,	A4,	B4,	A5,	B5]
+    """
+    Z = param[0]
+    
+    ab = param[1:]
+    s = np.array(q /4/np.pi)
+    mean_I_inc = Z - (ab[0]*np.exp(-ab[1]*s**2)+\
+                     ab[2]*np.exp(-ab[3]*s**2)+\
+                     ab[4]*np.exp(-ab[5]*s**2)+\
+                     ab[6]*np.exp(-ab[7]*s**2)+\
+                     ab[8]*np.exp(-ab[9]*s**2))
+
+    return mean_I_inc
+
     
 def find_Iq_scale(Iq,sq_base):
     return np.linalg.solve(Iq,sq_base)

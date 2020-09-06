@@ -98,7 +98,7 @@ class primaryBeam(Calculator):
         qpc = 4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
         
-        # start iteration
+        # start iteration; UPDATED: iretation was replaced at some point in time by custom_fit
         #for itr in range(itr_comp):
         # re-adjust the primary beam model to fit mean_fqsqure + mean_I_inc 
         Iq_base = mean_fqsquare + fs*mean_I_inc 
@@ -203,13 +203,7 @@ class structureFactor(Calculator):
                 S_q[len(S_q)-2-i][1] = s*S_q[len(S_q)-2-i][1] # scale I(Q)
                 S_q[len(S_q)-2-i][2] = s*S_q[len(S_q)-2-i][2] # scale I_err(Q)
         
-        '''
-        plt.xlabel(u'q ($\u00c5^{-1}$)')
-        plt.ylabel('S(q)')
-        plt.xlim([0,S_q[-1][0][-1]+1.0])
-        plt.plot([0,S_q[-1][0][-1]+1.0],[1,1],'k-',linewidth=0.5)
-        plt.tight_layout()
-        '''
+        
         # respace and smooth the merged S(q) data using UnivariateSpine fucntion
         q_all = []; q_sort =[]
         S_q_all = []; sq_sort =[]
