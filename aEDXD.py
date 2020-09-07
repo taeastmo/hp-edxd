@@ -64,18 +64,19 @@
 #       12. Periodic table atom picker
 #       13. Scan sequence files automating sorting and loading 
 #       14. Peak cutting based on parametrized baseline extraction, spline still available for legacy projects
-#       15. TODO Integrate scanning data acquisition and data display
-#       16. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
+#       15. Expanded number of available elements [H.H.M. Balyuzi, Acta Cryst. (175). A31, 600]
+#       16. TODO RDF plot
 #       17. TODO Allow different E range for different segments 
 #       18. TODO Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
 #       19. TODO integrate peak editing plot view with main view
 #       20. TODO improve autonaming of exported files, export all option
 #       21. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
 #       22. TODO self consistency of S(q) check
-#       23. TODO expand number of available elements, look up scattering factors in lit
+#       23. TODO Integrate scanning data acquisition and data display
 #       24. TODO Q scale for n spectrum view
 #       25. TODO keep row selection consist when adding and deleting items from tableviews
 #       26. TODO multiple iterations of S(q) filtering
+#       27. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
 #       
 #        
 ###############################################################################
