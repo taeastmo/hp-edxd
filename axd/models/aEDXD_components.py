@@ -160,11 +160,7 @@ class structureFactor(Calculator):
         sq_smoothing_factor = self.params['sq_smoothing_factor']
         q_spacing = self.params['q_spacing']
 
-        '''
-        fig = plt.figure(figsize=(6,4), dpi=self.figure_dpi)
-        fig.canvas.set_window_title('S(q) Merged and Smoothened')
-        ax3 = fig.add_subplot(111)
-        '''
+      
         S_q = []
         for i in range(len(dataarray)):
             
@@ -250,14 +246,7 @@ class structureFactor(Calculator):
                 sq_even_err.append(rmserr)
         sq_even_err = np.array(sq_even_err)    
         
-        '''
-        thinline, = plt.plot(q_even,sq_even,'k-',linewidth=0.7)
-        
-        lg = ax3.legend([thinline,],['spline-smoothened',],prop={'size':12},
-                        fancybox=True, loc=1)
-        lg.draw_frame(False)
-        plt.errorbar(q_even,sq_even,yerr=sq_even_err,fmt='k-',linewidth=0.2,capsize=0.0)
-        '''
+     
 
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
@@ -272,11 +261,14 @@ class structureFactor(Calculator):
             sq_even_err = self.out_params['sq_even_err']
             outputsavedirectory = os.path.dirname(filename)
             self.params['outputsavedirectory'] =  outputsavedirectory
-            np.savetxt(outfilename, np.transpose([q_even,sq_even,sq_even_err]))
+            np.savetxt(outfilename, np.transpose([q_even,sq_even,sq_even_err]),fmt='%.4e')
             S_q = self.out_params['S_q_fragments']
             for i in range(len(S_q)):
                 fname = os.path.join(outputsavedirectory,'S_q_'+str("%03d" % i))
-                np.savetxt(fname,np.transpose([S_q[i][0],S_q[i][1],S_q[i][2]]))
+                q = S_q[i][0]
+                sq =S_q[i][1]
+                sq_err=S_q[i][2]
+                np.savetxt(fname,np.transpose([q,sq,sq_err]),fmt='%.4e')
         except:
             print("\nThe file has not been saved!")
 
@@ -309,32 +301,13 @@ class Pdf(Calculator):
         
         
 
-        '''
-        fig = plt.figure(figsize=(5,6), dpi=self.figure_dpi)
-        fig.canvas.set_window_title('S(q) and G(r)')
-        ax1 = .add_subplot(211)
-        '''
         # restrict the qmax by the user input
         q_max_indx = np.abs(q_even - qmax).argmin()
         self.out_params['qq'] = qcalc = q_even[:q_max_indx]
         self.out_params['sq'] = sqcalc = sq_even[:q_max_indx]
         self.out_params['sq_err'] = sqcalc_err = sq_even_err[:q_max_indx]
         
-        '''
-        plt.xlim([0,qq[-1]+1.0])
-        plt.plot([0,qq[-1]+1.0],[1,1],'k-',linewidth=0.5)
-        plt.errorbar(qq,sq,yerr=sq_err,fmt='b-',linewidth=1.0,capsize=0.0)
-        plt.xlabel(u'q ($\u00c5^{-1}$)')
-        plt.ylabel('S(q)')
-        ax1.yaxis.grid(True)
-        plt.tight_layout()
-
-        # update the G(r) with resolution broadening
-        ax2 = fig.add_subplot(212)
         
-        qcalc = qq
-        sqcalc = sq
-        '''
 
         gr = []; gr_err = []
         r = np.arange(r_spacing,rmax,r_spacing) 
@@ -352,23 +325,14 @@ class Pdf(Calculator):
         gr = np.array(gr)
         gr_err = np.array(gr_err)
         
-        r_save = r
+        #r_save = r
         self.out_params['r'] = copy.copy(r)
-        gr_save = gr
+        #gr_save = gr
         self.out_params['gr'] = copy.copy(gr)
-        gr_err_save = gr_err
+        #gr_err_save = gr_err
         self.out_params['gr_err'] = copy.copy(gr_err)
         
-        '''
-        plt.xlim([0,12])
-        plt.plot([0,12],[0,0],'k-',linewidth=0.5)
-        plt.errorbar(r,gr,yerr=gr_err,fmt='b-',linewidth=0.5,capsize=0.0)
         
-        plt.xlabel(u'r ($\u00c5$)')
-        plt.ylabel('G(r)')
-        ax2.yaxis.grid(True)
-        plt.tight_layout()
-        '''
 
     def save_pdf(self, filename):
         try:
@@ -379,7 +343,7 @@ class Pdf(Calculator):
             outputsavedirectory = os.path.dirname(filename)
             self.params['outputsavedirectory'] =  outputsavedirectory
 
-            np.savetxt(outfilename, np.transpose([r_save,gr_save,gr_err_save]))
+            np.savetxt(outfilename, np.transpose([r_save,gr_save,gr_err_save]),fmt='%.4e')
         except Exception as e:
             print(e)
             print("\nThe file has not been saved!")
@@ -484,9 +448,7 @@ class PdfInverse(Calculator):
         self.out_params['gr_err_f']= gr_err
         
         
-        '''
-        ax2.plot(r[0:r_min_cut_indx],gr[0:r_min_cut_indx],'r')
-        '''
+    
 
         sq_inv = []; sq_inv_err = []
 
@@ -504,11 +466,6 @@ class PdfInverse(Calculator):
         self.out_params['sq_inv_err'] = sq_inv_err = sqcalc_err # enforce original errors
 
         
-
-        '''
-        ax1.errorbar(q_inv,sq_inv,yerr=sq_inv_err,fmt='r-',linewidth=0.2, capsize=0.0)
-        plt.tight_layout()
-        '''
         
 
     def save_sf_inverse(self, outfilename):
@@ -518,7 +475,7 @@ class PdfInverse(Calculator):
             sq_inv_err=self.out_params['sq_inv_err']
             outputsavedirectory = os.path.dirname(outfilename)
             self.params['outputsavedirectory'] =  outputsavedirectory
-            np.savetxt(outfilename, np.transpose([q_inv,sq_inv,sq_inv_err]))
+            np.savetxt(outfilename, np.transpose([q_inv,sq_inv,sq_inv_err]),fmt='%.4e')
         except Exception as e:
             print(e)
             print("\nThe file has not been saved!")
