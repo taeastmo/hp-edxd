@@ -139,7 +139,7 @@ def I_base_calc(q,q_comp,p):
             # Ref. F. Hajdu, Acta Cryst. (1971). A27, 73
             mkl = p[i][11:14]
             if not mkl[0] is None and not mkl[1] is None and not mkl[2] is None:
-                I_inci = (Z-np.array(fqi_comp)**2/p[i][0])*\
+                I_inci = (Z-np.array(fqi_comp)**2/Z)*\
                         (1-p[i][11]*(np.exp(-p[i][12]*s_comp)-np.exp(-p[i][13]*s_comp)))
                 
         mean_I_inc += p[i][1]*I_inci
