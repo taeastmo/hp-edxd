@@ -65,9 +65,9 @@
 #       13. Scan sequence files automating sorting and loading 
 #       14. Peak cutting based on parametrized baseline extraction, spline still available for legacy projects
 #       15. Expanded number of available elements [H.H.M. Balyuzi, Acta Cryst. (175). A31, 600]
-#       16. TODO RDF plot
+#       16. TODO Mask data. Remove bad data at W edge. Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
 #       17. TODO Allow different E range for different segments 
-#       18. TODO Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
+#       18. TODO RDF plot, with peak measurements
 #       19. TODO integrate peak editing plot view with main view
 #       20. TODO improve autonaming of exported files, export all option
 #       21. TODO improve parameter entry, e.g. density should be more intuitive or offer more options

@@ -53,13 +53,17 @@ class aEDXDWidget(QMainWindow):
         self.sq_widget = aEDXDSqWidget(sq_fig_parameters)
         self.vertical_layout_tab_sq.addWidget(self.sq_widget )
 
-        pdf_fig_parameters = 'G(r)', 'G(r)', 'r (A)' 
+        pdf_fig_parameters = 'd(r)', 'd(r)', u'r (\u212B)' # Angstrom symbol in unicode
         self.pdf_widget = aEDXDPDFWidget(pdf_fig_parameters)
         self.vertical_layout_tab_pdf.addWidget(self.pdf_widget)
 
         inverse_fig_parameters = 'S(q) filtered', 'S(q)', u'q (A<sup>-1</sup>)' 
         self.inverse_widget = aEDXDInverseWidget(inverse_fig_parameters)
         self.vertical_layout_tab_inverse.addWidget(self.inverse_widget)
+
+        '''rdf_fig_parameters = 't(r)', 't(r)', u'r (\u212B)' 
+        self.rdf_widget = aEDXDRDFWidget(rdf_fig_parameters)
+        self.vertical_layout_tab_rdf.addWidget(self.rdf_widget)'''
 
    
     def raise_widget(self):
@@ -166,6 +170,11 @@ class aEDXDWidget(QMainWindow):
         self.vertical_layout_tab_inverse.setContentsMargins(15,10,15,0)
         self.tabWidget.addTab(self.tab_6, "")
 
+        '''self.tab_7 = QtWidgets.QWidget()
+        self.vertical_layout_tab_rdf = QtWidgets.QVBoxLayout(self.tab_7)
+        self.vertical_layout_tab_rdf.setContentsMargins(15,10,15,0)
+        self.tabWidget.addTab(self.tab_7, "")'''
+
         self.horizontalLayout.addWidget(self.tabWidget)
         self.retranslateUi()
         self.centralwidget.setLayout(self.horizontalLayout)
@@ -258,14 +267,15 @@ class aEDXDWidget(QMainWindow):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("aEDXDWidget", "aEDXD"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("aEDXDWidget", "I(E)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("aEDXDWidget", "I (E)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_1), _translate("aEDXDWidget", "EDXD files"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("aEDXDWidget", "All I(E)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("aEDXDWidget", "All I (E)"))
         
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("aEDXDWidget", "Incident beam"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("aEDXDWidget", "S(q)"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("aEDXDWidget", "G(r)"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), _translate("aEDXDWidget", "S(q) filtered"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("aEDXDWidget", "I p,eff (E)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("aEDXDWidget", "S (q)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("aEDXDWidget", "d (r)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), _translate("aEDXDWidget", "S (q) filtered"))
+        #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_7), _translate("aEDXDWidget", "t(r)"))
 
     def style_widgets(self):
 
@@ -517,7 +527,26 @@ class aEDXDPDFWidget(customWidget):
     def __init__(self, fig_params):
         super().__init__(fig_params)
         self.export_PDF_btn = FlatButton()
-        self.export_PDF_btn.setToolTip('Export G(r)')
+        self.export_PDF_btn.setToolTip('Export d(r)')
+
+        button_height = 32
+        button_width = 32
+
+        icon_size = QtCore.QSize(22, 22)
+        self.export_PDF_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'export.ico')))
+        self.export_PDF_btn.setIconSize(icon_size)
+        self.export_PDF_btn.setMinimumHeight(button_height)
+        self.export_PDF_btn.setMaximumHeight(button_height)
+        self.export_PDF_btn.setMinimumWidth(button_width)
+        self.export_PDF_btn.setMaximumWidth(button_width)
+        self.add_top_button_widget_item(self.export_PDF_btn)
+        self.add_top_button_widget_spacer()
+
+class aEDXDRDFWidget(customWidget):
+    def __init__(self, fig_params):
+        super().__init__(fig_params)
+        self.export_PDF_btn = FlatButton()
+        self.export_PDF_btn.setToolTip('Export t(r)')
 
         button_height = 32
         button_width = 32

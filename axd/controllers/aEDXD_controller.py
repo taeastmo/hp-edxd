@@ -309,12 +309,19 @@ class aEDXDController(QObject):
     def disp_pdf(self):
         #self.display_window.tabWidget.setCurrentIndex(4)
         self.display_window.pdf_widget.fig.clear()
+        #self.display_window.rdf_widget.fig.clear()
         if len(self.model.ttharray):
             pdf = self.model.pdf_object
             r = pdf.out_params['r']
             gr = pdf.out_params['gr'] 
             gr_err = pdf.out_params['gr_err'] 
+            #rho = self.model.params['rho']
+            #pi_4_r2 = 4*np.pi*r**2*rho
+            #rdf = gr*r + pi_4_r2
+            
             self.display_window.pdf_widget.fig.add_line_plot(r,gr,Width=2)
+            #self.display_window.rdf_widget.fig.add_line_plot(r,rdf, Width=3)
+            #self.display_window.rdf_widget.fig.add_line_plot(r,pi_4_r2, Width=1,color=(0,0,254))
 
             self.display_window.pdf_widget.fig.add_fill_between_plot(r, gr-gr_err, gr+gr_err)
 
