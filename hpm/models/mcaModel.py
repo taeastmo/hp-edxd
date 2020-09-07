@@ -315,7 +315,8 @@ class MCA():  #
     def get_baseline(self):
         baselines = []
         for d in self.data:
-            baselines.append(spectra_baseline(d, 0.02, 50, method='gust'))
+            
+            baselines.append(spectra_baseline(d, 0.04, 50, method='gust'))
             #print(d)
         self.baselines = baselines
         return self.baselines

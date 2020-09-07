@@ -82,11 +82,16 @@ class aEDXDAtomicParameters():
         return options
 
     def lookup_atom_by_sq_par(self,sq_par):
-        atom_abc_note = None
-        atom_MKL_note = None
+
+        Z = sq_par [0]
+        frac = sq_par[1]
+
+
+        atom_abc_note = "_"
+        atom_MKL_note = "-"
         atom =None
-        abc = sq_par[2:-3]
-        mkl = sq_par[-3:]
+        abc = sq_par[2:11]
+        mkl = sq_par[11:14]
         frac = sq_par[1]
         atoms_abc = self.abc['str_data']#[:,:]
         atoms_MKL = self.MKL['str_data']#[:]
@@ -98,6 +103,8 @@ class aEDXDAtomicParameters():
         for i, m in enumerate(self.MKL['num_data']):
             if (mkl==m[1:-1]).all():
                 atom_MKL_note = atoms_MKL[i]
+        
+
         return  atom, atom_abc_note, atom_MKL_note, frac
         
 

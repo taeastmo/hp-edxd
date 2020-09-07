@@ -348,10 +348,11 @@ class aEDXDFilesController(QObject):
 
 
     def check_if_files_exist(self, inputdatadirectory, file_groups):
+        directory = None
         for filegroup in file_groups:
             files = filegroup[:-1]
             filepahts = []
-            directory = None
+            
             for f in files:
                 full = os.path.join(inputdatadirectory, f)
                 ex = os.path.isfile(full)
@@ -387,12 +388,15 @@ class aEDXDFilesController(QObject):
     def set_params(self, set_params):
         self.current_tth = None
         file_groups  = set_params['mcadata']
+        
         if 'mcadata_use' in set_params:
             file_use = set_params['mcadata_use']
         else:
             file_use = []
         inputdatadirectory = self.model.params['inputdatadirectory']
+        
         directory = self.check_if_files_exist(inputdatadirectory, file_groups)
+        
         if directory is not None:
             self.spectra_model.inputdatadirectory = directory
             self.spectra_model.load_files_from_config(file_groups, file_use)
@@ -402,7 +406,8 @@ class aEDXDFilesController(QObject):
             self.peak_cut_controller.load_peaks_from_config()
             self.emit_spectra()
         else:
-            displayErrorMessage( 'opt_read') 
+            if len(file_groups):
+                displayErrorMessage( 'opt_read') 
 
 
 

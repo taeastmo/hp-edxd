@@ -74,50 +74,82 @@ class aEDXDAtomController(QtCore.QObject):
 
     def add_atom_clicked(self):
         fract = None
-        opt_abc = None
         opt_MKL = None
-        opt_abc_note =None
-        opt_MKL_note =None
+        opt_abc = None
+        opt_ab5 = None
+        opt_abc_note = None
+        opt_MKL_note = None
+        Z = None
 
         atom = PeriodicTableDialog.showDialog(self.available_elements) 
 
-        if len(atom):
-            options_abc=self.ap.get_abc_options(atom)
-            opts_abc = []
-            for o in options_abc:
-                opts_abc.append(o)
-            if len(opts_abc)>1:
-                choice, ok = QtWidgets.QInputDialog.getItem(
-                self.atom_window, 'Scattering factor options', 
-                'Choose option for scattering factor data: ', opts_abc, 0, False)
-                if ok:
-                    opt_abc = options_abc[choice]
-                    opt_abc_note = choice
-            elif len(opts_abc)==1:
-                opt_abc = options_abc[opts_abc[0]]
-                opt_abc_note = opts_abc[0]
-            options_MKL=self.ap.get_MKL_options(atom)
+        if atom == '':
+            return
+
+        # selecting abc, abc table offers several oxidation state options 
+        # for some elements, in more than one choice exists then user 
+        # selects which one to use.
+        options_abc=self.ap.get_abc_options(atom)
+        opts_abc = []
+        choice = None
+        for o in options_abc:
+            opts_abc.append(o)
+        
+        if len(opts_abc)>1:
+            selected, ok = QtWidgets.QInputDialog.getItem(
+            self.atom_window, 'Scattering factor options', 
+            'Choose option for scattering factor data: ', opts_abc, 0, False)
+            if ok:
+                choice = selected
+            else:
+                # can't continue if user cancelled this step
+                return
+        elif len(opts_abc)==1:
+            choice = opts_abc[0]
+        opt_abc = options_abc[choice][1:]
+        
+        #selecting MKL
+        options_MKL=self.ap.get_MKL_options(atom)
+        opts_MKL = []
+        choice = None
+        for o in options_MKL:
+            opts_MKL.append(o)
+        if len(opts_MKL)>1:
+            selected, ok = QtWidgets.QInputDialog.getItem(
+            self.atom_window, 'Incoherent scattering options', 
+            'Choose option for incoherent scattering data: ', opts_MKL, 0, False)
+            if ok:
+                choice = selected
+        elif len(opts_MKL)==1:
+            choice = 0
+        if opt_MKL is None:
+            # user cancelled dialog, or no data exists in MKL table
+            # this is okay, in this case data from ab5 table can still be used
+            opt_MKL = [None]*3
+        else:
+            opt_MKL = options_MKL[choice][1:-1]
             
-            opts_MKL = []
-            for o in options_MKL:
-                opts_MKL.append(o)
-            if len(opts_MKL)>1:
-                choice, ok = QtWidgets.QInputDialog.getItem(
-                self.atom_window, 'Scattering factor options', 
-                'Choose option for scattering factor data: ', opts_MKL, 0, False)
-                if ok:
-                    opt_MKL = options_MKL[choice]
-                    opt_MKL_note = choice
-            elif len(opts_MKL)==1:
-                opt_MKL = options_MKL[opts_MKL[0]]
-                opt_MKL_note = opts_MKL[0]
-            d, okPressed = QtWidgets.QInputDialog.getDouble(
-                        self.atom_window, "Molar fraction","Enter molar fraction: (0 to 1)", 0.5, 0, 1, 4)
-            if okPressed:
-                fract = d
-            if fract is not None and opt_MKL is not None and opt_abc is not None:
-                sq_par = [int(opt_abc[0]), fract] + list(opt_abc[1:]) + list(opt_MKL[1:-1])
-                self.set_param(sq_par)
+        #selecting fraction
+        d, okPressed = QtWidgets.QInputDialog.getDouble(
+                    self.atom_window, "Molar fraction","Enter molar fraction: (0 to 1)", 0.5, 0, 1, 4)
+        if okPressed:
+            fract = d
+        else:
+            # can't continue if user cancelled fraction choice
+            return
+
+        # ab5 contains parameters for calculating incoherent scattering in different form than legacy MKL table
+        # from Ref: H.H.M. Balyuzi, Acta Cryst. (175). A31, 600
+        ab5 = self.ap.get_ab5_options(atom)[atom]
+        opt_ab5=ab5[1:11]
+        Z = ab5[0]
+        
+        part1 = int(Z), fract
+        part2 = list(opt_abc)
+        part3 = list(opt_MKL)
+        part4 = list(opt_ab5)
+        sq_par = [*part1] + part2 + part3 + part4
+        self.set_param(sq_par)
                 
     def delete_atom_clicked(self):
         ind = self.atom_window.get_selected_atom_row()
