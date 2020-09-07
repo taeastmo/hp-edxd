@@ -106,6 +106,7 @@ class plotWindow(QtWidgets.QWidget):
         self.plots.append(Plot)
          # can display name in upper right corner in same color 
         self.win.legend.addItem(self.plots[-1], '')
+        self.set_plot_label_color(color, len(self.plots)-1)
         
         
     def clear(self):

@@ -278,27 +278,39 @@ class aEDXDController(QObject):
                 y = pb.params['y']
                 tth = self.model.ttharray[-1]
                 color = self.config_controller.files_controller.colors[tth]
-                self.display_window.primary_beam_widget.fig.add_scatter_plot(x,y,color = color,opacity=100)
+                self.display_window.primary_beam_widget.fig.add_scatter_plot(x,y,color)
+                self.display_window.primary_beam_widget.setText( 
+                                    f'2\N{GREEK SMALL LETTER THETA}'+' = ' + str(tth),0)
                 pbx=pb.out_params['primary_beam_x']
                 pby=pb.out_params['primary_beam_y']
                 self.display_window.primary_beam_widget.fig.add_line_plot(pbx,pby,(255,0,0),3)
-                self.display_window.primary_beam_widget.setText(pb.note,1)
+                self.display_window.primary_beam_widget.setText(pb.note[0],1)
+                self.display_window.primary_beam_widget.fig.add_line_plot([],[],(255,0,0),3)
+                self.display_window.primary_beam_widget.setText(pb.note[1],2)
+                self.display_window.primary_beam_widget.fig.add_line_plot([],[],(255,0,0),3)
+                self.display_window.primary_beam_widget.setText(pb.note[2],3)
         
     def disp_sq(self):
         self.display_window.sq_widget.fig.clear()
         if self.model.structure_factor.done == True:
             #self.display_window.tabWidget.setCurrentIndex(3)
             if len(self.model.ttharray):
+                self.display_window.sq_widget.fig.add_line_plot([],[],Width=1)
+                self.display_window.sq_widget.setText( 'Spline-interpolation',0)
                 sf = self.model.structure_factor
                 S_q = sf.out_params['S_q_fragments']
                 colors = self.config_controller.files_controller.sq_colors
+                tth = self.model.ttharray
                 for i in range(len(S_q)):
                     color = colors[i]
+                    t = tth[i]
                     self.display_window.sq_widget.fig.add_scatter_plot(S_q[i][0],S_q[i][1],color,100)
+                    self.display_window.sq_widget.setText( str(t),i+1)
                     #plt.errorbar(S_q[i][0],S_q[i][1],yerr=S_q[i][2],fmt='.',capsize=1.0)
                 q_even = sf.out_params['q_even']
                 sq_even = sf.out_params['sq_even']
                 self.display_window.sq_widget.fig.add_line_plot(q_even,sq_even,Width=2)
+                
 
                 S_err = sf.out_params['sq_even_err']
                 S_err_p = sq_even + S_err
