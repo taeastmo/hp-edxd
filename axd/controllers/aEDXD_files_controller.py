@@ -502,7 +502,7 @@ class aEDXDFilesController(QObject):
                 y = spectrum.y_cut
                 color = colors[tth]
                 self.display_window.all_spectra_widget.fig.add_line_plot(x,y,color,2)
-                self.display_window.all_spectra_widget.setText(tth,i)
+                self.display_window.all_spectra_widget.setText(str(tth),i)
                 #legend_labels.append(r"$2\theta$ = %(num)3.1f" %{"num" : ttharray[i]})
         
     def show_files(self):

@@ -305,7 +305,7 @@ class aEDXDController(QObject):
                     color = colors[i]
                     t = tth[i]
                     self.display_window.sq_widget.fig.add_scatter_plot(S_q[i][0],S_q[i][1],color,100)
-                    self.display_window.sq_widget.setText( str(t),i+1)
+                    #self.display_window.sq_widget.setText( str(t),i+1)
                     #plt.errorbar(S_q[i][0],S_q[i][1],yerr=S_q[i][2],fmt='.',capsize=1.0)
                 q_even = sf.out_params['q_even']
                 sq_even = sf.out_params['sq_even']

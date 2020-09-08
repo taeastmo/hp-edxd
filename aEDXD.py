@@ -50,6 +50,7 @@
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
 #   v2.0:  Author: R. Hrubiak, ANL
+#       Renamed as CAESPES: Combined Amorphous EDXD Spectra Processing Evaluation Software
 #       1. Plotting of calculated uncertainties 
 #       2. Invalid config file loading does not crash program
 #       3. Drag-drop files
@@ -80,6 +81,7 @@
 #       
 #        
 ###############################################################################
+
 
 
 from axd import main
