@@ -43,7 +43,7 @@ class primaryBeam(Calculator):
     def update(self):
         Emin = self.params['Emin']
         Emax = self.params['Emax']
-        polynomial_deg = self.params['polynomial_deg']
+        polynomial_deg = int(self.params['polynomial_deg'])
         itr_comp = int(self.params['itr_comp'])
         sq_par = self.params['sq_par']
         x = self.params['x']
@@ -69,27 +69,27 @@ class primaryBeam(Calculator):
         if model_func == stepped_polynomial:
             p_erf = [0.4, 1.0, 70] # s:scale, w: width, x0: reference
             p0 = p_erf + list(pln)
-            p = []
+            p = '['
             for i in p0:
-                i = round(i,3)
-                p.append(i)
-            self.note = str(p) + \
-                    "\nPolynomial degree = "+str(polynomial_deg) 
-            '''
-                        "\nParameters = [s, w, x0, p[0], p[1],...p[deg]] for stepped polynomial"+ \
-                        "\nFunction: y(x) = (1+s*erfc(1/w*(x-x0)))*(p[0]*x**deg+p[1]*x**deg-1+...+p[deg])"+ \
-            '''   
+                s = '%.3e'%(i)
+                p = p + s + ', '
+            p = p[:-2]+']'
+            self.note = [p, 
+            
+                        "[s, w, x<sub>0</sub>, p[0], p[1],...p[n]] for stepped polynomial",
+                        "y(x) = (1+s*erfc(1/w*(x-x<sub>0</sub>)))*(p[0]*x<sup>n</sup>+p[1]*x<sup>n-1</sup>+...+p[n])"]
+             
         elif model_func == simple_polynomial:
             p0 = list(pln)
-            p = []
+            p = '['
             for i in p0:
-                i = round(i,3)
-                p.append(i)
-            self.note = str(p) + \
-                        "\nPolynomial degree = "+str(polynomial_deg)
-            '''    "\nParameters = [p[0], p[1],...p[deg]] for 'deg'-order polynomial"+ \
-                        "\nFunction: y(x) = p[0]*x**deg+p[1]*x**deg-1+...+p[deg]"+ \
-            '''  
+                s = '%.3e'%(i)
+                p = p + s + ', '
+            p = p[:-2]+']'
+            self.note = [p, 
+            "[p[0], p[1],...p[n]] for 'n'-order polynomial",
+                        "y(x) = p[0]*x<sup>n</sup>+p[1]*x<sup>n-1</sup>+...+p[n]"]
+            
         # from I_observed = Ip(E)*(I_coh + [Ip(E')/Ip(E)]I_inc)
         # find [Ip(E')/Ip(E)] ratio iteratively:
         fs = np.ones(len(xp),dtype=float) # initial relative scale assumed one
@@ -97,18 +97,20 @@ class primaryBeam(Calculator):
         xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
         qpc = 4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
-        # start iteration
-        for itr in range(itr_comp):
-            # re-adjust the primary beam model to fit mean_fqsqure + mean_I_inc 
-            Iq_base = mean_fqsquare + fs*mean_I_inc 
-            # custom fit(func,x,y,p0,yb):
-            ypb = np.sqrt(yp) # Poisson distribution error
-            p_opt,p_stdev,p_cov,p_corp,schi2,r = \
-                            custom_fit(model_func,xp,yp/Iq_base,p0,ypb/Iq_base)
-            y_model = model_func(xp,*p_opt)*Iq_base
-            I_p = model_func(xp,*p_opt)
-            I_p_inc = model_func(xpc,*p_opt)
-            fs = I_p_inc/I_p
+        
+        # start iteration; UPDATED: iretation was replaced at some point in time by custom_fit
+        #for itr in range(itr_comp):
+        # re-adjust the primary beam model to fit mean_fqsqure + mean_I_inc 
+        Iq_base = mean_fqsquare + fs*mean_I_inc 
+        # custom fit(func,x,y,p0,yb):
+        ypb = np.sqrt(yp) # Poisson distribution error
+        p_opt,p_stdev,p_cov,p_corp,schi2,r = \
+                        custom_fit(model_func,xp,yp/Iq_base,p0,ypb/Iq_base)
+        y_model = model_func(xp,*p_opt)*Iq_base
+        I_p = model_func(xp,*p_opt)
+        I_p_inc = model_func(xpc,*p_opt)
+        fs = I_p_inc/I_p
+
         # propagate the mean residual error
         model_mre = np.sqrt(sum((yp/Iq_base - y_model/Iq_base))**2/len(yp))
         # Note that the mean residual error defined here is non-standard.
@@ -158,12 +160,9 @@ class structureFactor(Calculator):
         sq_smoothing_factor = self.params['sq_smoothing_factor']
         q_spacing = self.params['q_spacing']
 
-        '''
-        fig = plt.figure(figsize=(6,4), dpi=self.figure_dpi)
-        fig.canvas.set_window_title('S(q) Merged and Smoothened')
-        ax3 = fig.add_subplot(111)
-        '''
+      
         S_q = []
+        #tth_used = []
         for i in range(len(dataarray)):
             
             xi = []; yi = []; y_primary = []
@@ -174,9 +173,10 @@ class structureFactor(Calculator):
             Emax_indx = (np.abs(xi-Emax)).argmin() # find the nearest index to Emax
             xn = xi[Emin_indx:Emax_indx]
             yn = yi[Emin_indx:Emax_indx]
-            qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(ttharray[i]/2.0))
-            xnc = xn-2.4263e-2*(1-np.cos(np.radians(ttharray[i]/2))) # E' for Compton source
-            qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(ttharray[i]/2)) # q' for the Compton source
+            tth = ttharray[i]
+            qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
+            xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+            qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
             mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
             y_primary = model_func(xn,*p_opt)
             Iq_base = mean_fqsquare + mean_I_inc
@@ -184,8 +184,10 @@ class structureFactor(Calculator):
             sqi = (s*yn-Iq_base*y_primary)/y_primary/mean_fq**2 + 1.0
             sqi_err = s*yn/y_primary/mean_fq**2*np.sqrt(1.0/yn+(model_mre/y_primary)**2)
             S_q.append([qi,sqi,sqi_err])
+            #tth_used.append(tth)
             
         self.out_params['S_q_fragments'] = S_q = np.array(S_q)
+        #self.out_params['tth']
         
         # find consequencial scale               
         for i in range(len(S_q)):
@@ -201,13 +203,7 @@ class structureFactor(Calculator):
                 S_q[len(S_q)-2-i][1] = s*S_q[len(S_q)-2-i][1] # scale I(Q)
                 S_q[len(S_q)-2-i][2] = s*S_q[len(S_q)-2-i][2] # scale I_err(Q)
         
-        '''
-        plt.xlabel(u'q ($\u00c5^{-1}$)')
-        plt.ylabel('S(q)')
-        plt.xlim([0,S_q[-1][0][-1]+1.0])
-        plt.plot([0,S_q[-1][0][-1]+1.0],[1,1],'k-',linewidth=0.5)
-        plt.tight_layout()
-        '''
+        
         # respace and smooth the merged S(q) data using UnivariateSpine fucntion
         q_all = []; q_sort =[]
         S_q_all = []; sq_sort =[]
@@ -254,14 +250,7 @@ class structureFactor(Calculator):
                 sq_even_err.append(rmserr)
         sq_even_err = np.array(sq_even_err)    
         
-        '''
-        thinline, = plt.plot(q_even,sq_even,'k-',linewidth=0.7)
-        
-        lg = ax3.legend([thinline,],['spline-smoothened',],prop={'size':12},
-                        fancybox=True, loc=1)
-        lg.draw_frame(False)
-        plt.errorbar(q_even,sq_even,yerr=sq_even_err,fmt='k-',linewidth=0.2,capsize=0.0)
-        '''
+     
 
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
@@ -276,11 +265,14 @@ class structureFactor(Calculator):
             sq_even_err = self.out_params['sq_even_err']
             outputsavedirectory = os.path.dirname(filename)
             self.params['outputsavedirectory'] =  outputsavedirectory
-            np.savetxt(outfilename, np.transpose([q_even,sq_even,sq_even_err]))
+            np.savetxt(outfilename, np.transpose([q_even,sq_even,sq_even_err]),fmt='%.4e')
             S_q = self.out_params['S_q_fragments']
             for i in range(len(S_q)):
                 fname = os.path.join(outputsavedirectory,'S_q_'+str("%03d" % i))
-                np.savetxt(fname,np.transpose([S_q[i][0],S_q[i][1],S_q[i][2]]))
+                q = S_q[i][0]
+                sq =S_q[i][1]
+                sq_err=S_q[i][2]
+                np.savetxt(fname,np.transpose([q,sq,sq_err]),fmt='%.4e')
         except:
             print("\nThe file has not been saved!")
 
@@ -313,32 +305,13 @@ class Pdf(Calculator):
         
         
 
-        '''
-        fig = plt.figure(figsize=(5,6), dpi=self.figure_dpi)
-        fig.canvas.set_window_title('S(q) and G(r)')
-        ax1 = .add_subplot(211)
-        '''
         # restrict the qmax by the user input
         q_max_indx = np.abs(q_even - qmax).argmin()
         self.out_params['qq'] = qcalc = q_even[:q_max_indx]
         self.out_params['sq'] = sqcalc = sq_even[:q_max_indx]
         self.out_params['sq_err'] = sqcalc_err = sq_even_err[:q_max_indx]
         
-        '''
-        plt.xlim([0,qq[-1]+1.0])
-        plt.plot([0,qq[-1]+1.0],[1,1],'k-',linewidth=0.5)
-        plt.errorbar(qq,sq,yerr=sq_err,fmt='b-',linewidth=1.0,capsize=0.0)
-        plt.xlabel(u'q ($\u00c5^{-1}$)')
-        plt.ylabel('S(q)')
-        ax1.yaxis.grid(True)
-        plt.tight_layout()
-
-        # update the G(r) with resolution broadening
-        ax2 = fig.add_subplot(212)
         
-        qcalc = qq
-        sqcalc = sq
-        '''
 
         gr = []; gr_err = []
         r = np.arange(r_spacing,rmax,r_spacing) 
@@ -356,23 +329,14 @@ class Pdf(Calculator):
         gr = np.array(gr)
         gr_err = np.array(gr_err)
         
-        r_save = r
+        #r_save = r
         self.out_params['r'] = copy.copy(r)
-        gr_save = gr
+        #gr_save = gr
         self.out_params['gr'] = copy.copy(gr)
-        gr_err_save = gr_err
+        #gr_err_save = gr_err
         self.out_params['gr_err'] = copy.copy(gr_err)
         
-        '''
-        plt.xlim([0,12])
-        plt.plot([0,12],[0,0],'k-',linewidth=0.5)
-        plt.errorbar(r,gr,yerr=gr_err,fmt='b-',linewidth=0.5,capsize=0.0)
         
-        plt.xlabel(u'r ($\u00c5$)')
-        plt.ylabel('G(r)')
-        ax2.yaxis.grid(True)
-        plt.tight_layout()
-        '''
 
     def save_pdf(self, filename):
         try:
@@ -383,7 +347,7 @@ class Pdf(Calculator):
             outputsavedirectory = os.path.dirname(filename)
             self.params['outputsavedirectory'] =  outputsavedirectory
 
-            np.savetxt(outfilename, np.transpose([r_save,gr_save,gr_err_save]))
+            np.savetxt(outfilename, np.transpose([r_save,gr_save,gr_err_save]),fmt='%.4e')
         except Exception as e:
             print(e)
             print("\nThe file has not been saved!")
@@ -488,9 +452,7 @@ class PdfInverse(Calculator):
         self.out_params['gr_err_f']= gr_err
         
         
-        '''
-        ax2.plot(r[0:r_min_cut_indx],gr[0:r_min_cut_indx],'r')
-        '''
+    
 
         sq_inv = []; sq_inv_err = []
 
@@ -508,11 +470,6 @@ class PdfInverse(Calculator):
         self.out_params['sq_inv_err'] = sq_inv_err = sqcalc_err # enforce original errors
 
         
-
-        '''
-        ax1.errorbar(q_inv,sq_inv,yerr=sq_inv_err,fmt='r-',linewidth=0.2, capsize=0.0)
-        plt.tight_layout()
-        '''
         
 
     def save_sf_inverse(self, outfilename):
@@ -522,7 +479,7 @@ class PdfInverse(Calculator):
             sq_inv_err=self.out_params['sq_inv_err']
             outputsavedirectory = os.path.dirname(outfilename)
             self.params['outputsavedirectory'] =  outputsavedirectory
-            np.savetxt(outfilename, np.transpose([q_inv,sq_inv,sq_inv_err]))
+            np.savetxt(outfilename, np.transpose([q_inv,sq_inv,sq_inv_err]),fmt='%.4e')
         except Exception as e:
             print(e)
             print("\nThe file has not been saved!")

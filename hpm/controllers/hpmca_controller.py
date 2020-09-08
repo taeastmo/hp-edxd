@@ -65,6 +65,7 @@ class hpmcaController(QObject):
         self.McaFilename = None
         self.McaFileNameHolder = None
         self.McaFilename_PV = '16bmb:McaFilename'
+        self.elapsed_time_presets = ['0','1','2','30','60','120'] 
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
@@ -105,6 +106,23 @@ class hpmcaController(QObject):
         #epics related buttons:
         self.epicsBtns = [ui.btnOn,ui.btnOff,ui.btnErase]
 
+        
+        self.epicsPresets = [ui.PRTM_pv, ui.PLTM_pv]
+        self.epicsElapsedTimeBtns_PRTM = [ui.PRTM_0,
+                                          ui.PRTM_1,
+                                          ui.PRTM_2,
+                                          ui.PRTM_3,
+                                          ui.PRTM_4,
+                                          ui.PRTM_5  ]
+        self.epicsElapsedTimeBtns_PLTM = [ui.PLTM_0,
+                                          ui.PLTM_1,
+                                          ui.PLTM_2,
+                                          ui.PLTM_3,
+                                          ui.PLTM_4,
+                                          ui.PLTM_5  ]
+        self.update_elapsed_preset_btn_messages(self.elapsed_time_presets)
+        
+
         ui.radioLog.toggled.connect(self.LogScaleSet)
         ui.radioE.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioE))
         ui.radioq.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioq))
@@ -131,6 +149,8 @@ class hpmcaController(QObject):
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
         ui.actionPresets.triggered.connect(self.presets_module)
         ui.actionAbout.triggered.connect(self.about_module)
+
+        ui.baseline_subtract.clicked.connect(self.baseline_subtract_callback)
         
         ui.file_dragged_in_signal.connect(self.file_dragged_in_signal)
 
@@ -203,10 +223,14 @@ class hpmcaController(QObject):
     
 
     def initMCA(self, mcaType, det_or_file):
+        [live_btn, real_btn] = self.epicsPresets
+        epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
+        epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
         if mcaType == 'file':      
             mca = MCA()
             mca.auto_process_rois = True
             [fileout, success] = mca.read_file(file=det_or_file, netcdf=0, detector=0)
+            
             if not success:
                 return 1
             if self.mca != None:
@@ -223,6 +247,12 @@ class hpmcaController(QObject):
                 btn.setEnabled(False)
                 btn.setChecked(False)
             self.blockSignals(False)
+            live_btn.disconnect()
+            real_btn.disconnect()
+            for btn in epicsElapsedTimeBtns_PRTM:
+                btn.disconnect()
+            for btn in epicsElapsedTimeBtns_PLTM:
+                btn.disconnect()
         elif mcaType == 'epics': 
             name = ''
             
@@ -240,12 +270,26 @@ class hpmcaController(QObject):
                 self.mca.toggleEpicsWidgetsEnabled(True)
             else:
                 mca = epicsMCA(det_or_file, self.epicsBtns, self.file_options)
+                
                 if not mca.initOK:
+                    live_btn.disconnect()
+                    real_btn.disconnect()
                     return 1
+                    
+                
+
                 self.mca = mca
                 if self.epicsMCAholder != None:
                     self.epicsMCAholder.unload()
                 self.epicsMCAholder = self.mca
+            record = self.mca.name
+            live_btn.connect(record + '.PRTM')
+            real_btn.connect(record + '.PLTM')
+            for btn in epicsElapsedTimeBtns_PRTM:
+                btn.connect(record + '.PRTM')
+            for btn in epicsElapsedTimeBtns_PLTM:
+                btn.connect(record + '.PLTM')
+            
         self.mca.auto_process_rois = True
         if self.controllers_initialized:
             self.plotController.set_mca(self.mca)
@@ -256,6 +300,12 @@ class hpmcaController(QObject):
         
         return 0
 
+    def update_elapsed_preset_btn_messages(self, elapsed_presets):
+        for i, btn in enumerate(self.epicsElapsedTimeBtns_PLTM):
+            btn.setMessage(message = elapsed_presets[i])
+        for i, btn in enumerate(self.epicsElapsedTimeBtns_PRTM):
+            btn.setMessage(message = elapsed_presets[i])
+
     def initControllers(self):
         #initialize plot model
         
@@ -264,6 +314,7 @@ class hpmcaController(QObject):
         self.plotController.staticCursorMovedSignal.connect(self.mouseCursor)
         self.plotController.fastCursorMovedSignal.connect(self.mouseMoved)  
         self.plotController.selectedRoiChanged.connect(self.roi_selection_updated) 
+        self.plotController.envUpdated.connect(self.envs_updated_callback)
         
         #initialize roi controller
         self.roi_controller = self.plotController.roi_controller
@@ -339,7 +390,7 @@ class hpmcaController(QObject):
         if self.mca != None:
             filename =  save_file_dialog(self.widget, "Save spectrum file.",
                                     self.working_directories.savedata,
-                                    'Spectrum (*.hpm)', False)
+                                    'Spectrum (*.hpmca)', False)
             if filename != None:
                 if len(filename)>0:
                     self.saveFile(filename)
@@ -448,7 +499,10 @@ class hpmcaController(QObject):
         elapsed = self.mca.get_elapsed()[0]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
         self.widget.lblRealTime.setText("%0.2f" %(elapsed.real_time))
-        
+
+    def envs_updated_callback(self, envs):
+        #print(envs)
+        pass
 
     def xrf_updated(self,text):
         self.blockSignals(True)
@@ -592,7 +646,21 @@ class hpmcaController(QObject):
         pg.set_log_mode(False, mode)
         
     def LogScaleSet(self):
-        self.setPlotLogMode(self.widget.radioLog.isChecked())
+        log_scale = self.widget.radioLog.isChecked()
+        self.widget.baseline_subtract.setEnabled( log_scale==False)
+        if log_scale:
+            if self.widget.baseline_subtract.isChecked():
+                self.widget.baseline_subtract.setChecked(False)
+                self.baseline_subtract_callback()
+        self.setPlotLogMode(log_scale)
+
+    def baseline_subtract_callback(self):
+        if self.plotController != None:
+
+            baseline_state = self.widget.baseline_subtract.isChecked()
+            self.mca.baseline_state = baseline_state
+            self.plotController.updated_baseline_state()
+
         
     ########################################################################################
     ########################################################################################

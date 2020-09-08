@@ -97,9 +97,9 @@ class multiangleController(QObject):
         
         filename = save_file_dialog(
             self.widget, "Save multiangle scan settings",
-            filter='Scan settings (*.json)')
+            filter='Scan settings (*.scan);;Scan settings (*.json)')
         if filename is not '':
-            if filename.endswith('.json'):
+            if filename.endswith('.scan') or filename.endswith('.json'):
                 self.save_settings(data, filename)
 
     def ask_to_clear(self):
@@ -114,7 +114,7 @@ class multiangleController(QObject):
         filename = open_file_dialog(
             self.widget, "Load multiangle scan settings")
         if filename is not '':
-            if filename.endswith('.json'):
+            if filename.endswith('.json') or filename.endswith('.scan'):
                 settings = self.load_settings(filename)
                 self.ask_to_clear()
                 

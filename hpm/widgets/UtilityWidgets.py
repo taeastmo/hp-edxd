@@ -326,7 +326,7 @@ class ErrorMessageBox(QtWidgets.QDialog):
 
 def open_file_dialog(parent_widget, caption, directory=None, filter=None):
     filename = QtWidgets.QFileDialog.getOpenFileName(parent_widget, caption=caption,
-                                                     directory=directory,
+                                                     directory=directory, 
                                                      filter=filter)
     if isinstance(filename, tuple):  # PyQt5 returns a tuple...
         return str(filename[0])

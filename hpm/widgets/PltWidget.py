@@ -84,9 +84,20 @@ class plotWindow(QtWidgets.QWidget):
         self.plots.append(Plot)
 
         self.win.legend.addItem(self.plots[-1], '') # can display name in upper right corner in same color 
+
+    def add_fill_between_plot(self, x, curve_1, curve_2, brush=(150, 150, 150, 100)):
+        
+        c_1 = self.win.plot(x=x, y=curve_1, pen=(0,0,0,0))
+        c_2 = self.win.plot(x=x, y=curve_2, pen=(0,0,0,0))
+        self.plots.append(c_1)
+        self.plots.append(c_2)
+        self.win.legend.addItem(c_1, '')
+        self.win.legend.addItem(c_2, '')
+        self.fbi = pg.FillBetweenItem(c_1, c_2, brush)
+        self.win.addItem(self.fbi)
         
 
-    def add_scatter_plot(self, x=[],y=[],color=(100, 100, 255),opacity=100):
+    def add_scatter_plot(self, x=[],y=[],color=(200, 200, 200),opacity=100):
         sb = (color[0], color[1],color[2],opacity)
         Plot = self.win.plot(x,y, 
                                 pen=None, symbol='o', \
@@ -95,17 +106,20 @@ class plotWindow(QtWidgets.QWidget):
         self.plots.append(Plot)
          # can display name in upper right corner in same color 
         self.win.legend.addItem(self.plots[-1], '')
+        self.set_plot_label_color(color, len(self.plots)-1)
         
         
-
     def clear(self):
         n = len(self.plots)
         for i in range(n):
             self.win.legend.removeItem(self.plots[-1])
             self.win.removeItem(self.plots[-1])
             self.plots.remove(self.plots[-1])
-        
-            
+        try:
+            self.win.removeItem(self.fbi)
+            self.fbi = None
+        except:
+            pass
 
     def closeEvent(self, event):
         # Overrides close event to let controller know that widget was closed by user

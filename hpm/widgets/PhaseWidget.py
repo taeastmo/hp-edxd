@@ -361,3 +361,14 @@ class PhaseWidget(QtWidgets.QWidget):
             self.file_dragged_in.emit(fnames)
         else:
             e.ignore() 
+
+
+    def show_error_msg(self, msg):
+        msg_box = QtWidgets.QMessageBox(self)
+        msg_box.setWindowFlags(QtCore.Qt.Tool)
+        msg_box.setText(msg)
+        msg_box.setIcon(QtWidgets.QMessageBox.Critical)
+        msg_box.setWindowTitle('Error')
+        msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        msg_box.setDefaultButton(QtWidgets.QMessageBox.Ok)
+        msg_box.exec_()

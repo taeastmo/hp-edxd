@@ -29,6 +29,7 @@ import sys
 
 def run():
     QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
     app = QApplication(sys.argv)
     app.aboutToQuit.connect(app.deleteLater)
     controller = multiangleController(app,1)

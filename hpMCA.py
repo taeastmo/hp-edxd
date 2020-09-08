@@ -17,6 +17,7 @@ from hpm import main
 
 main()
 
-
-# ext2 = pg.TextItem("test", anchor=(0.5, -1.0))
-# fills = [pg.FillBetweenItem(curves[i], curves[i+1], brushes[i]) for i in range(3)]
+# TODO try smooth_bruckner for baseline subtraction
+# TODO environment_file_display
+# TODO refactor plot display synchronization
+# TODO multi detector display, optional stacked pltwidgets for each detector

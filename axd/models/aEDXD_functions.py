@@ -102,12 +102,18 @@ def I_base_calc(q,q_comp,p):
     """*par must have the following structure:
     [ Z, Atomic fraction, a1,b1,a2,b2,a3,b3,a4,b4,c, M,K,L ]
     """
+
+    
+
     s = np.array(q/4/np.pi)
     s_comp = np.array(q_comp/4/np.pi)
     mean_fqsquare = np.zeros(len(q))
     mean_fq = np.zeros(len(q))
     mean_I_inc = np.zeros(len(q))
     for i in range(len(p)):
+
+        abc = p[i][2:11]
+        
         fqi = p[i][2]*np.exp(-p[i][3]*s**2)+\
               p[i][4]*np.exp(-p[i][5]*s**2)+\
               p[i][6]*np.exp(-p[i][7]*s**2)+\
@@ -119,10 +125,45 @@ def I_base_calc(q,q_comp,p):
               p[i][4]*np.exp(-p[i][5]*s_comp**2)+\
               p[i][6]*np.exp(-p[i][7]*s_comp**2)+\
               p[i][8]*np.exp(-p[i][9]*s_comp**2)+p[i][10]
-        I_inci = p[i][0]-np.array(fqi_comp)**2/p[i][0]*\
-                 (1-p[i][11]*(np.exp(-p[i][12]*s_comp)-np.exp(-p[i][13]*s_comp)))
+
+        Z = p[i][0]
+        I_inci = np.zeros(len(q))
+        if len(p[i])> 16:
+            # ab5 contains parameters for calculating incoherent scattering in different form than legacy MKL table
+            # from Ref: H.H.M. Balyuzi, Acta Cryst. (175). A31, 600
+            ab5 = [Z, *p[i][14:24]]
+            I_inci = I_inc_new(s_comp, ab5)
+        else:
+            # 2020-09-05 added parenthesis around "p[i][0]-np.array(fqi_comp)**2/p[i][0]"
+            # since they were missing in previous versions
+            # Ref. F. Hajdu, Acta Cryst. (1971). A27, 73
+            mkl = p[i][11:14]
+            if not mkl[0] is None and not mkl[1] is None and not mkl[2] is None:
+                I_inci = (Z-np.array(fqi_comp)**2/Z)*\
+                        (1-p[i][11]*(np.exp(-p[i][12]*s_comp)-np.exp(-p[i][13]*s_comp)))
+                
         mean_I_inc += p[i][1]*I_inci
     return mean_fqsquare, mean_fq, mean_I_inc
+
+def I_inc_new(s, param):
+    """
+    s = lambda^-1 * sin(theta)
+    param must have the following structure:
+    [ Z, A1,	B1,	A2,	B2,	A3,	B3,	A4,	B4,	A5,	B5]
+    Ref: H.H.M. Balyuzi, Acta Cryst. (175). A31, 600
+    """
+    Z = param[0]
+    
+    ab = param[1:]
+    #s = np.array(q /4/np.pi)
+    mean_I_inc = Z - (ab[0]*np.exp(-ab[1]*s**2)+\
+                     ab[2]*np.exp(-ab[3]*s**2)+\
+                     ab[4]*np.exp(-ab[5]*s**2)+\
+                     ab[6]*np.exp(-ab[7]*s**2)+\
+                     ab[8]*np.exp(-ab[9]*s**2))
+
+    return mean_I_inc
+
     
 def find_Iq_scale(Iq,sq_base):
     return np.linalg.solve(Iq,sq_base)

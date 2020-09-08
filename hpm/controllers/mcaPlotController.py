@@ -29,6 +29,7 @@ class plotController(QObject):
     logScaleYUpdated = pyqtSignal(bool)
     selectedRoiChanged =pyqtSignal(str)
     dataPlotUpdated=pyqtSignal(dict)
+    envUpdated=pyqtSignal(dict)
 
     def __init__(self, plotWidget, mcaModel, mainController, horzScale='E'):
         super().__init__()
@@ -36,6 +37,7 @@ class plotController(QObject):
         self.mca = mcaModel
         self.pg = plotWidget
         self.mcaController = mainController
+        
         #initialize roi controller
         
         self.roi_controller = RoiController(self.mca, self.pg, self, self.mcaController)
@@ -48,6 +50,7 @@ class plotController(QObject):
         self.fastCursorPosition = None
         self.logMode = [False, True]
         self.data = mcaModel.data[0]
+        self.envs = []
         self.bottomLabel = ''
         self.LogClip = 0.5
         self.units =  {     'E':'KeV',
@@ -68,11 +71,25 @@ class plotController(QObject):
     def update_plot(self):
         #print(str(self.Foreground))
         m = self.mca
-        self.data =  m.get_data()[0]
+        baseline_state = self.mca.baseline_state
+        if baseline_state:
+            self.data = m.get_data()[0] -m.get_baseline()[0]
+        else:
+
+            self.data =  m.get_data()[0]
         self.calibration = m.get_calibration()[0]
         self.elapsed = m.get_elapsed()[0]
         self.name = m.get_name()
         self.roi_controller.update_rois()  #this will in turn trigger updateViews()
+        self.envs = m.get_environment()
+        envs = {}
+        for env in self.envs:
+            envs [env.description]=env.value
+        self.envUpdated.emit(envs)
+
+    def updated_baseline_state(self):
+        self.update_plot()
+        
         
     def rois_updated(self, ind, text ):
         self.roi_selection_updated(ind, text)

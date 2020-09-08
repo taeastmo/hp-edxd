@@ -14,7 +14,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 """aEDXD.py:
-   A python script program for amorphous EDXD data analysis"""
+   A GUI program for amorphous EDXD data analysis
+"""
 
 ###############################################################################
 #   v1.1.1:
@@ -41,21 +42,46 @@
 #               matplotlib 1.4.3
 #       2. Add new option to choose input file format
 #       3. Fix a but that did not sum intensities from multiple input files
-#   v2.0b:  Author: R. Hrubiak, ANL
+#   v1.9:  Author: R. Hrubiak, ANL
 #       1. Upgraded to Python 3.7
-#       2. Changed GUI to PyQt5 and pyqtgraph
+#       2. Created a GUI based on PyQt5 and pyqtgraph
 #       3. Visual peak removal via interactive plot
 #       4. Improved interpolation under removed peaks 
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
-#       7. TODO Hdf5 compatible
-#       8. TODO self consistency of S(q) check
-#       9. TODO Angle dispersive I(q) input
-#       10.TODO plot errors
-#       11. TODO in-valid config file loading crashes program
+#   v2.0:  Author: R. Hrubiak, ANL
+#       Renamed as CAESPES: Combined Amorphous EDXD Spectra Processing Evaluation Software
+#       1. Plotting of calculated uncertainties 
+#       2. Invalid config file loading does not crash program
+#       3. Drag-drop files
+#       4. Automatic loading of 2theta from file.
+#       5. Save and save-as options
+#       6. Buttons to export data
+#       7. In peak cut window only show one 2th at a time
+#       8. Undo, reset functionality
+#       9. Input/output directory saving to config file
+#       10. Warn to save on exit
+#       11. Save file-use tag
+#       12. Periodic table atom picker
+#       13. Scan sequence files automating sorting and loading 
+#       14. Peak cutting based on parametrized baseline extraction, spline still available for legacy projects
+#       15. Expanded number of available elements [H.H.M. Balyuzi, Acta Cryst. (175). A31, 600]
+#       16. TODO Mask data. Remove bad data at W edge. Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
+#       17. TODO Allow different E range for different segments 
+#       18. TODO RDF plot, with peak measurements
+#       19. TODO integrate peak editing plot view with main view
+#       20. TODO improve autonaming of exported files, export all option
+#       21. TODO improve parameter entry, e.g. density should be more intuitive or offer more options
+#       22. TODO self consistency of S(q) check
+#       23. TODO Integrate scanning data acquisition and data display
+#       24. TODO Q scale for n spectrum view
+#       25. TODO keep row selection consist when adding and deleting items from tableviews
+#       26. TODO multiple iterations of S(q) filtering
+#       27. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
 #       
 #        
 ###############################################################################
+
 
 
 from axd import main

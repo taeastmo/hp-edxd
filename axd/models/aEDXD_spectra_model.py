@@ -24,6 +24,9 @@ import os, os.path, sys, platform
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from utilities.BackgroundExtraction import extract_background
 
+from .. import data_path, output_path 
+from utilities.filt import spectra_baseline
+
 class Spectra():
 
     def __init__(self):
@@ -77,7 +80,7 @@ class Spectra():
                 print(e)
                 print("\nThe file has not been saved!")  
 
-    def load_files_from_config(self, file_groups):
+    def load_files_from_config(self, file_groups, file_uses = []):
         """ loads data into TthGroup objects
             inputs:
             config - a dict in classic aEDXD format containing 'mcadata' key wiht info about files and their 2th values:
@@ -86,39 +89,35 @@ class Spectra():
         """
         self.tth_groups = {}
         self.tth = []
-        for filegroup in file_groups:
+        
+        for i, filegroup in enumerate(file_groups):
             files = filegroup[:-1]
 
             filepahts = []
             for f in files:
                 
                 full = os.path.join(self.inputdatadirectory, f)
-                ex = os.path.isfile(full)
-                if not ex:
-                    filename = open_file_dialog(None, 
-                                "File " + full + " not found. Select new path.") 
-                    if filename:
-                        full = filename
-                        dirpath = os.path.dirname(full)
-                        self.inputdatadirectory=dirpath
-                        
-                    else:
-                        full = None
-                        break
-                if full == None:
-                    break
+              
                 filepahts.append(full)
             
-            tth = filegroup[-1]
-            self.tth.append(tth)
-            self.tth.sort()
-            if tth in self.tth_groups:
-                group = self.tth_groups[tth]
-            else:
-                group = TthGroup(tth,self.bin_size)
-                self.tth_groups[tth]= group
-            
-            group.add_files(filepahts)
+            if len(filepahts):
+                
+                tth = filegroup[-1]
+                self.tth.append(tth)
+                self.tth.sort()
+                if tth in self.tth_groups:
+                    group = self.tth_groups[tth]
+                else:
+                    group = TthGroup(tth,self.bin_size)
+                    self.tth_groups[tth]= group
+                
+                if len(file_uses)>1:
+                    uses = file_uses[i][:-1]
+                else:
+                    uses = []
+
+                group.add_files(filepahts, uses)
+           
 
     def add_files(self, tth, filenames):
         if tth in self.tth_groups:
@@ -153,7 +152,7 @@ class Spectra():
             tth  = peak['tth']
             if tth in self.tth_groups:
                 group = self.tth_groups[tth]
-                group.add_cut_roi(peak['left'],peak['right'])
+                group.add_cut_roi(peak)
 
     def get_cut_peaks(self):
         """
@@ -169,7 +168,12 @@ class Spectra():
             for r, roi in enumerate(rois):
                 left = round(roi.left, 3)
                 right = round(roi.right, 3)
-                peaks.append({'tth':t, 'left':left,'right':right})
+                peak_params = {'tth':t, 'left':left,'right':right}
+                if roi.method == 'baseline':
+                    peak_params['method'] = roi.method
+                    peak_params['wn'] = roi.wn
+                    peak_params['iterations']=roi.iterations
+                peaks.append(peak_params)
         return peaks
 
     def get_file_list(self):
@@ -187,6 +191,29 @@ class Spectra():
             for f in files:
                 base_files.append(os.path.basename(f))
             file_group = base_files + [t]
+            file_groups.append(file_group)
+        return file_groups
+
+    def get_file_use_list(self):
+        """
+        exports a classic mcadata dict item:
+        'mcadata':[['file1','file2','file3', 15.0],
+                        ['file4','file5','file6', 18.0]}
+        """
+        tth = self.tth
+        file_groups = []
+        for t in tth:
+            g = self.tth_groups[t]
+            files = list(g.files.keys())
+            use_files = []
+            for f in files:
+                fl = g.files[f]
+                if fl.use:
+                    use = 1
+                else:
+                    use = 0
+                use_files.append(use)
+            file_group = use_files + [t]
             file_groups.append(file_group)
         return file_groups
 
@@ -229,11 +256,13 @@ class TthGroup():
         
         #base = os.path.basename(filename)
 
-    def add_files(self, filenames):
-        for filename in filenames:
+    def add_files(self, filenames, uses=[]):
+        for i, filename in enumerate(filenames):
             
             energy, intensity = read_file(filename,self.mca_adc_shapingtime)
             f = FileData(energy,intensity)
+            if len(uses)== len(filenames):
+                f.use = uses[i] == 1
             self.files[filename] = f
             
         self.combine_specra()
@@ -271,8 +300,10 @@ class TthGroup():
         if len(energy):
             energy = np.mean(energy,0)
             intensity = np.sum(intensity,0)
+        
         [self._energy, self._intensity] = [energy, intensity]
         self.spectrum_raw = copy.deepcopy([energy, intensity])
+
         self.bin()
 
     def bin(self):
@@ -290,9 +321,17 @@ class TthGroup():
         self.bin_size = bsize
         self.bin()
 
-    def add_cut_roi(self, left, right):
-        
+    def add_cut_roi(self, roi_params):
+        left = roi_params['left']
+        right = roi_params['right']
         roi = ROI(left,right)
+        if 'method' in roi_params:
+            roi.method = roi_params['method']
+            if roi.method == 'baseline':
+                if 'wn' in roi_params:
+                    roi.wn = roi_params['wn']
+                if 'iterations' in roi_params:
+                    roi.iterations = roi_params['iterations']
         self.spectrum.add_roi(roi)
 
     
@@ -324,8 +363,12 @@ class Spectrum(QObject):
 
     def set_data(self, x, y):
         self.x = x
+
+        
         self.y = y
         self.y_cut = y
+
+
         
         if self.auto_process:
             self.compute_spectrum()
@@ -367,13 +410,20 @@ class Spectrum(QObject):
             #fastbin
             # this is the part that needs to be improved 
             # spline interploation will be replaced by smooth background function calculation
-            spl = interpolate.UnivariateSpline(
-                    txc,tyc,s = roi.smooth_width)
-            #,w=1/np.sqrt(tyc)
             x_interp = xb[ei-1:ef+1]
-            interp = spl(x_interp)
+            if roi.method == 'baseline':
+                wn = roi.wn
+                iterations = roi.iterations
+                interp = spectra_baseline(yb[ei-1:ef+1],wn,iterations)
+                
+                yb[ei-1:ef+1] = interp
+            elif roi.method == 'spline':
+                spl = interpolate.UnivariateSpline(
+                        txc,tyc,s = roi.smooth_width)
+                #,w=1/np.sqrt(tyc)
+                interp = spl(x_interp)
+                yb[ei-1:ef+1] = interp
             roi.peak_cutting['interp'] = [x_interp,interp]
-            yb[ei-1:ef+1] = interp
             self.y_cut = yb
 
     def find_roi_by_name(self, name):
@@ -570,8 +620,10 @@ class ROI():
         self.x_yfit = []
         self.channels = []
         self.counts = []
+        self.method = 'spline'
         self.smooth_width=40
-        self.iterations=10
+        self.iterations=50
+        self.wn = 0.2
         self.cheb_order=50
         self.peak_cutting={}
         
@@ -618,6 +670,7 @@ def read_file(filename, mca_adc_shapingtime):
         if 'LIVE_TIME:' in line: lt_ndx = lines.index(line)
         if 'CAL_OFFSET:' in line: e_offset_ndx = lines.index(line)
         if 'CAL_SLOPE:' in line: e_slope_ndx = lines.index(line)
+        if 'TWO_THETA:' in line: two_theta_ndx = lines.index(line)
         if 'DATA:' in line: 
             firstdataline_ndx = lines.index(line)+1
             break
@@ -625,6 +678,7 @@ def read_file(filename, mca_adc_shapingtime):
     live_time = float(lines[lt_ndx].split()[1])
     e_offset = float(lines[e_offset_ndx].split()[1])
     e_slope = float(lines[e_slope_ndx].split()[1])
+    two_theta = float(lines[two_theta_ndx].split()[1])
     intensityi = np.array(lines[firstdataline_ndx:],dtype=np.float)
     # correct the dead time here: 
     dead_time = real_time-live_time
@@ -634,6 +688,17 @@ def read_file(filename, mca_adc_shapingtime):
     energyi = e_offset + e_slope*np.arange(len(intensityi)) # keV
     f.close()
     return energyi, intensityi
+
+def get_tth_from_file(filename):
+    f = open(filename,'r')
+    lines = f.readlines()
+    for line in lines:
+        if 'TWO_THETA:' in line: 
+            two_theta_ndx = lines.index(line)
+            break
+    f.close()
+    two_theta = float(lines[two_theta_ndx].split()[1])
+    return two_theta
 
 def dataread(mcadata, inputdatadirectory):
     datalist=[]; tth=[]; filelist=[]

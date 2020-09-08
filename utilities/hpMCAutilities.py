@@ -316,6 +316,8 @@ def create_error_messages():
                "General error message"]           
    errors['phase'] = ["Phase read error", 
                'Could not load phase file. Please check if the format of the input file is correct.']      
+   errors['find_files'] = ["EDXD file(s) not found", 
+               'Could one or more EDXD files in location specified in the configuration file. Please locate file.'] 
    return errors
     
 def displayErrorMessage(errorKey='general'):

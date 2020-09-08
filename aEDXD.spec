@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 import sys
 sys.setrecursionlimit(5000)
 
@@ -33,7 +33,7 @@ elif _platform == "darwin":
 
 a = Analysis(['aEDXD.py'],
 
-             pathex=['/Users/ross/GitHub/hp-edxd'],
+             pathex=['/Users/hrubiak/GitHub/hp-edxd'],
 
              binaries=extra_binaries,
              datas=extra_datas,

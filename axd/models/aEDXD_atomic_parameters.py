@@ -21,17 +21,20 @@ from .. import data_path
 class aEDXDAtomicParameters():
     
     def __init__(self):
-
-
         self.MKL = read_ascii_table(os.path.join(data_path, "MKL.dat"))
-        
         self.abc = read_ascii_table(os.path.join(data_path, "ABC.dat"))
-        
+        self.ab5 = read_ascii_table(os.path.join(data_path, "AB5.dat"))
 
     def _lookup_oxidation_states_abc(self,atomic_symbol):
         atoms = self.abc['str_data'][:,:1]
         indeces = [i for i, x in enumerate(atoms) if x==atomic_symbol]
         oxidation_states = self.abc['str_data'][indeces,[1]]
+        return oxidation_states, indeces
+
+    def _lookup_oxidation_states_ab5(self,atomic_symbol):
+        atoms = self.ab5['str_data']
+        indeces = [i for i, x in enumerate(atoms) if x==atomic_symbol]
+        oxidation_states = self.ab5['str_data'][indeces]
         return oxidation_states, indeces
 
     def _lookup_oxidation_states_MKL(self,atomic_symbol):
@@ -43,8 +46,6 @@ class aEDXDAtomicParameters():
         oxidation_states = self.MKL['str_data'][indeces]
         return oxidation_states, indeces
 
-    
-
     def _get_abc(self,index):
         abc = self.abc['num_data'][[index],:][0]
         return abc
@@ -53,12 +54,24 @@ class aEDXDAtomicParameters():
         MKL = self.MKL['num_data'][[index],:][0]
         return MKL
 
+    def _get_ab5(self,index):
+        ab5 = self.ab5['num_data'][[index],:][0]
+        return ab5
+
     def get_abc_options(self,atomic_symbol):
         ox, indices = self._lookup_oxidation_states_abc(atomic_symbol)
         options = dict()
         for i, ind in enumerate(indices):
             key = ox[i].split(':')[0]
             options[key]=self._get_abc(ind)
+        return options
+
+    def get_ab5_options(self,atomic_symbol):
+        ox, indices = self._lookup_oxidation_states_ab5(atomic_symbol)
+        options = dict()
+        for i, ind in enumerate(indices):
+            key = ox[i].split(':')[0]
+            options[key]=self._get_ab5(ind)
         return options
 
     def get_MKL_options(self,atomic_symbol):
@@ -69,14 +82,20 @@ class aEDXDAtomicParameters():
         return options
 
     def lookup_atom_by_sq_par(self,sq_par):
-        atom_abc_note = None
-        atom_MKL_note = None
-        atom =None
-        abc = sq_par[2:-3]
-        mkl = sq_par[-3:]
+
+        Z = sq_par [0]
         frac = sq_par[1]
-        atoms_abc = self.abc['str_data'][:,:]
-        atoms_MKL = self.MKL['str_data'][:]
+
+
+        atom_abc_note = "_"
+        atom_MKL_note = "-"
+        atom =None
+        abc = sq_par[2:11]
+        mkl = sq_par[11:14]
+        frac = sq_par[1]
+        atoms_abc = self.abc['str_data']#[:,:]
+        atoms_MKL = self.MKL['str_data']#[:]
+        atoms_ab5 = self.ab5['str_data']
         for i, a in enumerate(self.abc['num_data']):
             if (abc==a[1:]).all():
                 atom = atoms_abc[i][0]
@@ -84,6 +103,8 @@ class aEDXDAtomicParameters():
         for i, m in enumerate(self.MKL['num_data']):
             if (mkl==m[1:-1]).all():
                 atom_MKL_note = atoms_MKL[i]
+        
+
         return  atom, atom_abc_note, atom_MKL_note, frac
         
 

@@ -25,6 +25,8 @@ from hpm.models.mcareader import McaReader
 from hpm.widgets.UtilityWidgets import xyPatternParametersDialog
 import os
 
+from utilities.filt import spectra_baseline
+
 class MCA():  # 
     
 
@@ -50,8 +52,10 @@ class MCA():  #
 
         self.max_rois = 32
         self.n_detectors = 1
-        self.nchans = 4000
+        self.nchans = 2000
         self.data = [np.zeros(self.nchans)+1]
+        self.baseline = [np.zeros(self.nchans)+1]
+        self.baseline_state = 0
         
         self.rois = [[]]
         self.auto_process_rois = True
@@ -300,12 +304,22 @@ class MCA():  #
         self.data = data
         
         
+        
         #if self.auto_process_rois :
         #    for det in self.rois:
         #        for roi in det:
         #            self.compute_roi(roi, det)
 
     ########################################################################
+
+    def get_baseline(self):
+        baselines = []
+        for d in self.data:
+            
+            baselines.append(spectra_baseline(d, 0.04, 50, method='gust'))
+            #print(d)
+        self.baselines = baselines
+        return self.baselines
 
     def get_bins(self,detector=0):
         n = len(self.data[detector])
