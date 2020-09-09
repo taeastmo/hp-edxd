@@ -42,14 +42,15 @@
 #               matplotlib 1.4.3
 #       2. Add new option to choose input file format
 #       3. Fix a but that did not sum intensities from multiple input files
-#   v1.9:  Author: R. Hrubiak, ANL
+# 
+#   0.5.0:  Author: R. Hrubiak, ANL
 #       1. Upgraded to Python 3.7
 #       2. Created a GUI based on PyQt5 and pyqtgraph
 #       3. Visual peak removal via interactive plot
 #       4. Improved interpolation under removed peaks 
 #       4. GUI options editing / operation possible without a config file
 #       6. Options/project saving  
-#   v2.0:  Author: R. Hrubiak, ANL
+#   0.6.0:  Author: R. Hrubiak, ANL
 #       Renamed as CAESPES: Combined Amorphous EDXD Spectra Processing Evaluation Software
 #       1. Plotting of calculated uncertainties 
 #       2. Invalid config file loading does not crash program
