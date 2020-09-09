@@ -3,39 +3,28 @@ import numpy as np
 import matplotlib
 from axd.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
 
-sq_par = [[
-            26.0,
-            1.0,
-            11.7695,
-            4.7611,
-            7.3573,
-            0.3072,
-            3.5222,
-            15.3535,
-            2.3045,
-            76.8805,
-            1.0369,
-            0.62157,
-            0.94225,
-            9.8927
+
+sq_par_k = [[
+
+
 ]]
+sq_par_fe= [[
+            26.0,1.0,11.7695,4.7611,7.3573,0.3072,3.5222,15.3535,2.3045,76.8805,1.0369,0.62157,0.94225,9.8927
+]]
+
+sq_par_ca = [[20,1.0,8.6266,10.4421,7.3873,0.6599,1.5899,85.7484,1.0211,178.437,1.3751,0.50934,0.9172, 14.7943]]
 
 qp = range(5000)
 
 
 qp = np.asarray(qp)/50
-qpc = qp
 
 
-mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
 
 
-par = [20,1.0,8.6266,10.4421,7.3873,0.6599,1.5899,85.7484,1.0211,178.437,1.3751,0.50934,0.9172, 14.7943]
+mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qp, sq_par_ca)
 
-'''par = [26, 2.3141, 164.1040, 3.9729, 18.2898, 9.2624, 3.5861, 7.5083, 0.5155, 2.9404, 0.0597]
 
-'''
-i_inc = I_inc_new(qp, par)
 
 ca = [
         0.018,
@@ -103,7 +92,7 @@ fe  = [ 0.012,
         24.887,
         25.31,
         25.856]
-fe = np.asarray(fe)
+
 fe_s = [0.005,
         0.01,
         0.05,
@@ -133,7 +122,8 @@ ap = aEDXDAtomicParameters()
 symbol = 'Ca'
 opt = ap.get_ab5_options(symbol)[symbol]
 print(opt)
-i_inc = I_inc_new(qp, opt)
+i_inc = I_inc_new(qp/4/np.pi, opt)
+
 
 import matplotlib.pyplot as plt
 plt.plot(qp, mean_I_inc)
