@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 qp = range(1000)
 qp = np.asarray(qp)/50
 
-elements_file='/Users/ross/GitHub/hp-edxd/utilities/elements.json'
+elements_file='utilities/elements.json'
 with open(elements_file,'r') as f:
         elements = json.loads(f.read())
 
