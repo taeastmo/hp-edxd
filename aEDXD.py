@@ -67,8 +67,8 @@
 #       13. Scan sequence files automating sorting and loading 
 #       14. Peak cutting based on parametrized baseline extraction, spline still available for legacy projects
 #       15. Expanded number of available elements [H.H.M. Balyuzi, Acta Cryst. (175). A31, 600]
-#       16. TODO spline routine from lv
-#       17. TODO Allow different E range for different segments 
+#       16. ixed I_incoherent normalization bug
+#       17. TODO spline routine from lvF
 #       18. TODO Mask data. Remove bad data at W edge. Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
 #       19. TODO integrate peak editing plot view with main view
 #       20. TODO improve autonaming of exported files, export all option
@@ -81,6 +81,7 @@
 #       27. TODO Hdf5 compatible, save datafiles in projext files, save parameters in exported files?
 #       28. TODO RDF plot, with peak measurements
 #       29. TODO reorganize abc mkl ab5 files in sane manner in jsons
+#       30. TODO Allow different E range for different segments 
 #        
 ###############################################################################
 
