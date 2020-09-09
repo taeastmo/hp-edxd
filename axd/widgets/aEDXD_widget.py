@@ -273,7 +273,7 @@ class aEDXDWidget(QMainWindow):
         
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("aEDXDWidget", "I p,eff (E)"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("aEDXDWidget", "S (q)"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("aEDXDWidget", "d (r)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), _translate("aEDXDWidget", "PDF"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_6), _translate("aEDXDWidget", "S (q) filtered"))
         #self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_7), _translate("aEDXDWidget", "t(r)"))
 
@@ -540,6 +540,23 @@ class aEDXDPDFWidget(customWidget):
         self.export_PDF_btn.setMinimumWidth(button_width)
         self.export_PDF_btn.setMaximumWidth(button_width)
         self.add_top_button_widget_item(self.export_PDF_btn)
+
+        self.pdf_type_widget = QtWidgets.QWidget()
+        self._pdf_type_widget_layout = QtWidgets.QHBoxLayout()
+        self.dr_cb = QtWidgets.QRadioButton("d(r)")
+        self.dr_cb.setChecked(True)
+        self.tr_cb = QtWidgets.QRadioButton("t(r)")
+        self.gr_cb = QtWidgets.QRadioButton("g(r)")
+        self.Gr_cb = QtWidgets.QRadioButton("G(r)")
+        self._pdf_type_widget_layout.addWidget(self.dr_cb)
+        self._pdf_type_widget_layout.addWidget(self.tr_cb)
+        self._pdf_type_widget_layout.addWidget(self.gr_cb)
+        self._pdf_type_widget_layout.addWidget(self.Gr_cb)
+        self.pdf_type_widget.setLayout(self._pdf_type_widget_layout)
+
+        self.add_top_button_widget_item(self.pdf_type_widget)
+
+
         self.add_top_button_widget_spacer()
 
 class aEDXDRDFWidget(customWidget):
