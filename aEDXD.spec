@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-__version__ = '0.6.0'
+__version__ = '0.6.1'
 import sys
 sys.setrecursionlimit(5000)
 
@@ -24,8 +24,9 @@ elif _platform == "win32" or _platform == "cygwin":
     name = "aEDXD.exe"
 elif _platform == "darwin":
     platform = "Mac"
-    extra_binaries=[ ( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' ),
-            ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
+    extra_binaries=[ 
+        #( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' )
+    # , ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
                 ]
     name = "run_aEDXD"
 
@@ -110,6 +111,13 @@ coll = COLLECT(exe,
 
 if _platform == "darwin":
     app = BUNDLE(coll,
-                 name='aEDXD_{}.app'.format(__version__)
-                 
+                 name='aEDXD_{}.app'.format(__version__),
+                 icon='axd/resources/icons/icon.icns',
+                 bundle_identifier=None,
+                 info_plist={
+                    'NSPrincipalClass': 'NSApplication',
+                    'NSAppleScriptEnabled': False,
+                    'NSHighResolutionCapable': True,
+                    'LSBackgroundOnly': False
+                    }
                  )

@@ -108,7 +108,10 @@ class aEDXDController(QObject):
         self.display_window.closeEvent = self.close_event
 
         self.model.config_file_set.connect(self.config_file_set_callback)
-
+        self.display_window.pdf_widget.dr_cb.clicked.connect(self.disp_pdf)
+        self.display_window.pdf_widget.tr_cb.clicked.connect(self.disp_pdf)
+        self.display_window.pdf_widget.gr_cb.clicked.connect(self.disp_pdf)
+        self.display_window.pdf_widget.Gr_cb.clicked.connect(self.disp_pdf)
 
 
     def config_file_set_callback(self, fname):
@@ -318,24 +321,54 @@ class aEDXDController(QObject):
                 self.display_window.sq_widget.fig.add_fill_between_plot(q_even, S_err_p, S_err_n)
                 #print(S_err)
 
-    def disp_pdf(self):
+    def tranform_pdf_to_selected_type(self, r, dr):
+        pdf_type = 0
+        if self.display_window.pdf_widget.tr_cb.isChecked():
+            pdf_type = 1
+        elif self.display_window.pdf_widget.gr_cb.isChecked():
+            pdf_type = 2
+        elif self.display_window.pdf_widget.Gr_cb.isChecked():
+            pdf_type = 3
+
+       
+        
+        if pdf_type == 1:
+            rho = self.model.params['rho']
+            pi_4_r = 4*np.pi*r*rho
+            f = dr + pi_4_r
+        elif pdf_type == 2:
+            rho = self.model.params['rho']
+            pi_4_r2 = 4*np.pi*r**2*rho
+            f = dr + pi_4_r2
+        elif pdf_type == 3:
+            rho = self.model.params['rho']
+            pi_4_r2 = 4*np.pi*r**2*rho
+            f = dr*r + pi_4_r2
+        else:
+            f = dr
+        return f
+
+
+    def disp_pdf(self, *args, **kwargs):
         #self.display_window.tabWidget.setCurrentIndex(4)
         self.display_window.pdf_widget.fig.clear()
         #self.display_window.rdf_widget.fig.clear()
         if len(self.model.ttharray):
             pdf = self.model.pdf_object
             r = pdf.out_params['r']
+
+            
+
             gr = pdf.out_params['gr'] 
             gr_err = pdf.out_params['gr_err'] 
-            #rho = self.model.params['rho']
-            #pi_4_r2 = 4*np.pi*r**2*rho
-            #rdf = gr*r + pi_4_r2
+
+            f = self.tranform_pdf_to_selected_type(r,gr)
             
-            self.display_window.pdf_widget.fig.add_line_plot(r,gr,Width=2)
+            self.display_window.pdf_widget.fig.add_line_plot(r,f,Width=2)
             #self.display_window.rdf_widget.fig.add_line_plot(r,rdf, Width=3)
             #self.display_window.rdf_widget.fig.add_line_plot(r,pi_4_r2, Width=1,color=(0,0,254))
 
-            self.display_window.pdf_widget.fig.add_fill_between_plot(r, gr-gr_err, gr+gr_err)
+            self.display_window.pdf_widget.fig.add_fill_between_plot(r, f-gr_err, f+gr_err)
 
 
             
@@ -346,7 +379,8 @@ class aEDXDController(QObject):
             sf  = self.model.pdf_inverse_object
             r = sf.out_params['r_f']
             gr = sf.out_params['gr_f']
-            self.display_window.pdf_widget.fig.add_line_plot(r,gr,color=(255,0,0),Width=1)
+            f = self.tranform_pdf_to_selected_type(r,gr)
+            self.display_window.pdf_widget.fig.add_line_plot(r,f,color=(255,0,0),Width=1)
             
             qq = sf.params['qq']
             sq = sf.params['sq']
