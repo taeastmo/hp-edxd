@@ -112,6 +112,12 @@ coll = COLLECT(exe,
 if _platform == "darwin":
     app = BUNDLE(coll,
                  name='aEDXD_{}.app'.format(__version__),
-                 icon='axd/resources/icons/icon.icns'
-                 
+                 icon='axd/resources/icons/icon.icns',
+                 bundle_identifier=None,
+                 info_plist={
+                    'NSPrincipalClass': 'NSApplication',
+                    'NSAppleScriptEnabled': False,
+                    'NSHighResolutionCapable': True,
+                    'LSBackgroundOnly': False
+                    }
                  )
