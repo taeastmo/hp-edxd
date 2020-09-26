@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-__version__ = '0.6.1'
+__version__ = '0.6.2'
 import sys, os
 
 folder = os.getcwd()
