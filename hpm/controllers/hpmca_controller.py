@@ -65,7 +65,7 @@ class hpmcaController(QObject):
         self.McaFilename = None
         self.McaFileNameHolder = None
         self.McaFilename_PV = '16bmb:McaFilename'
-        self.elapsed_time_presets = ['0','1','2','30','60','120'] 
+        self.elapsed_time_presets = ['0','2','5','30','60','120'] 
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
