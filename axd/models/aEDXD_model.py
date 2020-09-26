@@ -137,6 +137,14 @@ class aEDXD_model(QObject):
             self.params['mcadata_use'] = config_dict['mcadata_use']
         else:
             self.params['mcadata_use'] = []
+
+        if not 'E_cut' in self.params:
+            # mcadata_use parameter is treated separately to maintain backward compatibility with older aEDXD versions
+            # mcadata_use it is not a required parameter
+            self.params['E_cut'] = []
+        else:
+            if self.params['E_cut'] is None:
+                self.params['E_cut'] = []
         # flag analysis status 
         self.primary_done = False
         self.sf_normalization_done = False

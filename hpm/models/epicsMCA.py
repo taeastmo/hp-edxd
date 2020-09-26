@@ -591,6 +591,7 @@ class epicsMCA(MCA):
             start_time = time.time()
         data = self.mcaPV.get()
         nuse = self.pvs['data']['nuse'].get()
+        self.nchans = nuse
         
 
         if type(data).__name__ == 'int':   ## if MCA is erased, for some reason the pyepics returns 0 instead of an array

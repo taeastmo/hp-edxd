@@ -17,7 +17,7 @@ import os.path, os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from functools import partial
-import json
+import json, ast
 import copy
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
@@ -124,9 +124,22 @@ def readconfig(config_file):
    config_dict = {}
    try:
       with open(config_file,'r') as f:
-         config_dict = json.loads(f.read())
+         config_dict = json.loads(f.read(),)
+         f.close()
+         
    except:
+
       pass
+
+   # support for legacy config files from aEDXD 1.3 (uses single quote style)
+   if config_dict == {}:
+      
+      try:
+         with open(config_file,'r') as f:
+            config_dict = ast.literal_eval(f.read())
+            f.close()
+      except:
+         pass
    
    return config_dict 
 

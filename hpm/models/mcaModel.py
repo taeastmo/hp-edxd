@@ -52,7 +52,7 @@ class MCA():  #
 
         self.max_rois = 32
         self.n_detectors = 1
-        self.nchans = 2000
+        self.nchans = 4000
         self.data = [np.zeros(self.nchans)+1]
         self.baseline = [np.zeros(self.nchans)+1]
         self.baseline_state = 0
