@@ -735,7 +735,7 @@ class mcaFileIO():
     def __init__(self):
         pass
         
-    def read_mca_file (self, file):  #amptek type file
+    def read_mca_file (self, file, tth=15):  #amptek type file
 
         mcafile = McaReader(file)
         elapsed = McaElapsed()
@@ -755,7 +755,7 @@ class mcaFileIO():
             rois.append(roi)
         data = mcafile.get_data()
         basefile=os.path.basename(file)
-        tth = xyPatternParametersDialog.showDialog(basefile,'tth',15)
+        #tth = xyPatternParametersDialog.showDialog(basefile,'tth',15)
         calibration.two_theta= tth
         r = {}
         r['n_detectors'] = 1
