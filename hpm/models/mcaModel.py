@@ -743,7 +743,9 @@ class mcaFileIO():
         elapsed.real_time = mcafile.get_real_time()
         elapsed.start_time = mcafile.get_start_time()
         calibration = McaCalibration()
-        calibration.offset, calibration.slope = mcafile.get_calibration_function()
+        cal_func = mcafile.get_calibration_function()
+        if cal_func is not None:
+            calibration.offset, calibration.slope = cal_func
         file_rois = mcafile.get_rois()
         rois = []
         for r in file_rois:

@@ -45,8 +45,11 @@ def _str_to_array(s, sep=" "):
 
     """
     line_len = len(np.fromstring(s[:s.find('\n')], sep=sep))
-    return np.reshape(np.fromstring(s, sep=sep), (-1, line_len))
-
+    if line_len > 0:
+        ret = np.reshape(np.fromstring(s, sep=sep), (-1, line_len))
+        return ret
+    else:
+        return []
 
 class McaReader():
     """
@@ -164,7 +167,7 @@ class McaReader():
         points = self.calibration_points
         if points is None:
             # User was already warned when the object was created.
-            return np.vectorize(lambda x: x)
+            return None
         info = sys.version_info
         if info[0] == 3 and info[1] < 4 or info[0] == 2 and info[1] < 7:  # py2 < 2.7 or py3 < 3.4
             extrapolation_support = False
