@@ -2,7 +2,7 @@
 
 from sys import platform as _platform
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 import sys
 sys.setrecursionlimit(5000)
 
@@ -27,6 +27,7 @@ extra_datas = [
 
 platform = ''
 extra_binaries=[]
+folder = ''
 
 if _platform == "linux" or _platform == "linux2":
     platform = "Linux"
@@ -34,17 +35,19 @@ if _platform == "linux" or _platform == "linux2":
 elif _platform == "win32" or _platform == "cygwin":
     platform = "Win"
     name = "hpMCA.exe"
+    folder = 'C:\\Users\\hrubiak\\Documents\\GitHub\\hp-edxd'
 elif _platform == "darwin":
     platform = "Mac"
     extra_binaries=[ ( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' ),
             ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
                 ]
     name = "run_hpMCA"
+    folder = '/Users/ross/Documents/GitHub/hp-edxd'
 
 
 
 a = Analysis(['hpMCA.py'],
-             pathex=['/Users/ross/Documents/GitHub/hp-edxd'],
+             pathex=[folder],
              binaries=extra_binaries,
              datas=extra_datas,
              hiddenimports=[],
