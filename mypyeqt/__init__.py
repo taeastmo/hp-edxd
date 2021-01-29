@@ -14,27 +14,23 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Principal author: R. Hrubiak (hrubiak@anl.gov)
-# Copyright (C) 2018-2019 ANL, Lemont, USA
-
-# Reuses a lot of code from Dioptas https://github.com/Dioptas/Dioptas
+# Copyright (C) 2020 ANL, Lemont, USA
 
 
 
-__version__ = "0.6.0"
+__version__ = "0.0.1"
 
 
 
 import sys
 import os
-import time
-
 
 import PyQt5
-from PyQt5 import QtCore
 import pyqtgraph
+from PyQt5 import QtCore
+
 from PyQt5 import QtWidgets
-
-
+from PyQt5.QtWidgets import QApplication
 
 
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
@@ -46,28 +42,17 @@ style_path = os.path.join(resources_path, 'style')
 from pathlib import Path
 home_path = str(Path.home())
 
+'''
 def main():
-  
-    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
-      PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+    
+    app = QApplication(sys.argv)
 
-    if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
-        PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
-    app = QtWidgets.QApplication([])
-
-    from hpm.controllers.hpmca_controller import hpmcaController
+    from mypyeqt.StripChart import stripChart
     app.aboutToQuit.connect(app.deleteLater)
 
-    controller = hpmcaController(app)
-    controller.widget.show()
+    controller = stripChart(app)
+    #controller.showWindow()
 
-    # autoload a file, using for debugging
-    #controller.openFile(filename='resources/20181010-Au-wire-50um-15deg.hpm')
-    #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Metals/au.jcpds'])
-    #controller.phase_controller.show_view()
-    #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
-
-    return app.exec_()
-
-    
+   
+    app.exec_()
+'''

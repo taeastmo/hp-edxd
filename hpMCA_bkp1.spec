@@ -1,23 +1,24 @@
 # -*- mode: python ; coding: utf-8 -*-
-__version__ = '0.5.0'
-import sys
-sys.setrecursionlimit(5000)
 
+from sys import platform as _platform
+
+__version__ = '0.6.0'
 import sys
 sys.setrecursionlimit(5000)
-__version__ = '0.5.0'
-from sys import platform as _platform
 
 
 block_cipher = None
+from sys import platform as _platform
 
 import epics
 epics_path = os.path.dirname(epics.__file__)
 
-
 import burnman
 burnman_path = os.path.dirname(burnman.__file__)
 
+
+import epics
+epics_path = os.path.dirname(epics.__file__)
 
 extra_datas = [
     ("hpm/resources", "hpm/resources"),
@@ -26,6 +27,7 @@ extra_datas = [
 
 platform = ''
 extra_binaries=[]
+folder = ''
 
 if _platform == "linux" or _platform == "linux2":
     platform = "Linux"
@@ -33,20 +35,29 @@ if _platform == "linux" or _platform == "linux2":
 elif _platform == "win32" or _platform == "cygwin":
     platform = "Win"
     name = "hpMCA.exe"
+    folders = ['C:\\Users\\hrubiak\\Documents\\GitHub\\hp-edxd']
 elif _platform == "darwin":
     platform = "Mac"
     extra_binaries=[ ( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' ),
             ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
                 ]
     name = "run_hpMCA"
+    folders = ['/Users/hrubiak/Documents/GitHub/hp-edxd']
 
 
 
 a = Analysis(['hpMCA.py'],
-             pathex=['/Users/ross/Documents/GitHub/hp-edxd'],
+             pathex=folders,
              binaries=extra_binaries,
              datas=extra_datas,
-             hiddenimports=[],
+             hiddenimports=['pyeqt',
+                            'pyeqt.pvWidgets',
+                            'pyeqt.pvWidgets.pvQDoubleSpinBox', 
+                            'pyeqt.pvWidgets.pvQLineEdit', 
+                            'pyeqt.pvWidgets.pvQLabel', 
+                            'pyeqt.pvWidgets.pvQMessageButton', 
+                            'pyeqt.pvWidgets.pvQOZButton'
+                            ],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
@@ -93,14 +104,16 @@ exclude_datas = [
 for exclude_data in exclude_datas:
     a.datas = [x for x in a.datas if exclude_data not in x[0]]
 
+from hpm import __version__
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+
 exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='hpMCA',
+          name='hpMCA_run',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -113,10 +126,19 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='hpMCA')
+
+               name='hpMCA_run')
+
 
 if _platform == "darwin":
     app = BUNDLE(coll,
-                 name='hpMCA_{}.app'.format(__version__)
+                 name='hpMCA_{}.app'.format(__version__),
+                 bundle_identifier=None,
+                 info_plist={
+                    'NSPrincipalClass': 'NSApplication',
+                    'NSAppleScriptEnabled': False,
+                    'NSHighResolutionCapable': True,
+                    'LSBackgroundOnly': False
+                    }
                  
                  )
