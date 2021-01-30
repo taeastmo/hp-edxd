@@ -73,6 +73,8 @@ class hpmcaController(QObject):
         
         self.working_directories = mcaUtil.restore_folder_settings('hpMCA_folder_settings.json')
         self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
+        self.defaults_options = mcaUtil.restore_defaults_settings('hpMCA_defaults.json')
+        
         self.presets = mcaUtil.mcaDisplay_presets() 
         self.last_saved = ''
         
@@ -345,9 +347,13 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
+    
+
     def openDetector(self):
         # initialize epics mca
-        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text='16bmb:aim_adc1')
+        detector = self.defaults_options.detector
+        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text=detector)
+        
         if ok:
             mcaTemp = self.mca 
             status = self.initMCA('epics',text)
@@ -364,6 +370,11 @@ class hpmcaController(QObject):
                     elif acquiring == 0:
                         self.mca.acqOff()
                     self.update_titlebar()
+                    self.defaults_options.detector = text
+                    try:
+                        mcaUtil.save_defaults_settings(self.defaults_options)
+                    except:
+                        pass
             else:
                 self.mca = mcaTemp
                 mcaUtil.displayErrorMessage( 'init')

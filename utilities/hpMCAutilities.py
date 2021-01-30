@@ -261,6 +261,7 @@ def restore(file, obj):
       ok = False
       #displayErrorMessage( 'opt_read') 
 
+
    
    if ok:
       for Opt in attributes:
@@ -280,6 +281,14 @@ def restore_folder_settings(file):
    filepath = os.path.join(home_path, file)
    obj = mcaDisplay_file()
    return restore(filepath, obj)
+
+
+############################################################
+def restore_defaults_settings(file):
+   filepath = os.path.join(home_path, file)
+   obj = mcaDisplay_defaults()
+   return restore(filepath, obj)
+   
 
 ############################################################
 def save(options, file):
@@ -305,7 +314,11 @@ def save_file_settings(options, file='hpMCA_file_settings.json'):
    filepath = os.path.join(home_path, file)
    save(options, filepath)
 
+############################################################
+def save_defaults_settings(options, file='hpMCA_defaults.json'):
 
+   filepath = os.path.join(home_path, file)
+   save(options, filepath)
 
 ############################################################
 
@@ -436,6 +449,15 @@ class mcaDisplay_presets():
       self.real_time=0.0
       self.start_channel=0
       self.total_counts=0
+
+############################################################
+############################################################
+
+class mcaDisplay_defaults():
+   def __init__(self):
+
+      self.detector = '16Amptek1:mca1'
+      
 
 
 ############################################################
