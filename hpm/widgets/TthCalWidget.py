@@ -98,6 +98,19 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         self.calibration = copy.deepcopy(mca.get_calibration()[detector])   
         #self.data = copy.deepcopy(mca.get_data()[detector])
         self.jcpds_directory = jcpds_directory
+
+        self.fname_label = 'Phase file not found. For automatic calibration, please close this \nwindow and load the corresponding phase file (.jcpds) first.'
+        if len(self.roi):
+            roi = self.roi[0]
+            label = roi.label
+            temp = label.split()
+            if len(temp) >= 2:
+                file = temp[0]
+                item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
+                if item is not None:
+                    self.fname_label = 'Using phase file: ' + item['full_file']
+                
+
         self.exit_command = command
         self.nrois = len(self.roi)
         if (self.nrois < 1):
@@ -121,11 +134,15 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
 
         #### display column headings    
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)
+        self.phase_file_label = QtWidgets.QLabel(self.fname_label)
+        self.verticalLayout_4.addWidget(self.phase_file_label)
         self.groupBox = QtWidgets.QGroupBox(self)
         self.container = self.groupBox        
         self.gridLayout = QtWidgets.QGridLayout(self.container)
         self.gridLayout.setContentsMargins(7, 15, 7, 7)
         self.gridLayout.setSpacing(5)
+
+        
         
         header = {'ROI':0,'Use?':1,'Energy':2,
             'D-spacing':3,'HKL':4,f'2\N{GREEK SMALL LETTER THETA}':5, f'2\N{GREEK SMALL LETTER THETA}' + ' error':6
