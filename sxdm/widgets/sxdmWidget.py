@@ -26,7 +26,7 @@ import numpy as np
 import pyqtgraph as pg
 
 
-class sxdmWidget(QMainWindow):
+class sxdmWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -36,7 +36,7 @@ class sxdmWidget(QMainWindow):
         
     def initUI(self):
         self.setWindowTitle('SXDM')
-        self.main_widget = QtWidgets.QWidget()
+        #self.main_widget = QtWidgets.QWidget()
         self.layout = QtWidgets.QVBoxLayout()
         self.make_img_plot()
         self.layout.addWidget(self.win)
@@ -49,15 +49,15 @@ class sxdmWidget(QMainWindow):
         self.bottom_layout.addWidget(self.btn3)
         self.bottom_layout.addSpacerItem(HorizontalSpacerItem())
         self.layout.addLayout(self.bottom_layout)
-        self.main_widget.setLayout(self.layout)
-        self.setCentralWidget(self.main_widget)
+        self.setLayout(self.layout)
+        #self.setCentralWidget(self.main_widget)
 
     def set_view_range(self, left, top, right, bottom):
         self.view.setRange(QtCore.QRectF(left, top, right, bottom))
 
     def make_img_plot(self):
         ## Create window with GraphicsView widget
-        self.win = pg.GraphicsLayoutWidget(self.main_widget)
+        self.win = pg.GraphicsLayoutWidget(self)
         self.win.setWindowTitle('pyqtgraph example: ImageItem')
         self.view = self.win.addViewBox()
         ## lock the aspect ratio so pixels are always square
