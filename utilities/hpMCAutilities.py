@@ -456,7 +456,7 @@ class mcaDisplay_presets():
 class mcaDisplay_defaults():
    def __init__(self):
 
-      self.detector = '16Amptek1:mca1'
+      self.detector = '16bmb:aim_adc1'
       
 
 

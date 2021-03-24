@@ -24,10 +24,10 @@ import copy
 import time
 
 from PyQt5 import QtCore, QtWidgets
-from mypyeqt.CustomWidgets import HorizontalSpacerItem
+from pyeqt.CustomWidgets import HorizontalSpacerItem
 import pyqtgraph as pg
 
-from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQOZButton, pvQCheckBox, \
+from pyeqt.pvWidgets import pvQDoubleSpinBox, pvQOZButton, pvQCheckBox, \
                                 pvQMessageButton, pvQLineEdit, pvQLabel, pvStripChart
 
 
