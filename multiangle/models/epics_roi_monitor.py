@@ -31,7 +31,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 class epicsRoiMonitor():
 
-    def __init__(self, record_name='16BMB:aim_adc1'):
+    def __init__(self, record_name='16bmb:aim_adc1'):
         
         super().__init__()
         
