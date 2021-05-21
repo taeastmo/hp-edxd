@@ -22,6 +22,10 @@
 #        
 ###############################################################################
 
+# TODO grab current values for slits when clicking add button
+
+
+
 from multiangle.controllers.multiangle_controller import multiangleController
 from PyQt5.QtWidgets import QApplication
 from PyQt5 import QtCore
