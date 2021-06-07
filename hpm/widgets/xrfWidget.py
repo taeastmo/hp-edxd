@@ -200,7 +200,10 @@ class xrfWidget(QtWidgets.QWidget):
         rois = []
         for line in xrf:
             lbl = line
-            rois.append([xrf[line],10, lbl])
+            E = xrf[line]
+            fwhm = int(round(0.07936 * E + 4.95677))
+
+            rois.append([xrf[line],fwhm, lbl])
         self.roi_controller.addROISbyE(rois)
 
     def selection_changed(self, row, col, prev_row, prev_col):
