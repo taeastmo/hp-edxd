@@ -137,7 +137,7 @@ class epicsMCA(MCA):
                             'chas': None,
                             'dwel': None,
                             'pscl': None}}
-            self.pvs_file = {'FilePath': None,
+            self.pvs_file ={'FilePath': None,
                             'FilePath_RBV': None,
                             'FileName': None,
                             'FileName_RBV': None,
