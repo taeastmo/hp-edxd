@@ -41,10 +41,10 @@ class PhaseController(object):
     def __init__(self, plotWidget, mcaModel, plotController, roiController, directories):
         """
         :param integration_widget: Reference to an IntegrationWidget
-        :param dioptas_model: reference to DioptasModel object
+        :param mcaModel: reference to mcaModel object
 
         :type integration_widget: IntegrationWidget
-        :type dioptas_model: DioptasModel
+        
         """
 
         self.pattern = mcaModel

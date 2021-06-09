@@ -86,6 +86,7 @@ class epicsMCA(MCA):
         self.mcaRead = None
         [self.btnOn, self.btnOff, self.btnErase] = epics_buttons  
         self.record_name = record_name
+        self.record_name_file = '16bmb:mca_file'
         self.max_rois = 24           
         self.initOK = False             
         self.mcaPV = PV(self.record_name)
@@ -136,12 +137,33 @@ class epicsMCA(MCA):
                             'chas': None,
                             'dwel': None,
                             'pscl': None}}
-            
+            self.pvs_file = {'FilePath': None,
+                            'FilePath_RBV': None,
+                            'FileName': None,
+                            'FileName_RBV': None,
+                            'FullFileName_RBV': None,
+                            'FileTemplate': None,
+                            'FileTemplate_RBV': None,
+                            'WriteMessage': None,
+                            'FileNumber': None,
+                            'FileNumber_RBV': None,
+                            'AutoIncrement': None,
+                            'AutoIncrement_RBV': None,
+                            'WriteStatus': None,
+                            'FilePathExists_RBV': None,
+                            'AutoSave': None,
+                            'AutoSave_RBV': None,
+                            'WriteFile': None,
+                            'WriteFile_RBV': None}
 
             for group in self.pvs.keys():
                 for pv in self.pvs[group].keys():
                     name = self.record_name + '.' + pv.upper()
                     self.pvs[group][pv] = PV(name)
+            for pv_file in self.pvs_file.keys():
+                name = self.record_name_file + ':' + pv_file
+                self.pvs[pv_file] = PV(name)
+            
                     
             self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
 
@@ -727,19 +749,12 @@ class epicsMCA(MCA):
                 The name of the file to write the mca to.
         """
         
-        try:
-
-            super().write_file( file, netcdf)
-            #self.current_file = file
-            #next_file = self.increment_filename(self.name)
+        [file, ok] = super().write_file( file, netcdf)
             
-            # Reset the client wait flag in case it is set.  It may not exist.
-            #if (self.pvs['acquire']['client_wait'] is not None):
-            #    self.pvs['acquire']['client_wait'].put(0) 
+        if ok:
             self.last_saved = copy.copy(self.elapsed[0].start_time)
-        except:
-            return [file, False]
-        return [file, True]
+        
+        return [file, ok]
         
 
    ############################################################################
