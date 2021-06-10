@@ -137,6 +137,14 @@ class epicsMCA(MCA):
                             'chas': None,
                             'dwel': None,
                             'pscl': None}}
+            
+
+            for group in self.pvs.keys():
+                for pv in self.pvs[group].keys():
+                    name = self.record_name + '.' + pv.upper()
+                    self.pvs[group][pv] = PV(name)
+
+
             self.pvs_file ={'FilePath': None,
                             'FilePath_RBV': None,
                             'FileName': None,
@@ -155,14 +163,9 @@ class epicsMCA(MCA):
                             'AutoSave_RBV': None,
                             'WriteFile': None,
                             'WriteFile_RBV': None}
-
-            for group in self.pvs.keys():
-                for pv in self.pvs[group].keys():
-                    name = self.record_name + '.' + pv.upper()
-                    self.pvs[group][pv] = PV(name)
             for pv_file in self.pvs_file.keys():
                 name = self.record_name_file + ':' + pv_file
-                self.pvs[pv_file] = PV(name)
+                self.pvs_file[pv_file] = PV(name)
             
                     
             self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
@@ -231,6 +234,7 @@ class epicsMCA(MCA):
                 print("init --- %s seconds ---" % (time.time() - start_time))
 
             self.end_time = ''
+
             self.initOK = True
 
     def unload(self):
@@ -753,7 +757,11 @@ class epicsMCA(MCA):
             
         if ok:
             self.last_saved = copy.copy(self.elapsed[0].start_time)
-        
+            
+            try:
+                self.pvs_file['FullFileName_RBV'].put(file[-39:])
+            except:
+                pass
         return [file, ok]
         
 
@@ -784,7 +792,7 @@ class custom_signal(QtCore.QObject):
                 elapsed_since_last_emit = -1
             self.emitted_timestamp = time.time()
             if elapsed_since_last_emit >= 0 and elapsed_since_last_emit < self.debounce_time:
-                #print('de-bounced')
+                #print('signal skipped')
                 pass
             else:
                 self.signal.emit()

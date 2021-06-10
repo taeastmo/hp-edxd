@@ -25,6 +25,7 @@ from epics.clibs import *  # makes sure dlls are included in the exe
 from hpm.models.mcaModel import MCA
 from hpm.models.epicsMCA import epicsMCA
 
+
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from hpm.widgets.eCalWidget import mcaCalibrateEnergy
 from hpm.widgets.TthCalWidget import mcaCalibrate2theta
@@ -233,7 +234,7 @@ class hpmcaController(QObject):
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
                     
-                    self.McaFileNameHolder = self.file_save_controller.McaFilename
+                    self.file_save_controller.McaFileNameHolder = self.file_save_controller.McaFilename
                     self.epicsMCAholder = self.mca
             self.file_save_controller.McaFilename = None        
             self.mca = mca
@@ -253,8 +254,8 @@ class hpmcaController(QObject):
             
             if self.epicsMCAholder is not None:
                 name = self.epicsMCAholder.name
-            if self.McaFileNameHolder is not None:
-                self.file_save_controller.McaFilename = self.McaFileNameHolder
+            if self.file_save_controller.McaFileNameHolder is not None:
+                self.file_save_controller.McaFilename = self.file_save_controller.McaFileNameHolder
           
             if name == det_or_file :
                 self.mca = self.epicsMCAholder

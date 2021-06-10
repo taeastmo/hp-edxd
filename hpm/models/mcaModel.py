@@ -27,11 +27,13 @@ import os
 
 from utilities.filt import spectra_baseline
 
+from epics import caput, caget, PV
+
 class MCA():  # 
     
 
     """ Device-independent MultiChannel Analyzer (MCA) class """
-    def __init__(self, file=None, file_settings = None, **filekw):
+    def __init__(self, file=None, file_settings = None, *args, **filekw):
         """
         Creates new Mca object.  The data are initially all zeros, and the number
         of channels is 4000.
@@ -67,6 +69,8 @@ class MCA():  #
         #if (file != None):
         #    self.read_file(file, **filekw)
         self.fileIO = mcaFileIO()
+
+        
 
     ########################################################################
     def get_calibration(self):
@@ -531,7 +535,8 @@ class MCA():  #
         presets = self.get_presets()
         rois = self.get_rois()
         environment = self.get_environment()
-        # the following is used for de-bouncing the auto-save when-acquisition-stops 
+        # the following is used for de-bouncing the auto-save when-acquisition-stops
+        # there was an issue that files would be written in duplicates becasue of multiple stops issued by epicsMCA
         if self.file_saved_timestamp is not None:
             elapsed_since_last_save = time.time() - self.file_saved_timestamp
             #print ('elapsed_since_last_save: '+ str(elapsed_since_last_save))
@@ -539,7 +544,7 @@ class MCA():  #
             elapsed_since_last_save = 1
         self.file_saved_timestamp = time.time()
         if elapsed_since_last_save < 0.2:
-            #print('autosave de-bounced')
+            #print('autosave skipped')
             return [file, False]
 
         if (netcdf != 0):
@@ -549,8 +554,11 @@ class MCA():  #
             try:
                 self.fileIO.write_ascii_file(file, data, calibration, elapsed, presets, rois, environment)
                 self.file_name=file
+                
             except:
                 return [file, False]
+
+        
         return [file, True]
 
     
