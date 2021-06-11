@@ -175,7 +175,15 @@ class epicsMCA(MCA):
                             'WriteFile_RBV': None}'''
 
             # filenames are written by hpMCA to this PV to be grabbed by an external data logger.
-
+            ''' EPICS record should be created as follows:
+                record(waveform,"16bmb:mca_file:FullFileName_RBV"){
+                    field(DESC,"FullFileName")
+                    field(DTYP,"Soft Channel")
+                    field(DESC,"file name")
+                    field(NELM,"256")
+                    field(FTVL,"CHAR")
+                } 
+            '''
             self.pvs_file = {}
             if record_name_file != None:
                 self.pvs_file ={
