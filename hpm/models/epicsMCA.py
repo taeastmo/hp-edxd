@@ -48,12 +48,16 @@ class epicsMCA(MCA):
     """
     Creates a new epicsMca.
 
-    Inputs:
+    Keywords:
         record_Name:
         The name of the EPICS MCA record for the MCA object being created, without
         a trailing period or field name.
+        epics_buttons:
+
+        file_options:
+
+        record_name_file:
         
-    Keywords:
         environment_file:
         This keyword can be used to specify the name of a file which
         contains the names of EPICS process variables which should be saved
@@ -73,11 +77,17 @@ class epicsMCA(MCA):
     >>> mca = epicsMca('13IDC:mca1')
     >>> print mca.data
     """
-    def __init__(self, record_name='16bmb:aim_adc1', epics_buttons=[], file_options=None, environment_file=None):
+    def __init__(self, *args,  **kwargs):
         
         super().__init__()
         
         #self.file_settings = file_settings
+        record_name = kwargs['record_name']
+        epics_buttons = kwargs['epics_buttons']
+        file_options  = kwargs['file_options']
+        environment_file  = kwargs['environment_file']
+        record_name_file  = kwargs['record_name_file']
+
         self.name = record_name
         
         self.last_saved=''
@@ -86,7 +96,7 @@ class epicsMCA(MCA):
         self.mcaRead = None
         [self.btnOn, self.btnOff, self.btnErase] = epics_buttons  
         self.record_name = record_name
-        self.record_name_file = '16bmb:mca_file'
+        self.record_name_file = record_name_file
         self.max_rois = 24           
         self.initOK = False             
         self.mcaPV = PV(self.record_name)
@@ -144,8 +154,8 @@ class epicsMCA(MCA):
                     name = self.record_name + '.' + pv.upper()
                     self.pvs[group][pv] = PV(name)
 
-
-            self.pvs_file ={'FilePath': None,
+            # these may get implemented in the future to be in line with area detector file saving workflow
+            '''self.pvs_file ={'FilePath': None,
                             'FilePath_RBV': None,
                             'FileName': None,
                             'FileName_RBV': None,
@@ -162,10 +172,18 @@ class epicsMCA(MCA):
                             'AutoSave': None,
                             'AutoSave_RBV': None,
                             'WriteFile': None,
-                            'WriteFile_RBV': None}
-            for pv_file in self.pvs_file.keys():
-                name = self.record_name_file + ':' + pv_file
-                self.pvs_file[pv_file] = PV(name)
+                            'WriteFile_RBV': None}'''
+
+            # filenames are written by hpMCA to this PV to be grabbed by an external data logger.
+
+            self.pvs_file = {}
+            if record_name_file != None:
+                self.pvs_file ={
+                                'FullFileName_RBV': None
+                                }
+                for pv_file in self.pvs_file.keys():
+                    name = self.record_name_file + ':' + pv_file
+                    self.pvs_file[pv_file] = PV(name)
             
                     
             self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
@@ -192,15 +210,11 @@ class epicsMCA(MCA):
                     self.roi_data_pvs[roi][pv] = PV(name)
 
             # Construct the names of the PVs for the environment
-            '''
-            environment_file = os.getenv('MCA_ENVIRONMENT')
-            '''
-            if (environment_file == None):
-                environment_file = 'catch1d.env'
-            self.env_pvs = []    
-            self.read_environment_file(environment_file)
-            for env in self.environment:
-                self.env_pvs.append(PV(env.name))
+            self.env_pvs = [] 
+            if environment_file != None:
+                self.read_environment_file(environment_file)
+                for env in self.environment:
+                    self.env_pvs.append(PV(env.name))
 
             ## monitors for asynchronous actions
             self.read_done_monitor = epicsMonitor(self.pvs['acquire']['read'], self.handle_mca_callback, autostart=True)
@@ -218,16 +232,8 @@ class epicsMCA(MCA):
             
             # a way to send a signal to the parent controller that new data is ready
             self.dataAcquired = custom_signal(debounce_time=0.25)  
-
             
             self.acq_stopped = custom_signal(debounce_time=0.25)  
-
-            # Read all of the information from the record
-            #self.get_calibration()
-            #self.get_presets()
-            #self.get_elapsed()
-            #self.get_data()
-            #self.get_rois()
 
             self.toggleEpicsWidgetsEnabled(True)
             if self.verbose:
@@ -759,7 +765,8 @@ class epicsMCA(MCA):
             self.last_saved = copy.copy(self.elapsed[0].start_time)
             
             try:
-                self.pvs_file['FullFileName_RBV'].put(file[-39:])
+                if 'FullFileName_RBV' in self.pvs_file:
+                    self.pvs_file['FullFileName_RBV'].put(file)
             except:
                 pass
         return [file, ok]

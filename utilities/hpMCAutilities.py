@@ -457,6 +457,7 @@ class mcaDisplay_defaults():
    def __init__(self):
 
       self.detector = '16bmb:aim_adc1'
+      self.file_record = '16bmb:mca_file'
       
 
 

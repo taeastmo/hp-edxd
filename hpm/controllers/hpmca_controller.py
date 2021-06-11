@@ -261,7 +261,14 @@ class hpmcaController(QObject):
                 self.mca = self.epicsMCAholder
                 self.mca.toggleEpicsWidgetsEnabled(True)
             else:
-                mca = epicsMCA(det_or_file, self.epicsBtns, self.file_save_controller.file_options)
+                record_name_file = self.defaults_options.file_record
+                mca = epicsMCA(
+                                record_name = det_or_file, 
+                                epics_buttons = self.epicsBtns, 
+                                file_options = self.file_save_controller.file_options,
+                                environment_file = 'catch1d.env',
+                                record_name_file = record_name_file
+                                )
                 
                 if not mca.initOK:
                     live_btn.disconnect()
