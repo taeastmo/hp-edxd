@@ -363,7 +363,7 @@ class hpmcaController(QObject):
                     self.data_updated()
                     acquiring = self.mca.get_acquire_status()
                     self.mca.dataAcquired.signal.connect(self.dataReceivedEpics)
-                    self.mca.acq_stopped.signal.connect(self.acq_stopped)
+                    self.mca.acq_stopped.signal.connect(self.file_save_controller.acq_stopped)
                     if acquiring == 1:
                         self.mca.acqOn()
                     elif acquiring == 0:
