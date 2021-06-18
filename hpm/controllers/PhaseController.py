@@ -293,7 +293,7 @@ class PhaseController(object):
                 self.phase_model.set_pressure(row, float(pressure))
                 temperature = float(temperature)
 
-                if temperature is not '':
+                if temperature != '':
                     self.phase_widget.set_phase_temperature(row, temperature)
                     self.phase_model.set_temperature(row, temperature)
 

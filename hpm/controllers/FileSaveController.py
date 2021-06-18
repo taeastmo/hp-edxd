@@ -182,7 +182,7 @@ class FileSaveController(object):
                 os.path.join(self.mca_controller.working_directories .savedata,
                             img_filename + self.mca_controller.working_directories .export_ext),
                 ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
-            if filename is not '':
+            if filename != '':
                 if filename.endswith('.png'):
                     self.widget.pg.export_plot_png(filename)
                 #elif filename.endswith('.svg'):
