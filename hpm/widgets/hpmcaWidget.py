@@ -31,21 +31,7 @@ _platform = platform.system()
 
 from hpm.widgets.hpMCA_ui import Ui_hpMCA
 
-StyleSheet = '''
-#dead_time_indicator {
-    text-align: center;
-    min-height: 19px;
-    max-height: 19px;
-    border-radius: 3px;
-    background-color: #6F6F6F;
-}
-#dead_time_indicator::chunk {
-    border-radius: 3px;
-    background-color: #009688;
-    margin: 1px;
-    width: 5px; 
-}
-'''
+
 
 class hpMCAWidget(QMainWindow, Ui_hpMCA):
     file_dragged_in_signal = pyqtSignal(str)
@@ -55,7 +41,6 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         Ui_hpMCA.__init__(self)
         self.app = app
         self.setupUi(self)
-        self.dead_time_indicator.setStyleSheet(StyleSheet)
         self.add_menu_items()
         self.setAcceptDrops(True)
 

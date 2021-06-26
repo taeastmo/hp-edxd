@@ -275,11 +275,14 @@ class pvQProgressBar(QProgressBar, pvQWidget):
                                     margin: 1px;
                                     width: 5px; 
                                 }''']
+        
+
         if self.as_num:
             self.av_list = []
-
+        
         self.value = None
         QProgressBar.__init__(widget,parent = parent)
+        self.setStyleSheet(self.StyleSheet_colors[self.color])
         self.widget_type = QProgressBar
         pvQWidget.__init__(widget, pvname, autoconnect,as_string=True)
         
