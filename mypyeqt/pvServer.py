@@ -26,6 +26,7 @@ class pvServer():
             pv = self.pvs[pv_name]
         else:
             pv = PV(pv_name)
+            #print(pv.info)
             self.set_pv(pv_name, pv)
         
         return pv
@@ -35,6 +36,7 @@ class pvServer():
             monitor = self.pv_monitors[pv_name]
         else:
             pv = PV(pv_name)
+            
             self.set_pv(pv_name, pv)
             monitor = self.pv_monitors[pv_name]
         return monitor

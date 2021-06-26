@@ -87,6 +87,7 @@ class epicsMCA(MCA):
         file_options  = kwargs['file_options']
         environment_file  = kwargs['environment_file']
         record_name_file  = kwargs['record_name_file']
+        dead_time_indicator  = kwargs['dead_time_indicator']
 
         self.name = record_name
         
@@ -216,6 +217,12 @@ class epicsMCA(MCA):
                 for pv in self.roi_data_pvs[roi].keys():
                     name = self.record_name + '.' + pv.upper()
                     self.roi_data_pvs[roi][pv] = PV(name)
+
+            # set up the dead-time indicator pvWidget
+            
+            self.dt_pv = self.name + '.IDTIM'
+            dead_time_indicator.connect(self.dt_pv)
+            #print(self.dt_pv)
 
             # Construct the names of the PVs for the environment
             self.env_pvs = [] 

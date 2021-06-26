@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton
+from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton, pvQProgressBar
 from hpm.widgets.PltWidget import PltWidget
 
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
@@ -32,19 +32,25 @@ class Ui_hpMCA(object):
         self.btnOn = pvQMessageButton()
         self.btnOff = pvQMessageButton()
         self.btnErase = pvQMessageButton()
+        self.dead_time_indicator = pvQProgressBar(average=20)
+        self.dead_time_indicator.setObjectName('dead_time_indicator')
+        
 
         self.btnOn.setMaximumWidth(75)
         self.btnOff.setMaximumWidth(75)
         self.btnErase.setMaximumWidth(75)
+        self.dead_time_indicator.setMaximumWidth(75)
         
         self._groupBoxAcqLayout.addWidget(self.btnOn,0,0)
         self._groupBoxAcqLayout.addWidget(self.btnOff,0,1)
         self._groupBoxAcqLayout.addWidget(self.btnErase,1,0)
+        self._groupBoxAcqLayout.addWidget(self.dead_time_indicator,1,1)
         self.groupBoxAcq.setLayout(self._groupBoxAcqLayout)
         self.groupBoxElapsed = QtWidgets.QGroupBox()
         self._groupBoxElapsedLayout = QtWidgets.QGridLayout(self.groupBoxElapsed)
         self._groupBoxElapsedLayout.setSpacing(2)
         self._groupBoxElapsedLayout.setContentsMargins(12,12,7,7)
+        self.groupBoxAcq.setMaximumWidth(200)
 
         self.lblLiveTime_lbl = QtWidgets.QLabel(self.groupBoxElapsed)
         self.lblLiveTime_lbl.setMaximumWidth(40)

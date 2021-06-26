@@ -23,6 +23,7 @@ Modifications:
 
 */
 
+
 #mainView, #calibration_tab, #mask_tab, #integration_tab {
     background: #3C3C3C;
 	border: 5px solid transparent;

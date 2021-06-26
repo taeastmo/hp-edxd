@@ -249,6 +249,8 @@ class hpmcaController(QObject):
                 btn.disconnect()
             for btn in epicsElapsedTimeBtns_PLTM:
                 btn.disconnect()
+            self.widget.dead_time_indicator.disconnect()
+            #self.widget.dead_time_indicator.setValue(None)
         elif mcaType == 'epics': 
             name = ''
             
@@ -267,7 +269,8 @@ class hpmcaController(QObject):
                                 epics_buttons = self.epicsBtns, 
                                 file_options = self.file_save_controller.file_options,
                                 environment_file = 'catch1d.env',
-                                record_name_file = record_name_file
+                                record_name_file = record_name_file,
+                                dead_time_indicator = self.widget.dead_time_indicator
                                 )
                 
                 if not mca.initOK:
