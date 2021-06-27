@@ -307,8 +307,9 @@ class pvQProgressBar(QProgressBar, pvQWidget):
             if self. previous_color != self.color:
                 self.previous_color = self.color
                 self.setStyleSheet(self.StyleSheet_colors[self.color])
-
-        QProgressBar.setValue(widget, value)
+        old_val = QProgressBar.value(widget)
+        if old_val != value:
+            QProgressBar.setValue(widget, value)
 
     
 
