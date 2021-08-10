@@ -3,16 +3,16 @@
 from PyQt5 import uic, QtWidgets,QtCore
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 import pyqtgraph as pg
-from pyeqt.CustomWidgets import HorizontalSpacerItem, VerticalSpacerItem, FlatButton
+from mypyeqt.CustomWidgets import HorizontalSpacerItem, VerticalSpacerItem, FlatButton
 from functools import partial
 import time
 #from pyeqt.pv_model import PV
 from PyQt5.QtWidgets import QWidget, QLabel, QLineEdit, QComboBox, QDoubleSpinBox, QCheckBox, QPushButton, QAction, QProgressBar
 
-from pyeqt.pvServer import pvServer
+from mypyeqt.pvServer import pvServer
 import numpy as np
 from epics import PV, caget, caput
-from pyeqt.epicsMonitor import epicsMonitor
+from mypyeqt.epicsMonitor import epicsMonitor
 
 #from pyeqt.ImageViewWidget import ImageViewWidget
 
