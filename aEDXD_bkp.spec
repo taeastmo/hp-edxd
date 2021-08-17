@@ -34,7 +34,7 @@ elif _platform == "darwin":
 
 a = Analysis(['aEDXD.py'],
 
-             pathex=['/Users/hrubiak/GitHub/hp-edxd'],
+             pathex=['/Users/ross/GitHub/hp-edxd'],
 
              binaries=extra_binaries,
              datas=extra_datas,
@@ -98,7 +98,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
+          console=True,
+          icon='axd/resources/icons/icon.ico' )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

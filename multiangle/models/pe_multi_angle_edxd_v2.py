@@ -35,18 +35,18 @@ class MultiangleSweep(QThread):
         self.verbose = True
         self.rep = 1
         self.factor = 1
-        self.pvs = {'beamstop'          :'16BMB:Unidig2Bo0',
-                    'tth'               :'16BMB:m5',
-                    'Primary_vsize'     :'16BMB:m10',
-                    'Primary_hsize'     :'16BMB:m12',
-                    'Secondary_vsize'   :'16BMB:pm18',
-                    'Secondary_hsize'   :'16BMB:pm20',
-                    'Detector_vsize'    :'16BMB:m40',
-                    'Detector_hsize'    :'16BMB:m38',
-                    'mca_erase'         :'16BMB:aim_adc1Erase',
-                    'mca_start'         :'16BMB:aim_adc1Start',
-                    'mca_live_time'     :'16BMB:aim_adc1.ELTM',
-                    'mca_stop'          :'16BMB:aim_adc1Stop'}
+        self.pvs = {'beamstop'          :'16bmb:Unidig2Bo0',
+                    'tth'               :'16bmb:m5',
+                    'Primary_vsize'     :'16bmb:m10',
+                    'Primary_hsize'     :'16bmb:m12',
+                    'Secondary_vsize'   :'16bmb:pm18',
+                    'Secondary_hsize'   :'16bmb:pm20',
+                    'Detector_vsize'    :'16bmb:m40',
+                    'Detector_hsize'    :'16bmb:m38',
+                    'mca_erase'         :'16bmb:aim_adc1Erase',
+                    'mca_start'         :'16bmb:aim_adc1Start',
+                    'mca_live_time'     :'16bmb:aim_adc1.ELTM',
+                    'mca_stop'          :'16bmb:aim_adc1Stop'}
         
         
         self.connect_detector()
@@ -54,7 +54,7 @@ class MultiangleSweep(QThread):
         self.exp_conditions= np.array([ ])
 
     def connect_detector(self):
-        self.record_name='16BMB:aim_adc1'
+        self.record_name='16bmb:aim_adc1'
 
         # Construct the names of the PVs for the ROIs
         self.roi_def_pvs=[]

@@ -1,6 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
-__version__ = '0.6.1'
-import sys
+__version__ = '0.6.2'
+import sys, os
+
+folder = os.getcwd()
 sys.setrecursionlimit(5000)
 
 block_cipher = None
@@ -34,7 +36,7 @@ elif _platform == "darwin":
 
 a = Analysis(['aEDXD.py'],
 
-             pathex=['/Users/hrubiak/GitHub/hp-edxd'],
+             pathex=[folder],
 
              binaries=extra_binaries,
              datas=extra_datas,
@@ -61,15 +63,15 @@ a.binaries = [x for x in a.binaries if not x[0].startswith("libtk")]
 
 exclude_datas = [
     "IPython",
-#   "matplotlib",
+   "matplotlib",
 #   "mpl-data", #needs to be included
-#   "_MEI",
-#   "docutils",
-#   "pytz",
+   "_MEI",
+   "docutils",
+   "pytz",
 #   "lib",
    "include",
    "sphinx",
-#   ".py",
+   ".py",
    "tests",
    "skimage",
    "alabaster",
@@ -98,7 +100,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
+          console=True,
+          icon='axd/resources/icons/icon.ico' )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,

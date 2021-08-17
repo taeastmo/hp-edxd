@@ -41,10 +41,10 @@ class PhaseController(object):
     def __init__(self, plotWidget, mcaModel, plotController, roiController, directories):
         """
         :param integration_widget: Reference to an IntegrationWidget
-        :param dioptas_model: reference to DioptasModel object
+        :param mcaModel: reference to mcaModel object
 
         :type integration_widget: IntegrationWidget
-        :type dioptas_model: DioptasModel
+        
         """
 
         self.pattern = mcaModel
@@ -293,7 +293,7 @@ class PhaseController(object):
                 self.phase_model.set_pressure(row, float(pressure))
                 temperature = float(temperature)
 
-                if temperature is not '':
+                if temperature != '':
                     self.phase_widget.set_phase_temperature(row, temperature)
                     self.phase_model.set_temperature(row, temperature)
 

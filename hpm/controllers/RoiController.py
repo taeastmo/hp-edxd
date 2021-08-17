@@ -104,7 +104,7 @@ class RoiController(QObject):
             os.path.join(self.mcaController.working_directories.savedata,
                         img_filename + '.csv'),
             ('Comma separated values (*.csv)'))
-        if filename is not '':
+        if filename != '':
             self.mca.save_peaks_csv(filename)
 
     def show_view(self):

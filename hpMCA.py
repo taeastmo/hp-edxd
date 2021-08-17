@@ -17,6 +17,8 @@ from hpm import main
 
 main()
 
+# TODO epics PVs for application flow control
+# TODO copy functionality of area detector file save plugin
 # TODO try smooth_bruckner for baseline subtraction, save bg subtracted file
 # TODO environment_file_display
 # TODO refactor plot display synchronization

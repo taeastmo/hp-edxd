@@ -31,6 +31,8 @@ _platform = platform.system()
 
 from hpm.widgets.hpMCA_ui import Ui_hpMCA
 
+
+
 class hpMCAWidget(QMainWindow, Ui_hpMCA):
     file_dragged_in_signal = pyqtSignal(str)
     key_signal = pyqtSignal(str)

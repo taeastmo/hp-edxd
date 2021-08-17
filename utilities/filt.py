@@ -1,5 +1,5 @@
 from scipy import signal
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import copy 
 
@@ -21,8 +21,8 @@ def spectra_baseline(sig, Wn, iterations, method = 'pad'):
         less = f <= sig_work
         sig_work[less] = f[less]
     
-    f = filt_func(b, a, sig_work)
-    return f
+    # f = filt_func(b, a, sig_work)
+    return sig_work
 
 def filt_pad(padlen, b, a, sig_work ):
     return (signal.filtfilt(b, a, sig_work, padlen=padlen))

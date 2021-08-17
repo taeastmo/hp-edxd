@@ -48,12 +48,16 @@ class epicsMCA(MCA):
     """
     Creates a new epicsMca.
 
-    Inputs:
+    Keywords:
         record_Name:
         The name of the EPICS MCA record for the MCA object being created, without
         a trailing period or field name.
+        epics_buttons:
+
+        file_options:
+
+        record_name_file:
         
-    Keywords:
         environment_file:
         This keyword can be used to specify the name of a file which
         contains the names of EPICS process variables which should be saved
@@ -73,11 +77,18 @@ class epicsMCA(MCA):
     >>> mca = epicsMca('13IDC:mca1')
     >>> print mca.data
     """
-    def __init__(self, record_name='16bmb:aim_adc1', epics_buttons=[], file_options=None, environment_file=None):
+    def __init__(self, *args,  **kwargs):
         
         super().__init__()
         
         #self.file_settings = file_settings
+        record_name = kwargs['record_name']
+        epics_buttons = kwargs['epics_buttons']
+        file_options  = kwargs['file_options']
+        environment_file  = kwargs['environment_file']
+        record_name_file  = kwargs['record_name_file']
+        dead_time_indicator  = kwargs['dead_time_indicator']
+
         self.name = record_name
         
         self.last_saved=''
@@ -86,6 +97,7 @@ class epicsMCA(MCA):
         self.mcaRead = None
         [self.btnOn, self.btnOff, self.btnErase] = epics_buttons  
         self.record_name = record_name
+        self.record_name_file = record_name_file
         self.max_rois = 24           
         self.initOK = False             
         self.mcaPV = PV(self.record_name)
@@ -142,6 +154,46 @@ class epicsMCA(MCA):
                 for pv in self.pvs[group].keys():
                     name = self.record_name + '.' + pv.upper()
                     self.pvs[group][pv] = PV(name)
+
+            # these may get implemented in the future to be in line with area detector file saving workflow
+            '''self.pvs_file ={'FilePath': None,
+                            'FilePath_RBV': None,
+                            'FileName': None,
+                            'FileName_RBV': None,
+                            'FullFileName_RBV': None,
+                            'FileTemplate': None,
+                            'FileTemplate_RBV': None,
+                            'WriteMessage': None,
+                            'FileNumber': None,
+                            'FileNumber_RBV': None,
+                            'AutoIncrement': None,
+                            'AutoIncrement_RBV': None,
+                            'WriteStatus': None,
+                            'FilePathExists_RBV': None,
+                            'AutoSave': None,
+                            'AutoSave_RBV': None,
+                            'WriteFile': None,
+                            'WriteFile_RBV': None}'''
+
+            # filenames are written by hpMCA to this PV to be grabbed by an external data logger.
+            ''' EPICS record should be created as follows:
+                record(waveform,"16bmb:mca_file:FullFileName_RBV"){
+                    field(DESC,"FullFileName")
+                    field(DTYP,"Soft Channel")
+                    field(DESC,"file name")
+                    field(NELM,"256")
+                    field(FTVL,"CHAR")
+                } 
+            '''
+            self.pvs_file = {}
+            if record_name_file != None:
+                self.pvs_file ={
+                                'FullFileName_RBV': None
+                                }
+                for pv_file in self.pvs_file.keys():
+                    name = self.record_name_file + ':' + pv_file
+                    self.pvs_file[pv_file] = PV(name)
+            
                     
             self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
 
@@ -166,16 +218,18 @@ class epicsMCA(MCA):
                     name = self.record_name + '.' + pv.upper()
                     self.roi_data_pvs[roi][pv] = PV(name)
 
+            # set up the dead-time indicator pvWidget
+            
+            self.dt_pv = self.name + '.IDTIM'
+            dead_time_indicator.connect(self.dt_pv)
+            #print(self.dt_pv)
+
             # Construct the names of the PVs for the environment
-            '''
-            environment_file = os.getenv('MCA_ENVIRONMENT')
-            '''
-            if (environment_file == None):
-                environment_file = 'catch1d.env'
-            self.env_pvs = []    
-            self.read_environment_file(environment_file)
-            for env in self.environment:
-                self.env_pvs.append(PV(env.name))
+            self.env_pvs = [] 
+            if environment_file != None:
+                self.read_environment_file(environment_file)
+                for env in self.environment:
+                    self.env_pvs.append(PV(env.name))
 
             ## monitors for asynchronous actions
             self.read_done_monitor = epicsMonitor(self.pvs['acquire']['read'], self.handle_mca_callback, autostart=True)
@@ -193,22 +247,15 @@ class epicsMCA(MCA):
             
             # a way to send a signal to the parent controller that new data is ready
             self.dataAcquired = custom_signal(debounce_time=0.25)  
-
             
             self.acq_stopped = custom_signal(debounce_time=0.25)  
-
-            # Read all of the information from the record
-            #self.get_calibration()
-            #self.get_presets()
-            #self.get_elapsed()
-            #self.get_data()
-            #self.get_rois()
 
             self.toggleEpicsWidgetsEnabled(True)
             if self.verbose:
                 print("init --- %s seconds ---" % (time.time() - start_time))
 
             self.end_time = ''
+
             self.initOK = True
 
     def unload(self):
@@ -727,19 +774,17 @@ class epicsMCA(MCA):
                 The name of the file to write the mca to.
         """
         
-        try:
-
-            super().write_file( file, netcdf)
-            #self.current_file = file
-            #next_file = self.increment_filename(self.name)
+        [file, ok] = super().write_file( file, netcdf)
             
-            # Reset the client wait flag in case it is set.  It may not exist.
-            #if (self.pvs['acquire']['client_wait'] is not None):
-            #    self.pvs['acquire']['client_wait'].put(0) 
+        if ok:
             self.last_saved = copy.copy(self.elapsed[0].start_time)
-        except:
-            return [file, False]
-        return [file, True]
+            
+            try:
+                if 'FullFileName_RBV' in self.pvs_file:
+                    self.pvs_file['FullFileName_RBV'].put(file)
+            except:
+                pass
+        return [file, ok]
         
 
    ############################################################################
@@ -769,7 +814,7 @@ class custom_signal(QtCore.QObject):
                 elapsed_since_last_emit = -1
             self.emitted_timestamp = time.time()
             if elapsed_since_last_emit >= 0 and elapsed_since_last_emit < self.debounce_time:
-                #print('de-bounced')
+                #print('signal skipped')
                 pass
             else:
                 self.signal.emit()

@@ -55,6 +55,8 @@ Modifications:
           Added "Z" (formula units per unit cell) field to jcpds files, useful for converting Molar volume to volume 
           (various equation of state formulations work with molar volume). Keeping the old thermal EOS method as well for 
           backward compatibility.
+    February 5, 2021 Ross Hrubiak
+        - fixed loading of old jcpds version 1 files, which never seemed to work after the MLR version
 
 """
 import logging
@@ -328,7 +330,8 @@ class jcpds(object):
             self.params['comments'].append(line)  # Read above
             line = fp.readline()
             # Replace any commas with blanks, split at blanks
-            temp = ''.split(line.replace(',', ' ')) 
+            line = line.replace(',', ' ').replace('  ', ' ')
+            temp = line.split(' ')
             temp = list(map(float, temp[0:5]))
             # The symmetry codes are as follows:
             #   1 -- cubic

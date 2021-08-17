@@ -23,13 +23,13 @@
 
 import os
 from .. import data_path
-xrf_file = os.path.join(data_path, "xrf_peak_library.txt")
+xrf_file = os.path.join(data_path, "xrf_peak_library_g.txt")
 #import builtins as exceptions
 class XrfError(BaseException):
    def __init__(self, args=None):
       self.args=args
 
-atomic_symbols = (
+atomic_symbols = [
    'H',  'He', 'Li', 'Be', 'B',  'C',  'N',  'O',  'F',  'Ne', 'Na', 'Mg', 'Al',
    'Si', 'P',  'S',  'Cl', 'Ar', 'K',  'Ca', 'Sc', 'Ti', 'V',  'Cr', 'Mn', 'Fe',
    'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 
@@ -37,12 +37,23 @@ atomic_symbols = (
    'I',  'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm', 'Eu', 'Gd', 'Tb',
    'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf', 'Ta', 'W',  'Re', 'Os', 'Ir', 'Pt',
    'Au', 'Hg', 'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa',
-   'U',  'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm')
+   'U',  'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm']
+
+atomic_numbers = {}
+for i, a in enumerate(atomic_symbols):
+      atomic_numbers[a.upper()]=i+1
+
+atomic_symbols.append('Co57')
+atomic_symbols.append('Cd109')
+
+atomic_numbers['CO57']=27
+atomic_numbers['CD109']=48
+
 
 xrf_dict = None
 gamma_dict = None
 
-def atomic_number(symbol):
+def atomic_index(symbol):
       """
       Returns the atomic number of an element, given its atomic symbol 
   
@@ -61,6 +72,13 @@ def atomic_number(symbol):
             s = symbol.split()[0].upper()
             for i in range(len(atomic_symbols)):
                   if (s == atomic_symbols[i].upper()): return i+1
+      return None
+
+def atomic_number(symbol):
+      if len(symbol)>0:
+            s = symbol.split()[0].upper()
+            if s in atomic_numbers:
+                  return atomic_numbers[s]
       return None
 
 
@@ -144,8 +162,8 @@ def lookup_xrf_line(xrf_line):
             energy = lookup_xrf_line('Fe Ka')  ; Look up iron k-alpha line
             energy = lookup_xrf_line('Pb lb1') ; Look up lead l-beta 1 line
       """
-      nels = 100   # Number of elements in table
-      nlines = 14  # Number of x-ray lines in table
+      nels = 102   # Number of elements in table
+      nlines = 17  # Number of x-ray lines in table
       file = xrf_file
       global xrf_dict
       # The database is a dictionary in the form xrf_dict{'FE': {'KA':6.400}}

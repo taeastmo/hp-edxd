@@ -25,6 +25,7 @@ from epics.clibs import *  # makes sure dlls are included in the exe
 from hpm.models.mcaModel import MCA
 from hpm.models.epicsMCA import epicsMCA
 
+
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from hpm.widgets.eCalWidget import mcaCalibrateEnergy
 from hpm.widgets.TthCalWidget import mcaCalibrate2theta
@@ -36,6 +37,8 @@ from hpm.controllers.PhaseController import PhaseController
 from hpm.controllers.mcaPlotController import plotController
 from hpm.controllers.RoiController import RoiController
 from hpm.controllers.OverlayController import OverlayController
+
+from hpm.controllers.FileSaveController import FileSaveController
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
 #from hpm.controllers.hklGenController import hklGenController
 
@@ -58,13 +61,9 @@ class hpmcaController(QObject):
         self.style_path = style_path
         self.setStyle(self.Theme)
         self.widget = hpMCAWidget(app) 
-        self.make_prefs_menu()  # for mac
+        
         self.displayPrefs = DisplayPreferences(self.widget.pg)
 
-
-        self.McaFilename = None
-        self.McaFileNameHolder = None
-        self.McaFilename_PV = '16bmb:McaFilename'
         self.elapsed_time_presets = ['0','2','5','30','60','120'] 
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
@@ -72,7 +71,9 @@ class hpmcaController(QObject):
         self.create_connections() 
         
         self.working_directories = mcaUtil.restore_folder_settings('hpMCA_folder_settings.json')
-        self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
+        
+        self.defaults_options = mcaUtil.restore_defaults_settings('hpMCA_defaults.json')
+        
         self.presets = mcaUtil.mcaDisplay_presets() 
         self.last_saved = ''
         
@@ -87,8 +88,13 @@ class hpmcaController(QObject):
         self.fluorescence_controller = None
         self.overlay_controller = None
         self.controllers_initialized = False
-    
+
         self.unit = 'E' #default units
+
+        #initialize file saving controller
+        self.file_save_controller = FileSaveController(self)
+    
+        self.make_prefs_menu()  # for mac
         
     def create_connections(self):
         ui = self.widget
@@ -128,13 +134,9 @@ class hpmcaController(QObject):
         ui.radioq.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioq))
         ui.radioChannel.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioChannel))
         ui.radiod.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radiod))
-
-        ui.actionSave_next.setEnabled(False)
-        ui.actionSave_next.triggered.connect(lambda:self.ClickedSaveNextFile(ui.actionSave_next.text()))
         ui.actionExit.triggered.connect(self.widget.close)
-        ui.actionSave_As.triggered.connect(self.ClickedSaveFile)
-        ui.actionExport_pattern.triggered.connect(self.export_pattern)
-        ui.actionOpen_file.triggered.connect(self.openFile)
+        
+        
         ui.actionJCPDS.triggered.connect(self.jcpds_module)
         ui.actionCalibrate_energy.triggered.connect(self.calibrate_energy_module)
         ui.actionCalibrate_2theta.triggered.connect(self.calibrate_tth_module)
@@ -142,7 +144,7 @@ class hpmcaController(QObject):
         ui.actionROIs.triggered.connect(self.roi_module)
         ui.actionOverlay.triggered.connect(self.overlay_module)
         ui.actionFluor.triggered.connect(self.fluorescence_module)
-        ui.actionPreferences.triggered.connect(self.preferences_module)
+        
         ui.actionPressure.triggered.connect(self.pressure_module)
         ui.actionhklGen.triggered.connect(self.hklGen_module)
         ui.actionManualTth.triggered.connect(self.set_Tth)
@@ -152,13 +154,14 @@ class hpmcaController(QObject):
 
         ui.baseline_subtract.clicked.connect(self.baseline_subtract_callback)
         
-        ui.file_dragged_in_signal.connect(self.file_dragged_in_signal)
+        # file save/read actions moved to self.file_save_controller
 
     def make_prefs_menu(self):
         _platform = platform.system()
         if _platform == "Darwin":    # macOs has a 'special' way of handling preferences menu
+            # TODO upgrade the preferences menu
             pact = QtWidgets.QAction('Preferences', self.app)
-            pact.triggered.connect(self.preferences_module)
+            pact.triggered.connect(self.file_save_controller.preferences_module)
             pact.setMenuRole(QtWidgets.QAction.PreferencesRole)
             pmenu = QtWidgets.QMenu('Preferences')
             pmenu.addAction(pact)
@@ -175,8 +178,8 @@ class hpmcaController(QObject):
         self.msg.setStandardButtons(QMessageBox.Ok)
         self.msg.show()
 
-    def file_dragged_in_signal(self, f):
-        self.openFile(filename=f)
+    '''def file_dragged_in_signal(self, f):
+        self.openFile(filename=f)'''
 
     def key_sig_callback(self, sig):
         if sig == 'right' :
@@ -200,13 +203,6 @@ class hpmcaController(QObject):
             mca.set_calibration([calibration])
 
 
-    def preferences_module(self, *args, **kwargs):
-        [ok, file_options] = mcaUtil.mcaFilePreferences.showDialog(self.widget, self.file_options) 
-        if ok :
-            self.file_options = file_options
-            if self.mca != None:
-                self.mca.file_settings = file_options
-            mcaUtil.save_file_settings(file_options)
 
     def display_preferences_module(self, *args, **kwargs):
         self.displayPrefs.show()
@@ -238,9 +234,9 @@ class hpmcaController(QObject):
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
                     
-                    self.McaFileNameHolder = self.McaFilename
+                    self.file_save_controller.McaFileNameHolder = self.file_save_controller.McaFilename
                     self.epicsMCAholder = self.mca
-            self.McaFilename = None        
+            self.file_save_controller.McaFilename = None        
             self.mca = mca
             self.blockSignals(True)
             for btn in self.epicsBtns:
@@ -253,23 +249,29 @@ class hpmcaController(QObject):
                 btn.disconnect()
             for btn in epicsElapsedTimeBtns_PLTM:
                 btn.disconnect()
+            self.widget.dead_time_indicator.disconnect()
+            #self.widget.dead_time_indicator.setValue(None)
         elif mcaType == 'epics': 
             name = ''
             
             if self.epicsMCAholder is not None:
                 name = self.epicsMCAholder.name
-            if self.McaFileNameHolder is not None:
-                self.McaFilename = self.McaFileNameHolder
-            else:
-                try:
-                    self.McaFilename = PV(self.McaFilename_PV)
-                except:
-                    pass
+            if self.file_save_controller.McaFileNameHolder is not None:
+                self.file_save_controller.McaFilename = self.file_save_controller.McaFileNameHolder
+          
             if name == det_or_file :
                 self.mca = self.epicsMCAholder
                 self.mca.toggleEpicsWidgetsEnabled(True)
             else:
-                mca = epicsMCA(det_or_file, self.epicsBtns, self.file_options)
+                record_name_file = self.defaults_options.file_record
+                mca = epicsMCA(
+                                record_name = det_or_file, 
+                                epics_buttons = self.epicsBtns, 
+                                file_options = self.file_save_controller.file_options,
+                                environment_file = 'catch1d.env',
+                                record_name_file = record_name_file,
+                                dead_time_indicator = self.widget.dead_time_indicator
+                                )
                 
                 if not mca.initOK:
                     live_btn.disconnect()
@@ -329,6 +331,8 @@ class hpmcaController(QObject):
         self.fluorescence_controller = xrfWidget(self.widget.pg, self.plotController, self.roi_controller, self.mca)
         self.fluorescence_controller.xrf_selection_updated_signal.connect(self.xrf_updated)
 
+   
+
         #initialize hklGen controller
         #self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
         
@@ -345,9 +349,13 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
+    
+
     def openDetector(self):
         # initialize epics mca
-        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text='16bmb:aim_adc1')
+        detector = self.defaults_options.detector
+        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text=detector)
+        
         if ok:
             mcaTemp = self.mca 
             status = self.initMCA('epics',text)
@@ -358,12 +366,17 @@ class hpmcaController(QObject):
                     self.data_updated()
                     acquiring = self.mca.get_acquire_status()
                     self.mca.dataAcquired.signal.connect(self.dataReceivedEpics)
-                    self.mca.acq_stopped.signal.connect(self.acq_stopped)
+                    self.mca.acq_stopped.signal.connect(self.file_save_controller.acq_stopped)
                     if acquiring == 1:
                         self.mca.acqOn()
                     elif acquiring == 0:
                         self.mca.acqOff()
                     self.update_titlebar()
+                    self.defaults_options.detector = text
+                    try:
+                        mcaUtil.save_defaults_settings(self.defaults_options)
+                    except:
+                        pass
             else:
                 self.mca = mcaTemp
                 mcaUtil.displayErrorMessage( 'init')
@@ -371,118 +384,7 @@ class hpmcaController(QObject):
     def dataReceivedEpics(self ):
         self.data_updated()
 
-    ########################################################################################
-    ########################################################################################
-
-    def acq_stopped(self):
-        #print('stopped (acq_stopped)')
-        if self.file_options.autosave:
-            if self.mca.file_name != '':
-                new_file = increment_filename(self.mca.file_name)
-                if new_file != self.mca.file_name:
-                    self.saveFile(new_file)
-                    #print('save: ' + new_file)
-                    
-        if self.file_options.autorestart:
-            self.mca.acq_erase_start()
-
-    def ClickedSaveFile(self):  # handles Save As...
-        if self.mca != None:
-            filename =  save_file_dialog(self.widget, "Save spectrum file.",
-                                    self.working_directories.savedata,
-                                    'Spectrum (*.hpmca)', False)
-            if filename != None:
-                if len(filename)>0:
-                    self.saveFile(filename)
-
-    def ClickedSaveNextFile(self, menu_text):
-        if self.mca != None:
-            filename = menu_text.split(': ')[1]
-            filename = os.path.join(self.working_directories.savedata, filename)
-            self.saveFile(filename)
-
-    def saveFile(self, filename):
-        if self.mca != None:
-            exists = os.path.isfile(filename)
-            if not exists:
-                write = True
-            else:
-                if  os.access(filename, os.R_OK):
-                    base = os.path.basename(filename)
-                    if self.file_options.warn_overwrite:
-                        choice = QMessageBox.question(None, 'Confirm Save As',
-                                                    base+" already exists. \nDo you want to replace it?",
-                                                    QMessageBox.Yes | QMessageBox.No)
-                        write = choice == QMessageBox.Yes                              
-                    else: write = True
-                else: write = False
-            if write:
-                fileout, success = self.mca.write_file(
-                    file=filename, netcdf=0)
-                if success:
-                    #self.update_titlebar()
-                    self.update_epics_filename()
-                    
-                    self.working_directories.savedata = os.path.dirname(
-                        str(fileout))  # working directory xrd files
-                    mcaUtil.save_folder_settings(self.working_directories)
-                    new_file = increment_filename(filename)
-                    if new_file != filename:
-                        self.widget.actionSave_next.setText(
-                            'Save next: ' + os.path.basename(new_file))
-                        self.widget.actionSave_next.setEnabled(True)
-                    else:
-                        self.widget.actionSave_next.setText('Save next')
-                        self.widget.actionSave_next.setEnabled(False)
-                else:
-                    mcaUtil.displayErrorMessage('fs')
-            else:
-                mcaUtil.displayErrorMessage('fs')
-
-    def update_epics_filename(self):
-        if self.mca is not None:
-            if self.McaFilename is not None:
-                name = self.mca.get_name_base()
-                self.McaFilename.put(name)
-
-    def openFile(self, *args, **kwargs):
-        filename = kwargs.get('filename', None)
-        if filename is None:
-            filename = open_file_dialog(self.widget, "Open spectrum file.",
-                                    self.working_directories.savedata)
-        if filename != '' and filename is not None:
-            if os.path.isfile(filename):
-                if self.Foreground != 'file':
-                    success = self.initMCA('file',filename) == 0
-                else:
-                    [filename, success] = self.mca.read_file(file=filename, netcdf=0, detector=0)
-                if success:
-                    self.working_directories.savedata = os.path.dirname(str(filename)) #working directory xrd files
-                    mcaUtil.save_folder_settings(self.working_directories)
-                    # best to initialize controllers only once per session
-                    if not self.controllers_initialized:  
-                        self.initControllers()
-                    self.data_updated()
-                else:
-                    mcaUtil.displayErrorMessage( 'fr')
-            else:
-                mcaUtil.displayErrorMessage( 'fr')
-
-    def export_pattern(self):
-        if self.mca is not None:
-            img_filename, _ = os.path.splitext(os.path.basename(self.mca.file_name))
-            filename = save_file_dialog(
-                self.widget, "Save Pattern Data.",
-                os.path.join(self.working_directories.savedata,
-                            img_filename + self.working_directories.export_ext),
-                ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
-            if filename is not '':
-                if filename.endswith('.png'):
-                    self.widget.pg.export_plot_png(filename)
-                #elif filename.endswith('.svg'):
-                #    self.widget.pg.export_plot_svg(filename)
-                else:
-                    self.mca.export_pattern(filename, self.unit, self.plotController.units[self.unit])
+  
 
     ########################################################################################
     ########################################################################################

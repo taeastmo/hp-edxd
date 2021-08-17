@@ -67,7 +67,7 @@
 #       13. Scan sequence files automating sorting and loading 
 #       14. Peak cutting based on parametrized baseline extraction, spline still available for legacy projects
 #       15. Expanded number of available elements [H.H.M. Balyuzi, Acta Cryst. (175). A31, 600]
-#       16. ixed I_incoherent normalization bug
+#       16. fixed I_incoherent normalization bug
 #       17. TODO spline routine from lv, make spline behaviour sane
 #       18. TODO Mask data. Remove bad data at W edge. Optimal parameters not found when ~68 < Emax < ~72, prorgram crashes
 #       19. TODO integrate peak editing plot view with main view

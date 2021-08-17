@@ -8,7 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from pyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton
+from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton
 
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
@@ -290,7 +290,7 @@ class Ui_hpMCA(object):
         self.DisplayLayout.addLayout(self.CursorsLayout)
         self._Layout.addLayout(self.DisplayLayout)
         self.verticalLayout_4.addLayout(self._Layout)
-        hpm.setCentralWidget(self.centralwidget)
+        hpMCA.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(hpMCA)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1236, 21))
         self.menubar.setObjectName("menubar")
@@ -383,7 +383,7 @@ class Ui_hpMCA(object):
 
     def retranslateUi(self, hpMCA):
         _translate = QtCore.QCoreApplication.translate
-        hpm.setWindowTitle(_translate("hpMCA", "hpMCA"))
+        hpMCA.setWindowTitle(_translate("hpMCA", "hpMCA"))
         self.groupBoxAcq.setTitle(_translate("hpMCA", "Aquisition"))
         self.btnOn.setText(_translate("hpMCA", "On"))
         self.btnOff.setText(_translate("hpMCA", "Off"))
@@ -438,12 +438,5 @@ class Ui_hpMCA(object):
 
 from hpm.widgets.PltWidget import PltWidget
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    hpMCA = QtWidgets.QMainWindow()
-    ui = Ui_hpMCA()
-    ui.setupUi(hpMCA)
-    hpm.show()
-    sys.exit(app.exec_())
+
 

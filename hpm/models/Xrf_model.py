@@ -29,7 +29,7 @@ class atom():
                     'Ka2':True,
                     'Kb' :False,
                     'Kb1':True,
-                    'Kb2':True }
+                    'Kb2':True}
         l_lines = { 'La1':False,
                     'Lb1':False,
                     'Lb2':False,
@@ -38,6 +38,9 @@ class atom():
                     'Lg3':False,
                     'Lg4':False,
                     'Ll':False }
+        g_lines = { 'G1':True,
+                    'G2':True,
+                    'G3':True}
         self.toggles = { 'Ka':['Ka1','Ka2'],
                     'Kb':['Kb1','Kb2'],
                     'Ka1':['Ka'],
@@ -58,9 +61,16 @@ class atom():
             show = False
             self.l_selection.update({l:[e, l_lines[l] or show]})
 
+        self.g_selection = dict()
+        for g in g_lines:
+            e = Xrf.lookup_xrf_line(self.symbol + ' ' + g)
+            #if (e != 0.):
+            self.g_selection.update({g:[e, g_lines[g]]})
+
         self.all_lines = dict()
         self.all_lines.update(self.k_selection)
         self.all_lines.update(self.l_selection)
+        self.all_lines.update(self.g_selection)
         
     def k_all(self, select=False):
         for k in self.k_selection:
@@ -97,4 +107,4 @@ class atom():
         return None
 
     def get_lines (self):
-        return [self.k_selection, self.l_selection]
+        return [self.k_selection, self.l_selection, self.g_selection]

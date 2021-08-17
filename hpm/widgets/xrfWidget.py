@@ -76,6 +76,7 @@ class xrfWidget(QtWidgets.QWidget):
 
         self.k_lines_tags = ['Ka','Ka1', 'Ka2','Kb', 'Kb1', 'Kb2']
         self.l_lines_tags = ['La1', 'Lb1', 'Lb2', 'Lg1', 'Lg2', 'Lg3', 'Lg4', 'Ll']
+        self.g_lines_tags = ['G1','G2', 'G3']
 
         self.parameter_widget = QtWidgets.QWidget()
         self._parameter_layout = QtWidgets.QGridLayout()
@@ -95,6 +96,14 @@ class xrfWidget(QtWidgets.QWidget):
             l_line.toggled.connect(partial(self.cbs_changed, l_line))
             self._parameter_layout.addWidget(l_line,1, self.l_lines_tags.index(l)+2)
             self.l_cbs[l]=l_line
+
+        self.g_cbs = dict()
+        for g in self.g_lines_tags:
+            g_line = QtWidgets.QCheckBox(g)
+            g_line.setEnabled(False)
+            g_line.toggled.connect(partial(self.cbs_changed, g_line))
+            self._parameter_layout.addWidget(g_line,2, self.g_lines_tags.index(g)+2)
+            self.g_cbs[g]=g_line
         
         self.parameter_widget.setLayout(self._parameter_layout)
         self._body_layout.addWidget(self.parameter_widget, 0)
@@ -107,6 +116,7 @@ class xrfWidget(QtWidgets.QWidget):
         self.kl_cbs = dict()
         self.kl_cbs.update(self.k_cbs) 
         self.kl_cbs.update(self.l_cbs)
+        self.kl_cbs.update(self.g_cbs)
         self.xrf = []
 
         self.atoms = dict()
@@ -200,7 +210,10 @@ class xrfWidget(QtWidgets.QWidget):
         rois = []
         for line in xrf:
             lbl = line
-            rois.append([xrf[line],10, lbl])
+            E = xrf[line]
+            fwhm = int(round(0.07936 * E + 4.95677))
+
+            rois.append([xrf[line],fwhm, lbl])
         self.roi_controller.addROISbyE(rois)
 
     def selection_changed(self, row, col, prev_row, prev_col):
@@ -234,7 +247,7 @@ class xrfWidget(QtWidgets.QWidget):
 
     def search_by_symbol(self, symbol):
         
-        ind = Xrf.atomic_number(symbol)
+        ind = Xrf.atomic_index(symbol)
         if ind is not None:
             self.show_state_changed(0,True)
             self.xrf_tw.selectRow(ind-1)
@@ -335,7 +348,7 @@ class xrfWidget(QtWidgets.QWidget):
         baseline = 1
         xrf_line_items = dict() # {tag: [position, intensity, index]}
 
-        for tag in self.k_lines_tags+self.l_lines_tags:
+        for tag in self.k_lines_tags+self.l_lines_tags+self.g_lines_tags:
             xrf_line_items.update({tag:[0,1,len(positions)]}) 
             positions.append(0)
             intensities.append(1)
@@ -379,7 +392,7 @@ class xrfWidget(QtWidgets.QWidget):
             positions = []
             intensities = []
             lines = dict()
-            for tag in self.k_lines_tags+self.l_lines_tags:
+            for tag in self.k_lines_tags+self.l_lines_tags + self.g_lines_tags:
                 checked = cur_atom.is_line_checked(tag)
                 e = cur_atom.get_e(tag)
                 if checked:

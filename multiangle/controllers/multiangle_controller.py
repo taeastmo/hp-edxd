@@ -58,7 +58,7 @@ class multiangleController(QObject):
         self.create_connections()
         self.setStyle(theme)
         self.working_directories = mcaUtil.restore_folder_settings('hpMCA_folder_settings.json')
-        self.epics_roi_monitor = epicsRoiMonitor(record_name='16BMB:aim_adc1')
+        self.epics_roi_monitor = epicsRoiMonitor(record_name='16bmb:aim_adc1')
         self.widget.show()
 
     def main_widget_closed_callback(self):
