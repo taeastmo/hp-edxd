@@ -35,14 +35,14 @@ if _platform == "linux" or _platform == "linux2":
 elif _platform == "win32" or _platform == "cygwin":
     platform = "Win"
     name = "hpMCA.exe"
-    folders = ['C:\\Users\\hrubiak\\Documents\\GitHub\\hp-edxd']
+    folders = ['C:\\Users\\ross\\Documents\\GitHub\\hp-edxd']
 elif _platform == "darwin":
     platform = "Mac"
     extra_binaries=[ ( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' ),
             ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
                 ]
     name = "run_hpMCA"
-    folders = ['/Users/hrubiak/Documents/GitHub/hp-edxd']
+    folders = ['/Users/ross/Documents/GitHub/hp-edxd']
 
 excl = ['matplotlib']
 
@@ -67,7 +67,7 @@ a = Analysis(['hpMCA.py'],
              noarchive=False)
 
 # remove packages which are not needed by Dioptas
-# a.binaries = [x for x in a.binaries if not x[0].startswith("matplotlib")]
+a.binaries = [x for x in a.binaries if not x[0].startswith("matplotlib")]
 a.binaries = [x for x in a.binaries if not x[0].startswith("zmq")]
 a.binaries = [x for x in a.binaries if not x[0].startswith("IPython")]
 a.binaries = [x for x in a.binaries if not x[0].startswith("docutils")]
@@ -85,7 +85,7 @@ exclude_datas = [
    "_MEI",
    "docutils",
    "pytz",
-#   "lib",
+   "lib",
    "include",
    "sphinx",
    ".py",
