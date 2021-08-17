@@ -2,7 +2,7 @@
 
 from sys import platform as _platform
 
-__version__ = '0.6.0'
+__version__ = '0.6.1'
 import sys
 sys.setrecursionlimit(5000)
 
@@ -80,15 +80,15 @@ a.binaries = [x for x in a.binaries if not x[0].startswith("libtk")]
 
 exclude_datas = [
     "IPython",
-#   "matplotlib",
+   "matplotlib",
 #   "mpl-data", #needs to be included
-#   "_MEI",
-#   "docutils",
-#   "pytz",
+   "_MEI",
+   "docutils",
+   "pytz",
 #   "lib",
    "include",
    "sphinx",
-#   ".py",
+   ".py",
    "tests",
    "skimage",
    "alabaster",
