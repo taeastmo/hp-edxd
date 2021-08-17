@@ -104,7 +104,7 @@ exclude_datas = [
 for exclude_data in exclude_datas:
     a.datas = [x for x in a.datas if exclude_data not in x[0]]
 
-from hpm import __version__
+#from hpm import __version__
 
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
