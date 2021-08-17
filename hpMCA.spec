@@ -44,7 +44,7 @@ elif _platform == "darwin":
     name = "run_hpMCA"
     folders = ['/Users/hrubiak/Documents/GitHub/hp-edxd']
 
-
+excl = ['matplotlib']
 
 a = Analysis(['hpMCA.py'],
              pathex=folders,
@@ -60,7 +60,7 @@ a = Analysis(['hpMCA.py'],
                             ],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=excl,
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
