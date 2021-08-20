@@ -1,13 +1,15 @@
-# -*- mode: python ; coding: utf-8 -*-
-__version__ = '0.6.1'
+from sys import platform as _platform
+import os
+from distutils.sysconfig import get_python_lib
 import sys
+
 sys.setrecursionlimit(5000)
+
+folder = os.getcwd()
+site_packages_path = get_python_lib()
 
 block_cipher = None
 from sys import platform as _platform
-
-import epics
-epics_path = os.path.dirname(epics.__file__)
 
 extra_datas = [
     ("axd/resources", "axd/resources")
@@ -15,40 +17,53 @@ extra_datas = [
 
 platform = ''
 extra_binaries=[]
+folder = ''
 
 if _platform == "linux" or _platform == "linux2":
     platform = "Linux"
-    name = "run_aEDXD"
+    name = "aEDXD"
 elif _platform == "win32" or _platform == "cygwin":
     platform = "Win"
     name = "aEDXD.exe"
+ 
 elif _platform == "darwin":
     platform = "Mac"
-    extra_binaries=[ 
-        #( os.path.join(epics_path, 'clibs','darwin64','libca.dylib') , '.' )
-    # , ( os.path.join(epics_path, 'clibs','darwin64','libComPYEPICS.dylib'), '.' )
-                ]
     name = "run_aEDXD"
 
+# checking whether the platform is 64 or 32 bit
+if sys.maxsize > 2 ** 32:
+    platform += "64"
+else:
+    platform += "32"
 
+
+excl = ['matplotlib', 'PySide','PyQt4']
+
+
+print('start Analysis')
 
 a = Analysis(['aEDXD.py'],
-
-             pathex=['/Users/ross/GitHub/hp-edxd'],
-
+             pathex=[folder],
              binaries=extra_binaries,
              datas=extra_datas,
-             hiddenimports=[],
+             hiddenimports=['pyeqt',
+                            'pyeqt.pvWidgets',
+                            'pyeqt.pvWidgets.pvQDoubleSpinBox', 
+                            'pyeqt.pvWidgets.pvQLineEdit', 
+                            'pyeqt.pvWidgets.pvQLabel', 
+                            'pyeqt.pvWidgets.pvQMessageButton', 
+                            'pyeqt.pvWidgets.pvQOZButton'
+                            ],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=excl,
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
              noarchive=False)
 
 # remove packages which are not needed by Dioptas
-# a.binaries = [x for x in a.binaries if not x[0].startswith("matplotlib")]
+a.binaries = [x for x in a.binaries if not x[0].startswith("matplotlib")]
 a.binaries = [x for x in a.binaries if not x[0].startswith("zmq")]
 a.binaries = [x for x in a.binaries if not x[0].startswith("IPython")]
 a.binaries = [x for x in a.binaries if not x[0].startswith("docutils")]
@@ -61,15 +76,15 @@ a.binaries = [x for x in a.binaries if not x[0].startswith("libtk")]
 
 exclude_datas = [
     "IPython",
-#   "matplotlib",
+   "matplotlib",
 #   "mpl-data", #needs to be included
-#   "_MEI",
-#   "docutils",
-#   "pytz",
+   "_MEI",
+   "docutils",
+   "pytz",
 #   "lib",
    "include",
    "sphinx",
-#   ".py",
+   ".py",
    "tests",
    "skimage",
    "alabaster",
@@ -86,20 +101,25 @@ for exclude_data in exclude_datas:
     a.datas = [x for x in a.datas if exclude_data not in x[0]]
 
 
+
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+
+
+from axd import __version__
+print('version ' + __version__)
 
 exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='aEDXD_run',
+          name=name,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           console=True,
-          icon='axd/resources/icons/icon.ico' )
+          icon='axd/resources/icons/icon.ico'  )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -107,7 +127,8 @@ coll = COLLECT(exe,
                strip=False,
                upx=True,
                upx_exclude=[],
-               name='aEDXD_run')
+
+               name='aEDXD_{}_{}'.format(platform, __version__))
 
 
 if _platform == "darwin":
@@ -121,4 +142,5 @@ if _platform == "darwin":
                     'NSHighResolutionCapable': True,
                     'LSBackgroundOnly': False
                     }
+                 
                  )
