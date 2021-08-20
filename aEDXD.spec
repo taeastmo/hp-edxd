@@ -118,7 +118,8 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True )
+          console=True,
+          icon='axd/resources/icons/icon.ico'  )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -133,6 +134,7 @@ coll = COLLECT(exe,
 if _platform == "darwin":
     app = BUNDLE(coll,
                  name='aEDXD_{}.app'.format(__version__),
+                 icon='axd/resources/icons/icon.icns',
                  bundle_identifier=None,
                  info_plist={
                     'NSPrincipalClass': 'NSApplication',
