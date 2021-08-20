@@ -70,6 +70,9 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
 
 ####  Start peak parameters widget
 
+        self.baseline_params = QtWidgets.QWidget()
+        self.baseline_params_layout = QtWidgets.QGridLayout()
+
         self.baseline_params_V_layout = QtWidgets.QVBoxLayout()
 
         self.cut_peak_Wn = DoubleSpinBoxAlignRight()
@@ -105,19 +108,28 @@ class aEDXDRoiWidget(QtWidgets.QWidget):
         self.cut_peak_Wn_step.setValue(0.1)
         self.cut_peak_iter_step.setValue(5)
 
-        self.cut_peak_label = QtWidgets.QLabel("Peak baseline parameters")
+        self.cut_peak_method_spline_choice = QtWidgets.QRadioButton(text="Spline")
+        self.cut_peak_method_baseline_choice = QtWidgets.QRadioButton(text="Baseline")
+        self.cut_peak_method_baseline_choice.setChecked(True)
+        
+
+        self.cut_peak_label = QtWidgets.QLabel("Peak cutting parameters")
         self.cut_peak_Wn_label = QtWidgets.QLabel("W<sub>n</sub>")
         self.cut_peak_iter_label = QtWidgets.QLabel("Iterations")
+        self.cut_peak_method_label = QtWidgets.QLabel("Method")
 
-        self.baseline_params = QtWidgets.QWidget()
-        self.baseline_params_layout = QtWidgets.QGridLayout()
+        
         self.baseline_params_layout.addWidget(self.cut_peak_label,0,0,1,2)
-        self.baseline_params_layout.addWidget(self.cut_peak_Wn_label,1,0)
-        self.baseline_params_layout.addWidget(self.cut_peak_iter_label,2,0)
-        self.baseline_params_layout.addWidget(self.cut_peak_Wn,1,1)
-        self.baseline_params_layout.addWidget(self.cut_peak_iter,2,1)
-        self.baseline_params_layout.addWidget(self.cut_peak_Wn_step,1,2)
-        self.baseline_params_layout.addWidget(self.cut_peak_iter_step,2,2)
+        self.baseline_params_layout.addWidget(self.cut_peak_method_label,1,0)
+        self.baseline_params_layout.addWidget(self.cut_peak_method_baseline_choice,1,1)
+        self.baseline_params_layout.addWidget(self.cut_peak_method_spline_choice,1,2)
+
+        self.baseline_params_layout.addWidget(self.cut_peak_Wn_label,2,0)
+        self.baseline_params_layout.addWidget(self.cut_peak_iter_label,3,0)
+        self.baseline_params_layout.addWidget(self.cut_peak_Wn,2,1)
+        self.baseline_params_layout.addWidget(self.cut_peak_iter,3,1)
+        self.baseline_params_layout.addWidget(self.cut_peak_Wn_step,2,2)
+        self.baseline_params_layout.addWidget(self.cut_peak_iter_step,3,2)
 
         self.baseline_params_apply_all = QtWidgets.QCheckBox('Apply to all')
         self.baseline_params_apply_all.setChecked(False)
