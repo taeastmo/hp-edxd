@@ -1,5 +1,4 @@
 from scipy import signal
-#import matplotlib.pyplot as plt
 import numpy as np
 import copy 
 
@@ -7,6 +6,16 @@ from functools import partial
 
 
 def spectra_baseline(sig, Wn, iterations, method = 'pad'):
+    '''
+    Returns baseline for a given signal.
+    Inputs:
+        sig: signal in
+        Wn: smoothing parameter
+        iterations: number of interations for baseline extraction, typical 10 to 50
+        method: filtering method, this input can be ignored
+    Outputs:
+        baseline: baseline of the signal in
+    '''
     sig_work = copy.copy(sig)
     if method == 'pad':
         pad = len(sig_work)-1
@@ -21,8 +30,8 @@ def spectra_baseline(sig, Wn, iterations, method = 'pad'):
         less = f <= sig_work
         sig_work[less] = f[less]
     
-    # f = filt_func(b, a, sig_work)
-    return sig_work
+    baseline = sig_work
+    return baseline
 
 def filt_pad(padlen, b, a, sig_work ):
     return (signal.filtfilt(b, a, sig_work, padlen=padlen))

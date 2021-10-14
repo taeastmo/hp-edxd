@@ -70,15 +70,23 @@ class aEDXDPeakCutController(QObject):
         
         self.roi_window.cut_peak_Wn.valueChanged.connect(self.wn_changed_callback)
         self.roi_window.cut_peak_iter.valueChanged.connect(self.iter_changed_callback)
+        self.roi_window.cut_peak_method_baseline_choice.clicked.connect(partial(self.method_changed_callback,'baseline'))
+        self.roi_window.cut_peak_method_spline_choice.clicked.connect(partial(self.method_changed_callback,'spline'))
 
     def wn_changed_callback(self, wn):
         sets = self.get_rois_to_edit()
+        self.roi_window.cut_peak_method_baseline_choice.blockSignals(True)
+        self.roi_window.cut_peak_method_spline_choice.blockSignals(True)
+        self.roi_window.cut_peak_method_baseline_choice.setChecked(True)
+        self.roi_window.cut_peak_method_baseline_choice.blockSignals(False)
+        self.roi_window.cut_peak_method_spline_choice.blockSignals(False)
         if len(sets):
             wn = round(wn,12)
             for s in sets:
                 spectrum = s[0]
                 roi = s[1]
                 roi.wn = wn
+                
                 if roi.method != 'baseline':
                     roi.method = 'baseline'
                     iterations= self.roi_window.cut_peak_iter.value()
@@ -87,11 +95,27 @@ class aEDXDPeakCutController(QObject):
                 spectrum.compute_spectrum()
             self.cut_peaks_changed_signal.emit() 
         #print('wn_changed_callback: ' + str(sets))
+
+    def method_changed_callback(self, method):
+        sets = self.get_rois_to_edit()
+        if len(sets):
+            for s in sets:
+                spectrum = s[0]
+                roi = s[1]
+                roi.method = method
+                spectrum.compute_spectrum()
+            self.cut_peaks_changed_signal.emit() 
+        #print('method_changed_callback: ' + str(sets))
         
 
     def iter_changed_callback(self, iterations):
         iterations = int(iterations)
         sets = self.get_rois_to_edit()
+        self.roi_window.cut_peak_method_baseline_choice.blockSignals(True)
+        self.roi_window.cut_peak_method_spline_choice.blockSignals(True)
+        self.roi_window.cut_peak_method_baseline_choice.setChecked(True)
+        self.roi_window.cut_peak_method_baseline_choice.blockSignals(False)
+        self.roi_window.cut_peak_method_spline_choice.blockSignals(False)
         if len(sets):
             iterations = round(iterations,12)
             for s in sets:
@@ -168,12 +192,21 @@ class aEDXDPeakCutController(QObject):
         if roi is not None:
             wn = roi.wn
             iterations = roi.iterations
+            method = roi.method
             self.roi_window.cut_peak_Wn.blockSignals(True)
             self.roi_window.cut_peak_iter.blockSignals(True)
             self.roi_window.cut_peak_Wn.setValue(wn)
             self.roi_window.cut_peak_iter.setValue(iterations)
             self.roi_window.cut_peak_Wn.blockSignals(False)
             self.roi_window.cut_peak_iter.blockSignals(False)
+            self.roi_window.cut_peak_method_baseline_choice.blockSignals(True)
+            self.roi_window.cut_peak_method_spline_choice.blockSignals(True)
+            if method == 'spline':
+                self.roi_window.cut_peak_method_spline_choice.setChecked(True)
+            if method == 'baseline':
+                self.roi_window.cut_peak_method_baseline_choice.setChecked(True)
+            self.roi_window.cut_peak_method_baseline_choice.blockSignals(False)
+            self.roi_window.cut_peak_method_spline_choice.blockSignals(False)
 
             if self.plotFitOpen:
                 self.updateFitPlot(params)
@@ -339,9 +372,13 @@ class aEDXDPeakCutController(QObject):
             action = 'Add'
         else:
             action = 'Set'
-        self.roi_action(action, tth)
+        if self.roi_window.cut_peak_method_baseline_choice.isChecked():
+            method = 'baseline'
+        else:
+            method = 'spline'
+        self.roi_action(action, tth, method)
 
-    def roi_action(self, mode, tth):
+    def roi_action(self, mode, tth, method = 'spline'):
         if mode == 'Add':
             #self.display_window.spectrum_widget.cut_peak_btn.setText("Set")
             width = 8
@@ -355,7 +392,7 @@ class aEDXDPeakCutController(QObject):
                     roi = {'left':reg[0],'right':reg[1]}
                     wn = self.roi_window.cut_peak_Wn.value()
                     iterations = int(self.roi_window.cut_peak_iter.value())
-                    roi['method']='baseline'
+                    roi['method']=method
                     roi['wn']=wn
                     roi['iterations'] = iterations
                     group.add_cut_roi(roi)

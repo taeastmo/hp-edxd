@@ -1124,8 +1124,8 @@ def find_fname(path, file, fname):
     files={}
     for dirpath, dirnames, filenames in os.walk(path):
         for filename in [f for f in filenames if f.endswith(".jcpds")]:
-            files[filename]=os.path.join(dirpath, filename)
-    lst = list(files.keys())
+            files[filename]=os.path.abspath(os.path.join(dirpath, filename)) 
+    lst = list(files.keys()) 
     sub = file
     fls = [s for s in lst if sub in s]
     ok = False
