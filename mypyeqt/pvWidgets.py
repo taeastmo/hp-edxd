@@ -86,6 +86,10 @@ class pvQWidget(QObject):
     def disconnect(self):
         if self.connected:
             self.disconnect_pv()
+
+    def re_connect(self):
+        if not self.connected:
+            self.connect_pv()
             
     def connect_pv(self):
         if not self.connected:

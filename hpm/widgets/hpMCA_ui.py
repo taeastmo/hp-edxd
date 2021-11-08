@@ -33,6 +33,7 @@ class Ui_hpMCA(object):
         self.btnOff = pvQMessageButton()
         self.btnErase = pvQMessageButton()
         self.dead_time_indicator = pvQProgressBar(average=20)
+        
         self.dead_time_indicator.setObjectName('dead_time_indicator')
         
 

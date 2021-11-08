@@ -26,6 +26,7 @@ from hpm.models.PhaseModel import PhaseLoadError
 from utilities.HelperModule import get_base_name, increment_filename
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
 import utilities.hpMCAutilities as mcaUtil
+from hpm.widgets.SaveFileWidget import SaveFileWidget
 
 class FileSaveController(object):
     """
@@ -42,6 +43,7 @@ class FileSaveController(object):
         
         self.mca_controller = mcaController
         self.widget = mcaController.widget
+        self.file_widget = SaveFileWidget()
         
       
         self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
@@ -94,12 +96,13 @@ class FileSaveController(object):
 
     def ClickedSaveFile(self):  # handles Save As...
         if self.mca_controller.mca != None:
-            filename =  save_file_dialog(self.widget, "Save spectrum file.",
+            self.file_widget.raise_widget()
+            '''filename =  save_file_dialog(self.widget, "Save spectrum file.",
                                     self.mca_controller.working_directories .savedata,
                                     'Spectrum (*.hpmca)', False)
             if filename != None:
                 if len(filename)>0:
-                    self.saveFile(filename)
+                    self.saveFile(filename)'''
 
     def ClickedSaveNextFile(self, menu_text):
         if self.mca_controller.mca != None:

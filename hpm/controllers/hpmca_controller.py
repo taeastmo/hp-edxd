@@ -291,6 +291,7 @@ class hpmcaController(QObject):
                 btn.connect(record + '.PRTM')
             for btn in epicsElapsedTimeBtns_PLTM:
                 btn.connect(record + '.PLTM')
+            self.widget.dead_time_indicator.re_connect()
             
         self.mca.auto_process_rois = True
         if self.controllers_initialized:
