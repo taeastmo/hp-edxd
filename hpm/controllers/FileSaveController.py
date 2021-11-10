@@ -28,6 +28,8 @@ from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_
 import utilities.hpMCAutilities as mcaUtil
 from hpm.widgets.SaveFileWidget import SaveFileWidget
 
+from epics import caput, caget, PV
+
 class FileSaveController(object):
     """
     IntegrationPhaseController handles all the interaction between the phase controls in the IntegrationView and the
@@ -35,11 +37,23 @@ class FileSaveController(object):
     the pattern plot and it needs the calibration data to have access to the currently used wavelength.
     """
 
-    def __init__(self, mcaController):
+    def __init__(self, mcaController, **kwargs):
         """
         
         """
+        defaults_options = kwargs['defaults_options']
         
+        self.pvs_file = {}
+        record_name_file = defaults_options.file_record
+        self.record_name_file = record_name_file 
+        
+        if record_name_file != None:
+            self.pvs_file ={
+                            'FullFileName_RBV': None
+                            }
+            for pv_file in self.pvs_file.keys():
+                name = self.record_name_file + ':' + pv_file
+                self.pvs_file[pv_file] = PV(name)
         
         self.mca_controller = mcaController
         self.widget = mcaController.widget
@@ -47,10 +61,7 @@ class FileSaveController(object):
         
       
         self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
-
-        self.McaFilename = None
         self.McaFileNameHolder = None
-        self.McaFilename_PV = '16bmb:mca_file:FilePath'
 
         self.create_signals()
 
@@ -96,13 +107,13 @@ class FileSaveController(object):
 
     def ClickedSaveFile(self):  # handles Save As...
         if self.mca_controller.mca != None:
-            self.file_widget.raise_widget()
-            '''filename =  save_file_dialog(self.widget, "Save spectrum file.",
+            #self.file_widget.raise_widget()
+            filename =  save_file_dialog(self.widget, "Save spectrum file.",
                                     self.mca_controller.working_directories .savedata,
                                     'Spectrum (*.hpmca)', False)
             if filename != None:
                 if len(filename)>0:
-                    self.saveFile(filename)'''
+                    self.saveFile(filename)
 
     def ClickedSaveNextFile(self, menu_text):
         if self.mca_controller.mca != None:
@@ -130,7 +141,7 @@ class FileSaveController(object):
                     file=filename, netcdf=0)
                 if success:
                     #self.update_titlebar()
-                    self.update_epics_filename()
+                    self.update_epics_filename(filename)
                     
                     self.mca_controller.working_directories .savedata = os.path.dirname(
                         str(fileout))  # working directory xrd files
@@ -148,11 +159,13 @@ class FileSaveController(object):
             else:
                 mcaUtil.displayErrorMessage('fs')
 
-    def update_epics_filename(self):
+    def update_epics_filename(self, filename):
         if self.mca_controller.mca is not None:
-            if self.McaFilename is not None:
-                name = self.mca_controller.mca.get_name_base()
-                self.McaFilename.put(name)
+            try:
+                if 'FullFileName_RBV' in self.pvs_file:
+                    self.pvs_file['FullFileName_RBV'].put(filename)
+            except:
+                pass
 
     def openFile(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
@@ -192,3 +205,41 @@ class FileSaveController(object):
                 #    self.widget.pg.export_plot_svg(filename)
                 else:
                     self.mca_controller.mca.export_pattern(filename, self.mca_controller.unit, self.mca_controller.plotController.units[self.mca_controller.unit])
+
+
+    def epics_connections(self):
+
+        
+
+        pass
+
+        # these may get implemented in the future to be in line with area detector file saving workflow
+        '''self.pvs_file ={'FilePath': None,
+                        'FilePath_RBV': None,
+                        'FileName': None,
+                        'FileName_RBV': None,
+                        'FullFileName_RBV': None,
+                        'FileTemplate': None,
+                        'FileTemplate_RBV': None,
+                        'WriteMessage': None,
+                        'FileNumber': None,
+                        'FileNumber_RBV': None,
+                        'AutoIncrement': None,
+                        'AutoIncrement_RBV': None,
+                        'WriteStatus': None,
+                        'FilePathExists_RBV': None,
+                        'AutoSave': None,
+                        'AutoSave_RBV': None,
+                        'WriteFile': None,
+                        'WriteFile_RBV': None}'''
+
+        # filenames are written by hpMCA to this PV to be grabbed by an external data logger.
+        ''' EPICS record should be created as follows:
+            record(waveform,"16bmb:mca_file:FullFileName_RBV"){
+                field(DESC,"FullFileName")
+                field(DTYP,"Soft Channel")
+                field(DESC,"file name")
+                field(NELM,"256")
+                field(FTVL,"CHAR")
+            } 
+        '''

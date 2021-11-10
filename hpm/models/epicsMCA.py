@@ -86,7 +86,7 @@ class epicsMCA(MCA):
         epics_buttons = kwargs['epics_buttons']
         file_options  = kwargs['file_options']
         environment_file  = kwargs['environment_file']
-        record_name_file  = kwargs['record_name_file']
+        
         dead_time_indicator  = kwargs['dead_time_indicator']
 
         self.name = record_name
@@ -97,7 +97,7 @@ class epicsMCA(MCA):
         self.mcaRead = None
         [self.btnOn, self.btnOff, self.btnErase] = epics_buttons  
         self.record_name = record_name
-        self.record_name_file = record_name_file
+        
         self.max_rois = 24           
         self.initOK = False             
         self.mcaPV = PV(self.record_name)
@@ -155,44 +155,8 @@ class epicsMCA(MCA):
                     name = self.record_name + '.' + pv.upper()
                     self.pvs[group][pv] = PV(name)
 
-            # these may get implemented in the future to be in line with area detector file saving workflow
-            '''self.pvs_file ={'FilePath': None,
-                            'FilePath_RBV': None,
-                            'FileName': None,
-                            'FileName_RBV': None,
-                            'FullFileName_RBV': None,
-                            'FileTemplate': None,
-                            'FileTemplate_RBV': None,
-                            'WriteMessage': None,
-                            'FileNumber': None,
-                            'FileNumber_RBV': None,
-                            'AutoIncrement': None,
-                            'AutoIncrement_RBV': None,
-                            'WriteStatus': None,
-                            'FilePathExists_RBV': None,
-                            'AutoSave': None,
-                            'AutoSave_RBV': None,
-                            'WriteFile': None,
-                            'WriteFile_RBV': None}'''
-
-            # filenames are written by hpMCA to this PV to be grabbed by an external data logger.
-            ''' EPICS record should be created as follows:
-                record(waveform,"16bmb:mca_file:FullFileName_RBV"){
-                    field(DESC,"FullFileName")
-                    field(DTYP,"Soft Channel")
-                    field(DESC,"file name")
-                    field(NELM,"256")
-                    field(FTVL,"CHAR")
-                } 
-            '''
-            self.pvs_file = {}
-            if record_name_file != None:
-                self.pvs_file ={
-                                'FullFileName_RBV': None
-                                }
-                for pv_file in self.pvs_file.keys():
-                    name = self.record_name_file + ':' + pv_file
-                    self.pvs_file[pv_file] = PV(name)
+            
+            
             
                     
             self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
@@ -779,11 +743,7 @@ class epicsMCA(MCA):
         if ok:
             self.last_saved = copy.copy(self.elapsed[0].start_time)
             
-            try:
-                if 'FullFileName_RBV' in self.pvs_file:
-                    self.pvs_file['FullFileName_RBV'].put(file)
-            except:
-                pass
+            
         return [file, ok]
         
 

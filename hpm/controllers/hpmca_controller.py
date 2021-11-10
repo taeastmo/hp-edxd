@@ -92,7 +92,7 @@ class hpmcaController(QObject):
         self.unit = 'E' #default units
 
         #initialize file saving controller
-        self.file_save_controller = FileSaveController(self)
+        self.file_save_controller = FileSaveController(self, defaults_options=self.defaults_options)
     
         self.make_prefs_menu()  # for mac
         
@@ -263,13 +263,13 @@ class hpmcaController(QObject):
                 self.mca = self.epicsMCAholder
                 self.mca.toggleEpicsWidgetsEnabled(True)
             else:
-                record_name_file = self.defaults_options.file_record
+                
                 mca = epicsMCA(
                                 record_name = det_or_file, 
                                 epics_buttons = self.epicsBtns, 
                                 file_options = self.file_save_controller.file_options,
                                 environment_file = 'catch1d.env',
-                                record_name_file = record_name_file,
+                                
                                 dead_time_indicator = self.widget.dead_time_indicator
                                 )
                 
