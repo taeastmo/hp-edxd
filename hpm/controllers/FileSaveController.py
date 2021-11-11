@@ -48,9 +48,24 @@ class FileSaveController(object):
         self.record_name_file = record_name_file 
         
         if record_name_file != None:
-            self.pvs_file ={
-                            'FullFileName_RBV': None
-                            }
+            self.pvs_file ={'FilePath': None,
+                            'FilePath_RBV': None,
+                            'FileName': None,
+                            'FileName_RBV': None,
+                            'FullFileName_RBV': None,
+                            'FileTemplate': None,
+                            'FileTemplate_RBV': None,
+                            'WriteMessage': None,
+                            'FileNumber': None,
+                            'FileNumber_RBV': None,
+                            'AutoIncrement': None,
+                            'AutoIncrement_RBV': None,
+                            'WriteStatus': None,
+                            'FilePathExists_RBV': None,
+                            'AutoSave': None,
+                            'AutoSave_RBV': None,
+                            'WriteFile': None,
+                            'WriteFile_RBV': None}
             for pv_file in self.pvs_file.keys():
                 name = self.record_name_file + ':' + pv_file
                 self.pvs_file[pv_file] = PV(name)
