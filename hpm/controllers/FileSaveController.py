@@ -76,8 +76,8 @@ class FileSaveController(object):
         
       
         self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
-        self.McaFileNameHolder = None
-        self.McaFileName = None
+        #self.McaFileNameHolder = None
+        #self.McaFileName = None
 
         self.create_signals()
 

@@ -234,9 +234,9 @@ class hpmcaController(QObject):
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
                     
-                    self.file_save_controller.McaFileNameHolder = self.file_save_controller.McaFilename
+                    #self.file_save_controller.McaFileNameHolder = self.file_save_controller.McaFilename
                     self.epicsMCAholder = self.mca
-            self.file_save_controller.McaFilename = None        
+            #self.file_save_controller.McaFilename = None        
             self.mca = mca
             self.blockSignals(True)
             for btn in self.epicsBtns:
@@ -256,8 +256,8 @@ class hpmcaController(QObject):
             
             if self.epicsMCAholder is not None:
                 name = self.epicsMCAholder.name
-            if self.file_save_controller.McaFileNameHolder is not None:
-                self.file_save_controller.McaFilename = self.file_save_controller.McaFileNameHolder
+            #if self.file_save_controller.McaFileNameHolder is not None:
+            #    self.file_save_controller.McaFilename = self.file_save_controller.McaFileNameHolder
           
             if name == det_or_file :
                 self.mca = self.epicsMCAholder
