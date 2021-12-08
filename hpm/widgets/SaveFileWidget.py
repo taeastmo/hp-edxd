@@ -51,6 +51,7 @@ class SaveFileWidget(QtWidgets.QWidget):
             self.save_val               QPushButton
             self.autosave_val           QComboBox
     '''
+    widget_closed = pyqtSignal()
     
     def __init__(self):
         super().__init__()

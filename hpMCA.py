@@ -17,7 +17,7 @@ from hpm import main
 
 main()
 
-# TODO bug: opening detector then file then detector again disables the bar indicator for dead time
+# TODO file save screen with options
 # TODO epics PVs for application flow control
 # TODO copy functionality of area detector file save plugin
 # TODO try smooth_bruckner for baseline subtraction, save bg subtracted file
