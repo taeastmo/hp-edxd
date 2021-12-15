@@ -16,8 +16,8 @@
 # Principal author: R. Hrubiak (hrubiak@anl.gov)
 # Copyright (C) 2018-2019 ANL, Lemont, USA
 
-# Reuses a lot of code from Dioptas https://github.com/Dioptas/Dioptas
-# Based on concepts of old program XRDA [1]
+# Reuses some code from Dioptas https://github.com/Dioptas/Dioptas
+# Based on EDXD data analysys concepts of old XRDA program [1]
 # [1] S. Desgreniers and K. Lagarec, XRDA: A Program for Energy-Dispersive 
 # X-Ray Diffraction Analysis on a PC, Journal of Applied Crystallography 27, 432 (1994).
 
