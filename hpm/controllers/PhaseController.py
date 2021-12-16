@@ -31,6 +31,8 @@ from hpm.models.PhaseModel import PhaseModel
 from hpm.widgets.PhaseWidget import PhaseWidget
 import utilities.hpMCAutilities as mcaUtil
 
+
+
 class PhaseController(object):
     """
     IntegrationPhaseController handles all the interaction between the phase controls in the IntegrationView and the
@@ -51,10 +53,19 @@ class PhaseController(object):
         self.mca = mcaModel
         self.directories = directories
         self.unit = ''
+
+        # for automatic roi adding 
+        # ROI hwhm = int( a0 + E(KeV) * a1 )
+        self.a_0 = 7
+        self.a_1 = 0.08 
+        self.prefs = {
+                            "a_0": 6.0,
+                            "a_1": 0.08
+                        }
         
         self.roi_controller = roiController
         self.plotController = plotController
-
+        
         
         self.pattern_widget = plotWidget
         self.phase_widget = PhaseWidget()
@@ -79,6 +90,15 @@ class PhaseController(object):
         self.phases = []
         self.tth = self.getTth()
         self.phase_widget.tth_lbl.setValue(self.tth)
+
+
+    def set_prefs(self, params):
+        
+        for p in params:
+            if p in self.prefs:
+                val = params[p]
+                self.prefs[p] = val
+                
 
     def set_mca(self, mca):
         self.pattern = mca
@@ -143,17 +163,28 @@ class PhaseController(object):
         phases = self.phase_model.phases
         files = self.phase_model.phase_files
         tth = self.phase_widget.tth_lbl.value()
-        d_to_channel = self.mca.get_calibration()[0].d_to_channel
+        calibration = self.mca.get_calibration()[0]
+        d_to_channel = calibration.d_to_channel
         phase = phases[index]
         filename = files[index]
         name = phase.name
         reflections = phase.get_reflections()
         rois = []
+
+        
+        a_0 = self.prefs['a_0']
+        a_1 = self.prefs['a_1']
+
+
         for reflection in reflections:
             channel = d_to_channel(reflection.d,tth = tth)
-            
+            E = calibration.channel_to_energy(channel)
             lbl = str(name + " " + reflection.get_hkl())
-            rois.append({'channel':channel,'halfwidth':10, 'label':lbl, \
+
+            hw = round(a_0 + E * a_1)
+            
+
+            rois.append({'channel':channel,'halfwidth':hw, 'label':lbl, \
                            'name':name, 'hkl':reflection.get_hkl_list()})
         return rois, phase, filename
 

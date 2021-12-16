@@ -24,3 +24,4 @@ main()
 # TODO environment_file_display
 # TODO refactor plot display synchronization
 # TODO multi detector display, optional stacked pltwidgets for each detector
+# TODO add ROI width options for the xrd module   

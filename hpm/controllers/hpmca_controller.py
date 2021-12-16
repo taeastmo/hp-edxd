@@ -42,6 +42,8 @@ from hpm.controllers.LatticeRefinementController import LatticeRefinementControl
 from hpm.controllers.FileSaveController import FileSaveController
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
 #from hpm.controllers.hklGenController import hklGenController
+from hpm.controllers.RoiPrefsController import RoiPreferences
+
 
 import utilities.hpMCAutilities as mcaUtil
 from utilities.HelperModule import increment_filename
@@ -64,6 +66,7 @@ class hpmcaController(QObject):
         self.widget = hpMCAWidget(app) 
         
         self.displayPrefs = DisplayPreferences(self.widget.pg)
+        
 
         self.elapsed_time_presets = ['0','2','5','30','60','120'] 
         
@@ -151,6 +154,7 @@ class hpmcaController(QObject):
         ui.actionhklGen.triggered.connect(self.hklGen_module)
         ui.actionManualTth.triggered.connect(self.set_Tth)
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
+        ui.actionRoiPrefs.triggered.connect(self.roi_preferences_module)
         ui.actionPresets.triggered.connect(self.presets_module)
         ui.actionAbout.triggered.connect(self.about_module)
 
@@ -208,6 +212,9 @@ class hpmcaController(QObject):
 
     def display_preferences_module(self, *args, **kwargs):
         self.displayPrefs.show()
+
+    def roi_preferences_module(self, *args, **kwargs):
+        self.roiPrefs.show()
             
     
     def presets_module(self, *args, **kwargs):
@@ -328,6 +335,9 @@ class hpmcaController(QObject):
         self.phase_controller = PhaseController(self.widget.pg, self.mca, 
                                             self.plotController, self.roi_controller, 
                                             self.working_directories)
+        # roiPrefs handles options for automatic ROI adding from the phases module                                   
+        self.roiPrefs = RoiPreferences(self.phase_controller)
+    
         # initialize overlay controller: not done yet
         self.overlay_controller = OverlayController( self, self.plotController, self.widget)
         #initialize xrf controller
@@ -335,6 +345,8 @@ class hpmcaController(QObject):
         self.fluorescence_controller.xrf_selection_updated_signal.connect(self.xrf_updated)
 
         self.lattice_refinement_controller = LatticeRefinementController(self.mca,self.widget.pg,self.plotController,self)
+
+        
 
         #initialize hklGen controller
         #self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
@@ -453,10 +465,12 @@ class hpmcaController(QObject):
             self.fluorescence_controller.show()
 
     def lattice_refinement_module(self):
-        rois = copy.deepcopy(self.roi_controller.roi)
-        phases = self.phase_controller.get_phases()
-        self.lattice_refinement_controller.set_rois_phases(rois,phases)
-        self.lattice_refinement_controller.pressure()
+        if self.mca !=None:
+            rois = copy.deepcopy(self.roi_controller.roi)
+            phases = self.phase_controller.get_phases()
+            self.lattice_refinement_controller.set_mca(self.mca)
+            self.lattice_refinement_controller.set_rois_phases(rois,phases)
+            self.lattice_refinement_controller.pressure()
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()

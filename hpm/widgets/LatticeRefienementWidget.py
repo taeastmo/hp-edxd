@@ -32,24 +32,14 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 
 
-class mcaCalibrate2theta_widgets(object):
-   """ Private class"""
-   def __init__(self, nrois):
-      self.use_flag             = [None]*nrois
-      self.d_spacing            = [None]*nrois
-      self.fwhm                 = [None]*nrois
-      self.energy               = [None]*nrois
-      self.label                = [None]*nrois
-      self.calc_d               = [None]*nrois
-      self.calc_d_diff       = [None]*nrois
-      #self.two_theta_fit        = [None]*nrois
+
 
 class LatticeRefinementWidget(QtWidgets.QWidget):
     widget_closed = QtCore.pyqtSignal()
     show_cb_state_changed = QtCore.pyqtSignal(int, int)
     name_item_changed = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, calibration, jcpds_directory=''):
+    def __init__(self, jcpds_directory=''):
         super().__init__()
         self.setWindowTitle("Lattice refinement")
         self.setMinimumWidth(600)
@@ -58,7 +48,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         #self.rois = []
 
 
-        self.calibration = calibration
+        
         
         self.jcpds_directory = jcpds_directory
         
@@ -88,7 +78,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(t)
 
         self.two_theta = t = QtWidgets.QLabel(self.button_widget)
-        t.setText('%.5f' % self.calibration.two_theta)
+        #t.setText('%.5f' % self.calibration.two_theta)
         self._button_layout.addWidget(t)
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)

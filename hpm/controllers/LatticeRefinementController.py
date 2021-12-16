@@ -38,7 +38,9 @@ class LatticeRefinementController(QObject):
 
     def __init__(self, mcaModel, plotWidget, plotController, mainController):
         super().__init__()
-        
+
+        self.working_directories = mainController.working_directories.phase
+        self.widget = LatticeRefinementWidget(self.working_directories)
         self.set_mca(mcaModel)
         self.mcaController = mainController
         self.phases=dict()
@@ -46,24 +48,14 @@ class LatticeRefinementController(QObject):
 
         detector = 0
         self.Ediff =[]
-        self.roi = []
-
-        self.calibration = copy.deepcopy(mcaModel.get_calibration()[detector])
-        self.two_theta =  self.calibration.two_theta
-        self.working_directories = mainController.working_directories.phase
+        self.roi = []     
       
         self.active = False
         
         self.dataLen = self.mca.nchans
         self.pattern_widget = plotWidget
         self.plotController = plotController
-        self.unit = 'E'
-        self.unit_ = 'KeV'
-        #self.roi_cursor = []
-        
-        self.widget = LatticeRefinementWidget(self.calibration,self.working_directories)
-        
-
+  
         self.nrois = 0
         
         self.create_signals()
@@ -73,6 +65,7 @@ class LatticeRefinementController(QObject):
         self.dataLen = self.mca.nchans
         self.calibration = self.mca.get_calibration()[0]
         self.two_theta =  self.calibration.two_theta
+        self.widget.two_theta.setText(str(round(self.two_theta,5)))
 
     def get_calibration(self):
         return self.calibration
@@ -107,6 +100,9 @@ class LatticeRefinementController(QObject):
         self.lattice_model.clear()
         self.Ediff =[]
         self.roi = []
+        self.widget.roi_show_cbs = []
+        self.widget.name_items = []
+        self.widget.index_items = []
         self.blockSignals(False)
         self.update_rois()
 
@@ -122,16 +118,9 @@ class LatticeRefinementController(QObject):
         
         E_diff = self.Ediff
         if len (E_diff):
-            energy_use = []
-            E_diff_use = []
-            energy = []
-
-            for i in range(len(self.roi)):
-                energy.append(self.roi[i].energy)
-                
-                if (self.roi[i].use):
-                    energy_use.append(energy[i])
-                    E_diff_use.append(E_diff[i])
+            energy_use = self.Eobs
+            E_diff_use = E_diff
+           
             
             pltError = pg.plot(energy_use,E_diff_use, 
                     pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
@@ -152,6 +141,7 @@ class LatticeRefinementController(QObject):
 
     def update_phases(self):
         
+        use = self.widget.roi_show_cbs
         rois = self.roi
         tth = self.two_theta
         if len(rois)>0:
@@ -180,16 +170,18 @@ class LatticeRefinementController(QObject):
                     #lbl += p + ':\n '
                     DHKL = []
                     phase = roi_groups[p]
-                    for r in phase:
-                        d = r.d_spacing
-                        hkl = r.label.split(' ')[1]
-                        if not len(hkl)==3 or not hkl.isdigit():
-                            break
-                        h = int(hkl[0])
-                        k = int(hkl[1])
-                        l = int(hkl[2])
-                        dhkl = [d,h,k,l]
-                        DHKL.append(dhkl)
+                    for i, r in enumerate(phase):
+                        u = use[i].isChecked()
+                        if u:
+                            d = r.d_spacing
+                            hkl = r.label.split(' ')[1]
+                            if not len(hkl)==3 or not hkl.isdigit():
+                                break
+                            h = int(hkl[0])
+                            k = int(hkl[1])
+                            l = int(hkl[2])
+                            dhkl = [d,h,k,l]
+                            DHKL.append(dhkl)
                     if len(dhkl)>0:
                         self.lattice_model = latticeRefinement()
                         self.lattice_model.set_dhkl(DHKL)
@@ -220,6 +212,7 @@ class LatticeRefinementController(QObject):
                         
 
                         self.Ediff = []
+                        self.Eobs = []
 
                         for i, dcalc in enumerate(DCalc):
                             e = round(12.398 / (2. * dcalc * np.sin(tth*np.pi/180./2.)),3)
@@ -231,6 +224,7 @@ class LatticeRefinementController(QObject):
                             #t = self.widget.widgets.calc_d_diff[i]
                             #t.setText(str(ediff))
                             self.Ediff.append(ediff)
+                            self.Eobs.append(eobs)
 
                             self.widget.update_roi(i,e,ediff)
                         

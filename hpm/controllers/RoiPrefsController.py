@@ -18,7 +18,7 @@
 
 from utilities.hpMCAutilities import compare
 from utilities.hpMCAutilities import Preferences
-from hpm.widgets.DisplayPrefsWidget import DisplayPreferencesWidget
+from hpm.widgets.RoiPrefsWidget import RoiPreferencesWidget
 from PyQt5.QtCore import QObject
 import json
 from utilities.hpMCAutilities import displayErrorMessage, json_compatible_dict, readconfig
@@ -29,36 +29,20 @@ home_path = os.path.join(str(Path.home()), 'hpMCA')
 if not os.path.exists(home_path):
    os.mkdir(home_path)
 
-class DisplayPreferences(Preferences):
-    def __init__(self, plot_widget):
-        self.plot_widget = plot_widget
-        self.colors = self.plot_widget.get_colors()
-
-        self.config_file = os.path.join(home_path,'hpMCA_color_settings.json')
-
-        prefs, colors = opt_fields(self.config_file)
-        
-
-        self.widget = DisplayPreferencesWidget(prefs, 
-                            title='Display preferences control')
-
-        
+class RoiPreferences(Preferences):
+    def __init__(self, phase_controller):
+        self.phase_controller = phase_controller
+        self.config_file = os.path.join(home_path,'hpMCA_roi_settings.json')
+        prefs, values = opt_fields(self.config_file)
+        self.widget = RoiPreferencesWidget(prefs, 
+                            title='ROI preferences control')
         params = list(prefs.keys())
-        '''
-        ['plot_background_color',
-                  'data_color',
-                  'rois_color',
-                  'roi_cursor_color'
-                  ]
-        '''
-
         super().__init__(params)
-        self.name = "Display Preferences"
+        self.name = "ROI Preferences"
         self.note = ''
         self.make_connections()
         self.auto_process = True
-        self.set_config(colors)
-        
+        self.set_config(values)
 
     def make_connections(self):
         self.widget.apply_clicked_signal.connect(self.apply_callback)
@@ -67,22 +51,25 @@ class DisplayPreferences(Preferences):
         self.set_config(params)
         save_config(params, self.config_file)
 
-
-    # the update method gets called automatically by the parent class
+    # the update method gets called automatically by the parent class, 
+    # depending if any parameters actually changed
     def update(self):
         updated_params = {}
         for c in self.config_modified:
             updated_params[c] = self.params[c]
         if len(updated_params):
-            self.plot_widget.set_colors(updated_params)
+            # this is where we can do something with the updated parameters
+            self.phase_controller.set_prefs(updated_params)
 
     def show(self):
-        prefs = self.plot_widget.get_colors()
-        self.widget.set_params(prefs)
+        prefs, values = opt_fields(self.config_file)
+        p = {}
+        for pref in prefs:
+            p[pref]=prefs[pref]['val']
+        self.widget.set_params(p)
         self.widget.raise_widget()
 
     
-        
 def save_config(params, filename):
     options_out = json_compatible_dict(params)
     try:
@@ -94,37 +81,22 @@ def save_config(params, filename):
 
 
 def opt_fields(config_file):
+    values = readconfig(config_file)
 
-    
-
-    colors = readconfig(config_file)
-
-    opts = {'display':
-                   {'plot_background_color':
-                    {'val': (255, 255, 255),
+    opts = {'roi':
+                {
+                    'a_0': {'val': 7,
                      'desc': '',
-                     'label': 'Background'},
-                    'data_color':
-                        {'val': '#2F2F2F',
-                            'desc': '',
-                            'label': 'Plot foreground'},
-                    'rois_color':
-                        {'val': (0, 180, 255),
-                            'desc': '',
-                            'label': "ROIs highlight"},
-                    'roi_cursor_color':
-                        {'val': (255, 0, 0),
-                            'desc': '',
-                            'label': 'Selected ROI cursor'}
+                     'label': 'a0'},
+                    'a_1': {'val': 0.08,
+                     'desc': '',
+                     'label': 'a1'}
+                }
+            }
 
-                    }
-                   }
-
-
-    prefs = opts['display']
-    
-    for c in colors:
+    prefs = opts['roi']
+    for c in values:
         if c in prefs:
-            prefs[c]['val']= colors[c]
-    return prefs, colors
+            prefs[c]['val']= values[c]
+    return prefs, values
     

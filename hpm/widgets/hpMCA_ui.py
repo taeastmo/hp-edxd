@@ -432,6 +432,8 @@ class Ui_hpMCA(object):
         self.actionLatticeRefinement.setObjectName("actionLatticeRefinement")
         self.actionDisplayPrefs = QtWidgets.QAction(hpMCA)
         self.actionDisplayPrefs.setObjectName("actionDisplayPrefs")
+        self.actionRoiPrefs = QtWidgets.QAction(hpMCA)
+        self.actionRoiPrefs.setObjectName("actionRoiPrefs")
         self.menuFile.addAction(self.actionOpen_file)
         self.menuFile.addAction(self.actionOpen_detector)
         self.menuFile.addAction(self.actionOverlay)
@@ -448,6 +450,7 @@ class Ui_hpMCA(object):
         self.menuDisplay.addAction(self.actionROIs)
         self.menuDisplay.addAction(self.actionLatticeRefinement)
         self.menuDisplay.addAction(self.actionDisplayPrefs)
+        self.menuDisplay.addAction(self.actionRoiPrefs)
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuControl.menuAction())
@@ -512,5 +515,6 @@ class Ui_hpMCA(object):
         self.actionSave_next.setText(_translate("hpMCA", "Save next"))
         self.actionLatticeRefinement.setText(_translate("hpMCA", "Lattice refinement"))
         self.actionDisplayPrefs.setText(_translate("hpMCA", "Colors options"))
+        self.actionRoiPrefs.setText(_translate("hpMCA", "ROI options"))
 
 
