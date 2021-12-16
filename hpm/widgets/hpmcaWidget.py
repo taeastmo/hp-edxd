@@ -71,7 +71,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         self.actionROIs.setEnabled(enabled)
         self.actionOverlay.setEnabled(enabled)
         self.actionFluor.setEnabled(enabled)
-        self.actionPressure.setEnabled(enabled)
+        self.actionLatticeRefinement.setEnabled(enabled)
         self.actionManualTth.setEnabled(enabled)
         self.actionPresets.setEnabled(enabled)
         self.actionhklGen.setEnabled(enabled)

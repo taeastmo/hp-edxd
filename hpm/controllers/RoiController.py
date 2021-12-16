@@ -24,7 +24,7 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from hpm.widgets.RoiWidget import RoiWidget, plotFitWindow
-from hpm.widgets.PressureWidget import PressureWidget
+
 from hpm.models.mcaModel import  McaROI
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -60,8 +60,8 @@ class RoiController(QObject):
         self.roi_cursor = []
         color = self.add_roi_cursor_plot()
         self.rois_widget.set_tw_header_unit(self.unit,self.unit_)
-        self.pressure_widget = PressureWidget()
-        self.phases =dict()
+       
+        #self.phases =dict()
         self.create_signals()
         
 
@@ -94,8 +94,7 @@ class RoiController(QObject):
         if sig == 'delete' :
             self.remove_btn_click_callback()
 
-    def pressure(self):
-        self.pressure_widget.raise_widget()
+
 
     def save_peaks(self):
         img_filename, _ = os.path.splitext(os.path.basename(self.mca.name))
@@ -170,7 +169,7 @@ class RoiController(QObject):
         self.roiLen = copy.copy(self.nrois)
         if self.plotFitOpen:
             self.show_fit()
-        self.pressure_widget.set_rois_phases(self.roi,self.phases)
+     
 
     def get_roi_attributes(self, roi, unit):
         if self.unit == 'E': 
@@ -338,7 +337,7 @@ class RoiController(QObject):
             rois.append(self.make_roi_by_channel(r['channel'],r['halfwidth'], \
                                                  r['label'],r['name'],r['hkl']))
         rois = self.validate_rois(rois)
-        self.phases[phase.name]=[rois,phase]
+        #self.phases[phase.name]=[rois,phase]
         self.mca.add_rois(rois, detector=0)
         self.blockSignals(False)
         self.update_rois()

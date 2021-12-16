@@ -25,7 +25,7 @@ Modifications:
 
 
 #mainView, #calibration_tab, #mask_tab, #integration_tab {
-    background: #3C3C3C;
+    background: #333333;
 	border: 5px solid transparent;
  }
 
@@ -88,7 +88,7 @@ QTreeView, QTreeWidget {
 
 
 QTabBar::tab:left, QTabBar::tab:right {
-     background: qlineargradient(spread:pad, x1:1, y1:0, x2:0, y2:0, stop:0 #3C3C3C, stop:1 #505050);
+     background: qlineargradient(spread:pad, x1:1, y1:0, x2:0, y2:0, stop:0 #333333, stop:1 #505050);
      border: 1px solid  #5B5B5B;
 	font: normal 14px;
 	color: #F1F1F1;
@@ -101,7 +101,7 @@ QTabBar::tab:left, QTabBar::tab:right {
 
 
 QTabBar::tab::top, QTabBar::tab::bottom {
-     background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #3C3C3C, stop:1 #505050);
+     background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #333333, stop:1 #505050);
      border: 1px solid  #5B5B5B;
 	border-right: 0px solid white;
 	  color: #F1F1F1;
@@ -123,7 +123,7 @@ QTabBar::tab:left:first, QTabBar::tab:right:first{
 }
 
 QTabWidget, QTabWidget::tab-bar,  QTabWidget::panel, QWidget{
-     background: #3C3C3C;
+     background: #333333;
  }
 
 QTabWidget::tab-bar {
@@ -219,18 +219,18 @@ QComboBox:!editable {
     margin-left: 1px;
     padding: 0px 10px 0px 10px;
     height: 23px;
-    background-color: #3C3C3C;
+    background-color: #333333;
 }
 
 QComboBox::item{
-    background-color: #3C3C3C;
+    background-color: #333333;
 }
 
 QComboBox::item::selected {
     background-color: #505050;
 }
 QToolBox::tab:QToolButton{
-    background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #3C3C3C, stop:1 #505050);
+    background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #333333, stop:1 #505050);
      border: 1px solid  #5B5B5B;
 
      border-radius:2px;
@@ -241,7 +241,7 @@ QToolBox::tab:QToolButton{
     padding: 3px;
 }
 QToolBox::tab:QToolButton{
-    background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #3C3C3C, stop:1 #505050);
+    background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #333333, stop:1 #505050);
      border: 1px solid  #5B5B5B;
 
      border-radius:2px;
@@ -305,7 +305,7 @@ QPushButton::focus {
   }
 
 QSplitter::handle:hover {
-	background: #3C3C3C;
+	background: #333333;
  }
 
 
@@ -314,7 +314,7 @@ QGraphicsView{
 }
 
 QScrollBar:vertical {
-      border: 2px solid #3C3C3C;
+      border: 2px solid #333333;
       background: qlineargradient(spread:pad, x1:1, y1:0, x2:0, y2:0, stop:0 #323232, stop:1 #505050);
       width: 12px;
       margin: 0px 0px 0px 0px;
@@ -339,7 +339,7 @@ QScrollBar:vertical {
   }
 
 QScrollBar:horizontal {
-    border: 2px solid #3C3C3C;
+    border: 2px solid #333333;
     background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #323232, stop:1 #505050);
 	height: 12 px;
     margin: 0px 0px 0px 0px;
@@ -370,32 +370,32 @@ QSplitterHandle:hover {}
 
 QSplitter::handle:vertical{
 	image: url(Views/UiFiles/images/vertical_splitter.png);
-	background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0.3 #3C3C3C,  stop:0.5 #505050,
-stop: 0.7 #3C3C3C);
+	background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0.3 #333333,  stop:0.5 #505050,
+stop: 0.7 #333333);
 	height: 15px;
 }
 
 QSplitter::handle:vertical:pressed, QSplitter::handle:vertical:hover{
 	image: url(Views/UiFiles/images/vertical_splitter_pressed.png);
-	background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0.3 #3C3C3C,  stop:0.5 #5C5C5C,
-stop: 0.7 #3C3C3C);
+	background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0.3 #333333,  stop:0.5 #5C5C5C,
+stop: 0.7 #333333);
 }
 
 QSplitter::handle:horizontal{
 	image: url(Views/UiFiles/images/horizontal_splitter.png);
-	background: qlineargradient(spread:pad, x1:1, y1:0, x2:0, y2:0, stop:0.3 #3C3C3C,  stop:0.5 #505050,
-stop: 0.7 #3C3C3C);
+	background: qlineargradient(spread:pad, x1:1, y1:0, x2:0, y2:0, stop:0.3 #333333,  stop:0.5 #505050,
+stop: 0.7 #333333);
 	width: 15px;
 }
 
 QSplitter::handle:horizontal:pressed, QSplitter::handle:horizontal:hover{
 	image: url(Views/UiFiles/images/horizontal_splitter_pressed.png);
-	background: qlineargradient(spread:pad, x1:1, y1:0, x2:0, y2:0, stop:0.3 #3C3C3C,  stop:0.5 #5C5C5C,
-stop: 0.7 #3C3C3C);
+	background: qlineargradient(spread:pad, x1:1, y1:0, x2:0, y2:0, stop:0.3 #333333,  stop:0.5 #5C5C5C,
+stop: 0.7 #333333);
 }
 
 QSplitter::handle:hover {
-	background: #3C3C3C;
+	background: #333333;
 }
 */
 QHeaderView::section

@@ -123,11 +123,22 @@ class PhaseController(object):
         self.phase_model.phase_added.connect(self.phase_added)
         self.phase_model.phase_removed.connect(self.phase_removed)
         self.phase_model.phase_changed.connect(self.phase_changed)
+
+    def get_phases(self):
+        phases = {}
+        for phase in self.phase_model.phases:
+            phases[phase._name]=copy.deepcopy(phase)
+        return phases
         
     def file_dragged_in(self,files):
         self.add_btn_click_callback(filenames=files)
 
     def JCPDS_roi_btn_clicked(self, index):
+        rois, phase, filename = self.get_phase_reflections(index)
+        
+        self.roi_controller.addJCPDSReflections(rois, phase)
+
+    def get_phase_reflections(self, index):
         # add rois based on selected JCPDS phase
         phases = self.phase_model.phases
         files = self.phase_model.phase_files
@@ -144,8 +155,7 @@ class PhaseController(object):
             lbl = str(name + " " + reflection.get_hkl())
             rois.append({'channel':channel,'halfwidth':10, 'label':lbl, \
                            'name':name, 'hkl':reflection.get_hkl_list()})
-        
-        self.roi_controller.addJCPDSReflections(rois, phase)
+        return rois, phase, filename
 
     
     def connect_click_function(self, emitter, function):

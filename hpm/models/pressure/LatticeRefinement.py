@@ -31,6 +31,7 @@ class latticeRefinement():
         self.esd_beta = -1
         self.esd_gamma = -1
         self.dhkl = []
+        self.DelD = []
         self.volume = -1
         self.symmetry = ''
         self.refinement_output = dict()
@@ -55,6 +56,7 @@ class latticeRefinement():
         if self.symmetry == 'monoclinic':
             l = monoclinic(self.dhkl)
         self.refinement_output = l
+    
         lattice, esd_lattice = dict_to_lattice(l,self.symmetry)
         self.set_lattice(lattice, esd_lattice)
             
@@ -104,8 +106,10 @@ def isometric(reflections):
     a = 1/ sqrt(aStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         dcalc = 1/sqrt(hkl[i]*aStar2)
+        DCalc.append(dcalc)
         deld = r[0]-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -115,7 +119,7 @@ def isometric(reflections):
     ave_del_d = average(DelD)
     esd = sqrt(1/(sum_hkl))*stdev_q
     esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd)))+0.005,0))
-    return {'a':a, 'esd_a':esd_a, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'esd_a':esd_a, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def hexagonal(reflections):
     """
@@ -166,12 +170,14 @@ def hexagonal(reflections):
     c =1/sqrt(cStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt((h**2+h*k+k**2)*aStar2+l**2*cStar2)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -183,7 +189,7 @@ def hexagonal(reflections):
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[1][1])
     esd_a = int(round(1000*(abs(a-2/sqrt(3*(aStar2+esd_astar2))+0.005)),0))
     esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
-    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def tetragonal(reflections):
     """
@@ -230,12 +236,14 @@ def tetragonal(reflections):
     c =1/sqrt(cStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt((h**2+k**2)*aStar2+l**2*cStar2)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -247,7 +255,7 @@ def tetragonal(reflections):
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[1][1])
     esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)+0.005)),0))
     esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
-    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def orthorhombic(reflections):
     """
@@ -314,12 +322,14 @@ def orthorhombic(reflections):
     c = 1/sqrt(cStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt(h**2*aStar2+k**2*bStar2+l**2*cStar2)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -333,7 +343,7 @@ def orthorhombic(reflections):
     esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)+0.005)),0))
     esd_b = int(round(1000*(abs(b-1/sqrt(bStar2+esd_bstar2)+0.005)),0))
     esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
-    return {'a':a, 'b':b, 'c':c, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'b':b, 'c':c, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def monoclinic(reflections):
     """
@@ -428,12 +438,14 @@ def monoclinic(reflections):
     
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt(h**2*aStar2+k**2*bStar2+l**2*cStar2+h*l*pStar)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -450,7 +462,7 @@ def monoclinic(reflections):
     esd_b = int(round(1000*abs(0.5*(bStar2)**(-3/2)*esd_bstar2),0))
     esd_c = int(round(1000*abs(0.5*(cStar2)**(-3/2)*esd_cstar2/(sin(beta*pi/180))),0))
     esd_beta = int(round(1000*((1/(2*(1/d_100)*(1/d_001))*180/pi)/sqrt(1-(((pStar/(2*(1/d_100)*(1/d_001)))*2)**180/pi)))*esd_Bstar+0.5,0))
-    return {'a':a, 'b':b, 'c':c, 'beta':beta, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'esd_beta':esd_beta, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'b':b, 'c':c, 'beta':beta, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'esd_beta':esd_beta, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def triclinic(reflections):
     pass

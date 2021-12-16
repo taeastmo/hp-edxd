@@ -37,6 +37,7 @@ from hpm.controllers.PhaseController import PhaseController
 from hpm.controllers.mcaPlotController import plotController
 from hpm.controllers.RoiController import RoiController
 from hpm.controllers.OverlayController import OverlayController
+from hpm.controllers.LatticeRefinementController import LatticeRefinementController
 
 from hpm.controllers.FileSaveController import FileSaveController
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
@@ -87,6 +88,7 @@ class hpmcaController(QObject):
         self.phase_controller = None  # phase controller 
         self.fluorescence_controller = None
         self.overlay_controller = None
+        self.lattice_refinement_controller = None
         self.controllers_initialized = False
 
         self.unit = 'E' #default units
@@ -145,7 +147,7 @@ class hpmcaController(QObject):
         ui.actionOverlay.triggered.connect(self.overlay_module)
         ui.actionFluor.triggered.connect(self.fluorescence_module)
         
-        ui.actionPressure.triggered.connect(self.pressure_module)
+        ui.actionLatticeRefinement.triggered.connect(self.lattice_refinement_module)
         ui.actionhklGen.triggered.connect(self.hklGen_module)
         ui.actionManualTth.triggered.connect(self.set_Tth)
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
@@ -332,7 +334,7 @@ class hpmcaController(QObject):
         self.fluorescence_controller = xrfWidget(self.widget.pg, self.plotController, self.roi_controller, self.mca)
         self.fluorescence_controller.xrf_selection_updated_signal.connect(self.xrf_updated)
 
-   
+        self.lattice_refinement_controller = LatticeRefinementController(self.mca,self.widget.pg,self.plotController,self)
 
         #initialize hklGen controller
         #self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
@@ -450,8 +452,11 @@ class hpmcaController(QObject):
         if self.mca !=None:
             self.fluorescence_controller.show()
 
-    def pressure_module(self):
-        self.roi_controller.pressure()
+    def lattice_refinement_module(self):
+        rois = copy.deepcopy(self.roi_controller.roi)
+        phases = self.phase_controller.get_phases()
+        self.lattice_refinement_controller.set_rois_phases(rois,phases)
+        self.lattice_refinement_controller.pressure()
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()

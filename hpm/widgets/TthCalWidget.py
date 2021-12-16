@@ -144,8 +144,8 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
 
         
         
-        header = {'ROI':0,'Use?':1,'Energy':2,
-            'D-spacing':3,'HKL':4,f'2\N{GREEK SMALL LETTER THETA}':5, f'2\N{GREEK SMALL LETTER THETA}' + ' error':6
+        header = {'ROI':0,'Use?':1,'HKL':2,
+            'd-spacing':3,'Energy':4,f'2\N{GREEK SMALL LETTER THETA}':5, f'2\N{GREEK SMALL LETTER THETA}' + ' error':6
         }
 
         row = 0

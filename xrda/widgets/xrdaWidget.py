@@ -23,7 +23,7 @@ import os, os.path, sys, platform, copy
 
 from PyQt5 import uic, QtWidgets,QtCore
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QMdiArea, QAction, QMdiSubWindow, QTextEdit
 from xrda.widgets.xrda_ui import Ui_xrda
 
 #qtCreatorFile = 'hpMCA.ui'
@@ -33,6 +33,7 @@ _platform = platform.system()
 
 
 class xrdaWidget(QMainWindow, Ui_xrda):
+    count = 0
     file_dragged_in_signal = pyqtSignal(str)
     key_signal = pyqtSignal(str)
     def __init__(self, app):
@@ -40,9 +41,14 @@ class xrdaWidget(QMainWindow, Ui_xrda):
         Ui_xrda.__init__(self)
         self.setupUi(self)
         self.app = app
+
+ 
+
         
         self.add_menu_items()
         self.setAcceptDrops(True)
+
+
 
     def closeEvent(self, QCloseEvent, *event):
         self.app.closeAllWindows()
