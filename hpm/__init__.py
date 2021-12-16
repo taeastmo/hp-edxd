@@ -63,8 +63,8 @@ def main():
     controller.widget.show()
 
     # autoload a file, using for debugging
-    controller.file_save_controller.openFile(filename='/Users/ross/Desktop/Cell1-RT/sample_001.hpmca')
-    controller.phase_controller.add_btn_click_callback(filenames=['/Users/ross/GitHub/hp-jcpds/____JCPDS/Halides/LiF_new.jcpds'])
+    controller.file_save_controller.openFile(filename='/Users/hrubiak/GitHub/hp-edxd/hpm/resources/20181010-Au-wire-50um-15deg.hpmca')
+    controller.phase_controller.add_btn_click_callback(filenames=['/Users/hrubiak/GitHub/hp-edxd/hpm/resources/au.jcpds'])
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
 

@@ -42,12 +42,12 @@ class LatticeRefinementController(QObject):
         self.set_mca(mcaModel)
         self.mcaController = mainController
         self.phases=dict()
-        self.lattice = latticeRefinement()
+        self.lattice_model = latticeRefinement()
 
-        
-        self.Ediff =[]
         detector = 0
+        self.Ediff =[]
         self.roi = []
+
         self.calibration = copy.deepcopy(mcaModel.get_calibration()[detector])
         self.two_theta =  self.calibration.two_theta
         self.working_directories = mainController.working_directories.phase
@@ -59,7 +59,7 @@ class LatticeRefinementController(QObject):
         self.plotController = plotController
         self.unit = 'E'
         self.unit_ = 'KeV'
-        self.roi_cursor = []
+        #self.roi_cursor = []
         
         self.widget = LatticeRefinementWidget(self.calibration,self.working_directories)
         
@@ -96,33 +96,57 @@ class LatticeRefinementController(QObject):
     def menu_do_fit(self):
        
         self.update_phases()
+
+    def clear_rois(self, *args, **kwargs):
+        """
+        Deletes all rois from the GUI
+        """
+        self.blockSignals(True)
+        while self.widget.roi_tw.rowCount() > 0:
+            self.roi_removed(self.widget.roi_tw.rowCount()-1)
+        self.lattice_model.clear()
+        self.Ediff =[]
+        self.roi = []
+        self.blockSignals(False)
+        self.update_rois()
+
+    def update_rois(self):
+        pass
+
+    def roi_removed(self, ind):
+        self.widget.del_roi(ind)
  
 
     def menu_plot_refinement(self):
         """ Private method """
-        energy = []
-        E_diff = self.Ediff
-        energy_use = []
-        E_diff_use = []
-
-        for i in range(len(self.roi)):
-            energy.append(self.roi[i].energy)
-            
-            if (self.roi[i].use):
-                energy_use.append(energy[i])
-                E_diff_use.append(E_diff[i])
         
-        pltError = pg.plot(energy_use,E_diff_use, 
-                pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
-                symbolPen='w', title=f'Energy error'
-        )
-        pltError.setLabel('left', f'Energy error')
-        pltError.setLabel('bottom', 'Energy')
+        E_diff = self.Ediff
+        if len (E_diff):
+            energy_use = []
+            E_diff_use = []
+            energy = []
+
+            for i in range(len(self.roi)):
+                energy.append(self.roi[i].energy)
+                
+                if (self.roi[i].use):
+                    energy_use.append(energy[i])
+                    E_diff_use.append(E_diff[i])
+            
+            pltError = pg.plot(energy_use,E_diff_use, 
+                    pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
+                    symbolPen='w', title=f'Energy error'
+            )
+            pltError.setLabel('left', f'Energy error')
+            pltError.setLabel('bottom', 'Energy')
 
 
     def set_rois_phases(self, rois, phases):
+        self. clear_rois()
+        self.widget.phases_lbl.setText('')
         self.roi = rois
         self.phases = phases
+        
         self.widget.set_rois(rois)
 
 
@@ -139,7 +163,7 @@ class LatticeRefinementController(QObject):
                         roi_groups[l]=[r]
                     else:
                         roi_groups[l].append(r)
-            lbl=''
+            lbl= ''
             
 
             for p in roi_groups:
@@ -151,9 +175,9 @@ class LatticeRefinementController(QObject):
                         curr_phase = self.phases[p]
                         
                     else: 
-                        lbl += 'phase not recognized'
+                        lbl += 'Phase not recognized. \nAdd corresponding phase \nto Phase control.'
                         break
-                    lbl += p + ':\n '
+                    #lbl += p + ':\n '
                     DHKL = []
                     phase = roi_groups[p]
                     for r in phase:
@@ -167,14 +191,14 @@ class LatticeRefinementController(QObject):
                         dhkl = [d,h,k,l]
                         DHKL.append(dhkl)
                     if len(dhkl)>0:
-                        self.lattice = latticeRefinement()
-                        self.lattice.set_dhkl(DHKL)
+                        self.lattice_model = latticeRefinement()
+                        self.lattice_model.set_dhkl(DHKL)
                         symmetry = curr_phase.params['symmetry']
-                        self.lattice.set_symmetry(symmetry.lower())
-                        self.lattice.refine()
-                        v = self.lattice.get_volume()
-                        l = self.lattice.get_lattice()
-                        DCalc = self.lattice.refinement_output['Dcalc']
+                        self.lattice_model.set_symmetry(symmetry.lower())
+                        self.lattice_model.refine()
+                        v = self.lattice_model.get_volume()
+                        l = self.lattice_model.get_lattice()
+                        DCalc = self.lattice_model.refinement_output['Dcalc']
                         v0 = curr_phase.params['v0']
                         v_over_v0 = v/v0
                         v0_v = 1/v_over_v0
@@ -182,11 +206,18 @@ class LatticeRefinementController(QObject):
                         P = curr_phase.params['pressure']
                         T = curr_phase.params['temperature']
                         #print(str(DHKL))
-                        lbl +='volume = ' + '%.3f'%(v)+' A^3\n v/v0 = '+ '%.3f'%(v_over_v0)
-                        lbl += '\n P = '+ '%.2f'%(P)+ ' GPa\n T = '+ '%.2f'%(T)
-                        lbl += '\nlattice: '
+                        
                         for line in l:
-                            lbl +='\n'+ line + ": " + str(round(l[line],4))
+                            parameter = line.replace('alpha', f'\N{GREEK SMALL LETTER ALPHA}') \
+                                                .replace('beta', f'\N{GREEK SMALL LETTER BETA}') \
+                                                    .replace('gamma', f'\N{GREEK SMALL LETTER GAMMA}')
+                            lbl += parameter + " = " + str(round(l[line],4)) + '\n'
+
+                        lbl += '\nV = ' + '%.3f'%(v) + u' \u212B'+f'\N{SUPERSCRIPT THREE}'
+                        lbl += f'\nV/V\N{SUBSCRIPT ZERO} = '+ '%.3f'%(v_over_v0)
+                        lbl += '\nP = '+ '%.2f'%(P)+ ' GPa '
+                        lbl += '\nT = '+ '%.2f'%(T) + ' K'
+                        
 
                         self.Ediff = []
 
@@ -203,5 +234,5 @@ class LatticeRefinementController(QObject):
 
                             self.widget.update_roi(i,e,ediff)
                         
-
+     
             self.widget.phases_lbl.setText(lbl)

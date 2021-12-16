@@ -49,7 +49,7 @@ class aEDXDWidget(QMainWindow):
         self.all_spectra_widget = aEDXDAllSpectraWidget(all_spectra_fig_params)
         self.vertical_layout_tab_all_spectra.addWidget(self.all_spectra_widget)
         
-        sq_fig_parameters = 'S(q) Merged and Smoothened', 'S(q)', u'q (A<sup>-1</sup>)'
+        sq_fig_parameters = 'S(q) Merged and Smoothened', 'S(q)', u'q (\u212B<sup>-1</sup>)'
         self.sq_widget = aEDXDSqWidget(sq_fig_parameters)
         self.vertical_layout_tab_sq.addWidget(self.sq_widget )
 
@@ -57,7 +57,7 @@ class aEDXDWidget(QMainWindow):
         self.pdf_widget = aEDXDPDFWidget(pdf_fig_parameters)
         self.vertical_layout_tab_pdf.addWidget(self.pdf_widget)
 
-        inverse_fig_parameters = 'S(q) filtered', 'S(q)', u'q (A<sup>-1</sup>)' 
+        inverse_fig_parameters = 'S(q) filtered', 'S(q)', u'q (\u212B<sup>-1</sup>)' 
         self.inverse_widget = aEDXDInverseWidget(inverse_fig_parameters)
         self.vertical_layout_tab_inverse.addWidget(self.inverse_widget)
 

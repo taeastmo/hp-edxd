@@ -51,7 +51,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
 
     def __init__(self, calibration, jcpds_directory=''):
         super().__init__()
-        self.setWindowTitle("Lattice Refinement")
+        self.setWindowTitle("Lattice refinement")
         self.setMinimumWidth(600)
 
         self.roi = []
@@ -76,7 +76,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(t)
 
         self.plot_cal = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
-        t.setText("Plot E error")
+        t.setText(f'Plot \N{GREEK CAPITAL LETTER DELTA} E')
         
         t.setFixedWidth(110)
         self._button_layout.addWidget(t)
@@ -97,8 +97,8 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.phase_file_label = QtWidgets.QLabel()
         self._layout.addWidget(self.phase_file_label)
 
-        self.phases_lbl=QtWidgets.QLabel('')
-
+        self.phases_lbl=QtWidgets.QTextEdit('')
+        self.phases_lbl.setAcceptRichText(True)
         
         self._body_layout = QtWidgets.QHBoxLayout()
 
@@ -148,7 +148,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
                 file = temp[0]
                 item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
                 if item is not None:
-                    self.fname_label = 'Phase: ' + file+'.jcpds'
+                    self.fname_label = 'Phase: ' + file
         self.phase_file_label.setText(self.fname_label)
 
         self.populate_rois()
@@ -256,7 +256,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         header_view.setResizeMode(2, QtWidgets.QHeaderView.Stretch)
         header_view.setResizeMode(3, QtWidgets.QHeaderView.Stretch)
         self.default_header = ['Use','ROI','HKL',
-            'E obs','E calc',u'𝝙 E']
+            'E obs','E calc',f'\N{GREEK CAPITAL LETTER DELTA} E']
         self.header = copy.deepcopy(self.default_header)
 
         self.roi_tw.setHorizontalHeaderLabels(self.header)
