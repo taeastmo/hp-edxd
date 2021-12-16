@@ -46,13 +46,16 @@ class mcaCalibrate2theta_widgets(object):
 
 class LatticeRefinementWidget(QtWidgets.QWidget):
     widget_closed = QtCore.pyqtSignal()
+    show_cb_state_changed = QtCore.pyqtSignal(int, int)
+    name_item_changed = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, roi, calibration, jcpds_directory=''):
+    def __init__(self, calibration, jcpds_directory=''):
         super().__init__()
         self.setWindowTitle("Lattice Refinement")
+        self.setMinimumWidth(600)
 
-        self.roi = roi
-        self.rois = []
+        self.roi = []
+        #self.rois = []
 
 
         self.calibration = calibration
@@ -66,16 +69,36 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self._button_layout = QtWidgets.QHBoxLayout(self.button_widget)
         self._button_layout.setContentsMargins(0, 0, 0, 0)
         self._button_layout.setSpacing(6)
-        
+        self.do_fit = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
+        t.setText("Refine Lattice")
+        t.setFixedWidth(110)
+       
+        self._button_layout.addWidget(t)
 
+        self.plot_cal = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
+        t.setText("Plot E error")
         
-    
+        t.setFixedWidth(110)
+        self._button_layout.addWidget(t)
+
+        self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
+        t.setText(f'2\N{GREEK SMALL LETTER THETA}:')
+        t.setFixedWidth(70)
+        t.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+        self._button_layout.addWidget(t)
+
+        self.two_theta = t = QtWidgets.QLabel(self.button_widget)
+        t.setText('%.5f' % self.calibration.two_theta)
+        self._button_layout.addWidget(t)
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
 
+
+        self.phase_file_label = QtWidgets.QLabel()
+        self._layout.addWidget(self.phase_file_label)
+
         self.phases_lbl=QtWidgets.QLabel('')
 
-        
         
         self._body_layout = QtWidgets.QHBoxLayout()
 
@@ -83,20 +106,33 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
 
         
         self.init_roi_view()
+        self.verticalLayout_4.addWidget(self.phases_lbl)
 
         self._body_layout.addLayout(self.verticalLayout_4)
-        self._layout.addWidget(self.phases_lbl)
+
+        
+         
+
+        
 
         self.setLayout(self._layout)
         self.style_widgets()
 
-    def set_jcpds_directory(self, jcpds_directory):
-        self.jcpds_directory = jcpds_directory
 
-    def init_roi_view(self):
+    def update_roi(self, ind, ecalc, ediff):
+        self.roi_tw.blockSignals(True)
+       
+        counts_item = self.roi_tw.item(ind, 4)
+        counts_item.setText(str(ecalc))
+        fwhm_item = self.roi_tw.item(ind, 5)
+        fwhm_item.setText(str(ediff))
+        self.roi_tw.blockSignals(False)
 
+    def set_rois(self, rois):
+        self.roi = rois
         
-        detector = 0
+        self.nrois = len(self.roi)
+
         jcpds_directory = self.jcpds_directory
         
         
@@ -112,151 +148,175 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
                 file = temp[0]
                 item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
                 if item is not None:
-                    self.fname_label = 'Using phase file: ' + item['full_file']
-                
+                    self.fname_label = 'Phase: ' + file+'.jcpds'
+        self.phase_file_label.setText(self.fname_label)
 
-        #self.exit_command = command
-        self.nrois = len(self.roi)
-        
-        
-        
-        self.widgets     = mcaCalibrate2theta_widgets(self.nrois)
-        
+        self.populate_rois()
+
+    def set_jcpds_directory(self, jcpds_directory):
+        self.jcpds_directory = jcpds_directory
+
+    def init_roi_view(self):
 
         
         self.initUI()
 
+    def populate_rois(self):
+
+        nrois = self.nrois
+        
+        #### display rois parameters
+
+        for i in range(nrois):
+            row=i+1
+            use = self.roi[i].use==1
+            label = self.roi[i].label.split(' ')[-1]
+            eobs = '%.3f' % self.roi[i].energy
+            ecalc = '%.4f' % 0.0
+            ediff = '%.4f' % 0.0
+            self.add_roi(row, use, label, eobs, ecalc, ediff)
+
+
+    ################################################################################################
+    # Now comes all the roi tw stuff
+    ################################################################################################
+
+    def add_roi(self, row, use, label, eobs ,ecalc, ediff, silent=False):
+
+        self.roi_tw.blockSignals(True)
+        current_rows = self.roi_tw.rowCount()
+        self.roi_tw.setRowCount(current_rows + 1)
+
+        index_item = QtWidgets.QTableWidgetItem(str(row))
+        #index_item.setText(str(ind))
+        index_item.setFlags(index_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        index_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.roi_tw.setItem(current_rows, 1, index_item)
+        self.index_items.append(index_item)
+
+        
+        show_cb = QtWidgets.QCheckBox()
+        show_cb.setFixedWidth(40)
+        show_cb.setChecked(use)
+        show_cb.stateChanged.connect(partial(self.roi_show_cb_changed, show_cb))
+        show_cb.setStyleSheet("background-color: transparent")
+        self.roi_tw.setCellWidget(current_rows, 0, show_cb)
+        self.roi_show_cbs.append(show_cb)
+        
+
+        name_item = QtWidgets.QTableWidgetItem(label)
+        name_item.setText(label)
+        name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        name_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.roi_tw.setItem(current_rows, 2, name_item)
+        self.name_items.append(name_item)
+
+        centroid_item = QtWidgets.QTableWidgetItem(eobs)
+        centroid_item.setFlags(centroid_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        centroid_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.roi_tw.setItem(current_rows, 3, centroid_item)
+
+        counts_item = QtWidgets.QTableWidgetItem(ecalc)
+        counts_item.setFlags(counts_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        counts_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.roi_tw.setItem(current_rows, 4, counts_item)
+
+        fwhm_item = QtWidgets.QTableWidgetItem(ediff)
+        fwhm_item.setFlags(fwhm_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        fwhm_item.setTextAlignment(QtCore.Qt.AlignHCenter| QtCore.Qt.AlignVCenter)
+        self.roi_tw.setItem(current_rows, 5, fwhm_item)
+
+        self.roi_tw.setColumnWidth(0, 25)
+        #self.roi_tw.setColumnWidth(1, 20)
+        self.roi_tw.setRowHeight(current_rows, 25)
+        
+        if not silent:
+            self.select_roi(current_rows)
+            self.roi_tw.blockSignals(False)
+
 
     def initUI(self):
 
+        self.roi_show_cbs = []
+        self.name_items = []
+        self.index_items = []
+    
         #### display column headings    
-        self.verticalLayout_4 = QtWidgets.QVBoxLayout()
-        self.phase_file_label = QtWidgets.QLabel(self.fname_label)
-        self.verticalLayout_4.addWidget(self.phase_file_label)
-        self.groupBox = QtWidgets.QGroupBox(self)
-        self.container = self.groupBox        
-        self.gridLayout = QtWidgets.QGridLayout(self.container)
-        self.gridLayout.setContentsMargins(7, 15, 7, 7)
-        self.gridLayout.setSpacing(5)
-
+        self.verticalLayout_4 = QtWidgets.QHBoxLayout()
         
-        
-        header = {'ROI':0,'Use?':1,'HKL':2,
-            'E obs':3,f'E calc':4, f'E error':5
-        }
-
-        row = 0
-        for key, col in header.items():
-            t = QtWidgets.QLabel(self.groupBox)
-            t.setText(key)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            t.setMinimumSize(QtCore.QSize(60, 0))
-            self.gridLayout.addWidget(t, row, col, QtCore.Qt.AlignHCenter)
-
-        #### display rois parameters
-
-        for i in range(self.nrois):
-            row=i+1 
-            
-            t = QtWidgets.QLabel(self.groupBox)
-            t.setText(str(i))
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.gridLayout.addWidget(t, row, 0, QtCore.Qt.AlignHCenter)  
-
-            self.widgets.use_flag[i] = t = QtWidgets.QCheckBox(self.groupBox)
-            t.setChecked(self.roi[i].use==1)
-            t.toggled.connect(functools.partial(self.menu_use, i)) # lambda expression didn't work so using functools.partial instead
-            self.gridLayout.addWidget(t, row, 1, QtCore.Qt.AlignHCenter)
-
-            self.widgets.label[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText(self.roi[i].label.split(' ')[-1])
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.widgets.label[i].returnPressed.connect(functools.partial(self.menu_label, i))
-            self.gridLayout.addWidget(t, row, 2, QtCore.Qt.AlignHCenter)
-            
-           
-
-            # try to use the label to lookup d spacing
-
-            '''d = jcpds.lookup_jcpds_line(self.roi[i].label,path=self.jcpds_directory)
-            if (d != None): self.roi[i].d_spacing = d
-            else: self.roi[i].d_spacing = 0
-
-            self.widgets.d_spacing[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.4f' % self.roi[i].d_spacing)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            t.returnPressed.connect(functools.partial(self.menu_d_spacing, i))
-            self.gridLayout.addWidget(t, row, 3, QtCore.Qt.AlignHCenter)'''
-            
-            self.widgets.energy[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.3f' % self.roi[i].energy)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            t.returnPressed.connect(functools.partial(self.menu_energy, i))
-            self.gridLayout.addWidget(t, row, 3, QtCore.Qt.AlignHCenter)
-
-
-            self.widgets.calc_d[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.4f' % 0.0)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.gridLayout.addWidget(t, row, 4, QtCore.Qt.AlignHCenter)
-
-            self.widgets.calc_d_diff[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.4f' % 0.0)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.gridLayout.addWidget(t, row, 5, QtCore.Qt.AlignHCenter)
-
-        self.verticalLayout_4.addWidget(self.groupBox)
-
-
-        self.groupBox_2 = QtWidgets.QGroupBox(self)
-        self.groupBox_2.setTitle("")
-
-        self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.groupBox_2)
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        
-        
-        # in QtDialong, setting default=False, autoDefault=False prevents button from default trigger by Enter key
-        self.do_fit = t = QtWidgets.QPushButton(self.groupBox_2, default=False, autoDefault=False)
-        t.setText("Refine Lattice")
-        t.setFixedWidth(110)
        
-        self.horizontalLayout.addWidget(t)
 
-        self.plot_cal = t = QtWidgets.QPushButton(self.groupBox_2, default=False, autoDefault=False)
-        t.setText("Plot E error")
+        self.roi_tw = ListTableWidget(columns=6)
+        self.roi_tw.setMinimumWidth(400)
+        header_view = QtWidgets.QHeaderView(QtCore.Qt.Horizontal, self.roi_tw)
+        self.roi_tw.setHorizontalHeader(header_view)
+        header_view.setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         
-        t.setFixedWidth(110)
-        self.horizontalLayout.addWidget(t)
+        header_view.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header_view.setResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        header_view.setResizeMode(3, QtWidgets.QHeaderView.Stretch)
+        self.default_header = ['Use','ROI','HKL',
+            'E obs','E calc',u'𝝙 E']
+        self.header = copy.deepcopy(self.default_header)
 
-        self.lbltwo_theta = t = QtWidgets.QLabel(self.groupBox_2)
-        t.setText(f'2\N{GREEK SMALL LETTER THETA}:')
-        t.setFixedWidth(70)
-        t.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        self.horizontalLayout.addWidget(t)
+        self.roi_tw.setHorizontalHeaderLabels(self.header)
+      
+        self.roi_tw.setItemDelegate(NoRectDelegate())
 
-        self.two_theta = t = QtWidgets.QLabel(self.groupBox_2)
-        t.setText('%.5f' % self.calibration.two_theta)
-        self.horizontalLayout.addWidget(t)
+    
+        self.verticalLayout_4.addWidget(self.roi_tw)
 
-        self.horizontalLayout.setAlignment(QtCore.Qt.AlignHCenter)
-
-        self.verticalLayout_3.addLayout(self.horizontalLayout)
-        self.verticalLayout_4.addWidget(self.groupBox_2)
-
-        
 
         
-        self.groupBox.setTitle("Defined regions")
+
+        
+
+        
+        #self.groupBox.setTitle("Defined regions")
         #self.setFixedSize(self._layout.sizeHint())  
 
         
         #self.setWindowFlags(QtCore.Qt.Tool)
-        #self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow)     
+        #self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow)    
+        # 
+
+    def del_roi(self, ind, silent=False):
+        self.roi_tw.blockSignals(True)
+        self.roi_tw.removeRow(ind)
+        if not silent:
+            self.roi_tw.blockSignals(False)
+        #del self.roi_show_cbs[ind]
+        del self.name_items[ind]
+        del self.index_items[ind]
+        #del self.roi_color_btns[ind]
+        if not silent:
+            if self.roi_tw.rowCount() > ind:
+                self.select_roi(ind)
+            else:
+                self.select_roi(self.roi_tw.rowCount() - 1)
+
+    def select_roi(self, ind):
+        self.roi_tw.selectRow(ind)
+
+    def roi_show_cb_changed(self, checkbox):
+        checked = checkbox.isChecked()
+        if checked: state = 1
+        else: state = 0
+        self.show_cb_state_changed.emit(self.roi_show_cbs.index(checkbox), state) 
+
+    def roi_name_item_changed(self, nameitem):
+        
+        selected = self.get_selected_roi_row()
+        self.name_item_changed.emit(selected, self.name_items[selected].text())
+        #print ('roi_name_item_changed: ' +str(selected))
+
+    def get_selected_roi_row(self):
+        selected = self.roi_tw.selectionModel().selectedRows()
+        try:
+            row = selected[0].row()
+        except IndexError:
+            row = -1
+        return row
 
     def menu_use(self,  roi):
         value = self.widgets.use_flag[roi].isChecked()

@@ -47,7 +47,7 @@ class LatticeRefinementController(QObject):
         
         self.Ediff =[]
         detector = 0
-        self.roi = copy.deepcopy(mcaModel.get_rois()[detector])
+        self.roi = []
         self.calibration = copy.deepcopy(mcaModel.get_calibration()[detector])
         self.two_theta =  self.calibration.two_theta
         self.working_directories = mainController.working_directories.phase
@@ -61,17 +61,18 @@ class LatticeRefinementController(QObject):
         self.unit_ = 'KeV'
         self.roi_cursor = []
         
-        self.widget = LatticeRefinementWidget(self.roi,self.calibration,self.working_directories)
+        self.widget = LatticeRefinementWidget(self.calibration,self.working_directories)
         
 
-        self.nrois = len(self.roi)
-        #self.fwhm_chan   = np.zeros(self.nrois, np.float)
-        #self.two_theta   = np.zeros(self.nrois, np.float)
+        self.nrois = 0
+        
         self.create_signals()
 
     def set_mca(self, mca):
         self.mca = mca
+        self.dataLen = self.mca.nchans
         self.calibration = self.mca.get_calibration()[0]
+        self.two_theta =  self.calibration.two_theta
 
     def get_calibration(self):
         return self.calibration
@@ -104,7 +105,7 @@ class LatticeRefinementController(QObject):
         energy_use = []
         E_diff_use = []
 
-        for i in range(self.nrois):
+        for i in range(len(self.roi)):
             energy.append(self.roi[i].energy)
             
             if (self.roi[i].use):
@@ -120,9 +121,9 @@ class LatticeRefinementController(QObject):
 
 
     def set_rois_phases(self, rois, phases):
-        self.rois = rois
+        self.roi = rois
         self.phases = phases
-        
+        self.widget.set_rois(rois)
 
 
     def update_phases(self):
@@ -152,7 +153,7 @@ class LatticeRefinementController(QObject):
                     else: 
                         lbl += 'phase not recognized'
                         break
-                    lbl += p + ': '
+                    lbl += p + ':\n '
                     DHKL = []
                     phase = roi_groups[p]
                     for r in phase:
@@ -181,8 +182,8 @@ class LatticeRefinementController(QObject):
                         P = curr_phase.params['pressure']
                         T = curr_phase.params['temperature']
                         #print(str(DHKL))
-                        lbl +='volume = ' + '%.3f'%(v)+' A^3; v/v0 = '+ '%.3f'%(v_over_v0)
-                        lbl += '; P = '+ '%.2f'%(P)+ ' GPa; T = '+ '%.2f'%(T)
+                        lbl +='volume = ' + '%.3f'%(v)+' A^3\n v/v0 = '+ '%.3f'%(v_over_v0)
+                        lbl += '\n P = '+ '%.2f'%(P)+ ' GPa\n T = '+ '%.2f'%(T)
                         lbl += '\nlattice: '
                         for line in l:
                             lbl +='\n'+ line + ": " + str(round(l[line],4))
@@ -191,14 +192,16 @@ class LatticeRefinementController(QObject):
 
                         for i, dcalc in enumerate(DCalc):
                             e = round(12.398 / (2. * dcalc * np.sin(tth*np.pi/180./2.)),3)
-                            t = self.widget.widgets.calc_d[i]
-                            t.setText(str(e))
+                            #t = self.widget.widgets.calc_d[i]
+                            #t.setText(str(e))
                             dobs = DHKL[i][0]
                             eobs = round(12.398 / (2. * dobs * np.sin(tth*np.pi/180./2.)),3)
                             ediff = round(eobs - e,3)
-                            t = self.widget.widgets.calc_d_diff[i]
-                            t.setText(str(ediff))
+                            #t = self.widget.widgets.calc_d_diff[i]
+                            #t.setText(str(ediff))
                             self.Ediff.append(ediff)
+
+                            self.widget.update_roi(i,e,ediff)
                         
 
             self.widget.phases_lbl.setText(lbl)
