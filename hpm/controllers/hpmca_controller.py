@@ -468,6 +468,7 @@ class hpmcaController(QObject):
         if self.mca !=None:
             rois = copy.deepcopy(self.roi_controller.roi)
             phases = self.phase_controller.get_phases()
+            self.lattice_refinement_controller.set_jcpds_directory(self.phase_controller.directories.phase)
             self.lattice_refinement_controller.set_mca(self.mca)
             self.lattice_refinement_controller.set_rois_phases(rois,phases)
             self.lattice_refinement_controller.pressure()

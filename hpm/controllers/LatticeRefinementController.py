@@ -67,6 +67,11 @@ class LatticeRefinementController(QObject):
         self.two_theta =  self.calibration.two_theta
         self.widget.two_theta.setText(str(round(self.two_theta,5)))
 
+    def set_jcpds_directory(self, directory):
+        self.widget.jcpds_directory  = directory
+        self.working_directories = directory
+
+
     def get_calibration(self):
         return self.calibration
         
@@ -124,10 +129,10 @@ class LatticeRefinementController(QObject):
             
             pltError = pg.plot(energy_use,E_diff_use, 
                     pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
-                    symbolPen='w', title=f'Energy error'
+                    symbolPen='w', title= f'\N{GREEK CAPITAL LETTER DELTA} E'
             )
-            pltError.setLabel('left', f'Energy error')
-            pltError.setLabel('bottom', 'Energy')
+            pltError.setLabel('left', f'\N{GREEK CAPITAL LETTER DELTA} E (KeV)')
+            pltError.setLabel('bottom', 'E (KeV)')
 
 
     def set_rois_phases(self, rois, phases):

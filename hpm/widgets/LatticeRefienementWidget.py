@@ -122,14 +122,8 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.roi = rois
         
         self.nrois = len(self.roi)
-
-        jcpds_directory = self.jcpds_directory
         
-        
-        #self.data = copy.deepcopy(mca.get_data()[detector])
-        self.jcpds_directory = jcpds_directory
-
-        self.fname_label = 'Phase file not found. Please close this \nwindow and load the corresponding phase file (.jcpds) first.'
+        fname_label = 'Phase file not found. Please close this \nwindow and load the corresponding phase file (.jcpds) first.'
         if len(self.roi):
             roi = self.roi[0]
             label = roi.label
@@ -138,8 +132,8 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
                 file = temp[0]
                 item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
                 if item is not None:
-                    self.fname_label = 'Phase: ' + file
-        self.phase_file_label.setText(self.fname_label)
+                    fname_label = 'Phase: ' + file
+        self.phase_file_label.setText(fname_label)
 
         self.populate_rois()
 
