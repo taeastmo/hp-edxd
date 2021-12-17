@@ -96,6 +96,8 @@ class hpmcaController(QObject):
 
         self.unit = 'E' #default units
 
+        self.title_name = ''
+
         #initialize file saving controller
         self.file_save_controller = FileSaveController(self, defaults_options=self.defaults_options)
     
@@ -243,9 +245,8 @@ class hpmcaController(QObject):
                     self.mca.dataAcquired.disconnect()
                     self.mca.acq_stopped.disconnect()
                     
-                    #self.file_save_controller.McaFileNameHolder = self.file_save_controller.McaFilename
                     self.epicsMCAholder = self.mca
-            #self.file_save_controller.McaFilename = None        
+            self.file_save_controller.McaFilename = None        
             self.mca = mca
             self.blockSignals(True)
             for btn in self.epicsBtns:
@@ -259,14 +260,13 @@ class hpmcaController(QObject):
             for btn in epicsElapsedTimeBtns_PLTM:
                 btn.disconnect()
             self.widget.dead_time_indicator.disconnect()
-            #self.widget.dead_time_indicator.setValue(None)
+            #self.widget.dead_time_indicator.setValue(0)
         elif mcaType == 'epics': 
             name = ''
             
             if self.epicsMCAholder is not None:
                 name = self.epicsMCAholder.name
-            #if self.file_save_controller.McaFileNameHolder is not None:
-            #    self.file_save_controller.McaFilename = self.file_save_controller.McaFileNameHolder
+            
           
             if name == det_or_file :
                 self.mca = self.epicsMCAholder
@@ -309,6 +309,7 @@ class hpmcaController(QObject):
             self.roi_controller.set_mca(self.mca)
             self.fluorescence_controller.set_mca(self.mca)
         self.Foreground = mcaType
+        self.file_save_controller.McaFileName = self.mca.name
         
         return 0
 

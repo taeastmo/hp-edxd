@@ -146,7 +146,7 @@ class LatticeRefinementController(QObject):
 
     def update_phases(self):
         
-        use = self.widget.roi_show_cbs
+        
         rois = self.roi
         tth = self.two_theta
         if len(rois)>0:
@@ -176,7 +176,7 @@ class LatticeRefinementController(QObject):
                     DHKL = []
                     phase = roi_groups[p]
                     for i, r in enumerate(phase):
-                        u = use[i].isChecked()
+                        u = self.widget.roi[i].use
                         if u:
                             d = r.d_spacing
                             hkl = r.label.split(' ')[1]

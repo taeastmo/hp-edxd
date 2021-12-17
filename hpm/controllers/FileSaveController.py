@@ -37,7 +37,7 @@ class FileSaveController(object):
     the pattern plot and it needs the calibration data to have access to the currently used wavelength.
     """
 
-    def __init__(self, mcaController, **kwargs):
+    def __init__(self, hpmcaController, **kwargs):
         """
         
         """
@@ -70,14 +70,14 @@ class FileSaveController(object):
                 name = self.record_name_file + ':' + pv_file
                 self.pvs_file[pv_file] = PV(name)
         
-        self.mca_controller = mcaController
-        self.widget = mcaController.widget
+        self.mca_controller = hpmcaController
+        self.widget = hpmcaController.widget
         self.file_widget = SaveFileWidget()
         
       
         self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
-        #self.McaFileNameHolder = None
-        #self.McaFileName = None
+        self.McaFileNameHolder = ''
+        self.McaFileName = ''
 
         self.create_signals()
 
@@ -172,7 +172,7 @@ class FileSaveController(object):
                         self.widget.actionSave_next.setEnabled(False)
                 else:
                     mcaUtil.displayErrorMessage('fs')
-            else:
+            else: 
                 mcaUtil.displayErrorMessage('fs')
 
     def update_epics_filename(self, filename):
@@ -196,6 +196,7 @@ class FileSaveController(object):
                     [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0)
                 if success:
                     self.mca_controller.working_directories .savedata = os.path.dirname(str(filename)) #working directory xrd files
+                    
                     mcaUtil.save_folder_settings(self.mca_controller.working_directories )
                     # best to initialize controllers only once per session
                     if not self.mca_controller.controllers_initialized:  
