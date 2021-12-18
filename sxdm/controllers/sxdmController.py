@@ -21,6 +21,7 @@ from functools import partial
 
 from sxdm.widgets.sxdmWidget import sxdmWidget
 
+Theme = 1   # app style 0=windows 1=dark 
 from .. import style_path
 from .. import home_path
 
@@ -30,6 +31,10 @@ class sxdmController(QObject):
     def __init__(self, app=None):
         super().__init__()
         self.app = app
+        global Theme
+        self.Theme = Theme
+        self.style_path = style_path
+        self.setStyle(self.Theme)
         self.window = sxdmWidget()
         self.initData()
         
@@ -63,3 +68,18 @@ class sxdmController(QObject):
 
     def showWindow(self):
         self.window.raise_widget()
+
+    def setStyle(self, Style):
+        #print('style:  ' + str(Style))
+        if Style==1:
+            WStyle = 'plastique'
+            file = open(os.path.join(self.style_path, "stylesheet.qss"))
+            stylesheet = file.read()
+            self.app.setStyleSheet(stylesheet)
+            file.close()
+            self.app.setStyle(WStyle)
+        else:
+            WStyle = "windowsvista"
+            self.app.setStyleSheet(" ")
+            #self.app.setPalette(self.win_palette)
+            self.app.setStyle(WStyle)
