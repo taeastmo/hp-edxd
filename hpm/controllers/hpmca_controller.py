@@ -38,6 +38,8 @@ from hpm.controllers.mcaPlotController import plotController
 from hpm.controllers.RoiController import RoiController
 from hpm.controllers.OverlayController import OverlayController
 from hpm.controllers.LatticeRefinementController import LatticeRefinementController
+from hpm.controllers.EnvironmentController import EnvironmentController
+from hpm.controllers.MultipleDatasetsController import MultipleDatasetsController
 
 from hpm.controllers.FileSaveController import FileSaveController
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
@@ -100,6 +102,7 @@ class hpmcaController(QObject):
 
         #initialize file saving controller
         self.file_save_controller = FileSaveController(self, defaults_options=self.defaults_options)
+        self.multiple_datasets_controller = MultipleDatasetsController(self.file_save_controller)
     
         self.make_prefs_menu()  # for mac
         
@@ -151,6 +154,8 @@ class hpmcaController(QObject):
         ui.actionROIs.triggered.connect(self.roi_module)
         ui.actionOverlay.triggered.connect(self.overlay_module)
         ui.actionFluor.triggered.connect(self.fluorescence_module)
+        ui.actionEvironment.triggered.connect(self.environment_module)
+        ui.actionMultiSpectra.triggered.connect(self.multi_spectra_module)
         
         ui.actionLatticeRefinement.triggered.connect(self.lattice_refinement_module)
         ui.actionhklGen.triggered.connect(self.hklGen_module)
@@ -328,9 +333,11 @@ class hpmcaController(QObject):
         self.plotController.fastCursorMovedSignal.connect(self.mouseMoved)  
         self.plotController.selectedRoiChanged.connect(self.roi_selection_updated) 
         self.plotController.envUpdated.connect(self.envs_updated_callback)
+
+        self.environment_controller = EnvironmentController()
         
         #initialize roi controller
-        self.roi_controller = self.plotController.roi_controller
+        self.roi_controller = self.plotController.roi_controller 
         
         # initialize phase controller
         self.phase_controller = PhaseController(self.widget.pg, self.mca, 
@@ -413,6 +420,8 @@ class hpmcaController(QObject):
 
     def data_updated(self):
         self.plotController.update_plot()  
+        environment = self.mca.environment
+        self.environment_controller.set_environment(environment)
         self.update_titlebar()
         elapsed = self.mca.get_elapsed()[0]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
@@ -473,6 +482,13 @@ class hpmcaController(QObject):
             self.lattice_refinement_controller.set_mca(self.mca)
             self.lattice_refinement_controller.set_rois_phases(rois,phases)
             self.lattice_refinement_controller.pressure()
+
+    def environment_module(self):
+        if self.mca !=None:
+            self.environment_controller.show_view()
+
+    def multi_spectra_module(self):
+        self.multiple_datasets_controller.show_view()
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()

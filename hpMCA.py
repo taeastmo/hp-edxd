@@ -21,6 +21,5 @@ main()
 # TODO epics PVs for application flow control
 # TODO copy functionality of area detector file save plugin
 # TODO try smooth_bruckner for baseline subtraction, save bg subtracted file
-# TODO environment_file_display
 # TODO multi detector display, optional stacked pltwidgets for each detector
 # TODO add ROI width options for the xrd module   

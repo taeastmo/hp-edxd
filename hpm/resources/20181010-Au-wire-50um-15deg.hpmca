@@ -36,6 +36,22 @@ ROI_7_LABEL:  au 333&
 ROI_8_LEFT:  2313 
 ROI_8_RIGHT:  2333 
 ROI_8_LABEL:  au 620& 
+ENVIRONMENT: 16bmb:scaler1.S2="4635.0" (Ion Chamber 1)
+ENVIRONMENT: 16bmb:DMM1Ch8_calc.VAL="8011.285644069719" (Oil pressure (psi))
+ENVIRONMENT: 16bmb:PS66xxA:PS1:SR:powerOutPut="1.10342055681" (Power output (W))
+ENVIRONMENT: 16bmb:PS66xxA:PS1:SR:Resistance="0.039557736766" (Resistance (Ohm))
+ENVIRONMENT: 16bmb:m20.RBV="-0.54825" (SAM Y (mm))
+ENVIRONMENT: 16bmb:m21.RBV="-0.84868916" (SAM Z (mm))
+ENVIRONMENT: 16bmb:m19.RBV="-5.25" (SAM Z (mm))
+ENVIRONMENT: 16bmb:m5.RBV="8.0000494" (2-Theta motor (deg))
+ENVIRONMENT: 16bmb:m12.RBV="0.04998415" (1st Hsize (mm))
+ENVIRONMENT: 16bmb:m10.RBV="0.1999918" (1st Vsize (mm))
+ENVIRONMENT: 16bmb:pm20.RBV="0.05" (2nd Hsize (mm))
+ENVIRONMENT: 16bmb:pm18.RBV="0.21" (2nd Vsize (mm))
+ENVIRONMENT: 16bmb:m38.RBV="0.15" (Det Hsize (mm))
+ENVIRONMENT: 16bmb:m40.RBV="2.0" (Det Vsize (mm))
+ENVIRONMENT: 16bmb:m53.RBV="0.0" (Tip X (mm))
+ENVIRONMENT: 16bmb:m13.RBV="0.0" (Filter wheel (deg))
 DATA: 
 0 
 0 
