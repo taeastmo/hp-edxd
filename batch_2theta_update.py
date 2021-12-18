@@ -5,7 +5,7 @@ from os.path import isfile, join
 
 ##  WARNING do not run this unless you are sure
 
-folder = '/Users/hrubiak/Desktop/Guoyin/Cell1-RT'
+folder = '/Users/ross/Desktop/Cell2-HT'
 new_two_theta = 7.956717 
 
 def update_2theta(folder, files, two_theta):
