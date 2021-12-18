@@ -537,7 +537,7 @@ class MCA():  #
         environment = self.get_environment()
         # the following is used for de-bouncing the auto-save when-acquisition-stops
         # there was an issue that files would be written in duplicates becasue of multiple stops issued by epicsMCA
-        if self.file_saved_timestamp is not None:
+        '''if self.file_saved_timestamp is not None:
             elapsed_since_last_save = time.time() - self.file_saved_timestamp
             #print ('elapsed_since_last_save: '+ str(elapsed_since_last_save))
         else:
@@ -545,7 +545,7 @@ class MCA():  #
         self.file_saved_timestamp = time.time()
         if elapsed_since_last_save < 0.2:
             #print('autosave skipped')
-            return [file, False]
+            return [file, False]'''
 
         if (netcdf != 0):
             pass
@@ -609,6 +609,7 @@ class MCA():  #
             self.elapsed = r['elapsed']
             self.set_rois(r['rois'][0], detector=0) 
             self.environment = r['environment']
+            self.name = os.path.split(file)[-1]
     
         return([file,success])
 

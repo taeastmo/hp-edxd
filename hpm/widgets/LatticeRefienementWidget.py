@@ -18,11 +18,9 @@
 # Copyright (C) 2018-2019 ANL, Lemont, USA
 
 
-
 from functools import partial
 import numpy as Numeric
 from PyQt5 import QtWidgets, QtCore
-
 import hpm.models.jcpds as jcpds
 import copy
 import functools
@@ -30,9 +28,6 @@ import math
 import pyqtgraph as pg
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-
-
-
 
 class LatticeRefinementWidget(QtWidgets.QWidget):
     widget_closed = QtCore.pyqtSignal()
@@ -43,17 +38,9 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         super().__init__()
         self.setWindowTitle("Lattice refinement")
         self.setMinimumWidth(600)
-
         self.roi = []
-        #self.rois = []
-
-
-        
-        
         self.jcpds_directory = jcpds_directory
-        
         self._layout = QtWidgets.QVBoxLayout()  
-        
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setObjectName('rois_control_button_widget')
         self._button_layout = QtWidgets.QHBoxLayout(self.button_widget)
@@ -62,56 +49,34 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.do_fit = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
         t.setText("Refine Lattice")
         t.setFixedWidth(110)
-       
         self._button_layout.addWidget(t)
-
         self.plot_cal = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
         t.setText(f'Plot \N{GREEK CAPITAL LETTER DELTA} E')
-        
         t.setFixedWidth(110)
         self._button_layout.addWidget(t)
-
         self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
         t.setText(f'2\N{GREEK SMALL LETTER THETA}:')
         t.setFixedWidth(70)
         t.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self._button_layout.addWidget(t)
-
         self.two_theta = t = QtWidgets.QLabel(self.button_widget)
-        #t.setText('%.5f' % self.calibration.two_theta)
         self._button_layout.addWidget(t)
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
-
-
         self.phase_file_label = QtWidgets.QLabel()
         self._layout.addWidget(self.phase_file_label)
-
         self.phases_lbl=QtWidgets.QTextEdit('')
         self.phases_lbl.setAcceptRichText(True)
-        
         self._body_layout = QtWidgets.QHBoxLayout()
-
         self._layout.addLayout(self._body_layout)
-
-        
         self.init_roi_view()
         self.verticalLayout_4.addWidget(self.phases_lbl)
-
         self._body_layout.addLayout(self.verticalLayout_4)
-
-        
-         
-
-        
-
         self.setLayout(self._layout)
         self.style_widgets()
 
-
     def update_roi(self, ind, ecalc, ediff):
         self.roi_tw.blockSignals(True)
-       
         counts_item = self.roi_tw.item(ind, 4)
         counts_item.setText(str(ecalc))
         fwhm_item = self.roi_tw.item(ind, 5)
@@ -120,9 +85,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
 
     def set_rois(self, rois):
         self.roi = rois
-        
         self.nrois = len(self.roi)
-        
         fname_label = 'Phase file not found. Please close this \nwindow and load the corresponding phase file (.jcpds) first.'
         if len(self.roi):
             roi = self.roi[0]
@@ -134,23 +97,17 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
                 if item is not None:
                     fname_label = 'Phase: ' + file
         self.phase_file_label.setText(fname_label)
-
         self.populate_rois()
 
     def set_jcpds_directory(self, jcpds_directory):
         self.jcpds_directory = jcpds_directory
 
     def init_roi_view(self):
-
-        
         self.initUI()
 
     def populate_rois(self):
-
         nrois = self.nrois
-        
         #### display rois parameters
-
         for i in range(nrois):
             row=i+1
             use = self.roi[i].use==1
@@ -177,7 +134,6 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         index_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.roi_tw.setItem(current_rows, 1, index_item)
         self.index_items.append(index_item)
-
         
         show_cb = QtWidgets.QCheckBox()
         show_cb.setFixedWidth(40)
@@ -186,7 +142,6 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         show_cb.setStyleSheet("background-color: transparent")
         self.roi_tw.setCellWidget(current_rows, 0, show_cb)
         self.roi_show_cbs.append(show_cb)
-        
 
         name_item = QtWidgets.QTableWidgetItem(label)
         name_item.setText(label)
@@ -211,13 +166,11 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.roi_tw.setItem(current_rows, 5, fwhm_item)
 
         self.roi_tw.setColumnWidth(0, 25)
-        #self.roi_tw.setColumnWidth(1, 20)
         self.roi_tw.setRowHeight(current_rows, 25)
         
         if not silent:
             self.select_roi(current_rows)
             self.roi_tw.blockSignals(False)
-
 
     def initUI(self):
 
@@ -227,42 +180,21 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
     
         #### display column headings    
         self.verticalLayout_4 = QtWidgets.QHBoxLayout()
-        
-       
-
+    
         self.roi_tw = ListTableWidget(columns=6)
         self.roi_tw.setMinimumWidth(400)
         header_view = QtWidgets.QHeaderView(QtCore.Qt.Horizontal, self.roi_tw)
         self.roi_tw.setHorizontalHeader(header_view)
         header_view.setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
-        
         header_view.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
         header_view.setResizeMode(2, QtWidgets.QHeaderView.Stretch)
         header_view.setResizeMode(3, QtWidgets.QHeaderView.Stretch)
         self.default_header = ['Use','ROI','HKL',
             'E obs','E calc',f'\N{GREEK CAPITAL LETTER DELTA} E']
         self.header = copy.deepcopy(self.default_header)
-
         self.roi_tw.setHorizontalHeaderLabels(self.header)
-      
         self.roi_tw.setItemDelegate(NoRectDelegate())
-
-    
         self.verticalLayout_4.addWidget(self.roi_tw)
-
-
-        
-
-        
-
-        
-        #self.groupBox.setTitle("Defined regions")
-        #self.setFixedSize(self._layout.sizeHint())  
-
-        
-        #self.setWindowFlags(QtCore.Qt.Tool)
-        #self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow)    
-        # 
 
     def del_roi(self, ind, silent=False):
         self.roi_tw.blockSignals(True)
@@ -284,15 +216,11 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
 
     def roi_show_cb_changed(self, checkbox):
         checked = checkbox.isChecked()
+        index = self.roi_show_cbs.index(checkbox)
+        self.roi[index].use = checked 
         if checked: state = 1
         else: state = 0
-        self.show_cb_state_changed.emit(self.roi_show_cbs.index(checkbox), state) 
-
-    def roi_name_item_changed(self, nameitem):
-        
-        selected = self.get_selected_roi_row()
-        self.name_item_changed.emit(selected, self.name_items[selected].text())
-        #print ('roi_name_item_changed: ' +str(selected))
+        self.show_cb_state_changed.emit(index, state) 
 
     def get_selected_roi_row(self):
         selected = self.roi_tw.selectionModel().selectedRows()
@@ -301,39 +229,6 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         except IndexError:
             row = -1
         return row
-
-    def menu_use(self,  roi):
-        value = self.widgets.use_flag[roi].isChecked()
-        """ Private method """
-        self.roi[roi].use = value 
-        #print('use: '+str(value))
-        #print('roi: '+str(roi))
-
-    def menu_label(self, roi):
-        """ Private method """
-        label = self.widgets.label[roi].text()
-        d_spacing = jcpds.lookup_jcpds_line(label,path=self.jcpds_directory)
-        if (d_spacing != None):
-            self.roi[roi].d_spacing = d_spacing
-            self.widgets.d_spacing[roi].setText('%.3f' % d_spacing)
-            
-        self.roi[roi].label=label
-
-    def menu_energy(self, roi):
-        """ Private method """
-        energy = float(self.widgets.energy[roi].text())
-        self.roi[roi].energy = energy
-        self.widgets.energy[roi].setText('%.3f' % energy)
-        #print('energy: %.3f' % energy)
-
-    def menu_d_spacing(self, roi):
-        """ Private method """
-        d_spacing = float(self.widgets.d_spacing[roi].text())
-        self.roi[roi].d_spacing = d_spacing
-        self.widgets.d_spacing[roi].setText('%.3f' % d_spacing)
-        #print('d-spacing: %.3f' % d_spacing)
-
-    
 
     def style_widgets(self):
         self.setStyleSheet("""
