@@ -23,6 +23,8 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from hpm.widgets.MultipleDatasetsWidget import MultiSpectraWidget
+from hpm.models.multipleDatasetModel import MultipleSpectraModel
+
 
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -35,7 +37,8 @@ class MultipleDatasetsController(QObject):
     def __init__(self, file_save_controller):
         super().__init__()
         self.file_save_controller = file_save_controller
-        self.env = []
+        
+        self.multi_spectra_model = MultipleSpectraModel()
         self.environment_widget = MultiSpectraWidget()
        
         self.active = False

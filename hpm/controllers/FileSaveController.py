@@ -20,7 +20,7 @@
 import os
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
-
+import time
 import copy
 from hpm.models.PhaseModel import PhaseLoadError
 from utilities.HelperModule import get_base_name, increment_filename
@@ -193,7 +193,9 @@ class FileSaveController(object):
                 if self.mca_controller.Foreground != 'file':
                     success = self.mca_controller.initMCA('file',filename) == 0
                 else:
+                    #start_time = time.time()
                     [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0)
+                    #print("--- %s seconds ---" % (time.time() - start_time))
                 if success:
                     self.mca_controller.working_directories .savedata = os.path.dirname(str(filename)) #working directory xrd files
                     

@@ -50,7 +50,7 @@ class PhaseController(object):
         """
 
         self.pattern = mcaModel
-        self.mca = mcaModel
+        
         self.directories = directories
         self.unit = ''
 
@@ -163,7 +163,7 @@ class PhaseController(object):
         phases = self.phase_model.phases
         files = self.phase_model.phase_files
         tth = self.phase_widget.tth_lbl.value()
-        calibration = self.mca.get_calibration()[0]
+        calibration = self.pattern.get_calibration()[0]
         d_to_channel = calibration.d_to_channel
         phase = phases[index]
         filename = files[index]

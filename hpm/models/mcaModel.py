@@ -817,7 +817,7 @@ class mcaFileIO():
         calibration = [McaCalibration()]
         rois = [[]]
         try:
-
+            
             while(1):
                 line = fp.readline()
                 if (line == ''): break
@@ -874,6 +874,7 @@ class mcaFileIO():
                     env.description = value[p1+2+p2+3:-1]
                     environment.append(env)
                 elif (tag == 'DATA:'):
+                    
                     data = []
                     for d in range(n_detectors):
                         data.append(np.zeros(nchans,  dtype=int))
@@ -882,6 +883,7 @@ class mcaFileIO():
                         counts = line.split()
                         for d in range(n_detectors):
                             data[d][chan]=int(counts[d])
+                    
                 else:
                     for i in range(max_rois):
                         roi = 'ROI_'+str(i)+'_'
@@ -904,7 +906,7 @@ class mcaFileIO():
                         else:
                             #print('Unknown tag = '+tag+' in file: ' + file + '.')
                             pass
-
+            
             # Make sure DATA array is defined, else this was not a valid data file
             if (data == None): return [None, False]
             fp.close()
@@ -916,6 +918,7 @@ class mcaFileIO():
             r['rois'] = rois
             r['data'] = data
             r['environment'] = environment
+            
             return [r, True]
         except:
             return [None, False]
