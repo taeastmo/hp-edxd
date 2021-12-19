@@ -36,7 +36,7 @@ class PatternModel(QtCore.QObject):
 
     all changes to the internal data throw a pattern_changed signal.
     """
-    pattern_changed = QtCore.Signal()
+    pattern_changed = QtCore.pyqtSignal()
 
     def __init__(self):
         super(PatternModel, self).__init__()

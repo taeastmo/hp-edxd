@@ -34,14 +34,14 @@ class JcpdsEditorController(QtCore.QObject):
     """
     JcpdsEditorController handles all the signals and changes associated with Jcpds editor widget
     """
-    canceled_editor = QtCore.Signal(jcpds)
+    canceled_editor = QtCore.pyqtSignal(jcpds)
 
-    # lattice_param_changed = QtCore.Signal()
-    # eos_param_changed = QtCore.Signal()
+    # lattice_param_changed = QtCore.pyqtSignal()
+    # eos_param_changed = QtCore.pyqtSignal()
     #
-    # reflection_line_edited = QtCore.Signal()
-    # reflection_line_removed = QtCore.Signal(int)
-    # reflection_line_cleared = QtCore.Signal()
+    # reflection_line_edited = QtCore.pyqtSignal()
+    # reflection_line_removed = QtCore.pyqtSignal(int)
+    # reflection_line_cleared = QtCore.pyqtSignal()
 
     def __init__(self, integration_widget, dioptas_model=None, jcpds_phase=None):
         """

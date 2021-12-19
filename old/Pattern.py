@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class Pattern(QtCore.QObject):
-    pattern_changed = QtCore.Signal(np.ndarray, np.ndarray)
+    pattern_changed = QtCore.pyqtSignal(np.ndarray, np.ndarray)
 
     def __init__(self, x=None, y=None, name=''):
         super(Pattern, self).__init__()

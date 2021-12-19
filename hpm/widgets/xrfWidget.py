@@ -28,12 +28,13 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
 
 class xrfWidget(QtWidgets.QWidget):
 
-    xrf_selection_updated_signal = QtCore.Signal(str ) 
-    color_btn_clicked = QtCore.Signal(int, QtWidgets.QWidget)
-    xrf_btn_clicked = QtCore.Signal(int)
-    show_cb_state_changed = QtCore.Signal(int, bool)
-    name_item_changed = QtCore.Signal(int, str)
-    widget_closed = QtCore.Signal()
+    
+    xrf_selection_updated_signal = QtCore.pyqtSignal(str ) 
+    color_btn_clicked = QtCore.pyqtSignal(int, QtWidgets.QWidget)
+    xrf_btn_clicked = QtCore.pyqtSignal(int)
+    show_cb_state_changed = QtCore.pyqtSignal(int, bool)
+    name_item_changed = QtCore.pyqtSignal(int, str)
+    widget_closed = QtCore.pyqtSignal()
 
     def __init__(self, plotWidget, plotContoller, roiController, mca):
         super().__init__()

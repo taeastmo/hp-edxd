@@ -253,7 +253,7 @@ class RoiWidget(QtWidgets.QWidget):
 
 
 class plotFitWindow(QtWidgets.QWidget):
-    widget_closed = QtCore.Signal()
+    widget_closed = QtCore.pyqtSignal()
     def __init__(self):
         super().__init__()
         

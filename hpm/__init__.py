@@ -24,14 +24,12 @@ __version__ = "0.6.2"
 
 
 
-import sys
 import os
-import time
 
 
 import PyQt5
 from PyQt5 import QtCore
-import pyqtgraph
+
 from PyQt5 import QtWidgets
 
 

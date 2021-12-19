@@ -103,6 +103,7 @@ class hpmcaController(QObject):
         #initialize file saving controller
         self.file_save_controller = FileSaveController(self, defaults_options=self.defaults_options)
         self.multiple_datasets_controller = MultipleDatasetsController(self.file_save_controller)
+        self.multiple_datasets_controller.file_changed_signal.connect(self.file_changed_signal_callback)
     
         self.make_prefs_menu()  # for mac
         
@@ -489,6 +490,11 @@ class hpmcaController(QObject):
 
     def multi_spectra_module(self):
         self.multiple_datasets_controller.show_view()
+
+    def file_changed_signal_callback(self, fname):
+        
+        self.file_save_controller.openFile(filename=fname)
+
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()

@@ -16,9 +16,11 @@
 
 
 from functools import partial
+import pyqtgraph as pg
 import copy
 import numpy as np
 import os
+from PyQt5 import QtWidgets, QtCore
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
@@ -32,7 +34,7 @@ class MultipleDatasetsController(QObject):
 
     env_updated_signal = pyqtSignal(int, str )  
     env_selection_changed_signal = pyqtSignal(int,str)
-    #envs_changed = pyqtSignal()  
+    file_changed_signal = pyqtSignal(str)  
 
     def __init__(self, file_save_controller):
         super().__init__()
@@ -40,7 +42,8 @@ class MultipleDatasetsController(QObject):
         
         self.multi_spectra_model = MultipleSpectraModel()
         self.widget = MultiSpectraWidget()
-       
+
+      
         self.active = False
         self.selectedENV = 0
         self.selectedENV_persist = 0
@@ -52,22 +55,77 @@ class MultipleDatasetsController(QObject):
     def create_signals(self):
        
         self.widget.widget_closed.connect(self.view_closed)
-        self.widget.add_btn.clicked.connect(self.load_data)
+        self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
         
         self.widget.key_signal.connect(self.key_sig_callback)
+        self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
+        self.widget.plotMouseCursorSignal.connect(self.CursorClick)
 
-    def load_data(self):
-        folder = '/Users/ross/Desktop/20191126-dac/scan'
+    def fastCursorMove(self, index):
+        index = int(index)
+        files = self.multi_spectra_model.r['files_loaded']
+        if index < len(files) and index >= 0:
+            file = os.path.split(files[index])[-1]
+            self.widget.file_name_fast.setText(file)
+
+    def CursorClick(self, index):
+        index, E = index[0], index[1]
+        files = self.multi_spectra_model.r['files_loaded']
+        if index < len(files) and index >= 0:
+            file = files[index]
+            file_display = os.path.split(file)[-1]
+            self.widget.file_name.setText(file_display)    
+            self.file_changed_signal.emit(file)
+
+    def initData(self,filenames, progress_dialog):
+        
+        self.load_data(filenames, progress_dialog=progress_dialog)
+        
+        
+
+    def load_data(self, paths, progress_dialog):
+        
+        self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
+        
+        
+
+    def add_btn_click_callback(self, *args, **kwargs):
+        """
+        Loads a multiple spectra into 2D numpy array
+        :return:
+        """
+
+        filter = self.widget.file_filter.text().strip()
+        
+        folder = '/Users/ross/Desktop/Cell2-HT'
         files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
         paths = []
         for f in files:
+            if "hpmca" in f and filter in f:
+                file = os.path.join(folder, f) 
+                
+                paths.append(file)
 
-            file = os.path.join(folder, f) 
-            paths.append(file)
+        filenames = paths
 
+        if filenames is None:
+            filenames = open_files_dialog(None, "Load Spectra(s).",
+                                          None)
 
-        self.multi_spectra_model.read_ascii_files_2d(paths)
-        data = np.log10(self.multi_spectra_model.r['data']+.5)
+            
+        if len(filenames):
+            #self.directories.phase = os.path.dirname(str(filenames[0]))
+            progress_dialog = QtWidgets.QProgressDialog("Loading multiple spectra.", "Abort Loading", 0, len(filenames),
+                                                        None)
+            progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
+            progress_dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
+            progress_dialog.show()
+            QtWidgets.QApplication.processEvents()
+            self.initData(filenames, progress_dialog)
+            progress_dialog.close()
+            QtWidgets.QApplication.processEvents()
+
+        data = np.log10(self.multi_spectra_model.r['data'] +.5)
         self.widget.img.setImage(data)
 
     def connect_click_function(self, emitter, function):

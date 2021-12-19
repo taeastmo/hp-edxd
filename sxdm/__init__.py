@@ -25,7 +25,7 @@ __version__ = "0.0.1"
 
 import sys
 import os
-
+ 
 import PyQt5
 import pyqtgraph
 from PyQt5 import QtCore

@@ -30,11 +30,11 @@ from .. import icons_path
 
 
 class PhaseWidget(QtWidgets.QWidget):
-    color_btn_clicked = QtCore.Signal(int, QtWidgets.QWidget)
-    show_cb_state_changed = QtCore.Signal(int, bool)
+    color_btn_clicked = QtCore.pyqtSignal(int, QtWidgets.QWidget)
+    show_cb_state_changed = QtCore.pyqtSignal(int, bool)
 
-    pressure_sb_value_changed = QtCore.Signal(int, float)
-    temperature_sb_value_changed = QtCore.Signal(int, float)
+    pressure_sb_value_changed = QtCore.pyqtSignal(int, float)
+    temperature_sb_value_changed = QtCore.pyqtSignal(int, float)
 
     def __init__(self):
         super(PhaseWidget, self).__init__()

@@ -29,7 +29,7 @@ import pyqtgraph as pg
 class sxdmWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        #self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.initUI()
         self.resize(600,600)
         
@@ -41,7 +41,7 @@ class sxdmWidget(QtWidgets.QWidget):
         self.make_img_plot()
         self.layout.addWidget(self.win)
         self.bottom_layout = QtWidgets.QHBoxLayout()
-        self.btn1 = QtWidgets.QPushButton('btn 1')
+        self.btn1 = QtWidgets.QPushButton('Load data')
         self.btn2 = QtWidgets.QPushButton('btn 2')
         self.btn3 = QtWidgets.QPushButton('btn 3')
         self.number = DoubleSpinBoxAlignRight()
@@ -66,9 +66,11 @@ class sxdmWidget(QtWidgets.QWidget):
         self.view = self.win.addViewBox()
         ## lock the aspect ratio so pixels are always square
         self.view.setAspectLocked(True)
+        self.view.setMouseMode(pg.ViewBox.RectMode)
         ## Create image item
         self.img = pg.ImageItem(border='w')
         self.img.setScaledMode()
+        
         self.view.addItem(self.img)
 
    

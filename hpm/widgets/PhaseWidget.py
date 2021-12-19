@@ -40,8 +40,8 @@ class PhaseWidget(QtWidgets.QWidget):
     show_cb_state_changed = QtCore.pyqtSignal(int, bool)
     file_dragged_in = QtCore.pyqtSignal(list)
 
-    pressure_sb_value_changed = QtCore.Signal(int, float)
-    temperature_sb_value_changed = QtCore.Signal(int, float)
+    pressure_sb_value_changed = QtCore.pyqtSignal(int, float)
+    temperature_sb_value_changed = QtCore.pyqtSignal(int, float)
 
     def __init__(self):
         super(PhaseWidget, self).__init__()

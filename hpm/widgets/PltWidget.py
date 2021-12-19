@@ -197,8 +197,8 @@ class PltWidget(pg.PlotWidget):
     Subclass of PlotWidget
     """
     plotMouseMoveSignal = pyqtSignal(float)  
-    range_changed = QtCore.Signal(list)
-    auto_range_status_changed = QtCore.Signal(bool)
+    range_changed = QtCore.pyqtSignal(list)
+    auto_range_status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, parent=None, colors = None):
         """
@@ -243,7 +243,7 @@ class PltWidget(pg.PlotWidget):
         # cursor
         
         
-        self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=60, slot=self.fastCursorMove)
+        self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=25, slot=self.fastCursorMove)
         # self.getViewBox().addItem(self.hLine, ignoreBounds=True)
         self.create_graphics()
         self.pattern_plot = self.plotItem

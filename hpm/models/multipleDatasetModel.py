@@ -15,22 +15,30 @@
 
 
 import numpy as np
+from PyQt5 import QtCore, QtWidgets
 
-
-class MultipleSpectraModel():  # 
+class MultipleSpectraModel(QtCore.QObject):  # 
     def __init__(self, *args, **filekw):
+        
         """
         Creates new Multiple Spectra object.  
     
         Example:
             m = MultipleSpectraModel()
         """
+        
         self.max_spectra = 500
         self.nchans = 4000
         self.data = None
-        self.r = {}
+        self.r = {'files_loaded':[],
+                'start_times' :[],
+                'data':None}
 
-    def read_ascii_files_2d(self, paths):
+
+    def was_canceled(self):
+        return False
+
+    def read_ascii_files_2d(self, paths, *args, **kwargs):
         """
         Reads multiple disk files.  The file format is a tagged ASCII format.
         The file contains the information from the Mca object which it makes sense
@@ -55,20 +63,32 @@ class MultipleSpectraModel():  #
             m = read_ascii_files_2d(['mca.hpmca'])
             
         """
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
+
         paths = paths [:self.max_spectra]
         nfiles = len (paths)   
         self.data = np.zeros([nfiles, self.nchans])
         files_loaded = []
         times = []
         nchans = self.nchans
+        QtWidgets.QApplication.processEvents()
         for d, file in enumerate(paths):
+            if d % 10 == 0:
+                #update progress bar only every 10 files to save time
+                progress_dialog.setValue(d)
+                QtWidgets.QApplication.processEvents()
             try:
                 fp = open(file, 'r')
             except:
                 continue
             line = ''
             while(1):
+                
                 line = fp.readline()
+                
                 if (line == ''): break
                 pos = line.find(' ')
                 if (pos == -1): pos = len(line)
@@ -82,9 +102,12 @@ class MultipleSpectraModel():  #
                         line = fp.readline()
                         counts = line.split()
                         self.data[d][chan]=int(counts[0])
-                files_loaded.append(file)
+            files_loaded.append(file)
                 
             fp.close()
+            if progress_dialog.wasCanceled():
+                break
+        QtWidgets.QApplication.processEvents()
         r = self.r
         r['files_loaded'] = files_loaded
         r['start_times'] = times
