@@ -25,9 +25,10 @@ class MultipleSpectraModel():  #
         Example:
             m = MultipleSpectraModel()
         """
-        self.max_spectra = 32
+        self.max_spectra = 500
         self.nchans = 4000
         self.data = None
+        self.r = {}
 
     def read_ascii_files_2d(self, paths):
         """
@@ -75,19 +76,20 @@ class MultipleSpectraModel():  #
                 value = line[pos:].strip()
                 if (tag == 'DATE:'):  
                     start_time = value
+                    times.append(start_time)
                 elif (tag == 'DATA:'):
                     for chan in range(nchans):
                         line = fp.readline()
                         counts = line.split()
                         self.data[d][chan]=int(counts[0])
                 files_loaded.append(file)
-                times.append(start_time)
+                
             fp.close()
-        r = {}
+        r = self.r
         r['files_loaded'] = files_loaded
         r['start_times'] = times
         r['data'] = self.data
-        return r
+        
      
 #######################################################################
     

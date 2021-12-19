@@ -39,7 +39,7 @@ class MultipleDatasetsController(QObject):
         self.file_save_controller = file_save_controller
         
         self.multi_spectra_model = MultipleSpectraModel()
-        self.environment_widget = MultiSpectraWidget()
+        self.widget = MultiSpectraWidget()
        
         self.active = False
         self.selectedENV = 0
@@ -51,10 +51,24 @@ class MultipleDatasetsController(QObject):
         
     def create_signals(self):
        
-        self.environment_widget.widget_closed.connect(self.view_closed)
-        #self.environment_widget.plot_widget.currentCellChanged.connect(self.env_selection_changed)
-    
-        self.environment_widget.key_signal.connect(self.key_sig_callback)
+        self.widget.widget_closed.connect(self.view_closed)
+        self.widget.add_btn.clicked.connect(self.load_data)
+        
+        self.widget.key_signal.connect(self.key_sig_callback)
+
+    def load_data(self):
+        folder = '/Users/ross/Desktop/20191126-dac/scan'
+        files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
+        paths = []
+        for f in files:
+
+            file = os.path.join(folder, f) 
+            paths.append(file)
+
+
+        self.multi_spectra_model.read_ascii_files_2d(paths)
+        data = np.log10(self.multi_spectra_model.r['data']+.5)
+        self.widget.img.setImage(data)
 
     def connect_click_function(self, emitter, function):
         emitter.clicked.connect(function)      
@@ -82,7 +96,7 @@ class MultipleDatasetsController(QObject):
     def show_view(self):
         self.active = True
         #self.update_envs()
-        self.environment_widget.raise_widget()
+        self.widget.raise_widget()
         #print('env view opened')
         
     def view_closed(self):
@@ -98,32 +112,32 @@ class MultipleDatasetsController(QObject):
         newLen = len(self.env)
         self.nenvs = len(self.env)
         self.blockSignals(True)
-        self.environment_widget.blockSignals(True)
+        self.widget.blockSignals(True)
         if newLen == oldLen:
             for i, r in enumerate(self.env):
                 #index = self.env.index(r)
                 
                 self.update_env_by_ind(r.name, r.value, r.description, i)
         else:
-            while self.environment_widget.env_tw.rowCount() > 0:
-                self.environment_widget.del_env(self.environment_widget.env_tw.rowCount()-1,silent=True)
+            while self.widget.env_tw.rowCount() > 0:
+                self.widget.del_env(self.widget.env_tw.rowCount()-1,silent=True)
             for r in self.env:
              
-                self.environment_widget.add_env(r.name, r.value, r.description, silent=True)
+                self.widget.add_env(r.name, r.value, r.description, silent=True)
         self.blockSignals(False)              
-        self.environment_widget.blockSignals(False)    
-        self.environment_widget.env_tw.blockSignals(False)      
+        self.widget.blockSignals(False)    
+        self.widget.env_tw.blockSignals(False)      
         if self.selectedENV_persist<len(self.env):
             sel = np.clip(self.selectedENV_persist,0,31)
         else: 
             sel = len(self.env)-1
-        self.environment_widget.select_env(sel) 
+        self.widget.select_env(sel) 
         self.selectedENV=sel
     
         self.envLen = copy.copy(self.nenvs)
   
     def env_removed(self, ind):
-        self.environment_widget.del_env(ind)
+        self.widget.del_env(ind)
         
 
     def clear_envs(self, *args, **kwargs):
@@ -131,17 +145,17 @@ class MultipleDatasetsController(QObject):
         Deletes all envs from the GUI
         """
         self.blockSignals(True)
-        while self.environment_widget.env_tw.rowCount() > 0:
-            self.env_removed(self.environment_widget.env_tw.rowCount()-1)
+        while self.widget.env_tw.rowCount() > 0:
+            self.env_removed(self.widget.env_tw.rowCount()-1)
         
         self.envLen = 0
         self.blockSignals(False)
        
                 
     def update_env_by_ind(self, pv, value, description, ind):
-        self.environment_widget.update_env(pv, value, description, ind)
+        self.widget.update_env(pv, value, description, ind)
 
     def env_name_changed(self, ind, name):
-        self.environment_widget.rename_env(ind, name)
+        self.widget.rename_env(ind, name)
 
 

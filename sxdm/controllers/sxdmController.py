@@ -20,6 +20,7 @@ import numpy as np
 from functools import partial
 
 from sxdm.widgets.sxdmWidget import sxdmWidget
+from hpm.models.multipleDatasetModel import MultipleSpectraModel
 
 Theme = 1   # app style 0=windows 1=dark 
 from .. import style_path
@@ -35,6 +36,7 @@ class sxdmController(QObject):
         self.Theme = Theme
         self.style_path = style_path
         self.setStyle(self.Theme)
+        self.multi_spectra_model = MultipleSpectraModel()
         self.window = sxdmWidget()
         self.initData()
         
@@ -47,18 +49,44 @@ class sxdmController(QObject):
 
         ## Set initial view bounds
         self.window.set_view_range(0, 0, self.width, self.height)
-        data = np.random.normal(size=(30, self.width, self.height), loc=1024, scale=64).astype(np.uint16)
-        
-        self.window.setData(data)
 
+
+        self.data = self.load_data()
+        
+
+        
+
+    def load_data(self):
+        folder = '/Users/ross/Desktop/20191126-dac/scan'
+        files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
+        paths = []
+        for f in files:
+            if "hpmca" in f:
+                file = os.path.join(folder, f) 
+                
+                paths.append(file)
+
+
+        self.multi_spectra_model.read_ascii_files_2d(paths)
+        data = self.multi_spectra_model.r['data']
+        return data
 
     def make_connections(self):
         self.window.btn1.clicked.connect(self.btn1callback)
         self.window.btn2.clicked.connect(self.btn2callback)
         self.window.btn3.clicked.connect(self.btn3callback)
+        self.window.number.valueChanged.connect(self.numbercallback)
 
     def btn1callback(self):
-        self.window.updateView(0)
+        data_1 = self.data[:,550]
+        data = np.reshape(data_1,(21,21))
+        self.window.updateView(data)
+
+    def numbercallback(self, *args, **kwargs):
+        num = int(self.window.number.value())
+        data_1 = self.data[:,num]
+        data = np.reshape(data_1,(21,21))
+        self.window.updateView(data)
 
     def btn2callback(self):
         self.window.updateView(1)

@@ -74,6 +74,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.env_show_cbs = []
         self.pv_items = []
         self.index_items = []
+        self.resize(300,615)
       
     def make_img_plot(self):
         ## Create window with GraphicsView widget
