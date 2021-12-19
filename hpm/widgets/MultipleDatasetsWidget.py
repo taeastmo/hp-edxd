@@ -61,7 +61,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
         self._body_layout = QtWidgets.QHBoxLayout()
-        self.plot_widget = QtWidgets.QTextEdit()
+        self.make_img_plot()
+        self.plot_widget = self.win
         self._body_layout.addWidget(self.plot_widget)
         self._layout.addLayout(self._body_layout)
 
@@ -74,6 +75,16 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.pv_items = []
         self.index_items = []
       
+    def make_img_plot(self):
+        ## Create window with GraphicsView widget
+        self.win = pg.GraphicsLayoutWidget(self)
+        self.view = self.win.addViewBox()
+        ## lock the aspect ratio so pixels are always square
+        self.view.setAspectLocked(False)
+        ## Create image item
+        self.img = pg.ImageItem(border='w')
+        self.img.setScaledMode()
+        self.view.addItem(self.img)
 
     def keyPressEvent(self, e):
         sig = None
