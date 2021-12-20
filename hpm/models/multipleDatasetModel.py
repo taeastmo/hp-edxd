@@ -76,7 +76,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         nchans = self.nchans
         QtWidgets.QApplication.processEvents()
         for d, file in enumerate(paths):
-            if d % 10 == 0:
+            if d % 2 == 0:
                 #update progress bar only every 10 files to save time
                 progress_dialog.setValue(d)
                 QtWidgets.QApplication.processEvents()

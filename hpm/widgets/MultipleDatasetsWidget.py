@@ -97,16 +97,23 @@ class MultiSpectraWidget(QtWidgets.QWidget):
       
     def make_img_plot(self):
         ## Create window with GraphicsView widget
-        self.win = pg.GraphicsLayoutWidget(self)
-        self.view = self.win.addViewBox()
+        self.win = pg.PlotWidget(parent=self)
+        self.win.getPlotItem().setLabel(axis='left', text='Channel')
+        self.win.getPlotItem().setLabel(axis='bottom', text='File index')
+
+        #self.plot = pg.PlotItem(self.win)
+        self.view = self.win.getViewBox()
         self.view.setMouseMode(pg.ViewBox.RectMode)
         self.view.setAspectLocked(False)
+
+
+        
         ## Create image item
         self.img = pg.ImageItem(border='w')
         #self.img.setScaledMode()
         self.view.addItem(self.img)
 
-        self.vLine = pg.InfiniteLine(movable=False,  span=(0, 1), pen=pg.mkPen(color=(200, 200, 200), width=2 , style=QtCore.Qt.DashLine))
+        self.vLine = pg.InfiniteLine(movable=False, pen=pg.mkPen(color=(200, 200, 200), width=2 , style=QtCore.Qt.DashLine))
         self.hLine = pg.InfiniteLine(movable=False, angle = 0, pen=pg.mkPen(color=(0, 255, 0), width=2 , style=QtCore.Qt.DashLine))
         self.vLineFast = pg.InfiniteLine(movable=False,pen=pg.mkPen({'color': '606060', 'width': 1, 'style':QtCore.Qt.DashLine}))
         self.proxy = pg.SignalProxy(self.win.scene().sigMouseMoved, rateLimit=20, slot=self.fastCursorMove)

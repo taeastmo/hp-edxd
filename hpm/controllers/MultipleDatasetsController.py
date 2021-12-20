@@ -97,7 +97,7 @@ class MultipleDatasetsController(QObject):
 
         filter = self.widget.file_filter.text().strip()
         
-        folder = '/Users/ross/Desktop/Cell2-HT'
+        folder = '/Users/hrubiak//Desktop/Guoyin/Cell2-HT'
         files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
         paths = []
         for f in files:

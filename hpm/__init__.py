@@ -28,6 +28,7 @@ import os
 
 
 import PyQt5
+import pyqtgraph
 from PyQt5 import QtCore
 
 from PyQt5 import QtWidgets
