@@ -60,6 +60,17 @@ class MultipleDatasetsController(QObject):
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
         self.widget.plotMouseCursorSignal.connect(self.CursorClick)
+        self.widget.file_list_view.currentRowChanged.connect(self.file_list_selection_changed_callback)
+
+    def set_channel_cursor(self, text):
+        print(text)
+        #val = float(text.split('=')[1].split(',')[0])
+        #print(val)
+
+    def file_list_selection_changed_callback(self, row):
+        files = self.multi_spectra_model.r['files_loaded']
+        self.file_changed_signal.emit(files[row])
+        self.widget.select_spectrum(row)
 
     def fastCursorMove(self, index):
         index = int(index)
@@ -76,6 +87,9 @@ class MultipleDatasetsController(QObject):
             file_display = os.path.split(file)[-1]
             self.widget.file_name.setText(file_display)    
             self.file_changed_signal.emit(file)
+
+            self.widget.select_file(index)
+    
 
     def initData(self,filenames, progress_dialog):
         
@@ -100,11 +114,13 @@ class MultipleDatasetsController(QObject):
         folder = '/Users/hrubiak//Desktop/Guoyin/Cell2-HT'
         files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
         paths = []
+        files_filtered = []
         for f in files:
             if "hpmca" in f and filter in f:
                 file = os.path.join(folder, f) 
                 
-                paths.append(file)
+                paths.append(file)  
+                files_filtered.append(f)
 
         filenames = paths
 
@@ -127,6 +143,7 @@ class MultipleDatasetsController(QObject):
 
         data = np.log10(self.multi_spectra_model.r['data'] +.5)
         self.widget.img.setImage(data)
+        self.widget.file_list_view.addItems(files_filtered)
 
     def connect_click_function(self, emitter, function):
         emitter.clicked.connect(function)      

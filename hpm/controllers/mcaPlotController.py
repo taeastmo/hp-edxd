@@ -23,8 +23,8 @@ from utilities.HelperModule import getInterpolatedCounts
 
 class plotController(QObject):
 
-    fastCursorMovedSignal = pyqtSignal(str)  
-    staticCursorMovedSignal = pyqtSignal(str) 
+    fastCursorMovedSignal = pyqtSignal(dict)  
+    staticCursorMovedSignal = pyqtSignal(dict) 
     unitUpdated = pyqtSignal(str)
     logScaleYUpdated = pyqtSignal(bool)
     selectedRoiChanged =pyqtSignal(str)
@@ -287,44 +287,37 @@ class plotController(QObject):
         self.pg.set_cursorFast_pos(mousePoint)
         
     def mouseMoved_text(self, mousePoint):
-        text = ''
+
+        out = {}
         if self.horzBins != None and self.dataInterpolated != None:
             if mousePoint >=0 and mousePoint <= max(self.horzBins[0]):
                 self.fastCursorPosition = frac = getInterpolatedCounts(mousePoint,self.horzBins[0])
                 try:
                     i = self.dataInterpolated(frac)
-                    text = "%s=%0.3f%s, I(%s)=%.1f" \
-                                                    % (self.horzBins[1],mousePoint,self.horzBins[2],self.horzBins[1], i)
                 except:
-                    text =''
-                    #self.myPlot.setData([mousePoint],[i])      # on-data cursor
-                #self.ui.pg.enableAutoRange('xy', False)    # turn of autoscale when drawign on-data cursor point       
-        else:
-            text = ''
-        self.fastCursorMovedSignal.emit(text)  
+                    i = None
+                if i != None:
+                    out = {'color':'#FFFFFF','hName':self.horzBins[1],'hValue':mousePoint,'hUnit':self.horzBins[2],'vName':self.horzBins[1], 'vValue':i} 
+        self.fastCursorMovedSignal.emit(out)  
 
     def mouseCursor(self, mousePoint):
         self.mouseCursor_text(mousePoint)
         self.pg.set_cursor_pos(mousePoint)
 
     def mouseCursor_text(self, mousePoint):
+        out = {}
         if self.horzBins != None and self.dataInterpolated != None:
             if mousePoint >=0 and mousePoint <= max(self.horzBins[0]):
-                
                 self.cursorPosition = frac = getInterpolatedCounts(mousePoint,self.horzBins[0])
                 try:
                     i = self.dataInterpolated(frac)
-                    text = "<span style='color: #00CC00'>%s=%0.3f%s, I(%s)=%.1f</span>" \
-                                                    % (self.horzBins[1],mousePoint,self.horzBins[2],self.horzBins[1], i)
                 except:
-                    text = ''
-                    #self.myPlot.setData([mousePoint],[i])      # on-data cursor
-                #self.ui.pg.enableAutoRange('xy', False)    # turn of autoscale when drawign on-data cursor point        
+                    i = None
+                if i != None:
+                    out = {'color':'#00CC00','hName':self.horzBins[1],'hValue':mousePoint,'hUnit':self.horzBins[2],'vName':self.horzBins[1], 'vValue':i}
             else:
-                text = ''
                 self.cursorPosition = None
-        else: text = ''
-        self.staticCursorMovedSignal.emit(text)    
+        self.staticCursorMovedSignal.emit(out)    
     
     def get_cursor_position(self):
         return self.cursorPosition

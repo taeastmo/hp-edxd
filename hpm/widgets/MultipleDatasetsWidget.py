@@ -68,11 +68,21 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.button_widget)
         self._layout.addWidget(self.file_filter)
         self._body_layout = QtWidgets.QHBoxLayout()
+
+
+        self.file_view_tabs= QtWidgets.QTabWidget(self)
+        self.file_view_tabs.setObjectName("file_view_tabs")
+
         self.make_img_plot()
         self.plot_widget = self.win
-        self._body_layout.addWidget(self.plot_widget)
+        self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
 
-        
+        self.file_list_view = QtWidgets.QListWidget()
+       
+        self.file_view_tabs.addTab(self.file_list_view, 'Files')
+
+
+        self._body_layout.addWidget(self.file_view_tabs)
 
 
         self._layout.addLayout(self._body_layout)
@@ -88,12 +98,23 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.file_name)
 
         self.setLayout(self._layout)
-
         self.style_widgets()
         self.env_show_cbs = []
         self.pv_items = []
         self.index_items = []
         self.resize(300,615)
+
+   
+
+    def select_file(self,index):
+        self.file_list_view.blockSignals(True)
+        item = self.file_list_view.setCurrentRow(index)
+        self.file_list_view.blockSignals(False)
+
+    def select_spectrum(self, index):
+        self.set_cursor_pos(index)
+
+
       
     def make_img_plot(self):
         ## Create window with GraphicsView widget
@@ -149,8 +170,11 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             mousePoint = self.view.mapToView(pos)
             index= int(mousePoint.x())
             E = mousePoint.y()
-            self.set_cursor_pos(int(index), E)
-            self.plotMouseCursorSignal.emit([index, E])  
+            if index >=0 :
+                
+                self.set_cursor_pos(int(index), E)
+                self.plotMouseCursorSignal.emit([index, E])  
+        ev.accept()
 
     def set_cursorFast_pos(self, index, E):
         self.vLine.blockSignals(True)
@@ -158,7 +182,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.cursorPoints[1] = (index,E)
         self.vLineFast.blockSignals(False)
 
-    def set_cursor_pos(self, index, E):
+    def set_cursor_pos(self, index, E=None):
+        if E is None:
+            E = self.hLine.pos()
         self.vLine.blockSignals(True)
         self.hLine.blockSignals(True)
         self.vLine.setPos(int(index)+0.5)

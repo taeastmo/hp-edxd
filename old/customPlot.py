@@ -55,13 +55,14 @@ class CustomViewBox(pg.ViewBox):
     def mouseClickEvent(self, ev):
         if ev.button() == QtCore.Qt.RightButton:
             self.autoRange()
+        ev.accept()
             
     def mouseDragEvent(self, ev):
         if ev.button() == QtCore.Qt.RightButton:
             ev.ignore()
         else:
             pg.ViewBox.mouseDragEvent(self, ev)
-
+        ev.accept()
 
 app = pg.mkQApp()
 

@@ -611,11 +611,30 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def mouseMoved(self, text):
+    def mouseMoved(self, input):
+        text =self.format_cursor_label(input)
         self.widget.indexLabel.setText(text)
+        
 
-    def mouseCursor(self, text):
+    def mouseCursor(self, input):
+        
+        text =self.format_cursor_label(input)
         self.widget.cursorLabel.setText(text)
+        self.multiple_datasets_controller.set_channel_cursor(input)
+
+    def format_cursor_label(self, input):
+        if len(input):
+            color = input['color']
+            hName = input['hName']
+            hValue= input['hValue']
+            hUnit = input['hUnit']
+            vName = input['vName']
+            vValue= input['vValue']
+            text = "<span style='color: "+color+"'>%s=%0.3f%s, I(%s)=%.1f</span>" \
+                                                        % (hName,hValue,hUnit,vName,vValue)
+        else:
+            text = ''
+        return (text)
 
     ########################################################################################
     ########################################################################################    

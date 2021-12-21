@@ -350,6 +350,7 @@ class PatternWidget(QtCore.QObject):
             x = pos.x()
             y = pos.y()
             self.mouse_left_clicked.emit(x, y)
+        ev.accept()
 
     def myMouseDoubleClickEvent(self, ev):
         if (ev.button() == QtCore.Qt.RightButton) or (ev.button() == QtCore.Qt.LeftButton and

@@ -171,7 +171,8 @@ class CustomViewBox(pg.ViewBox):
             pos = ev.pos()  ## using signal proxy turns original arguments into a tuple
             mousePoint = self.mapToView(pos)
             self.cursorPoint=mousePoint.x()
-            self.plotMouseCursorSignal.emit(mousePoint.x())    
+            self.plotMouseCursorSignal.emit(mousePoint.x()) 
+        ev.accept()   
 
 class myLegendItem(LegendItem):
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0, box=True, labelAlignment='center', showLines=True):
