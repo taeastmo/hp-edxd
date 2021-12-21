@@ -104,7 +104,8 @@ class hpmcaController(QObject):
         self.file_save_controller = FileSaveController(self, defaults_options=self.defaults_options)
         self.multiple_datasets_controller = MultipleDatasetsController(self.file_save_controller)
         self.multiple_datasets_controller.file_changed_signal.connect(self.file_changed_signal_callback)
-    
+        self.multiple_datasets_controller.channel_changed_signal.connect(self.multispectral_channel_changed_callback)
+
         self.make_prefs_menu()  # for mac
         
     def create_connections(self):
@@ -492,9 +493,10 @@ class hpmcaController(QObject):
         self.multiple_datasets_controller.show_view()
 
     def file_changed_signal_callback(self, fname):
-        
         self.file_save_controller.openFile(filename=fname)
 
+    def multispectral_channel_changed_callback(self, channel):
+        self.plotController.mouseCursor_non_signalling(channel)
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()
@@ -612,25 +614,25 @@ class hpmcaController(QObject):
     ########################################################################################
 
     def mouseMoved(self, input):
-        text =self.format_cursor_label(input)
+        color = '#FFFFFF'
+        text =self.format_cursor_label(input, color)
         self.widget.indexLabel.setText(text)
         
 
     def mouseCursor(self, input):
-        
-        text =self.format_cursor_label(input)
+        color = '#00CC00'
+        text =self.format_cursor_label(input, color)
         self.widget.cursorLabel.setText(text)
         self.multiple_datasets_controller.set_channel_cursor(input)
 
-    def format_cursor_label(self, input):
+    def format_cursor_label(self, input, color):
         if len(input):
-            color = input['color']
             hName = input['hName']
             hValue= input['hValue']
             hUnit = input['hUnit']
             vName = input['vName']
             vValue= input['vValue']
-            text = "<span style='color: "+color+"'>%s=%0.3f%s, I(%s)=%.1f</span>" \
+            text = "<span style='color: "+color+"'>%s=%0.3f%s,  I(%s)=%.1f</span>" \
                                                         % (hName,hValue,hUnit,vName,vValue)
         else:
             text = ''

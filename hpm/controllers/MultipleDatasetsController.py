@@ -32,9 +32,9 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 class MultipleDatasetsController(QObject):
 
-    env_updated_signal = pyqtSignal(int, str )  
-    env_selection_changed_signal = pyqtSignal(int,str)
+    
     file_changed_signal = pyqtSignal(str)  
+    channel_changed_signal = pyqtSignal(float)  
 
     def __init__(self, file_save_controller):
         super().__init__()
@@ -62,10 +62,11 @@ class MultipleDatasetsController(QObject):
         self.widget.plotMouseCursorSignal.connect(self.CursorClick)
         self.widget.file_list_view.currentRowChanged.connect(self.file_list_selection_changed_callback)
 
-    def set_channel_cursor(self, text):
-        print(text)
-        #val = float(text.split('=')[1].split(',')[0])
-        #print(val)
+    def set_channel_cursor(self, cursor):
+        if len(cursor):
+            E = cursor['channel']
+            self.widget.select_channel(E)
+        
 
     def file_list_selection_changed_callback(self, row):
         files = self.multi_spectra_model.r['files_loaded']
@@ -87,8 +88,10 @@ class MultipleDatasetsController(QObject):
             file_display = os.path.split(file)[-1]
             self.widget.file_name.setText(file_display)    
             self.file_changed_signal.emit(file)
+            self.channel_changed_signal.emit(E)
 
             self.widget.select_file(index)
+            self.widget.select_channel(E)
     
 
     def initData(self,filenames, progress_dialog):
@@ -111,7 +114,7 @@ class MultipleDatasetsController(QObject):
 
         filter = self.widget.file_filter.text().strip()
         
-        folder = '/Users/hrubiak//Desktop/Guoyin/Cell2-HT'
+        folder = '/Users/ross/Desktop/Cell2-HT'
         files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
         paths = []
         files_filtered = []
@@ -153,20 +156,7 @@ class MultipleDatasetsController(QObject):
         if sig == 'delete' :
             self.remove_btn_click_callback()
 
-    def set_environment(self, environment):
-        self.update_env(environment)
 
-    def env_selection_changed(self, row, **kwargs):
-        cur_ind = row
-        self.selectedENV = row
-        
-        if cur_ind >-1 and cur_ind < len(self.env): 
-            out = self.env[cur_ind].description
-               
-        else: out = ''
-        #self.update_env_cursor_lines() 
-        self.env_selection_changed_signal.emit(cur_ind, out)
-        #print('selected: ' + str(cur_ind))
 
     def show_view(self):
         self.active = True
@@ -177,60 +167,4 @@ class MultipleDatasetsController(QObject):
     def view_closed(self):
         self.active = False
        
-
-    def update_env(self, environment):
-        oldLen =  copy.copy(self.envLen)
-        self.selectedENV_persist = copy.copy(self.selectedENV)
-       
-        self.env = environment
-  
-        newLen = len(self.env)
-        self.nenvs = len(self.env)
-        self.blockSignals(True)
-        self.widget.blockSignals(True)
-        if newLen == oldLen:
-            for i, r in enumerate(self.env):
-                #index = self.env.index(r)
-                
-                self.update_env_by_ind(r.name, r.value, r.description, i)
-        else:
-            while self.widget.env_tw.rowCount() > 0:
-                self.widget.del_env(self.widget.env_tw.rowCount()-1,silent=True)
-            for r in self.env:
-             
-                self.widget.add_env(r.name, r.value, r.description, silent=True)
-        self.blockSignals(False)              
-        self.widget.blockSignals(False)    
-        self.widget.env_tw.blockSignals(False)      
-        if self.selectedENV_persist<len(self.env):
-            sel = np.clip(self.selectedENV_persist,0,31)
-        else: 
-            sel = len(self.env)-1
-        self.widget.select_env(sel) 
-        self.selectedENV=sel
-    
-        self.envLen = copy.copy(self.nenvs)
-  
-    def env_removed(self, ind):
-        self.widget.del_env(ind)
-        
-
-    def clear_envs(self, *args, **kwargs):
-        """
-        Deletes all envs from the GUI
-        """
-        self.blockSignals(True)
-        while self.widget.env_tw.rowCount() > 0:
-            self.env_removed(self.widget.env_tw.rowCount()-1)
-        
-        self.envLen = 0
-        self.blockSignals(False)
-       
-                
-    def update_env_by_ind(self, pv, value, description, ind):
-        self.widget.update_env(pv, value, description, ind)
-
-    def env_name_changed(self, ind, name):
-        self.widget.rename_env(ind, name)
-
 

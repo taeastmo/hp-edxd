@@ -166,12 +166,7 @@ class plotController(QObject):
             x_min = self.calibration.scale_to_channel(x_range[0],self.unit)
             x_max = self.calibration.scale_to_channel(x_range[1],self.unit)
         self.unit = unit
-        '''
-        if unit == 'd':
-            self.pg.viewBox.invertX(True)
-        else:
-            self.pg.viewBox.invertX(False)
-        '''
+       
         self.makeXaxis()
         
         self.update_plot()
@@ -184,23 +179,7 @@ class plotController(QObject):
             new_x_max = self.calibration.channel_to_scale(x_max,self.unit)
             self.pg.setXRange(new_x_min, new_x_max, padding=0)
 
-    def update_cursors(self):
-        # update cursor positions or counts
-        if self.cursorPosition is not None:
-            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
-            self.mouseCursor(position)
-        if self.fastCursorPosition is not None:   
-            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
-            self.mouseMoved(fastPosition)
-
-    def update_cursors_text(self):
-        # update cursor positions or counts
-        if self.cursorPosition is not None:
-            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
-            self.mouseCursor_text(position)
-        if self.fastCursorPosition is not None:   
-            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
-            self.mouseMoved_text(fastPosition)
+    
 
     def getRange(self):
         xAx = self.horzBins[0]
@@ -280,44 +259,63 @@ class plotController(QObject):
         dataDel[s] = 1
         return [roiHorz, roiData, copy.deepcopy(dataDel), copy.deepcopy(horzDel)]       
     
-    
+    def update_cursors(self):
+        # update cursor positions or counts
+        if self.cursorPosition is not None:
+            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
+            self.mouseCursor(position)
+        if self.fastCursorPosition is not None:   
+            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
+            self.mouseMoved(fastPosition)
+
+    def update_cursors_text(self):
+        # update cursor positions or counts
+        if self.cursorPosition is not None:
+            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
+            self.mouseCursor_text(position)
+        if self.fastCursorPosition is not None:   
+            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
+            self.mouseMoved_text(fastPosition)
+
+
+    def mouseCursor_non_signalling(self, channel):
+        point = self.calibration.channel_to_scale(channel,self.unit)
+        self.cursorPosition = point
+        self.pg.set_cursor_pos(point)
     
     def mouseMoved(self, mousePoint):
         self.mouseMoved_text(mousePoint)
         self.pg.set_cursorFast_pos(mousePoint)
-        
-    def mouseMoved_text(self, mousePoint):
-
-        out = {}
-        if self.horzBins != None and self.dataInterpolated != None:
-            if mousePoint >=0 and mousePoint <= max(self.horzBins[0]):
-                self.fastCursorPosition = frac = getInterpolatedCounts(mousePoint,self.horzBins[0])
-                try:
-                    i = self.dataInterpolated(frac)
-                except:
-                    i = None
-                if i != None:
-                    out = {'color':'#FFFFFF','hName':self.horzBins[1],'hValue':mousePoint,'hUnit':self.horzBins[2],'vName':self.horzBins[1], 'vValue':i} 
-        self.fastCursorMovedSignal.emit(out)  
 
     def mouseCursor(self, mousePoint):
         self.mouseCursor_text(mousePoint)
         self.pg.set_cursor_pos(mousePoint)
 
+
+        
+    def mouseMoved_text(self, mousePoint):
+        frac, out = self.get_label_values(mousePoint)
+        self.fastCursorPosition = frac
+        self.fastCursorMovedSignal.emit(out)  
+
     def mouseCursor_text(self, mousePoint):
+        frac, out = self.get_label_values(mousePoint)
+        self.cursorPosition = frac
+        self.staticCursorMovedSignal.emit(out)    
+
+    def get_label_values(self, mousePoint):
         out = {}
+        cursorPosition = None
         if self.horzBins != None and self.dataInterpolated != None:
             if mousePoint >=0 and mousePoint <= max(self.horzBins[0]):
-                self.cursorPosition = frac = getInterpolatedCounts(mousePoint,self.horzBins[0])
+                cursorPosition = getInterpolatedCounts(mousePoint,self.horzBins[0])
                 try:
-                    i = self.dataInterpolated(frac)
+                    i = self.dataInterpolated(cursorPosition)
                 except:
                     i = None
                 if i != None:
-                    out = {'color':'#00CC00','hName':self.horzBins[1],'hValue':mousePoint,'hUnit':self.horzBins[2],'vName':self.horzBins[1], 'vValue':i}
-            else:
-                self.cursorPosition = None
-        self.staticCursorMovedSignal.emit(out)    
+                    out = {'hName':self.horzBins[1],'hValue':mousePoint,'hUnit':self.horzBins[2],'vName':self.horzBins[1], 'vValue':i, 'channel':cursorPosition}
+        return cursorPosition, out
     
     def get_cursor_position(self):
         return self.cursorPosition

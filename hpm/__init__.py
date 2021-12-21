@@ -67,7 +67,7 @@ def main():
     
     controller.file_save_controller.openFile(filename=au_pattern)
     
-    controller.phase_controller.add_btn_click_callback(filenames=[au_jcpds])
+    #controller.phase_controller.add_btn_click_callback(filenames=[au_jcpds])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])

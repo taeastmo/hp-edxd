@@ -112,9 +112,10 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_list_view.blockSignals(False)
 
     def select_spectrum(self, index):
-        self.set_cursor_pos(index)
+        self.set_cursor_pos(index, None)
 
-
+    def select_channel(self, E):
+        self.set_cursor_pos(None, E)
       
     def make_img_plot(self):
         ## Create window with GraphicsView widget
@@ -182,16 +183,19 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.cursorPoints[1] = (index,E)
         self.vLineFast.blockSignals(False)
 
-    def set_cursor_pos(self, index, E=None):
-        if E is None:
-            E = self.hLine.pos()
-        self.vLine.blockSignals(True)
-        self.hLine.blockSignals(True)
-        self.vLine.setPos(int(index)+0.5)
-        self.hLine.setPos(E)
-        self.cursorPoints[0] = (index,E)
-        self.vLine.blockSignals(False)
-        self.hLine.blockSignals(False)
+
+    def set_cursor_pos(self, index = None, E=None):
+        if E != None:
+            self.hLine.blockSignals(True)
+            self.hLine.setPos(E)
+            self.hLine.blockSignals(False)
+            self.cursorPoints[0] = (self.cursorPoints[0][0],E)
+        if index != None:
+            self.vLine.blockSignals(True)
+            self.vLine.setPos(int(index)+0.5)
+            self.cursorPoints[0] = (index,self.cursorPoints[0][1])
+            self.vLine.blockSignals(False)
+        
 
     def keyPressEvent(self, e):
         sig = None
