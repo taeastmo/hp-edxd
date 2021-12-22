@@ -293,11 +293,12 @@ QPushButton::checked{
 QPushButton::focus {
 	outline: None;
 }
+
+
  QGroupBox {
-     border: 1px solid #ADADAD;
-     border-radius: 4px;
-     margin-top: 7px;
-     padding: 0px
+     border: 1px solid #101112;
+     
+     
  }
  QGroupBox::title {
       subcontrol-origin: margin;

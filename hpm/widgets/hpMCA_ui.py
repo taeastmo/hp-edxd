@@ -9,6 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton, pvQProgressBar
 from hpm.widgets.PltWidget import PltWidget
+from hpm.widgets.collapsible_widget import CollapsibleBox
 
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
@@ -21,11 +22,19 @@ class Ui_hpMCA(object):
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
+
         self._Layout = QtWidgets.QHBoxLayout()
         self._Layout.setObjectName("_Layout")
+
+
+
         self.ControlsLayout = QtWidgets.QVBoxLayout()
         self.ControlsLayout.setObjectName("ControlsLayout")
 
+        
+
+        
+        
         self.groupBoxAcq = QtWidgets.QGroupBox()
         
         self._groupBoxAcqLayout = QtWidgets.QGridLayout(self.groupBoxAcq)
@@ -43,17 +52,15 @@ class Ui_hpMCA(object):
         self.btnErase.setMaximumWidth(75)
         self.dead_time_indicator.setMaximumWidth(75)
 
-
-        
-        
-        
-        
         self._groupBoxAcqLayout.addWidget(self.btnOn,0,0)
         self._groupBoxAcqLayout.addWidget(self.btnOff,0,1)
         self._groupBoxAcqLayout.addWidget(self.btnErase,1,0)
         self._groupBoxAcqLayout.addWidget(self.dead_time_indicator,1,1)
         self.groupBoxAcq.setLayout(self._groupBoxAcqLayout)
+
+
         self.groupBoxElapsed = QtWidgets.QGroupBox()
+        self.groupBoxElapsed.setMaximumWidth(205)
         self._groupBoxElapsedLayout = QtWidgets.QGridLayout(self.groupBoxElapsed)
         self._groupBoxElapsedLayout.setSpacing(2)
         self._groupBoxElapsedLayout.setContentsMargins(12,12,7,7)
@@ -162,11 +169,10 @@ class Ui_hpMCA(object):
         self.groupBoxElapsed.setLayout(self._groupBoxElapsedLayout)
         
         
-        self.ControlsLayout.addWidget(self.groupBoxAcq)
-        self.ControlsLayout.addWidget(self.groupBoxElapsed)
+        
 
 
-        self.groupBoxROIs = QtWidgets.QGroupBox(self.centralwidget)
+        self.groupBoxROIs = QtWidgets.QGroupBox()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -228,8 +234,8 @@ class Ui_hpMCA(object):
         self.btnROInext.setObjectName("btnROInext")
         self.ROIPrevNextLayout.addWidget(self.btnROInext)
         self.verticalLayout_8.addLayout(self.ROIPrevNextLayout)
-        self.ControlsLayout.addWidget(self.groupBoxROIs)
-        self.groupBoxXRF = QtWidgets.QGroupBox(self.centralwidget)
+        
+        self.groupBoxXRF = QtWidgets.QGroupBox()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -260,8 +266,8 @@ class Ui_hpMCA(object):
         self.btnKLMnext.setObjectName("btnKLMnext")
         self.XRFPrevNextLayout.addWidget(self.btnKLMnext)
         self.verticalLayout_6.addLayout(self.XRFPrevNextLayout)
-        self.ControlsLayout.addWidget(self.groupBoxXRF)
-        self.groupBoxVerticalScale = QtWidgets.QGroupBox(self.centralwidget)
+        
+        self.groupBoxVerticalScale = QtWidgets.QGroupBox()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -295,13 +301,8 @@ class Ui_hpMCA(object):
         self.verticalLayout_7.addLayout(self.LogScaleLayout)
 
         
-        '''self.baseline_box = QtWidgets.QHBoxLayout()
-        self.baseline_box.addWidget(self.baseline_subtract)
-        self.baseline_box.addSpacerItem(HorizontalSpacerItem())
-        self.verticalLayout_7.addLayout(self.baseline_box)'''
-
-        self.ControlsLayout.addWidget(self.groupBoxVerticalScale)
-        self.groupBoxHorizontalScale = QtWidgets.QGroupBox(self.centralwidget)
+        
+        self.groupBoxHorizontalScale = QtWidgets.QGroupBox()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -331,9 +332,50 @@ class Ui_hpMCA(object):
         self.radiod.setObjectName("radiod")
         self.HorizontalScaleLayout.addWidget(self.radiod, 1,1)
         self.horizontalLayout_8.addLayout(self.HorizontalScaleLayout)
-        self.ControlsLayout.addWidget(self.groupBoxHorizontalScale)
-        spacerItem = QtWidgets.QSpacerItem(20, 1000, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.ControlsLayout.addItem(spacerItem)
+        
+        
+        self.groupBoxSaveDataFile = QtWidgets.QGroupBox()
+
+
+        # scroll area stuff
+        self.scroll = QtWidgets.QScrollArea()
+        self.scroll.setStyleSheet("QScrollArea { border: 0px;}")
+        self.scroll.setMaximumWidth(225)
+        
+        self.content = QtWidgets.QWidget()
+        self.scroll.setWidget(self.content)
+        self.scroll.setWidgetResizable(True)
+        self.vlay = QtWidgets.QVBoxLayout(self.content)
+        self.vlay.setContentsMargins(0,0,0,0)
+
+        
+        
+        box_dict = {'acquisition':['Acquisition',self.groupBoxAcq],
+                    'elapsed_time':['Elapsed time',self.groupBoxElapsed],
+                    'rois':['ROIs',self.groupBoxROIs],
+                    'xrf':['Fluorescence markers',self.groupBoxXRF],
+                    'v_scale':['Vertical scale',self.groupBoxVerticalScale],
+                    'h_scale':['Horizontal scale',self.groupBoxHorizontalScale]}
+
+        for b in box_dict:
+            box = CollapsibleBox(box_dict[b][0])
+            self.vlay.addWidget(box)
+            lay = QtWidgets.QVBoxLayout()
+            lay.setContentsMargins(0,0,0,0)
+            
+            widget = box_dict[b][1]
+            lay.addWidget(widget)
+
+            box.setContentLayout(lay)
+        self.vlay.addStretch()
+
+        self.ControlsLayout.addWidget(self.scroll)
+
+        #spacerItem = QtWidgets.QSpacerItem(20, 1000, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        #self.ControlsLayout.addItem(spacerItem)
+
+        # end scroll erea stuff
+
         self._Layout.addLayout(self.ControlsLayout)
 
 
@@ -522,29 +564,29 @@ class Ui_hpMCA(object):
         
 
 
-        self.groupBoxAcq.setTitle(_translate("hpMCA", "Aquisition"))
+        
         self.btnOn.setText(_translate("hpMCA", "On"))
         self.btnOff.setText(_translate("hpMCA", "Off"))
         self.btnErase.setText(_translate("hpMCA", "Erase"))
-        self.groupBoxElapsed.setTitle(_translate("hpMCA", "Elapsed Time"))
+        
         self.lbl_elapsed_header.setText(_translate("hpMCA", "Presets"))
         self.lblLiveTime_lbl.setText(_translate("hpMCA", "Live"))
         self.lblRealTime_lbl.setText(_translate("hpMCA", "Real"))
         self.lblLiveTime.setText(_translate("hpMCA", "0"))
         self.lblRealTime.setText(_translate("hpMCA", "0"))
-        self.groupBoxROIs.setTitle(_translate("hpMCA", "ROIs"))
+        
         self.btnROIadd.setText(_translate("hpMCA", "Add"))
         self.btnROIdelete.setText(_translate("hpMCA", "Delete"))
         self.btnROIclear.setText(_translate("hpMCA", "Clear All"))
         self.btnROIprev.setText(_translate("hpMCA", "<"))
         self.btnROInext.setText(_translate("hpMCA", ">"))
-        self.groupBoxXRF.setTitle(_translate("hpMCA", "Fluorescence markers"))
+       
         self.btnKLMprev.setText(_translate("hpMCA", "<"))
         self.btnKLMnext.setText(_translate("hpMCA", ">"))
-        self.groupBoxVerticalScale.setTitle(_translate("hpMCA", "Vertical scale"))
+        
         self.radioLog.setText(_translate("hpMCA", "Log"))
         self.radioLin.setText(_translate("hpMCA", "Linear"))
-        self.groupBoxHorizontalScale.setTitle(_translate("hpMCA", "Horizontal scale"))
+        
         self.radioE.setText(_translate("hpMCA", "E"))
         self.radioq.setText(_translate("hpMCA", "q"))
         self.radioChannel.setText(_translate("hpMCA", "Channel"))
