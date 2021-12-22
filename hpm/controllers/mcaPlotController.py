@@ -280,7 +280,7 @@ class plotController(QObject):
 
     def mouseCursor_non_signalling(self, channel):
         point = self.calibration.channel_to_scale(channel,self.unit)
-        self.cursorPosition = point
+        self.cursorPosition = channel
         self.pg.set_cursor_pos(point)
     
     def mouseMoved(self, mousePoint):

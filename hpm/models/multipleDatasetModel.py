@@ -30,10 +30,15 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.max_spectra = 500
         self.nchans = 4000
         self.data = None
+        
         self.r = {'files_loaded':[],
                 'start_times' :[],
-                'data':None}
+                'data': np.empty((0,0))}
 
+        print(self.r['data'])
+
+    def clear(self):
+        self.__init__()
 
     def was_canceled(self):
         return False
@@ -113,78 +118,3 @@ class MultipleSpectraModel(QtCore.QObject):  #
         r['start_times'] = times
         r['data'] = self.data
         
-     
-#######################################################################
-    
-
-
-'''folder = '/Users/ross/Desktop/Cell1-RT'
-files = sorted([f for f in listdir(folder) if isfile(join(folder, f))]) [13:26]
-'''
-
-'''paths = []
-for f in files:
-    file = join(folder, f) 
-    paths.append(file)
-
-'''
- 
-
-
-
-''' 
-
-
-import numpy as np
-from pyqtgraph.Qt import QtCore, QtGui
-import pyqtgraph as pg
-
-# Interpret image data as row-major instead of col-major
-pg.setConfigOptions(imageAxisOrder='row-major')
-
-app = QtGui.QApplication([])
-
-## Create window with ImageView widget
-win = QtGui.QMainWindow()
-win.resize(800,800)
-imv = pg.ImageView()
-imv.getView().setAspectLocked(False)
-win.setCentralWidget(imv)
-win.show()
-win.setWindowTitle('pyqtgraph example: ImageView')
-
-
-from hpm.widgets.UtilityWidgets import open_files_dialog
-
-filenames = sorted( open_files_dialog(win, "Load Overlay(s).") )
-start_Time = time.time()
-fast_model = MultipleSpectraModel()
-two_d_array = fast_model.read_ascii_file_simple(filenames)
-
-## Create random 3D data set with noisy signals
-
-data = np.flip( np.transpose(np.log10( two_d_array['data']+1)))
-
-print("--- %s seconds ---" % (time.time() - start_Time))
-
-
-## Display the data and assign each frame a time value from 1.0 to 3.0
-imv.setImage(data, xvals=np.linspace(1., 3., data.shape[0]))
-
-## Set a custom color map
-colors = [
-    (0, 0, 0),
-    (45, 5, 61),
-    (84, 42, 55),
-    (150, 87, 60),
-    (208, 171, 141),
-    (255, 255, 255)
-]
-cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
-imv.setColorMap(cmap)
-
-## Start Qt event loop unless running in interactive mode.
-if __name__ == '__main__':
-    import sys
-    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-        QtGui.QApplication.instance().exec_()'''

@@ -14,7 +14,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-
 from functools import partial
 import pyqtgraph as pg
 import copy
@@ -23,16 +22,12 @@ import os
 from PyQt5 import QtWidgets, QtCore
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
+from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, open_folder_dialog
 from hpm.widgets.MultipleDatasetsWidget import MultiSpectraWidget
 from hpm.models.multipleDatasetModel import MultipleSpectraModel
-
-
 from PyQt5.QtCore import pyqtSignal, QObject
 
 class MultipleDatasetsController(QObject):
-
-    
     file_changed_signal = pyqtSignal(str)  
     channel_changed_signal = pyqtSignal(float)  
 
@@ -43,7 +38,7 @@ class MultipleDatasetsController(QObject):
         self.multi_spectra_model = MultipleSpectraModel()
         self.widget = MultiSpectraWidget()
 
-      
+        self.folder = ''
         self.active = False
         self.selectedENV = 0
         self.selectedENV_persist = 0
@@ -61,6 +56,7 @@ class MultipleDatasetsController(QObject):
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
         self.widget.plotMouseCursorSignal.connect(self.CursorClick)
         self.widget.file_list_view.currentRowChanged.connect(self.file_list_selection_changed_callback)
+        self.widget.file_filter_refresh_btn.clicked.connect(self.file_filter_refresh_btn_callback)
 
     def set_channel_cursor(self, cursor):
         if len(cursor):
@@ -70,8 +66,9 @@ class MultipleDatasetsController(QObject):
 
     def file_list_selection_changed_callback(self, row):
         files = self.multi_spectra_model.r['files_loaded']
-        self.file_changed_signal.emit(files[row])
-        self.widget.select_spectrum(row)
+        if len(files):
+            self.file_changed_signal.emit(files[row])
+            self.widget.select_spectrum(row)
 
     def fastCursorMove(self, index):
         index = int(index)
@@ -93,46 +90,44 @@ class MultipleDatasetsController(QObject):
             self.widget.select_file(index)
             self.widget.select_channel(E)
     
-
     def initData(self,filenames, progress_dialog):
-        
         self.load_data(filenames, progress_dialog=progress_dialog)
         
-        
-
     def load_data(self, paths, progress_dialog):
-        
         self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
         
-        
+    def file_filter_refresh_btn_callback(self):
+        if self.folder != '':
+            self.add_btn_click_callback(folder = self.folder)
 
-    def add_btn_click_callback(self, *args, **kwargs):
+    def add_btn_click_callback(self,  *args, **kwargs):
         """
         Loads a multiple spectra into 2D numpy array
         :return:
         """
 
         filter = self.widget.file_filter.text().strip()
-        
-        folder = '/Users/ross/Desktop/Cell2-HT'
-        files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
+        if 'folder' in kwargs:
+            folder = kwargs['folder']
+        else:
+                folder = open_folder_dialog(None, "Load Spectra(s).",
+                                          None)
+        if folder == '':
+            return
         paths = []
         files_filtered = []
-        for f in files:
-            if "hpmca" in f and filter in f:
-                file = os.path.join(folder, f) 
-                
-                paths.append(file)  
-                files_filtered.append(f)
-
+        if os.path.exists(folder):
+            files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
+            for f in files:
+                if "hpmca" in f and filter in f:
+                    file = os.path.join(folder, f) 
+                    paths.append(file)  
+                    files_filtered.append(f)
         filenames = paths
 
-        if filenames is None:
-            filenames = open_files_dialog(None, "Load Spectra(s).",
-                                          None)
-
-            
         if len(filenames):
+            self.folder = folder
+            self.widget.file_folder.setText(folder)
             #self.directories.phase = os.path.dirname(str(filenames[0]))
             progress_dialog = QtWidgets.QProgressDialog("Loading multiple spectra.", "Abort Loading", 0, len(filenames),
                                                         None)
@@ -143,20 +138,25 @@ class MultipleDatasetsController(QObject):
             self.initData(filenames, progress_dialog)
             progress_dialog.close()
             QtWidgets.QApplication.processEvents()
-
-        data = np.log10(self.multi_spectra_model.r['data'] +.5)
-        self.widget.img.setImage(data)
-        self.widget.file_list_view.addItems(files_filtered)
+            
+        else:
+            self.multi_spectra_model.clear()
+        data = self.multi_spectra_model.r['data']
+        self.widget.set_spectral_data(data)
+        self.widget.reload_files(files_filtered)
 
     def connect_click_function(self, emitter, function):
         emitter.clicked.connect(function)      
-
   
     def key_sig_callback(self, sig):
-        if sig == 'delete' :
-            self.remove_btn_click_callback()
-
-
+        if self.widget.file_view_tabs.currentIndex() == 0:
+            row = self.widget.get_selected_row()
+            if sig == 'right' :
+                row += 1
+            if sig == 'left' :
+                row -= 1
+            if row >= 0 and row < len(self.multi_spectra_model.r['files_loaded']):
+                self.widget.file_list_view.setCurrentRow(row)
 
     def show_view(self):
         self.active = True

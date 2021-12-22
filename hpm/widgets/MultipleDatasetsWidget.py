@@ -47,68 +47,93 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout = QtWidgets.QHBoxLayout()
         self._button_layout.setContentsMargins(0, 0, 0, 0)
         self._button_layout.setSpacing(6)
-        self.add_btn = FlatButton('Add')
+        self.add_btn = FlatButton('Open folder')
+        self.add_btn.setMaximumWidth(90)
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
         self.clear_btn = FlatButton('Clear')
-        self.file_filter = QtWidgets.QLineEdit('2nd-8000psi-500C')
-        
-        
-        self.file_filter.setMaximumHeight(27)
-        
-
         self._button_layout.addWidget(self.add_btn)
-        self._button_layout.addWidget(self.edit_btn)
-        self._button_layout.addWidget(self.delete_btn)
-        self._button_layout.addWidget(self.clear_btn)
-        
-     
-
+        self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
-        self._layout.addWidget(self.file_filter)
+        self.folder_widget = QtWidgets.QWidget(self)
+        self._folder_layout = QtWidgets.QHBoxLayout()
+        self._folder_layout.setContentsMargins(0, 0, 0, 0)
+        self._folder_layout.setSpacing(6)
+        self._folder_layout.addWidget(QtWidgets.QLabel('Folder   '))
+        self.file_folder = QtWidgets.QLabel('')
+        self.file_folder.setAlignment(QtCore.Qt.AlignRight)
+        self._folder_layout.addWidget(self.file_folder)
+        self.folder_widget.setLayout(self._folder_layout)
+        self._layout.addWidget(self.folder_widget)
+        self.filter_widget = QtWidgets.QWidget(self)
+        self._filter_layout = QtWidgets.QHBoxLayout()
+        self._filter_layout.setContentsMargins(0, 0, 0, 0)
+        self._filter_layout.setSpacing(6)
+        self._filter_layout.addWidget(QtWidgets.QLabel('Filter   '))
+        self.file_filter = QtWidgets.QLineEdit('')
+        self.file_filter.setAlignment(QtCore.Qt.AlignRight)
+        self.file_filter_refresh_btn = QtWidgets.QPushButton("Reload")
+        self._filter_layout.addWidget(self.file_filter)
+        self._filter_layout.addWidget(self.file_filter_refresh_btn)
+        self.filter_widget.setLayout(self._filter_layout)
+        self._layout.addWidget(self.filter_widget)
         self._body_layout = QtWidgets.QHBoxLayout()
-
-
         self.file_view_tabs= QtWidgets.QTabWidget(self)
         self.file_view_tabs.setObjectName("file_view_tabs")
-
         self.make_img_plot()
         self.plot_widget = self.win
         self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
-
         self.file_list_view = QtWidgets.QListWidget()
-       
         self.file_view_tabs.addTab(self.file_list_view, 'Files')
-
-
         self._body_layout.addWidget(self.file_view_tabs)
-
-
         self._layout.addLayout(self._body_layout)
         self.file_name = QtWidgets.QLabel('')
         self.file_name_fast = QtWidgets.QLabel('')
         self.file_name_fast.setObjectName("file_name_fast")
         self._layout.addWidget(self.file_name_fast)
         self.file_name_fast.setStyleSheet("""
-            
                 color: #909090;
-            
         """)
         self._layout.addWidget(self.file_name)
-
         self.setLayout(self._layout)
         self.style_widgets()
         self.env_show_cbs = []
         self.pv_items = []
         self.index_items = []
-        self.resize(300,615)
+        self.resize(300,633)
 
-   
+    def get_selected_row(self):
+        selected  = self.file_list_view.selectionModel().selectedRows()
+        if len(selected):
+            row = selected[0].row()
+        else:
+            row = -1
+        return row
+
+    def reload_files(self, files):
+        if len(files):
+            row =  self.get_selected_row()
+            self.file_list_view.blockSignals(True)
+            self.file_list_view.clear()
+            self.file_list_view.addItems(files)
+            self.file_list_view.blockSignals(False)
+            if row < 0 or row >= len(files):
+                row = 0
+            self.file_list_view.setCurrentRow(row)
+        else:
+            self.file_list_view.clear()
+
+    def set_spectral_data(self, data):
+        if len(data):
+            img_data = np.log10( data+.5)
+            self.img.setImage(img_data)
+        else:
+            self.img.clear()
 
     def select_file(self,index):
         self.file_list_view.blockSignals(True)
-        item = self.file_list_view.setCurrentRow(index)
+        self.file_list_view.setCurrentRow(index)
         self.file_list_view.blockSignals(False)
 
     def select_spectrum(self, index):
@@ -127,9 +152,6 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.view = self.win.getViewBox()
         self.view.setMouseMode(pg.ViewBox.RectMode)
         self.view.setAspectLocked(False)
-
-
-        
         ## Create image item
         self.img = pg.ImageItem(border='w')
         #self.img.setScaledMode()
@@ -155,7 +177,6 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
         if self.view.sceneBoundingRect().contains(pos):
             mousePoint = self.view.mapSceneToView(pos)
-            
             index = mousePoint.x()
             if index >= 0:
                 self.vLineFast.setPos(index)
@@ -163,8 +184,6 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
     def customMouseClickEvent(self, ev):
         if ev.button() == QtCore.Qt.RightButton:
-            #self.enableAutoRange(self.XYAxes, True)    
-            
             self.view.enableAutoRange(enable=1) 
         elif ev.button() == QtCore.Qt.LeftButton: 
             pos = ev.pos()  ## using signal proxy turns original arguments into a tuple
@@ -172,7 +191,6 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             index= int(mousePoint.x())
             E = mousePoint.y()
             if index >=0 :
-                
                 self.set_cursor_pos(int(index), E)
                 self.plotMouseCursorSignal.emit([index, E])  
         ev.accept()
@@ -196,7 +214,6 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             self.cursorPoints[0] = (index,self.cursorPoints[0][1])
             self.vLine.blockSignals(False)
         
-
     def keyPressEvent(self, e):
         sig = None
         if e.key() == Qt.Key_Up:
@@ -216,23 +233,16 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         else:
             super().keyPressEvent(e)
 
-    
-
     def style_widgets(self):
-    
         self.setStyleSheet("""
             #env_control_button_widget FlatButton {
                 min-width: 90;
             }
-
         """)
-
 
     def closeEvent(self, event):
         # Overrides close event to let controller know that widget was closed by user
         self.widget_closed.emit()
-        
-
 
     def raise_widget(self):
         self.show()
