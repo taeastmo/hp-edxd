@@ -197,6 +197,7 @@ class FileSaveController(object):
                     [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0)
                     #print("--- %s seconds ---" % (time.time() - start_time))
                 if success:
+                    self.McaFileName = filename
                     self.mca_controller.working_directories .savedata = os.path.dirname(str(filename)) #working directory xrd files
                     
                     mcaUtil.save_folder_settings(self.mca_controller.working_directories )

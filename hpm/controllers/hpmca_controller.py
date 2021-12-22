@@ -85,6 +85,9 @@ class hpmcaController(QObject):
         
         # initialize some stuff
         self.mca = None              # mca model
+
+        self.live_mca = None
+
         self.epicsMCAholder = None   # holds a epicsMCA reference so that it doesnt
         self.Foreground = None       # str, can be either 'epics' or 'file'
         
@@ -256,7 +259,7 @@ class hpmcaController(QObject):
                     self.mca.acq_stopped.disconnect()
                     
                     self.epicsMCAholder = self.mca
-            self.file_save_controller.McaFilename = None     
+            #self.file_save_controller.McaFilename = fileout     
             self.widget.file_view_btn.setEnabled(True)
             self.widget.file_view_btn.setChecked(True)   
             self.mca = mca
@@ -321,7 +324,7 @@ class hpmcaController(QObject):
             self.roi_controller.set_mca(self.mca)
             self.fluorescence_controller.set_mca(self.mca)
         self.Foreground = mcaType
-        self.file_save_controller.McaFileName = self.mca.name
+        #self.file_save_controller.McaFileName = self.mca.name
         
         return 0
 
@@ -381,10 +384,17 @@ class hpmcaController(QObject):
 
     
 
-    def openDetector(self):
-        # initialize epics mca
-        detector = self.defaults_options.detector
-        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text=detector)
+    def openDetector(self, *args, **kwargs):
+        text = ''
+        ok = False
+        if 'detector' in kwargs:
+            text = kwargs['detector']
+            if len(text):
+                ok = True
+        else:
+            # initialize epics mca
+            detector = self.defaults_options.detector
+            text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text=detector)
         
         if ok:
             mcaTemp = self.mca 
@@ -449,11 +459,15 @@ class hpmcaController(QObject):
     ########################################################################################
 
     def file_view_btn_callback(self, *args):
-        print('file')
+        file = self.file_save_controller.McaFileName
+        if len(file):
+            self.file_save_controller.openFile(filename=file)
 
         #pass
     def live_view_btn_callback(self, *args):
-        print('live')
+        detector = self.defaults_options.detector
+        if len(detector):
+            self.openDetector(detector=detector)
 
         #pass
         
