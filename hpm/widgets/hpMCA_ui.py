@@ -27,6 +27,7 @@ class Ui_hpMCA(object):
         self.ControlsLayout.setObjectName("ControlsLayout")
 
         self.groupBoxAcq = QtWidgets.QGroupBox()
+        
         self._groupBoxAcqLayout = QtWidgets.QGridLayout(self.groupBoxAcq)
         
         self.btnOn = pvQMessageButton()
@@ -41,6 +42,11 @@ class Ui_hpMCA(object):
         self.btnOff.setMaximumWidth(75)
         self.btnErase.setMaximumWidth(75)
         self.dead_time_indicator.setMaximumWidth(75)
+
+
+        
+        
+        
         
         self._groupBoxAcqLayout.addWidget(self.btnOn,0,0)
         self._groupBoxAcqLayout.addWidget(self.btnOff,0,1)
@@ -51,7 +57,7 @@ class Ui_hpMCA(object):
         self._groupBoxElapsedLayout = QtWidgets.QGridLayout(self.groupBoxElapsed)
         self._groupBoxElapsedLayout.setSpacing(2)
         self._groupBoxElapsedLayout.setContentsMargins(12,12,7,7)
-        self.groupBoxAcq.setMaximumWidth(200)
+        self.groupBoxAcq.setMaximumWidth(205)
 
         self.lblLiveTime_lbl = QtWidgets.QLabel(self.groupBoxElapsed)
         self.lblLiveTime_lbl.setMaximumWidth(40)
@@ -154,6 +160,8 @@ class Ui_hpMCA(object):
         self._groupBoxElapsedLayout.addWidget(self.PRTM_pv,3,2)
 
         self.groupBoxElapsed.setLayout(self._groupBoxElapsedLayout)
+        
+        
         self.ControlsLayout.addWidget(self.groupBoxAcq)
         self.ControlsLayout.addWidget(self.groupBoxElapsed)
 
@@ -164,8 +172,8 @@ class Ui_hpMCA(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBoxROIs.sizePolicy().hasHeightForWidth())
         self.groupBoxROIs.setSizePolicy(sizePolicy)
-        self.groupBoxROIs.setMinimumSize(QtCore.QSize(200, 0))
-        self.groupBoxROIs.setMaximumSize(QtCore.QSize(200, 120))
+        self.groupBoxROIs.setMinimumSize(QtCore.QSize(205, 0))
+        self.groupBoxROIs.setMaximumSize(QtCore.QSize(205, 120))
         self.groupBoxROIs.setObjectName("groupBoxROIs")
         self.verticalLayout_8 = QtWidgets.QVBoxLayout(self.groupBoxROIs)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
@@ -227,8 +235,8 @@ class Ui_hpMCA(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBoxXRF.sizePolicy().hasHeightForWidth())
         self.groupBoxXRF.setSizePolicy(sizePolicy)
-        self.groupBoxXRF.setMinimumSize(QtCore.QSize(200, 0))
-        self.groupBoxXRF.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.groupBoxXRF.setMinimumSize(QtCore.QSize(205, 0))
+        self.groupBoxXRF.setMaximumSize(QtCore.QSize(205, 16777215))
         self.groupBoxXRF.setObjectName("groupBoxXRF")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.groupBoxXRF)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
@@ -259,8 +267,8 @@ class Ui_hpMCA(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBoxVerticalScale.sizePolicy().hasHeightForWidth())
         self.groupBoxVerticalScale.setSizePolicy(sizePolicy)
-        self.groupBoxVerticalScale.setMinimumSize(QtCore.QSize(200, 0))
-        self.groupBoxVerticalScale.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.groupBoxVerticalScale.setMinimumSize(QtCore.QSize(205, 0))
+        self.groupBoxVerticalScale.setMaximumSize(QtCore.QSize(205, 16777215))
         self.groupBoxVerticalScale.setObjectName("groupBoxVerticalScale")
         self.verticalLayout_7 = QtWidgets.QVBoxLayout(self.groupBoxVerticalScale)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
@@ -300,7 +308,7 @@ class Ui_hpMCA(object):
         sizePolicy.setHeightForWidth(self.groupBoxHorizontalScale.sizePolicy().hasHeightForWidth())
         self.groupBoxHorizontalScale.setSizePolicy(sizePolicy)
         self.groupBoxHorizontalScale.setMinimumSize(QtCore.QSize(0, 0))
-        self.groupBoxHorizontalScale.setMaximumSize(QtCore.QSize(200, 16777215))
+        self.groupBoxHorizontalScale.setMaximumSize(QtCore.QSize(205, 16777215))
         self.groupBoxHorizontalScale.setObjectName("groupBoxHorizontalScale")
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.groupBoxHorizontalScale)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
@@ -327,19 +335,59 @@ class Ui_hpMCA(object):
         spacerItem = QtWidgets.QSpacerItem(20, 1000, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.ControlsLayout.addItem(spacerItem)
         self._Layout.addLayout(self.ControlsLayout)
+
+
         self.DisplayLayout = QtWidgets.QVBoxLayout()
+        self.DisplayLayout.setSpacing(0)
         self.DisplayLayout.setObjectName("DisplayLayout")
+
+        self.live_or_file_widget = QtWidgets.QWidget()
+        self._live_or_file_widget_layout = QtWidgets.QHBoxLayout()
+        self._live_or_file_widget_layout.setSpacing(0)
+        self._live_or_file_widget_layout.setContentsMargins(0,0,0,0)
+
+        self.live_or_file_view_tab_bar = QtWidgets.QButtonGroup()
+        self.live_view_btn = QtWidgets.QPushButton("Live")
+        self.live_view_btn.setObjectName('live_view_btn')
+        self.live_view_btn.setCheckable(True)
+        self.live_view_btn.setChecked(False)
+        self.live_view_btn.setEnabled(False)
+        self.live_view_btn.setMinimumWidth(90)
+        self.file_view_btn = QtWidgets.QPushButton("File")
+        self.file_view_btn.setObjectName('file_view_btn')
+        self.file_view_btn.setCheckable(True)
+        self.file_view_btn.setChecked(False)
+        self.file_view_btn.setEnabled(False)
+        self.file_view_btn.setMinimumWidth(90)
+        self.live_or_file_view_tab_bar.addButton(self.live_view_btn)
+        self.live_or_file_view_tab_bar.addButton(self.file_view_btn)
+        self._live_or_file_widget_layout.addWidget(self.live_view_btn)
+        self._live_or_file_widget_layout.addWidget(self.file_view_btn)
+        self._live_or_file_widget_layout.addSpacerItem(HorizontalSpacerItem())
+        self.live_or_file_widget.setLayout(self._live_or_file_widget_layout)
+        
+        self.DisplayLayout.addWidget(self.live_or_file_widget)
+
+        
         self.pg = PltWidget(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pg.sizePolicy().hasHeightForWidth())
+        
+
+
+        
         self.pg.setSizePolicy(sizePolicy)
-        self.pg.setMinimumSize(QtCore.QSize(200, 0))
+        self.pg.setMinimumSize(QtCore.QSize(205, 0))
         self.pg.setInteractive(True)
         self.pg.setObjectName("pg")
+
+
         self.DisplayLayout.addWidget(self.pg)
+
         self.CursorsLayout = QtWidgets.QHBoxLayout()
+        self.CursorsLayout.setContentsMargins(0,6,0,6)
         self.CursorsLayout.setObjectName("CursorsLayout")
         self.indexLabel = QtWidgets.QLabel(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
@@ -470,6 +518,10 @@ class Ui_hpMCA(object):
     def retranslateUi(self, hpMCA):
         _translate = QtCore.QCoreApplication.translate
         hpMCA.setWindowTitle(_translate("hpMCA", "hpMCA"))
+
+        
+
+
         self.groupBoxAcq.setTitle(_translate("hpMCA", "Aquisition"))
         self.btnOn.setText(_translate("hpMCA", "On"))
         self.btnOff.setText(_translate("hpMCA", "Off"))

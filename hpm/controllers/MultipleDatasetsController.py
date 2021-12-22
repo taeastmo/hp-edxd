@@ -151,9 +151,9 @@ class MultipleDatasetsController(QObject):
     def key_sig_callback(self, sig):
         if self.widget.file_view_tabs.currentIndex() == 0:
             row = self.widget.get_selected_row()
-            if sig == 'right' :
+            if sig == 'right' or sig == 'up':
                 row += 1
-            if sig == 'left' :
+            if sig == 'left' or sig == 'down':
                 row -= 1
             if row >= 0 and row < len(self.multi_spectra_model.r['files_loaded']):
                 self.widget.file_list_view.setCurrentRow(row)

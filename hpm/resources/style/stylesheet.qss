@@ -72,7 +72,7 @@ QTabWidget::tab-bar{
 }
 
 QTabWidget::pane {
-  border:  1px solid #2F2F2F;
+  border:  0px solid #2F2F2F;
   border-radius: 3px;
 }
 
@@ -419,16 +419,32 @@ QFrame#main_frame {
     border-radius: 5px;
 }
 
-#calibration_mode_btn, #mask_mode_btn, #integration_mode_btn {
-    font: normal 12px;
+#live_view_btn,  #file_view_btn  {
+    font: normal 14px;
     border-radius: 1px;
+    height: 22px;
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #4f4f4f, stop:1 #323232);
 }
 
-#calibration_mode_btn {
-   border-top-right-radius:8px;
-   border-bottom-right-radius: 8px;
-}
-#integration_mode_btn {
+
+
+#live_view_btn {
+
    border-top-left-radius:8px;
-   border-bottom-left-radius: 8px;
+   border-bottom: 0px solid #151515;
+}
+#file_view_btn {
+   border-top-right-radius:8px;
+   border-bottom: 0px solid #151515;
+}
+
+#live_view_btn::checked, #file_view_btn::checked{
+	background: qlineargradient(
+        x1: 0, y1: 1,
+        x2: 0, y2: 0,
+        stop: 0 #151515,
+        stop: 1 #4f4f4f
+    );
+     
+     border: 1px solid  #151515;
 }

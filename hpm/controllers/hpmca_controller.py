@@ -168,6 +168,9 @@ class hpmcaController(QObject):
         ui.actionAbout.triggered.connect(self.about_module)
 
         ui.baseline_subtract.clicked.connect(self.baseline_subtract_callback)
+
+        ui.file_view_btn.clicked.connect(self.file_view_btn_callback)
+        ui.live_view_btn.clicked.connect(self.live_view_btn_callback)
         
         # file save/read actions moved to self.file_save_controller
 
@@ -253,7 +256,9 @@ class hpmcaController(QObject):
                     self.mca.acq_stopped.disconnect()
                     
                     self.epicsMCAholder = self.mca
-            self.file_save_controller.McaFilename = None        
+            self.file_save_controller.McaFilename = None     
+            self.widget.file_view_btn.setEnabled(True)
+            self.widget.file_view_btn.setChecked(True)   
             self.mca = mca
             self.blockSignals(True)
             for btn in self.epicsBtns:
@@ -397,6 +402,8 @@ class hpmcaController(QObject):
                     elif acquiring == 0:
                         self.mca.acqOff()
                     self.update_titlebar()
+                    self.widget.live_view_btn.setEnabled(True)
+                    self.widget.live_view_btn.setChecked(True)
                     self.defaults_options.detector = text
                     try:
                         mcaUtil.save_defaults_settings(self.defaults_options)
@@ -440,6 +447,16 @@ class hpmcaController(QObject):
     
     ########################################################################################
     ########################################################################################
+
+    def file_view_btn_callback(self, *args):
+        print('file')
+
+        #pass
+    def live_view_btn_callback(self, *args):
+        print('live')
+
+        #pass
+        
 
     def overlay_module(self):
         if self.mca != None:

@@ -205,7 +205,7 @@ class EnvironmentWidget(QtWidgets.QWidget):
         description_item = self.env_tw.item(ind, 0)
         description_item.setText(description)
         value_item = self.env_tw.item(ind, 1)
-        value_item.setText(value)
+        value_item.setText(str(value))
       
         self.env_tw.blockSignals(False)
 

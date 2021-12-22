@@ -72,6 +72,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._filter_layout.setSpacing(6)
         self._filter_layout.addWidget(QtWidgets.QLabel('Filter   '))
         self.file_filter = QtWidgets.QLineEdit('')
+        self.file_filter.setFocusPolicy(Qt.ClickFocus)
         self.file_filter.setAlignment(QtCore.Qt.AlignRight)
         self.file_filter_refresh_btn = QtWidgets.QPushButton("Reload")
         self._filter_layout.addWidget(self.file_filter)
@@ -80,6 +81,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.filter_widget)
         self._body_layout = QtWidgets.QHBoxLayout()
         self.file_view_tabs= QtWidgets.QTabWidget(self)
+        
         self.file_view_tabs.setObjectName("file_view_tabs")
         self.make_img_plot()
         self.plot_widget = self.win
@@ -145,6 +147,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
     def make_img_plot(self):
         ## Create window with GraphicsView widget
         self.win = pg.PlotWidget(parent=self)
+        
         self.win.getPlotItem().setLabel(axis='left', text='Channel')
         self.win.getPlotItem().setLabel(axis='bottom', text='File index')
 
