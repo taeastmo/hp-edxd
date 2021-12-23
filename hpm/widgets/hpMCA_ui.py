@@ -17,7 +17,7 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Horiz
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
         #hpMCA.setObjectName("hpMCA")
-        hpMCA.resize(1100, 615)
+        hpMCA.resize(1300, 715)
         self.centralwidget = QtWidgets.QWidget(hpMCA)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -340,7 +340,7 @@ class Ui_hpMCA(object):
         self.groupBoxSaveDataFile.setMaximumWidth(205)
         self._groupBoxSaveDataFileLayout = QtWidgets.QVBoxLayout(self.groupBoxSaveDataFile)
         self._groupBoxSaveDataFileLayout.setContentsMargins(12,7,7,7)
-        self._groupBoxSaveDataFileLayout.setSpacing(5)
+        self._groupBoxSaveDataFileLayout.setSpacing(7)
 
         self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel('Save in:'))
 
@@ -361,7 +361,7 @@ class Ui_hpMCA(object):
         self._groupBoxSaveDataFileLayout.addWidget(self.file_name_ebx)
 
         self.save_file_btn = QtWidgets.QPushButton('Save')
-        self.save_file_btn.setMaximumWidth(90)
+        self.save_file_btn.setMaximumWidth(75)
         self._groupBoxSaveDataFileLayout.addWidget(self.save_file_btn)
 
         self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel('Last saved file:'))
@@ -454,8 +454,8 @@ class Ui_hpMCA(object):
                                         'YYYY-Month-DD',
                                         'Month-DD-YYYY'])
 
-        self.date_format_cmb.setMinimumWidth(130)
-        self.date_format_cmb.setMaximumWidth(130)
+        self.date_format_cmb.setMinimumWidth(134)
+        self.date_format_cmb.setMaximumWidth(134)
         self._date_format_widget_layout.addWidget(date_format_lbl)
         self._date_format_widget_layout.addWidget(self.date_format_cmb)
         self._date_format_widget_layout.addSpacerItem(HorizontalSpacerItem())
@@ -480,9 +480,9 @@ class Ui_hpMCA(object):
         time_format_lbl.setAlignment(QtCore.Qt.AlignRight)
         self.time_format_cmb = QtWidgets.QComboBox()
         self.time_format_cmb.addItems( ['hh:mm:ss (24h)',
-                                        'hh:mm:ss AM/PM'])
-        self.time_format_cmb.setMinimumWidth(130)
-        self.time_format_cmb.setMaximumWidth(130)
+                                        'hh:mm:ss am/pm'])
+        self.time_format_cmb.setMinimumWidth(134)
+        self.time_format_cmb.setMaximumWidth(134)
         self._time_format_widget_layout.addWidget(time_format_lbl)
         self._time_format_widget_layout.addWidget(self.time_format_cmb)
         self._time_format_widget_layout.addSpacerItem(HorizontalSpacerItem())
@@ -494,12 +494,12 @@ class Ui_hpMCA(object):
         self._dt_format_widget_layout = QtWidgets.QHBoxLayout(self.dt_format_widget)
         self._dt_format_widget_layout.setContentsMargins(0,5,0,0)
         self._dt_format_widget_layout.setSpacing(7)
-        dt_format_lbl = QtWidgets.QLabel('Place D/T in:')
-        dt_format_lbl.setMinimumWidth(100)
+        dt_format_lbl = QtWidgets.QLabel('Place Date/Time in:')
+        #dt_format_lbl.setMinimumWidth(100)
         dt_format_lbl.setAlignment(QtCore.Qt.AlignRight)
         self.dt_format_rad = QtWidgets.QWidget()
-        self.dt_format_rad.setMinimumWidth(80)
-        self.dt_format_rad.setMaximumWidth(80)
+        self.dt_format_rad.setMinimumWidth(60)
+        self.dt_format_rad.setMaximumWidth(60)
         self._dt_format_rad_layout = QtWidgets.QVBoxLayout(self.dt_format_rad)
         self._dt_format_rad_layout.setContentsMargins(0,0,0,0)
         self.prefix_rad = QtWidgets.QRadioButton('Prefix')

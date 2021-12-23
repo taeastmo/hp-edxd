@@ -203,13 +203,13 @@ QSpinBox, QDoubleSpinBox {
 }
 
 QComboBox {
-    border-top-left-radius: 2px; /* same radius as the QComboBox */
+    border-top-left-radius: 2px; 
     border-bottom-left-radius: 2px;
-    border-top-right-radius: 5px; /* same radius as the QComboBox */
+    border-top-right-radius: 5px; 
     border-bottom-right-radius: 5px;
     border-style: solid;
-    background-color: #dfdbdb;
-    color:  #000000;
+    background-color: #dbdbdb;
+    color:  #151515 ;
     
     height: 22px;
 }
@@ -236,8 +236,8 @@ QComboBox::drop-down {
 
     border-width: 1px;
     border-color: #848d94;
-    border-style: solid; /* just a single line */
-    border-top-right-radius: 5px; /* same radius as the QComboBox */
+    border-style: solid; 
+    border-top-right-radius: 5px; 
     border-bottom-right-radius: 5px;
 }
 
@@ -248,17 +248,35 @@ QComboBox::drop-down:on { /* shift the arrow when popup is open */
 
 
 
-QComboBox QAbstractItemView{
-	background:  #52595F;
-	color:rgb(240, 240, 240);
-	border-radius: 5px;
-    min-height: 40px;
-    selection-background-color: rgb(42, 119, 187);
+/*  After dropping, the entire drop-down form style */
+QComboBox QAbstractItemView {
+    outline: 0px solid gray;   /*  The virtual frame of the selected item */
+    border: 1px solid #FBFBFB;   /*  Border of the entire drop-down form */
+    color: #151515;
+    background-color: #FBFBFB;   /*  Whole drop-down form background color */
+    
+}
+
+/*  Down pull, the entire drop-down window */
+QComboBox QAbstractItemView::item {
+    height: 50px;   /*  The height of the item (set pcomboBox-> setView (new qlistview ()); after this item works) */
+}
+
+/*  After dropping, the entire drop-down window crossing each pattern */
+QComboBox QAbstractItemView::item:hover {
+    color: #FFFFFF;
+    
+}
+
+/*  After dropping, the entire drop-down window is selected for each pattern. */
+QComboBox QAbstractItemView::item:selected {
+    color: #FFFFFF;
+    
 }
 
 QToolBox::tab:QToolButton{
     background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #3C3C3C, stop:1 #505050);
-     border: 1px solid  #5B5B5B;
+     border: 1px solid #5B5B5B;
 
      border-radius:2px;
      padding-right: 10px;
