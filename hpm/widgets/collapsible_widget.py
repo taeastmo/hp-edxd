@@ -1,4 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+import os
+from .. import style_path, icons_path
 
 
 class CollapsibleBox(QtWidgets.QWidget):
@@ -10,12 +12,23 @@ class CollapsibleBox(QtWidgets.QWidget):
         self.toggle_button = QtWidgets.QToolButton(
             text=title, checkable=True, checked=False
         )
+        button_height = 15
+        button_width = 15
+
+        self.right_arrow = QtGui.QIcon(os.path.join(icons_path, 'arrow_right.png'))
+        self.down_arrow = QtGui.QIcon(os.path.join(icons_path, 'arrow_down.ico'))
+
+        icon_size = QtCore.QSize(button_height, button_width)
+        
+        self.toggle_button.setIconSize(icon_size)
+        #self.toggle_button.setArrowType(QtCore.Qt.NoArrow)
         self.toggle_button.setFixedWidth(205)
-        self.toggle_button.setStyleSheet("QToolButton { border-top: 1px solid #ADADAD; font: normal 14px;}")
+        self.toggle_button.setStyleSheet(''' QToolButton { border-top: 1px solid #ADADAD; 
+                                            font: normal 14px;}''')
         self.toggle_button.setToolButtonStyle(
             QtCore.Qt.ToolButtonTextBesideIcon
         )
-        self.toggle_button.setArrowType(QtCore.Qt.RightArrow)
+        #self.toggle_button.setArrowType(QtCore.Qt.RightArrow)
         self.toggle_button.pressed.connect(self.on_pressed)
 
         self.toggle_animation = QtCore.QParallelAnimationGroup(self)
@@ -45,11 +58,15 @@ class CollapsibleBox(QtWidgets.QWidget):
             QtCore.QPropertyAnimation(self.content_area, b"maximumHeight")
         )
 
+        
+        
+        
+
     @QtCore.pyqtSlot()
     def on_pressed(self):
         checked = self.toggle_button.isChecked()
-        self.toggle_button.setArrowType(
-            QtCore.Qt.DownArrow if not checked else QtCore.Qt.RightArrow
+        self.toggle_button.setIcon(
+            self.state0_arrow if not checked else self.state1_arrow
         )
         self.toggle_animation.setDirection(
             QtCore.QAbstractAnimation.Forward
@@ -58,7 +75,16 @@ class CollapsibleBox(QtWidgets.QWidget):
         )
         self.toggle_animation.start()
 
-    def setContentLayout(self, layout):
+    def setContentLayout(self, layout, state='expanded'):
+        if state == 'expanded':
+            self.setContentLayoutExapanded(layout)
+        elif state == 'collapsed':
+            self.setContentLayoutCollapsed(layout)
+
+    def setContentLayoutCollapsed(self, layout):
+        self.state0_arrow = self.down_arrow
+        self.state1_arrow = self.right_arrow
+        self.toggle_button.setIcon(self.right_arrow)
         lay = self.content_area.layout()
         del lay
         self.content_area.setLayout(layout)
@@ -68,16 +94,45 @@ class CollapsibleBox(QtWidgets.QWidget):
         content_height = layout.sizeHint().height()
         for i in range(self.toggle_animation.animationCount()):
             animation = self.toggle_animation.animationAt(i)
-            animation.setDuration(200)
+            animation.setDuration(150)
             animation.setStartValue(collapsed_height)
             animation.setEndValue(collapsed_height + content_height)
 
         content_animation = self.toggle_animation.animationAt(
             self.toggle_animation.animationCount() - 1
         )
-        content_animation.setDuration(200)
+        content_animation.setDuration(150)
         content_animation.setStartValue(0)
         content_animation.setEndValue(content_height)
+
+    def setContentLayoutExapanded(self, layout):
+        self.state1_arrow = self.down_arrow
+        self.state0_arrow = self.right_arrow
+        self.toggle_button.setIcon(self.down_arrow)
+        lay = self.content_area.layout()
+        del lay
+        self.content_area.setLayout(layout)
+        size_hint_height = self.sizeHint().height()
+        maximum_height = self.content_area.maximumHeight()
+        collapsed_height = (
+            size_hint_height - maximum_height
+        )
+        content_height = layout.sizeHint().height()
+        for i in range(self.toggle_animation.animationCount()):
+            animation = self.toggle_animation.animationAt(i)
+            animation.setDuration(150)
+            animation.setStartValue(collapsed_height+ content_height)
+            animation.setEndValue(collapsed_height )
+
+        content_animation = self.toggle_animation.animationAt(
+            self.toggle_animation.animationCount() - 1
+        )
+        content_animation.setDuration(150)
+        content_animation.setStartValue(content_height)
+        content_animation.setEndValue(0)
+
+        self.content_area.setMaximumHeight(content_height)
+        self.setFixedHeight(collapsed_height+content_height)
 
 
 '''if __name__ == "__main__":

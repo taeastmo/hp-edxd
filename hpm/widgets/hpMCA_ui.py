@@ -11,7 +11,7 @@ from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessag
 from hpm.widgets.PltWidget import PltWidget
 from hpm.widgets.collapsible_widget import CollapsibleBox
 
-from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, HorizontalLine, IntegerTextField, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 
 class Ui_hpMCA(object):
@@ -333,9 +333,188 @@ class Ui_hpMCA(object):
         self.HorizontalScaleLayout.addWidget(self.radiod, 1,1)
         self.horizontalLayout_8.addLayout(self.HorizontalScaleLayout)
         
+
+        # Save data file
         
         self.groupBoxSaveDataFile = QtWidgets.QGroupBox()
+        self.groupBoxSaveDataFile.setMaximumWidth(205)
+        self._groupBoxSaveDataFileLayout = QtWidgets.QVBoxLayout(self.groupBoxSaveDataFile)
+        self._groupBoxSaveDataFileLayout.setContentsMargins(12,7,7,7)
+        self._groupBoxSaveDataFileLayout.setSpacing(5)
 
+        self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel('Save in:'))
+
+        self.folder_browse_widget = QtWidgets.QWidget()
+        self._folder_browse_widget_layout = QtWidgets.QHBoxLayout(self.folder_browse_widget)
+        self._folder_browse_widget_layout.setContentsMargins(0,0,0,0)
+        self.folder_lbl = QtWidgets.QLabel()
+        self._folder_browse_widget_layout.addWidget(self.folder_lbl)
+        self.folder_browse_btn = QtWidgets.QPushButton('...')
+        self.folder_browse_btn.setMaximumWidth(30)
+        self._folder_browse_widget_layout.addWidget(self.folder_browse_btn)
+        self._groupBoxSaveDataFileLayout.addWidget(self.folder_browse_widget)
+
+    
+        self.file_name_ebx = QtWidgets.QLineEdit('test')
+        
+        self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel("File name:"))
+        self._groupBoxSaveDataFileLayout.addWidget(self.file_name_ebx)
+
+        self.save_file_btn = QtWidgets.QPushButton('Save')
+        self.save_file_btn.setMaximumWidth(90)
+        self._groupBoxSaveDataFileLayout.addWidget(self.save_file_btn)
+
+        self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel('Last saved file:'))
+        self.last_saved_lbl = QtWidgets.QLabel('test.hpmca')
+        self.last_saved_lbl.setAlignment(QtCore.Qt.AlignLeft)
+        self._groupBoxSaveDataFileLayout.addWidget(self.last_saved_lbl)
+
+
+        ## naming options
+
+        self.groupBoxFileNamingOptions = QtWidgets.QGroupBox()
+        self.groupBoxFileNamingOptions.setMaximumWidth(205)
+        self._groupBoxFileNamingOptionsLayout = QtWidgets.QVBoxLayout(self.groupBoxFileNamingOptions)
+        self._groupBoxFileNamingOptionsLayout.setContentsMargins(12,7,7,7)
+        self._groupBoxFileNamingOptionsLayout.setSpacing(3)
+
+        
+
+        self.naming_options_lbl = QtWidgets.QWidget()
+        self._naming_options_lbl_layout = QtWidgets.QHBoxLayout(self.naming_options_lbl)
+        self._naming_options_lbl_layout.setContentsMargins(0,0,0,0)
+        self._naming_options_lbl_layout.setSpacing(0)
+        self._naming_options_lbl_layout.addWidget(QtWidgets.QLabel('Naming options'))
+
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.naming_options_lbl)
+
+        self.incr_file_name_widget = QtWidgets.QWidget()
+        self._incr_file_name_widget_layout = QtWidgets.QHBoxLayout(self.incr_file_name_widget)
+        self._incr_file_name_widget_layout.setContentsMargins(0,5,0,0)
+        self._incr_file_name_widget_layout.setSpacing(0)
+        self.increment_file_name_cbx = QtWidgets.QCheckBox('Increment file name')
+        self._incr_file_name_widget_layout.addWidget(self.increment_file_name_cbx)
+        
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.incr_file_name_widget)
+
+        self.starting_num_widget = QtWidgets.QWidget()
+        self._starting_num_widget_layout = QtWidgets.QHBoxLayout(self.starting_num_widget)
+        self._starting_num_widget_layout.setContentsMargins(0,5,0,0)
+        self._starting_num_widget_layout.setSpacing(7)
+        start_num_lbl = QtWidgets.QLabel('Starting number:')
+        start_num_lbl.setMinimumWidth(100)
+        start_num_lbl.setAlignment(QtCore.Qt.AlignRight)
+        self.starting_num_int = IntegerTextField()
+        self.starting_num_int.setText('1')
+        self.starting_num_int.setMinimumWidth(40)
+        self.starting_num_int.setMaximumWidth(40)
+        self._starting_num_widget_layout.addWidget(start_num_lbl)
+        self._starting_num_widget_layout.addWidget(self.starting_num_int)
+        self._starting_num_widget_layout.addSpacerItem(HorizontalSpacerItem())
+        
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.starting_num_widget)
+
+
+        self.minimum_digits_widget = QtWidgets.QWidget()
+        self._minimum_digits_widget_layout = QtWidgets.QHBoxLayout(self.minimum_digits_widget)
+        self._minimum_digits_widget_layout.setContentsMargins(0,5,0,0)
+        self._minimum_digits_widget_layout.setSpacing(7)
+        min_digits_lbl = QtWidgets.QLabel('Minimum digits:')
+        min_digits_lbl.setMinimumWidth(100)
+        min_digits_lbl.setAlignment(QtCore.Qt.AlignRight)
+        self.min_digits_int = QtWidgets.QComboBox()
+        self.min_digits_int.addItems(['1','2','3','4','5','6'])
+        self.min_digits_int.setMinimumWidth(50)
+        self.min_digits_int.setMaximumWidth(50)
+        self._minimum_digits_widget_layout.addWidget(min_digits_lbl)
+        self._minimum_digits_widget_layout.addWidget(self.min_digits_int)
+        self._minimum_digits_widget_layout.addSpacerItem(HorizontalSpacerItem())
+        
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.minimum_digits_widget)
+
+        self.add_date_widget = QtWidgets.QWidget()
+        self._add_date_widget_layout = QtWidgets.QHBoxLayout(self.add_date_widget)
+        self._add_date_widget_layout.setContentsMargins(0,5,0,0)
+        self._add_date_widget_layout.setSpacing(0)
+        self.add_date_cbx = QtWidgets.QCheckBox('Add date')
+        self._add_date_widget_layout.addWidget(self.add_date_cbx)
+        
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.add_date_widget)
+
+        self.date_format_widget = QtWidgets.QWidget()
+        self._date_format_widget_layout = QtWidgets.QHBoxLayout(self.date_format_widget)
+        self._date_format_widget_layout.setContentsMargins(0,5,0,0)
+        self._date_format_widget_layout.setSpacing(7)
+        date_format_lbl = QtWidgets.QLabel('Format:')
+        #date_format_lbl.setMinimumWidth(55)
+        date_format_lbl.setAlignment(QtCore.Qt.AlignRight)
+        self.date_format_cmb = QtWidgets.QComboBox()
+        self.date_format_cmb.addItems( ['YYYYMMDD',
+                                        'YYYY-MM-DD',
+                                        'YYYY-Month-DD',
+                                        'Month-DD-YYYY'])
+
+        self.date_format_cmb.setMinimumWidth(130)
+        self.date_format_cmb.setMaximumWidth(130)
+        self._date_format_widget_layout.addWidget(date_format_lbl)
+        self._date_format_widget_layout.addWidget(self.date_format_cmb)
+        self._date_format_widget_layout.addSpacerItem(HorizontalSpacerItem())
+
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.date_format_widget)
+
+        self.add_time_widget = QtWidgets.QWidget()
+        self._add_time_widget_layout = QtWidgets.QHBoxLayout(self.add_time_widget)
+        self._add_time_widget_layout.setContentsMargins(0,5,0,0)
+        self._add_time_widget_layout.setSpacing(0)
+        self.add_time_cbx = QtWidgets.QCheckBox('Add time')
+        self._add_time_widget_layout.addWidget(self.add_time_cbx)
+        
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.add_time_widget)
+
+        self.time_format_widget = QtWidgets.QWidget()
+        self._time_format_widget_layout = QtWidgets.QHBoxLayout(self.time_format_widget)
+        self._time_format_widget_layout.setContentsMargins(0,5,0,0)
+        self._time_format_widget_layout.setSpacing(7)
+        time_format_lbl = QtWidgets.QLabel('Format:')
+        #time_format_lbl.setMinimumWidth(55)
+        time_format_lbl.setAlignment(QtCore.Qt.AlignRight)
+        self.time_format_cmb = QtWidgets.QComboBox()
+        self.time_format_cmb.addItems( ['hh:mm:ss (24h)',
+                                        'hh:mm:ss AM/PM'])
+        self.time_format_cmb.setMinimumWidth(130)
+        self.time_format_cmb.setMaximumWidth(130)
+        self._time_format_widget_layout.addWidget(time_format_lbl)
+        self._time_format_widget_layout.addWidget(self.time_format_cmb)
+        self._time_format_widget_layout.addSpacerItem(HorizontalSpacerItem())
+
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.time_format_widget)
+
+        self.dt_format_widget = QtWidgets.QWidget()
+        self.dt_format_widget.setMaximumHeight(50)
+        self._dt_format_widget_layout = QtWidgets.QHBoxLayout(self.dt_format_widget)
+        self._dt_format_widget_layout.setContentsMargins(0,5,0,0)
+        self._dt_format_widget_layout.setSpacing(7)
+        dt_format_lbl = QtWidgets.QLabel('Place D/T in:')
+        dt_format_lbl.setMinimumWidth(100)
+        dt_format_lbl.setAlignment(QtCore.Qt.AlignRight)
+        self.dt_format_rad = QtWidgets.QWidget()
+        self.dt_format_rad.setMinimumWidth(80)
+        self.dt_format_rad.setMaximumWidth(80)
+        self._dt_format_rad_layout = QtWidgets.QVBoxLayout(self.dt_format_rad)
+        self._dt_format_rad_layout.setContentsMargins(0,0,0,0)
+        self.prefix_rad = QtWidgets.QRadioButton('Prefix')
+        self.suffix_rad = QtWidgets.QRadioButton('Suffix')
+        
+        self._dt_format_rad_layout.addWidget(self.prefix_rad)
+        self._dt_format_rad_layout.addWidget(self.suffix_rad)
+        self.prefix_rad.setChecked(True)
+
+        self._dt_format_widget_layout.addWidget(dt_format_lbl)
+        self._dt_format_widget_layout.addWidget(self.dt_format_rad)
+        self._dt_format_widget_layout.addSpacerItem(HorizontalSpacerItem())
+
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.dt_format_widget)
+        
 
         # scroll area stuff
         self.scroll = QtWidgets.QScrollArea()
@@ -350,12 +529,14 @@ class Ui_hpMCA(object):
 
         
         
-        box_dict = {'acquisition':['Acquisition',self.groupBoxAcq],
-                    'elapsed_time':['Elapsed time',self.groupBoxElapsed],
-                    'rois':['ROIs',self.groupBoxROIs],
-                    'xrf':['Fluorescence markers',self.groupBoxXRF],
-                    'v_scale':['Vertical scale',self.groupBoxVerticalScale],
-                    'h_scale':['Horizontal scale',self.groupBoxHorizontalScale]}
+        box_dict = {'acquisition':['Acquisition',self.groupBoxAcq, 'expanded'],
+                    'save_data':['Save data file',self.groupBoxSaveDataFile, 'collapsed'],
+                    'file_name_options':['File naming options',self.groupBoxFileNamingOptions, 'collapsed'],
+                    'elapsed_time':['Elapsed time',self.groupBoxElapsed, 'expanded'],
+                    'rois':['ROIs',self.groupBoxROIs, 'expanded'],
+                    'xrf':['Fluorescence markers',self.groupBoxXRF, 'collapsed'],
+                    'v_scale':['Vertical scale',self.groupBoxVerticalScale, 'collapsed'],
+                    'h_scale':['Horizontal scale',self.groupBoxHorizontalScale, 'collapsed']}
 
         for b in box_dict:
             box = CollapsibleBox(box_dict[b][0])
@@ -365,8 +546,10 @@ class Ui_hpMCA(object):
             
             widget = box_dict[b][1]
             lay.addWidget(widget)
-
-            box.setContentLayout(lay)
+            state = box_dict[b][2] 
+            box.setContentLayout(lay, state)
+            
+            
         self.vlay.addStretch()
 
         self.ControlsLayout.addWidget(self.scroll)

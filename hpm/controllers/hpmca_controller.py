@@ -172,8 +172,8 @@ class hpmcaController(QObject):
 
         ui.baseline_subtract.clicked.connect(self.baseline_subtract_callback)
 
-        ui.file_view_btn.clicked.connect(self.file_view_btn_callback)
-        ui.live_view_btn.clicked.connect(self.live_view_btn_callback)
+        ui.file_view_btn.pressed.connect(self.file_view_btn_callback)
+        ui.live_view_btn.pressed.connect(self.live_view_btn_callback)
         
         # file save/read actions moved to self.file_save_controller
 
