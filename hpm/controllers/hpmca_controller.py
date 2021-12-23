@@ -76,9 +76,9 @@ class hpmcaController(QObject):
         
         self.create_connections() 
         
-        self.working_directories = mcaUtil.restore_folder_settings('hpMCA_folder_settings.json')
+        self.working_directories = mcaUtil.restore_folder_settings()
         
-        self.defaults_options = mcaUtil.restore_defaults_settings('hpMCA_defaults.json')
+        self.defaults_options = mcaUtil.restore_defaults_settings()
         
         self.presets = mcaUtil.mcaDisplay_presets() 
         self.last_saved = ''

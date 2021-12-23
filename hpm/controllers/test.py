@@ -1,0 +1,1 @@
+print(str(100).zfill(2))

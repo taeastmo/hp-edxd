@@ -107,6 +107,42 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         else:
             super().keyPressEvent(e)
 
+    def set_file_naming_settings(self, settings):
+        increment_file_name = settings.increment_file_name 
+        starting_number = settings.starting_number             
+        minimum_digits = settings.minimum_digits            
+        add_date = settings.add_date            
+        add_time = settings.add_time            
+        d_format = settings.d_format            
+        t_format = settings.t_format            
+        dt_append_possition = settings.dt_append_possition 
+        
+        self.groupBoxFileNamingOptions.blockSignals(True)
+        self.increment_file_name_cbx.setChecked(increment_file_name)
+        self.starting_num_int.setText(str(starting_number))
+        self.min_digits_int.setCurrentIndex(minimum_digits)
+        self.add_date_cbx.setChecked(add_date)
+        self.add_time_cbx.setChecked(add_time)
+        self.date_format_cmb.setCurrentIndex(d_format)
+        self.time_format_cmb.setCurrentIndex(t_format)
+        if dt_append_possition == 0:
+            self.prefix_rad.setChecked(True)
+        elif dt_append_possition == 1:
+            self.suffix_rad.setChecked(True)
+        self.groupBoxFileNamingOptions.blockSignals(False)
+
+    def get_file_naming_settings(self):
+        settings = dict()
+        settings['increment_file_name'] = self.increment_file_name_cbx.isChecked()
+        settings['starting_number'] =     int(self.starting_num_int.text())      
+        settings['minimum_digits'] =      self.min_digits_int.currentIndex()    
+        settings['add_date'] =            self.add_date_cbx.isChecked()
+        settings['add_time'] =            self.add_time_cbx.isChecked()
+        settings['d_format'] =            self.date_format_cmb.currentIndex()  
+        settings['t_format'] =            self.time_format_cmb.currentIndex()  
+        settings['dt_append_possition'] = int(self.suffix_rad.isChecked())
+        return settings
+
     ########################################################################################
     ########################################################################################
 

@@ -42,6 +42,11 @@ icons_path = os.path.join(resources_path, 'icons')
 data_path = os.path.join(resources_path, 'data')
 style_path = os.path.join(resources_path, 'style')
 
+file_settings_file = 'hpMCA_file_settings.json'
+folder_settings_file='hpMCA_folder_settings.json'
+defaults_settings_file='hpMCA_defaults.json'
+file_naming_settings_file = 'hpMCA_file_naming_settings.json'
+
 from pathlib import Path
 home_path = str(Path.home())
 

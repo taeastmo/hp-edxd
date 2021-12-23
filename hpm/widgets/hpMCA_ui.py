@@ -402,7 +402,7 @@ class Ui_hpMCA(object):
         self._starting_num_widget_layout = QtWidgets.QHBoxLayout(self.starting_num_widget)
         self._starting_num_widget_layout.setContentsMargins(0,5,0,0)
         self._starting_num_widget_layout.setSpacing(7)
-        start_num_lbl = QtWidgets.QLabel('Starting number:')
+        start_num_lbl = QtWidgets.QLabel('Next number:')
         start_num_lbl.setMinimumWidth(100)
         start_num_lbl.setAlignment(QtCore.Qt.AlignRight)
         self.starting_num_int = IntegerTextField()
@@ -503,8 +503,10 @@ class Ui_hpMCA(object):
         self.dt_format_rad.setMaximumWidth(60)
         self._dt_format_rad_layout = QtWidgets.QVBoxLayout(self.dt_format_rad)
         self._dt_format_rad_layout.setContentsMargins(0,0,0,0)
+    
         self.prefix_rad = QtWidgets.QRadioButton('Prefix')
         self.suffix_rad = QtWidgets.QRadioButton('Suffix')
+     
         
         self._dt_format_rad_layout.addWidget(self.prefix_rad)
         self._dt_format_rad_layout.addWidget(self.suffix_rad)

@@ -18,10 +18,12 @@
 
 
 import os
+from posixpath import basename
+from typing import TextIO
 from PyQt5.QtGui import QFontMetrics
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
-
+from datetime import datetime
 
 import time
 import copy
@@ -75,13 +77,17 @@ class FileSaveController(object):
         
         self.mca_controller = hpmcaController
         self.widget = hpmcaController.widget
-        self.file_widget = SaveFileWidget()
+        #self.file_widget = SaveFileWidget()
         
       
-        self.file_options = mcaUtil.restore_file_settings('hpMCA_file_settings.json')
+        self.file_options = mcaUtil.restore_file_settings()
+        self.file_naming_options = mcaUtil.restore_file_naming_settings()
+        self.widget.set_file_naming_settings(self.file_naming_options)
         self.McaFileNameHolder = ''
         self.McaFileName = ''
 
+        lbl = self.mca_controller.widget.folder_lbl
+        lbl.setText(self.mca_controller.working_directories.savedata)
         self.create_signals()
 
     def file_dragged_in_signal(self, f):
@@ -99,8 +105,8 @@ class FileSaveController(object):
     def show_view(self):
         pass
 
-    def create_signals(self):
         
+    def create_signals(self):
         ui = self.widget
        
         ui.actionSave_next.setEnabled(False)
@@ -111,6 +117,19 @@ class FileSaveController(object):
         ui.actionOpen_file.triggered.connect(self.openFile)
         ui.actionPreferences.triggered.connect(self.preferences_module)
         ui.folder_browse_btn.clicked.connect(self.folder_browse_btn_callback)
+
+        
+        ui.increment_file_name_cbx.clicked.         connect(self.file_naming_option_changed_callback)
+        ui.starting_num_int.       textChanged.     connect(self.file_naming_option_changed_callback)
+        ui.min_digits_int.         currentIndexChanged.    connect(self.file_naming_option_changed_callback)
+        ui.add_date_cbx.           stateChanged.         connect(self.file_naming_option_changed_callback)
+        ui.add_time_cbx.           stateChanged.         connect(self.file_naming_option_changed_callback)
+        ui.date_format_cmb.        currentIndexChanged.    connect(self.file_naming_option_changed_callback)
+        ui.time_format_cmb.        currentIndexChanged.    connect(self.file_naming_option_changed_callback)
+        ui.prefix_rad.             toggled.         connect(self.file_naming_option_changed_callback)
+        ui.suffix_rad.             toggled.         connect(self.file_naming_option_changed_callback)
+        
+        ui.save_file_btn.clicked.connect(self.save_file_btn_callback)
 
     def acq_stopped(self):
         #print('stopped (acq_stopped)')
@@ -124,6 +143,86 @@ class FileSaveController(object):
         if self.file_options.autorestart:
             # Important: this will only run if the mca is of epics type, the regular mca does not have the acq_erase_method
             self.mca_controller.mca.acq_erase_start()
+
+    def save_file_btn_callback(self, *args):
+        ext = '.hpmca'
+        basename = self.get_next_filename()
+        print(basename)
+        folder = self.mca_controller.working_directories.savedata
+        filepath = os.path.join(folder,basename + ext)
+        print(filepath)
+        self.saveFile(filepath)
+        self.increment_file_number()
+
+    def increment_file_number(self):
+        next_n = int(self.widget.starting_num_int.text()) + 1
+        self.file_naming_options.starting_number = next_n
+        mcaUtil.save_file_naming_settings(self.file_naming_options)
+        self.widget.starting_num_int.setText(str(next_n))
+
+    def get_next_filename(self):
+        delimiter = '_'
+        s = self.file_naming_options
+        base_name = self.widget.file_name_ebx.text()
+        filename = ''
+        if s.dt_append_possition == 0:
+            filename = self.add_date(s,filename, delimiter)
+            filename = self.add_time(s, filename, delimiter)
+        if len(filename):
+            filename += delimiter
+        filename += base_name
+        filename = self.add_number(s, filename, delimiter)
+        if s.dt_append_possition == 1:
+            filename = self.add_date(s,filename, delimiter)
+            filename = self.add_time(s, filename, delimiter)
+        return filename
+
+    def add_number(self, s, text_in, delimiter=' '):    
+        if s.increment_file_name:
+
+            digits = s.minimum_digits +1 
+            next_n = int(self.widget.starting_num_int.text())
+            num_str = delimiter +str(next_n).zfill(digits)
+            text_in += num_str
+        return text_in
+        
+
+    def add_date(self, s, text_in, delimiter=' '):
+        if s.add_date:
+            d_format = s.d_format
+            df = ''
+            if d_format == 0:
+                df = '%Y%m%d'
+            if d_format == 1:
+                df = '%Y-%m-%d'
+            
+            dstr = datetime.today().strftime(df)
+            if len(text_in):
+                text_in += delimiter
+            text_in += dstr 
+        return text_in
+
+    def add_time(self, s, text_in, delimiter=' '):
+        if s.add_time:
+            t_format = s.t_format
+            tf = ''
+            if t_format == 0:
+                tf = '%H:%M:%S'
+            if t_format == 1:
+                tf = '%I:%M:%S %p'
+            tstr = datetime.today().strftime(tf)
+            if len(text_in):
+                text_in += delimiter
+            text_in += tstr 
+        return text_in
+
+    def file_naming_option_changed_callback(self, *args):
+
+        settings = self.widget.get_file_naming_settings()
+        for s in settings:
+            setattr( self.file_naming_options, s, settings[s])
+        mcaUtil.save_file_naming_settings(self.file_naming_options)
+
 
     def ClickedSaveFile(self):  # handles Save As...
         if self.mca_controller.mca != None:
@@ -140,6 +239,8 @@ class FileSaveController(object):
             filename = menu_text.split(': ')[1]
             filename = os.path.join(self.mca_controller.working_directories .savedata, filename)
             self.saveFile(filename)
+
+
 
     def saveFile(self, filename):
         if self.mca_controller.mca != None:
@@ -161,18 +262,18 @@ class FileSaveController(object):
                     file=filename, netcdf=0)
                 if success:
                     #self.update_titlebar()
-                    self.update_epics_filename(filename)
+                    self.update_epics_filename(fileout)
                     
                     self.update_saveDataDir (os.path.dirname( str(fileout)) ) # working directory xrd files
-                    
-                    new_file = increment_filename(filename)
-                    if new_file != filename:
+                    self.widget.last_saved_lbl.setText(fileout)
+                    # new_file = increment_filename(filename) # old way of incrementing
+                    '''if new_file != filename:
                         self.widget.actionSave_next.setText(
                             'Save next: ' + os.path.basename(new_file))
                         self.widget.actionSave_next.setEnabled(True)
                     else:
                         self.widget.actionSave_next.setText('Save next')
-                        self.widget.actionSave_next.setEnabled(False)
+                        self.widget.actionSave_next.setEnabled(False)'''
                 else:
                     mcaUtil.displayErrorMessage('fs')
             else: 
@@ -184,6 +285,10 @@ class FileSaveController(object):
         if folder != '' and folder is not None:
             self.update_saveDataDir(folder)
 
+    def update_readDataDir(self, dir):
+        self.mca_controller.working_directories.readdata = dir
+        mcaUtil.save_folder_settings(self.mca_controller.working_directories )
+        
 
     def update_saveDataDir(self, dir):
         self.mca_controller.working_directories.savedata = dir
@@ -204,7 +309,7 @@ class FileSaveController(object):
         filename = kwargs.get('filename', None)
         if filename is None:
             filename = open_file_dialog(self.widget, "Open spectrum file.",
-                                    self.mca_controller.working_directories .savedata)
+                                    self.mca_controller.working_directories .readdata)
         if filename != '' and filename is not None:
             if os.path.isfile(filename):
                 if self.mca_controller.Foreground != 'file':
@@ -215,7 +320,7 @@ class FileSaveController(object):
                     #print("--- %s seconds ---" % (time.time() - start_time))
                 if success:
                     self.McaFileName = filename
-                    self.update_saveDataDir (os.path.dirname(str(filename)) )#working directory xrd files
+                    self.update_readDataDir (os.path.dirname(str(filename)) )#working directory xrd files
                     
                     # best to initialize controllers only once per session
                     if not self.mca_controller.controllers_initialized:  
@@ -231,7 +336,7 @@ class FileSaveController(object):
             img_filename, _ = os.path.splitext(os.path.basename(self.mca_controller.mca.file_name))
             filename = save_file_dialog(
                 self.widget, "Save Pattern Data.",
-                os.path.join(self.mca_controller.working_directories .savedata,
+                os.path.join(self.mca_controller.working_directories.savedata,
                             img_filename + self.mca_controller.working_directories .export_ext),
                 ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
             if filename != '':
