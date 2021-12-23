@@ -717,7 +717,7 @@ class Ui_hpMCA(object):
         self.menuFile.addAction(self.actionOpen_file)
         self.menuFile.addAction(self.actionOpen_detector)
         self.menuFile.addAction(self.actionOverlay)
-        self.menuFile.addAction(self.actionSave_next)
+        #self.menuFile.addAction(self.actionSave_next)
         self.menuFile.addAction(self.actionSave_As)
         self.menuFile.addAction(self.actionExport_pattern)
         self.menuFile.addAction(self.actionPreferences)
