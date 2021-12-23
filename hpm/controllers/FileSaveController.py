@@ -18,13 +18,16 @@
 
 
 import os
+from PyQt5.QtGui import QFontMetrics
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
+
+
 import time
 import copy
 from hpm.models.PhaseModel import PhaseLoadError
 from utilities.HelperModule import get_base_name, increment_filename
-from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog
+from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog, open_folder_dialog
 import utilities.hpMCAutilities as mcaUtil
 from hpm.widgets.SaveFileWidget import SaveFileWidget
 
@@ -107,6 +110,7 @@ class FileSaveController(object):
         ui.actionExport_pattern.triggered.connect(self.export_pattern)
         ui.actionOpen_file.triggered.connect(self.openFile)
         ui.actionPreferences.triggered.connect(self.preferences_module)
+        ui.folder_browse_btn.clicked.connect(self.folder_browse_btn_callback)
 
     def acq_stopped(self):
         #print('stopped (acq_stopped)')
@@ -159,9 +163,8 @@ class FileSaveController(object):
                     #self.update_titlebar()
                     self.update_epics_filename(filename)
                     
-                    self.mca_controller.working_directories .savedata = os.path.dirname(
-                        str(fileout))  # working directory xrd files
-                    mcaUtil.save_folder_settings(self.mca_controller.working_directories )
+                    self.update_saveDataDir (os.path.dirname( str(fileout)) ) # working directory xrd files
+                    
                     new_file = increment_filename(filename)
                     if new_file != filename:
                         self.widget.actionSave_next.setText(
@@ -174,6 +177,20 @@ class FileSaveController(object):
                     mcaUtil.displayErrorMessage('fs')
             else: 
                 mcaUtil.displayErrorMessage('fs')
+
+    def folder_browse_btn_callback(self):
+        open_folder_dialog
+        folder = open_folder_dialog(self.widget, "Select folder for saving data.")
+        if folder != '' and folder is not None:
+            self.update_saveDataDir(folder)
+
+
+    def update_saveDataDir(self, dir):
+        self.mca_controller.working_directories.savedata = dir
+        mcaUtil.save_folder_settings(self.mca_controller.working_directories )
+        lbl = self.mca_controller.widget.folder_lbl
+        
+        lbl.setText(self.mca_controller.working_directories.savedata)
 
     def update_epics_filename(self, filename):
         if self.mca_controller.mca is not None:
@@ -198,9 +215,8 @@ class FileSaveController(object):
                     #print("--- %s seconds ---" % (time.time() - start_time))
                 if success:
                     self.McaFileName = filename
-                    self.mca_controller.working_directories .savedata = os.path.dirname(str(filename)) #working directory xrd files
+                    self.update_saveDataDir (os.path.dirname(str(filename)) )#working directory xrd files
                     
-                    mcaUtil.save_folder_settings(self.mca_controller.working_directories )
                     # best to initialize controllers only once per session
                     if not self.mca_controller.controllers_initialized:  
                         self.mca_controller.initControllers()

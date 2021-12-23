@@ -9,7 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton, pvQProgressBar
 from hpm.widgets.PltWidget import PltWidget
-from hpm.widgets.collapsible_widget import CollapsibleBox
+from hpm.widgets.collapsible_widget import CollapsibleBox, EliderLabel
 
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, HorizontalLine, IntegerTextField, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
@@ -347,7 +347,8 @@ class Ui_hpMCA(object):
         self.folder_browse_widget = QtWidgets.QWidget()
         self._folder_browse_widget_layout = QtWidgets.QHBoxLayout(self.folder_browse_widget)
         self._folder_browse_widget_layout.setContentsMargins(0,0,0,0)
-        self.folder_lbl = QtWidgets.QLabel()
+        self.folder_lbl = EliderLabel(mode=QtCore.Qt.ElideLeft)
+        
         self._folder_browse_widget_layout.addWidget(self.folder_lbl)
         self.folder_browse_btn = QtWidgets.QPushButton('...')
         self.folder_browse_btn.setMaximumWidth(30)
@@ -365,7 +366,7 @@ class Ui_hpMCA(object):
         self._groupBoxSaveDataFileLayout.addWidget(self.save_file_btn)
 
         self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel('Last saved file:'))
-        self.last_saved_lbl = QtWidgets.QLabel('test.hpmca')
+        self.last_saved_lbl = EliderLabel('test.hpmca', mode=QtCore.Qt.ElideLeft)
         self.last_saved_lbl.setAlignment(QtCore.Qt.AlignLeft)
         self._groupBoxSaveDataFileLayout.addWidget(self.last_saved_lbl)
 

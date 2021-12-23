@@ -470,7 +470,8 @@ QFrame#main_frame {
     font: normal 14px;
     border-radius: 1px;
     height: 22px;
-    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #4f4f4f, stop:1 #323232);
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #6f6f6f, stop:1 #323232);
+    border: 1px solid  #151515;
 }
 
 
@@ -480,6 +481,12 @@ QFrame#main_frame {
    border-top-left-radius:8px;
    border-bottom: 0px solid #151515;
 }
+
+#live_view_btn:pressed, #file_view_btn:pressed{
+		margin-top: 0px;
+		margin-left: 0px;
+}
+
 #file_view_btn {
    border-top-right-radius:8px;
    border-bottom: 0px solid #151515;
@@ -493,5 +500,5 @@ QFrame#main_frame {
         stop: 1 #4f4f4f
     );
      
-     border: 1px solid  #151515;
+     
 }

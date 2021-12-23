@@ -135,6 +135,77 @@ class CollapsibleBox(QtWidgets.QWidget):
         self.setFixedHeight(collapsed_height+content_height)
 
 
+class EliderLabel(QtWidgets.QLabel):
+
+    '''
+    downloaded from https://stackoverflow.com/questions/11446478/pyside-pyqt-truncate-text-in-qlabel-based-on-minimumsize
+    '''
+
+    elision_changed = QtCore.pyqtSignal(bool)
+
+    def __init__(self, text='', mode=QtCore.Qt.ElideRight, **kwargs):
+        super().__init__(**kwargs)
+
+        self._mode = mode
+        self.elided = False
+
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.setText(text)
+
+    def setText(self, text):
+        self._contents = text
+        # Changing the content require a repaint of the widget (or so
+        # says the overview)
+        self.update()
+
+    def text(self):
+        return self._contents
+
+    def minimumSizeHint(self):
+        metrics = QtGui.QFontMetrics(self.font())
+        return QtCore.QSize(0, metrics.height())
+
+    def paintEvent(self, event):
+
+        super().paintEvent(event)
+
+        did_elide = False
+
+        painter = QtGui.QPainter(self)
+        font_metrics = painter.fontMetrics()
+        # if fontMetrics.width() is deprecated; use horizontalAdvance
+        text_width = font_metrics.width(self.text())
+
+        # Layout phase, per the docs
+        text_layout = QtGui.QTextLayout(self._contents, painter.font())
+        text_layout.beginLayout()
+
+        while True:
+
+            line = text_layout.createLine()
+
+            if not line.isValid():
+                break
+
+            line.setLineWidth(self.width())
+
+            if text_width >= self.width():
+                elided_line = font_metrics.elidedText(self._contents, self._mode, self.width())
+                painter.drawText(QtCore.QPoint(0, font_metrics.ascent()), elided_line)
+                did_elide = line.isValid()
+                break
+            else:
+                line.draw(painter, QtCore.QPoint(0, 0))
+
+        text_layout.endLayout()
+
+        self.elision_changed.emit(did_elide)
+
+        if did_elide != self.elided:
+            self.elided = did_elide
+            self.elision_changed.emit(did_elide)
+
+
 '''if __name__ == "__main__":
     import sys
     import random
