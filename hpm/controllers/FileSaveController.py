@@ -133,7 +133,13 @@ class FileSaveController(object):
         ui.time_format_cmb.        currentIndexChanged.    connect(self.file_naming_option_changed_callback)
         ui.prefix_rad.             toggled.         connect(self.file_naming_option_changed_callback)
         ui.suffix_rad.             toggled.         connect(self.file_naming_option_changed_callback)
-        
+        ui.xy_cb  .              stateChanged.    connect(self.file_naming_option_changed_callback)
+        ui.chi_cb .              stateChanged.    connect(self.file_naming_option_changed_callback) 
+        ui.dat_cb .              stateChanged.    connect(self.file_naming_option_changed_callback)
+        ui.fxye_cb.              stateChanged.    connect(self.file_naming_option_changed_callback)
+        ui.png_cb .              stateChanged.    connect(self.file_naming_option_changed_callback)
+
+
         ui.save_file_btn.clicked.connect(self.save_file_btn_callback)
 
     def acq_stopped(self):

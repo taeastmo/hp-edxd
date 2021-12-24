@@ -116,8 +116,14 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         d_format = settings.d_format            
         t_format = settings.t_format            
         dt_append_possition = settings.dt_append_possition 
+        export_xy            = settings.export_xy
+        export_chi           = settings.export_chi
+        export_dat           = settings.export_dat
+        export_fxye          = settings.export_fxye
+        export_png           = settings.export_png
         
         self.groupBoxFileNamingOptions.blockSignals(True)
+
         self.increment_file_name_cbx.setChecked(increment_file_name)
         self.starting_num_int.setText(str(starting_number))
         self.min_digits_int.setCurrentIndex(minimum_digits)
@@ -129,7 +135,15 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
             self.prefix_rad.setChecked(True)
         elif dt_append_possition == 1:
             self.suffix_rad.setChecked(True)
+
+        self.xy_cb  .setChecked(export_xy)
+        self.chi_cb .setChecked(export_chi) 
+        self.dat_cb .setChecked(export_dat)
+        self.fxye_cb.setChecked(export_fxye)
+        self.png_cb .setChecked(export_png)
+
         self.groupBoxFileNamingOptions.blockSignals(False)
+
 
     def get_file_naming_settings(self):
         settings = dict()
@@ -141,6 +155,12 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         settings['d_format'] =            self.date_format_cmb.currentIndex()  
         settings['t_format'] =            self.time_format_cmb.currentIndex()  
         settings['dt_append_possition'] = int(self.suffix_rad.isChecked())
+        settings['export_xy']=  self.xy_cb  .isChecked()
+        settings['export_chi']= self.chi_cb .isChecked() 
+        settings['export_dat']= self.dat_cb .isChecked()
+        settings['export_fxye']=self.fxye_cb.isChecked()
+        settings['export_png']= self.png_cb .isChecked()
+        
         return settings
 
     ########################################################################################
