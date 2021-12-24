@@ -412,8 +412,8 @@ class mcaDisplay_file:
       self.savedata      = home          # name of saved or read
       self.readdata      = home
       self.exportdata    = home
-      self.autoexport    = False
-      self.export_ext    = '.xy'
+      self.last_saved_file = ''
+      
       
 
 ############################################################
@@ -429,6 +429,11 @@ class mcaDisplay_file_naming:
       self.d_format             = 0
       self.t_format             = 0
       self.dt_append_possition  = 0
+      self.export_xy            = False
+      self.export_chi           = False
+      self.export_dat           = False
+      self.export_fxye          = False
+      self.export_png           = False
 
 ############################################################
 

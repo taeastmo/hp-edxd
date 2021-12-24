@@ -35,6 +35,8 @@ from hpm.widgets.SaveFileWidget import SaveFileWidget
 
 from epics import caput, caget, PV
 
+from .. import epics_sync
+
 class FileSaveController(object):
     """
     IntegrationPhaseController handles all the interaction between the phase controls in the IntegrationView and the
@@ -52,28 +54,29 @@ class FileSaveController(object):
         record_name_file = defaults_options.file_record
         self.record_name_file = record_name_file 
         
-        if record_name_file != None:
-            self.pvs_file ={'FilePath': None,
-                            'FilePath_RBV': None,
-                            'FileName': None,
-                            'FileName_RBV': None,
-                            'FullFileName_RBV': None,
-                            'FileTemplate': None,
-                            'FileTemplate_RBV': None,
-                            'WriteMessage': None,
-                            'FileNumber': None,
-                            'FileNumber_RBV': None,
-                            'AutoIncrement': None,
-                            'AutoIncrement_RBV': None,
-                            'WriteStatus': None,
-                            'FilePathExists_RBV': None,
-                            'AutoSave': None,
-                            'AutoSave_RBV': None,
-                            'WriteFile': None,
-                            'WriteFile_RBV': None}
-            for pv_file in self.pvs_file.keys():
-                name = self.record_name_file + ':' + pv_file
-                self.pvs_file[pv_file] = PV(name)
+        if epics_sync:
+            if record_name_file != None:
+                self.pvs_file ={'FilePath': None,
+                                'FilePath_RBV': None,
+                                'FileName': None,
+                                'FileName_RBV': None,
+                                'FullFileName_RBV': None,
+                                'FileTemplate': None,
+                                'FileTemplate_RBV': None,
+                                'WriteMessage': None,
+                                'FileNumber': None,
+                                'FileNumber_RBV': None,
+                                'AutoIncrement': None,
+                                'AutoIncrement_RBV': None,
+                                'WriteStatus': None,
+                                'FilePathExists_RBV': None,
+                                'AutoSave': None,
+                                'AutoSave_RBV': None,
+                                'WriteFile': None,
+                                'WriteFile_RBV': None}
+                for pv_file in self.pvs_file.keys():
+                    name = self.record_name_file + ':' + pv_file
+                    self.pvs_file[pv_file] = PV(name)
         
         self.mca_controller = hpmcaController
         self.widget = hpmcaController.widget
@@ -88,6 +91,8 @@ class FileSaveController(object):
 
         lbl = self.mca_controller.widget.folder_lbl
         lbl.setText(self.mca_controller.working_directories.savedata)
+        lbl = self.mca_controller.widget.last_saved_lbl
+        lbl.setText(self.mca_controller.working_directories.last_saved_file)
         self.create_signals()
 
     def file_dragged_in_signal(self, f):
@@ -147,10 +152,10 @@ class FileSaveController(object):
     def save_file_btn_callback(self, *args):
         ext = '.hpmca'
         basename = self.get_next_filename()
-        print(basename)
+        #print(basename)
         folder = self.mca_controller.working_directories.savedata
         filepath = os.path.join(folder,basename + ext)
-        print(filepath)
+        #print(filepath)
         self.saveFile(filepath)
         self.increment_file_number()
 
@@ -260,11 +265,14 @@ class FileSaveController(object):
             if write:
                 fileout, success = self.mca_controller.mca.write_file(
                     file=filename, netcdf=0)
+                self.autoexport(fileout)
                 if success:
+                    
                     #self.update_titlebar()
                     self.update_epics_filename(fileout)
                     
-                    self.update_saveDataDir (os.path.dirname( str(fileout)) ) # working directory xrd files
+                    self.update_saveDataDir (os.path.dirname( str(fileout)), fileout) # working directory xrd files
+                    
                     self.widget.last_saved_lbl.setText(fileout)
                     # new_file = increment_filename(filename) # old way of incrementing
                     '''if new_file != filename:
@@ -290,8 +298,10 @@ class FileSaveController(object):
         mcaUtil.save_folder_settings(self.mca_controller.working_directories )
         
 
-    def update_saveDataDir(self, dir):
+    def update_saveDataDir(self, dir, file=''):
         self.mca_controller.working_directories.savedata = dir
+        if len(file):
+            self.mca_controller.working_directories.last_saved_file = file
         mcaUtil.save_folder_settings(self.mca_controller.working_directories )
         lbl = self.mca_controller.widget.folder_lbl
         
@@ -301,7 +311,8 @@ class FileSaveController(object):
         if self.mca_controller.mca is not None:
             try:
                 if 'FullFileName_RBV' in self.pvs_file:
-                    self.pvs_file['FullFileName_RBV'].put(filename)
+                    if self.pvs_file['FullFileName_RBV'] != None:
+                        self.pvs_file['FullFileName_RBV'].put(filename)
             except:
                 pass
 
@@ -338,19 +349,35 @@ class FileSaveController(object):
                 self.widget, "Save Pattern Data.",
                 os.path.join(self.mca_controller.working_directories.savedata,
                             img_filename + self.mca_controller.working_directories .export_ext),
-                ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
+                    ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
             if filename != '':
-                if filename.endswith('.png'):
-                    self.widget.pg.export_plot_png(filename)
-                #elif filename.endswith('.svg'):
-                #    self.widget.pg.export_plot_svg(filename)
-                else:
-                    self.mca_controller.mca.export_pattern(filename, self.mca_controller.unit, self.mca_controller.plotController.units[self.mca_controller.unit])
+                self.export(filename)
 
+    def autoexport(self, fileout):
+        export_set = dict()
+        export_set['xy'] = self.file_naming_options.export_xy
+        export_set['chi'] = self.file_naming_options.export_chi
+        export_set['dat'] = self.file_naming_options.export_dat
+        export_set['fxye'] =  self.file_naming_options.export_fxye
+        export_set['png'] =  self.file_naming_options.export_png
+        
+        basename = os.path.basename(fileout).split('.')[0]+'.'
+        folder = os.path.dirname(fileout)
+        for e in export_set:
+            if export_set[e]:
+                fout = os.path.join(folder,basename+e)
+                self.export(fout)
+            
+    def export(self, filename):
+        
+        if filename.endswith('.png'):
+            self.widget.pg.export_plot_png(filename)
+        #elif filename.endswith('.svg'):
+        #    self.widget.pg.export_plot_svg(filename)
+        else:
+            self.mca_controller.mca.export_pattern(filename, self.mca_controller.unit, self.mca_controller.plotController.units[self.mca_controller.unit])
 
     def epics_connections(self):
-
-        
 
         pass
 

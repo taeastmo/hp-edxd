@@ -366,7 +366,7 @@ class Ui_hpMCA(object):
         self._groupBoxSaveDataFileLayout.addWidget(self.save_file_btn)
 
         self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel('Last saved file:'))
-        self.last_saved_lbl = EliderLabel('test.hpmca', mode=QtCore.Qt.ElideLeft)
+        self.last_saved_lbl = EliderLabel('', mode=QtCore.Qt.ElideLeft)
         self.last_saved_lbl.setAlignment(QtCore.Qt.AlignLeft)
         self._groupBoxSaveDataFileLayout.addWidget(self.last_saved_lbl)
 
@@ -407,8 +407,8 @@ class Ui_hpMCA(object):
         start_num_lbl.setAlignment(QtCore.Qt.AlignRight)
         self.starting_num_int = IntegerTextField()
         self.starting_num_int.setText('1')
-        self.starting_num_int.setMinimumWidth(40)
-        self.starting_num_int.setMaximumWidth(40)
+        self.starting_num_int.setMinimumWidth(50)
+        self.starting_num_int.setMaximumWidth(50)
         self._starting_num_widget_layout.addWidget(start_num_lbl)
         self._starting_num_widget_layout.addWidget(self.starting_num_int)
         self._starting_num_widget_layout.addSpacerItem(HorizontalSpacerItem())
@@ -506,7 +506,6 @@ class Ui_hpMCA(object):
     
         self.prefix_rad = QtWidgets.QRadioButton('Prefix')
         self.suffix_rad = QtWidgets.QRadioButton('Suffix')
-     
         
         self._dt_format_rad_layout.addWidget(self.prefix_rad)
         self._dt_format_rad_layout.addWidget(self.suffix_rad)
@@ -517,6 +516,26 @@ class Ui_hpMCA(object):
         self._dt_format_widget_layout.addSpacerItem(HorizontalSpacerItem())
 
         self._groupBoxFileNamingOptionsLayout.addWidget(self.dt_format_widget)
+
+        self._groupBoxFileNamingOptionsLayout.addWidget(QtWidgets.QLabel('Autoexport'))
+
+        self.pattern_types_gc = QtWidgets.QWidget()
+        self.xy_cb = QtWidgets.QCheckBox('.xy')
+        self.chi_cb = QtWidgets.QCheckBox('.chi')
+        self.dat_cb = QtWidgets.QCheckBox('.dat')
+        self.fxye_cb = QtWidgets.QCheckBox('.fxye')
+        self.png_cb = QtWidgets.QCheckBox('.png')
+        self._pattern_types_gb_layout = QtWidgets.QGridLayout(self.pattern_types_gc)
+        self._pattern_types_gb_layout.setContentsMargins(0,0,0,0)
+        self._pattern_types_gb_layout.setSpacing(7)
+        self._pattern_types_gb_layout.addWidget(self.xy_cb,0,0)
+        self._pattern_types_gb_layout.addWidget(self.chi_cb,0,1)
+        self._pattern_types_gb_layout.addWidget(self.png_cb,0,2)
+        self._pattern_types_gb_layout.addWidget(self.dat_cb,1,0)
+        self._pattern_types_gb_layout.addWidget(self.fxye_cb,1,1)
+
+
+        self._groupBoxFileNamingOptionsLayout.addWidget(self.pattern_types_gc)
         
 
         # scroll area stuff
@@ -533,9 +552,10 @@ class Ui_hpMCA(object):
         
         
         box_dict = {'acquisition':['Acquisition',self.groupBoxAcq, 'expanded'],
-                    'save_data':['Save data file',self.groupBoxSaveDataFile, 'collapsed'],
-                    'file_name_options':['File naming options',self.groupBoxFileNamingOptions, 'collapsed'],
                     'elapsed_time':['Elapsed time',self.groupBoxElapsed, 'expanded'],
+                    'save_data':['Save data file',self.groupBoxSaveDataFile, 'collapsed'],
+                    'file_name_options':['File saving options',self.groupBoxFileNamingOptions, 'collapsed'],
+                    
                     'rois':['ROIs',self.groupBoxROIs, 'expanded'],
                     'xrf':['Fluorescence markers',self.groupBoxXRF, 'collapsed'],
                     'v_scale':['Vertical scale',self.groupBoxVerticalScale, 'collapsed'],

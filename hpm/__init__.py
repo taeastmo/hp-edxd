@@ -47,6 +47,8 @@ folder_settings_file='hpMCA_folder_settings.json'
 defaults_settings_file='hpMCA_defaults.json'
 file_naming_settings_file = 'hpMCA_file_naming_settings.json'
 
+epics_sync = False
+
 from pathlib import Path
 home_path = str(Path.home())
 
