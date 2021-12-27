@@ -210,7 +210,7 @@ class PltWidget(pg.PlotWidget):
         
         super().__init__(parent, viewBox=vb)
         self.viewBox = self.getViewBox() # Get the ViewBox of the widget
-       
+        
         self.cursorPoints = [nan,nan]
         # defined default colors
         self.colors = { 'plot_background_color': '#ffffff',\
@@ -342,6 +342,7 @@ class PltWidget(pg.PlotWidget):
 
     def create_plots(self, xAxis,data,roiHorz,roiData, xLabel):
         # initialize some plots
+        self.pattern_plot.buttonsHidden = True
         self.setLabel('left', 'Counts')
         data_color = self.colors['data_color']
         self.plotForeground = pg.PlotDataItem(xAxis, data, title="",

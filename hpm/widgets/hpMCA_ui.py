@@ -7,12 +7,17 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from pyqtgraph.widgets.PlotWidget import PlotWidget
 from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton, pvQProgressBar
 from hpm.widgets.PltWidget import PltWidget
 from hpm.widgets.collapsible_widget import CollapsibleBox, EliderLabel
 
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, HorizontalLine, IntegerTextField, VerticalSpacerItem, NoRectDelegate, \
-    HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
+    HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, CheckableFlatButton
+
+from .. import icons_path
+
+import os
 
 class Ui_hpMCA(object):
     def setupUi(self, hpMCA):
@@ -585,12 +590,14 @@ class Ui_hpMCA(object):
         self._Layout.addLayout(self.ControlsLayout)
 
 
-        self.DisplayLayout = QtWidgets.QVBoxLayout()
-        self.DisplayLayout.setSpacing(0)
-        self.DisplayLayout.setObjectName("DisplayLayout")
+        self.DisplayWidget = QtWidgets.QWidget()
+        self._DisplayLayout = QtWidgets.QVBoxLayout(self.DisplayWidget)
+        self._DisplayLayout.setContentsMargins(0,0,0,0)
+        self._DisplayLayout.setSpacing(0)
+        self._DisplayLayout.setObjectName("_DisplayLayout")
 
         self.live_or_file_widget = QtWidgets.QWidget()
-        self._live_or_file_widget_layout = QtWidgets.QHBoxLayout()
+        self._live_or_file_widget_layout = QtWidgets.QHBoxLayout(self.live_or_file_widget)
         self._live_or_file_widget_layout.setSpacing(0)
         self._live_or_file_widget_layout.setContentsMargins(0,0,0,0)
 
@@ -612,27 +619,101 @@ class Ui_hpMCA(object):
         self._live_or_file_widget_layout.addWidget(self.live_view_btn)
         self._live_or_file_widget_layout.addWidget(self.file_view_btn)
         self._live_or_file_widget_layout.addSpacerItem(HorizontalSpacerItem())
-        self.live_or_file_widget.setLayout(self._live_or_file_widget_layout)
-        
-        self.DisplayLayout.addWidget(self.live_or_file_widget)
 
-        
-        self.pg = PltWidget(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pg.sizePolicy().hasHeightForWidth())
+        self._DisplayLayout.addWidget(self.live_or_file_widget)
         
 
+        self.plot_toolbar_top_widget = QtWidgets.QWidget()
+        self.plot_toolbar_top_widget.setObjectName('plot_toolbar_top_widget')
+        self.plot_toolbar_top_widget.setStyleSheet( '''
+                                                    #plot_toolbar_top_widget {
+                                                        background-color: #101010;
+                                                    }
+                                                        ''')
+        self._plot_toolbar_top_widget_layout = QtWidgets.QHBoxLayout(self.plot_toolbar_top_widget)
+        self._plot_toolbar_top_widget_layout.setSpacing(15)
+        self._plot_toolbar_top_widget_layout.setContentsMargins(8,0,8,0)
+        self.plot_toolbar_top_widget.setMinimumHeight(40)
+        self.plot_toolbar_top_widget.setMaximumHeight(40)
 
         
-        self.pg.setSizePolicy(sizePolicy)
-        self.pg.setMinimumSize(QtCore.QSize(205, 0))
-        self.pg.setInteractive(True)
+
+        self.save_pattern_btn = FlatButton()
+        self.save_pattern_btn.setToolTip("Save Pattern")
+        self.as_overlay_btn = FlatButton('As Overlay')
+        self.as_bkg_btn = FlatButton('As Bkg')
+        self.load_calibration_btn = FlatButton('Load Calibration')
+        self.calibration_lbl = QtWidgets.QLabel('None')
+
+        self._plot_toolbar_top_widget_layout.addWidget(self.save_pattern_btn)
+        self._plot_toolbar_top_widget_layout.addWidget(self.as_overlay_btn)
+        self._plot_toolbar_top_widget_layout.addWidget(self.as_bkg_btn)
+        self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
+        self._plot_toolbar_top_widget_layout.addWidget(self.load_calibration_btn)
+        self._plot_toolbar_top_widget_layout.addWidget(self.calibration_lbl)
+
+
+
+        self._DisplayLayout.addWidget(self.plot_toolbar_top_widget)
+        
+        self.plot_toolbar_right_widget = QtWidgets.QWidget()
+        self.plot_toolbar_right_widget.setObjectName('plot_toolbar_right_widget')
+        self.plot_toolbar_right_widget.setStyleSheet( '''
+                                                    #plot_toolbar_right_widget {
+                                                        background-color: #101010;
+                                                    }
+                                                        ''')
+        self._plot_toolbar_right_widget_layout = QtWidgets.QVBoxLayout(self.plot_toolbar_right_widget)
+        self._plot_toolbar_right_widget_layout.setSpacing(4)
+        self._plot_toolbar_right_widget_layout.setContentsMargins(0,0,0,6)
+        self.plot_toolbar_right_widget.setMinimumWidth(26)
+        self.plot_toolbar_right_widget.setMaximumWidth(26)
+
+        self.tth_btn = CheckableFlatButton(u"2θ")
+        self.q_btn = CheckableFlatButton('Q')
+        self.d_btn = CheckableFlatButton('d')
+        self.unit_btn_group = QtWidgets.QButtonGroup()
+        self.unit_btn_group.addButton(self.tth_btn)
+        self.unit_btn_group.addButton(self.q_btn)
+        self.unit_btn_group.addButton(self.d_btn)
+        self.background_btn = CheckableFlatButton('bg')
+        self.background_inspect_btn = CheckableFlatButton('I')
+        #self.antialias_btn = CheckableFlatButton('AA')
+        self.auto_range_btn = CheckableFlatButton('A')
+
+        self._plot_toolbar_right_widget_layout.addWidget(self.tth_btn)
+        self._plot_toolbar_right_widget_layout.addWidget(self.q_btn)
+        self._plot_toolbar_right_widget_layout.addWidget(self.d_btn)
+        self._plot_toolbar_right_widget_layout.addSpacerItem(VerticalSpacerItem())
+        self._plot_toolbar_right_widget_layout.addWidget(self.background_btn)
+        self._plot_toolbar_right_widget_layout.addWidget(self.background_inspect_btn)
+        self._plot_toolbar_right_widget_layout.addSpacerItem(VerticalSpacerItem())
+        #self._plot_toolbar_right_widget_layout.addWidget(self.antialias_btn)
+        self._plot_toolbar_right_widget_layout.addSpacerItem(VerticalSpacerItem())
+        self._plot_toolbar_right_widget_layout.addWidget(self.auto_range_btn)
+
+
+        self.plot_widget = QtWidgets.QWidget()
+        self.plot_widget.setObjectName('plot_widget')
+        self.plot_widget.setStyleSheet( '''
+                                                    #plot_widget {
+                                                        background-color: #101010;
+                                                    }
+                                                        ''')
+        self._plot_widget_layout = QtWidgets.QHBoxLayout(self.plot_widget)
+        self._plot_widget_layout.setSpacing(0)
+        self._plot_widget_layout.setContentsMargins(10,0,5,10)
+        
+        
+        self.pg = PltWidget(self.plot_widget)
+        self.pg.setMinimumSize(QtCore.QSize(205, 100))
         self.pg.setObjectName("pg")
 
+        self._plot_widget_layout.addWidget(self.pg)
+        self._plot_widget_layout.addWidget(self.plot_toolbar_right_widget)
 
-        self.DisplayLayout.addWidget(self.pg)
+
+        self._DisplayLayout.addWidget(self.plot_widget)
 
         self.CursorsLayout = QtWidgets.QHBoxLayout()
         self.CursorsLayout.setContentsMargins(0,6,0,6)
@@ -660,8 +741,11 @@ class Ui_hpMCA(object):
         self.cursorLabel.setText("")
         self.cursorLabel.setObjectName("cursorLabel")
         self.CursorsLayout.addWidget(self.cursorLabel)
-        self.DisplayLayout.addLayout(self.CursorsLayout)
-        self._Layout.addLayout(self.DisplayLayout)
+        self._DisplayLayout.addLayout(self.CursorsLayout)
+        self._Layout.addWidget(self.DisplayWidget)
+
+
+
         self.verticalLayout_4.addLayout(self._Layout)
         hpMCA.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(hpMCA)
@@ -762,6 +846,49 @@ class Ui_hpMCA(object):
 
         self.retranslateUi(hpMCA)
         QtCore.QMetaObject.connectSlotsByName(hpMCA)
+        self.style_widgets()
+
+    def style_widgets(self):
+        self.tth_btn.setChecked(True)
+        #self.antialias_btn.setChecked(True)
+        self.auto_range_btn.setChecked(True)
+
+        self.plot_toolbar_top_widget.setStyleSheet("""
+            #pattern_frame, #plot_toolbar_top_widget, QLabel {
+                background: #101010;
+                color: yellow;
+            }
+            #pattern_right_control_widget QPushButton{
+                padding: 0px;
+	            padding-right: 1px;
+	            border-radius: 3px;
+            }
+	    """)
+
+        self.plot_toolbar_right_widget.setStyleSheet("""
+            #plot_toolbar_right_widget, QLabel {
+                background: #101010;
+                color: yellow;
+            }
+            #plot_toolbar_right_widget QPushButton{
+                padding: 0px;
+	            padding-right: 1px;
+	            border-radius: 3px;
+            }
+	    """)
+
+        right_controls_button_width = 25
+        self.tth_btn.setMaximumWidth(right_controls_button_width)
+        self.q_btn.setMaximumWidth(right_controls_button_width)
+        self.d_btn.setMaximumWidth(right_controls_button_width)
+        self.background_btn.setMaximumWidth(right_controls_button_width)
+        self.background_inspect_btn.setMaximumWidth(right_controls_button_width)
+        #self.antialias_btn.setMaximumWidth(right_controls_button_width)
+        self.auto_range_btn.setMaximumWidth(right_controls_button_width)
+
+        self.save_pattern_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'save.ico')))
+        self.save_pattern_btn.setIconSize(QtCore.QSize(13, 13))
+        self.save_pattern_btn.setMaximumWidth(right_controls_button_width)
 
     def retranslateUi(self, hpMCA):
         _translate = QtCore.QCoreApplication.translate
