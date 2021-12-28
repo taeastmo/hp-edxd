@@ -461,6 +461,8 @@ class RoiController(QObject):
                 roi_position = roi.d_spacing
             elif self.unit == 'Channel':
                 roi_position = roi.centroid
+            elif self.unit == '2 theta':
+                roi_position = roi.two_theta
 
             roi_label = '%.4f' % (roi_position) + ' '  + self.unit_
             if roi.label != '':

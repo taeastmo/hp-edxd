@@ -65,7 +65,8 @@ class LatticeRefinementController(QObject):
         self.dataLen = self.mca.nchans
         self.calibration = self.mca.get_calibration()[0]
         self.two_theta =  self.calibration.two_theta
-        self.widget.two_theta.setText(str(round(self.two_theta,5)))
+        if type(self.two_theta) == type(float()):
+            self.widget.two_theta.setText(str(round(self.two_theta,5)))
 
     def set_jcpds_directory(self, directory):
         self.widget.jcpds_directory  = directory

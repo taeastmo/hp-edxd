@@ -171,7 +171,9 @@ class Overlay_xy():
             return None
 
 def E_to_q(e,tth):
-    q = 6.28318530718 /(6.199 / e / sin(tth/180.*pi/2.))
+    #0.008726646259972
+    q = 6.28318530718 /(6.199 / e / sin(tth*0.008726646259972))
+    #q = 6.28318530718 /(6.199 / e / sin(tth/180.*pi/2.))
     return q
 
 def E_to_d(e,tth):
@@ -189,7 +191,7 @@ def q_to_d(q):
 
 def tth_to_d(tth,wavelength):
     
-    d = wavelength/(2.0 * sin(0.5 * tth * 0.0174532925199433))
+    d = wavelength/(2.0 * sin(tth * 0.008726646259972))
     return d
 
 def tth_to_q(tth,wavelength):

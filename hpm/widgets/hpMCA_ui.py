@@ -336,6 +336,11 @@ class Ui_hpMCA(object):
         self.radiod = QtWidgets.QRadioButton(self.groupBoxHorizontalScale)
         self.radiod.setObjectName("radiod")
         self.HorizontalScaleLayout.addWidget(self.radiod, 1,1)
+
+        self.radiotth = QtWidgets.QRadioButton(self.groupBoxHorizontalScale)
+        self.radiotth.setObjectName("radiotth")
+        self.HorizontalScaleLayout.addWidget(self.radiotth, 2,0)
+
         self.horizontalLayout_8.addLayout(self.HorizontalScaleLayout)
         
 
@@ -633,8 +638,8 @@ class Ui_hpMCA(object):
         self._plot_toolbar_top_widget_layout = QtWidgets.QHBoxLayout(self.plot_toolbar_top_widget)
         self._plot_toolbar_top_widget_layout.setSpacing(15)
         self._plot_toolbar_top_widget_layout.setContentsMargins(8,0,8,0)
-        self.plot_toolbar_top_widget.setMinimumHeight(40)
-        self.plot_toolbar_top_widget.setMaximumHeight(40)
+        self.plot_toolbar_top_widget.setMinimumHeight(15)
+        self.plot_toolbar_top_widget.setMaximumHeight(15)
 
         
 
@@ -645,12 +650,12 @@ class Ui_hpMCA(object):
         self.load_calibration_btn = FlatButton('Load Calibration')
         self.calibration_lbl = QtWidgets.QLabel('None')
 
-        self._plot_toolbar_top_widget_layout.addWidget(self.save_pattern_btn)
+        '''self._plot_toolbar_top_widget_layout.addWidget(self.save_pattern_btn)
         self._plot_toolbar_top_widget_layout.addWidget(self.as_overlay_btn)
         self._plot_toolbar_top_widget_layout.addWidget(self.as_bkg_btn)
         self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
         self._plot_toolbar_top_widget_layout.addWidget(self.load_calibration_btn)
-        self._plot_toolbar_top_widget_layout.addWidget(self.calibration_lbl)
+        self._plot_toolbar_top_widget_layout.addWidget(self.calibration_lbl)'''
 
 
 
@@ -666,8 +671,8 @@ class Ui_hpMCA(object):
         self._plot_toolbar_right_widget_layout = QtWidgets.QVBoxLayout(self.plot_toolbar_right_widget)
         self._plot_toolbar_right_widget_layout.setSpacing(4)
         self._plot_toolbar_right_widget_layout.setContentsMargins(0,0,0,6)
-        self.plot_toolbar_right_widget.setMinimumWidth(26)
-        self.plot_toolbar_right_widget.setMaximumWidth(26)
+        self.plot_toolbar_right_widget.setMinimumWidth(10)
+        self.plot_toolbar_right_widget.setMaximumWidth(10)
 
         self.tth_btn = CheckableFlatButton(u"2θ")
         self.q_btn = CheckableFlatButton('Q')
@@ -681,7 +686,7 @@ class Ui_hpMCA(object):
         #self.antialias_btn = CheckableFlatButton('AA')
         self.auto_range_btn = CheckableFlatButton('A')
 
-        self._plot_toolbar_right_widget_layout.addWidget(self.tth_btn)
+        '''self._plot_toolbar_right_widget_layout.addWidget(self.tth_btn)
         self._plot_toolbar_right_widget_layout.addWidget(self.q_btn)
         self._plot_toolbar_right_widget_layout.addWidget(self.d_btn)
         self._plot_toolbar_right_widget_layout.addSpacerItem(VerticalSpacerItem())
@@ -690,7 +695,7 @@ class Ui_hpMCA(object):
         self._plot_toolbar_right_widget_layout.addSpacerItem(VerticalSpacerItem())
         #self._plot_toolbar_right_widget_layout.addWidget(self.antialias_btn)
         self._plot_toolbar_right_widget_layout.addSpacerItem(VerticalSpacerItem())
-        self._plot_toolbar_right_widget_layout.addWidget(self.auto_range_btn)
+        self._plot_toolbar_right_widget_layout.addWidget(self.auto_range_btn)'''
 
 
         self.plot_widget = QtWidgets.QWidget()
@@ -924,6 +929,7 @@ class Ui_hpMCA(object):
         self.radioq.setText(_translate("hpMCA", "q"))
         self.radioChannel.setText(_translate("hpMCA", "Channel"))
         self.radiod.setText(_translate("hpMCA", "d"))
+        self.radiotth.setText(_translate("hpMCA", f'2\N{GREEK SMALL LETTER THETA}'))
         self.menuFile.setTitle(_translate("hpMCA", "File"))
         self.menuControl.setTitle(_translate("hpMCA", "Control"))
         self.menuDisplay.setTitle(_translate("hpMCA", "Display"))

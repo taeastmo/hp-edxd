@@ -69,7 +69,7 @@ def main():
     controller.widget.show()
 
     # autoload a file, using for debugging
-    au_pattern = os.path.join(resources_path,'20181010-Au-wire-50um-15deg.hpmca')
+    au_pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
     au_jcpds = os.path.join(resources_path,'au.jcpds')
     
     controller.file_save_controller.openFile(filename=au_pattern)

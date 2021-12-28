@@ -56,9 +56,10 @@ class plotController(QObject):
         self.units =  {     'E':'KeV',
                             'd':f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}',
                             'q':f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}',
-                      'Channel':""
+                            'Channel':"",
+                            '2 theta':f'\N{SUPERSCRIPT ZERO}'
         }
-        self.horzBins = [self.mca.get_energy(0), 'E', self.units['E']]
+        self.horzBins = [np.linspace(0,3999,1), 'Channel', self.units['Channel']]
         self.pg.plotMouseMoveSignal.connect(self.mouseMoved)         # connect signal to mouse mothion handler 
         self.pg.getViewBox().plotMouseCursorSignal.connect(self.mouseCursor)
         
@@ -147,18 +148,20 @@ class plotController(QObject):
         inverted_x_new = unit == 'd'
         x_direction_changed = inverted_x_old != inverted_x_new
         
-        cursor_old_unit = self.pg.get_cursor_pos()
-        fast_cursor_old_unit = self.pg.get_cursorFast_pos()
+        #cursor_old_unit = self.pg.get_cursor_pos()
+        #fast_cursor_old_unit = self.pg.get_cursorFast_pos()
         self.is_cursor_in_range()
 
-        cursor_index = self.calibration.scale_to_channel(cursor_old_unit, old_unit)
-        fast_cursor_index = self.calibration.scale_to_channel(fast_cursor_old_unit, old_unit)
-        if cursor_index >= 0:
-            self.cursorPosition= cursor_index
-            cursor_new_unit = self.calibration.channel_to_scale(cursor_index,unit)
-        if fast_cursor_index >= 0:
-            self.fastCursorPosition = fast_cursor_index
-            fast_cursor_new_unit = self.calibration.channel_to_scale(fast_cursor_index,unit)
+        cursor_index = self.cursorPosition #self.calibration.scale_to_channel(cursor_old_unit, old_unit)
+        fast_cursor_index = self.fastCursorPosition #self.calibration.scale_to_channel(fast_cursor_old_unit, old_unit)
+        if cursor_index !=None:
+             if cursor_index >= 0:
+                self.cursorPosition= cursor_index
+                cursor_new_unit = self.calibration.channel_to_scale(cursor_index,unit)
+        if fast_cursor_index != None:
+            if fast_cursor_index >= 0:
+                self.fastCursorPosition = fast_cursor_index
+                fast_cursor_new_unit = self.calibration.channel_to_scale(fast_cursor_index,unit)
         x_axis_autorange = self.pg.viewBox.state['autoRange'][0]
         if not x_axis_autorange:
             x_axis = self.pg.getAxis('bottom')

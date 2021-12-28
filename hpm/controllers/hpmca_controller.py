@@ -99,7 +99,7 @@ class hpmcaController(QObject):
         self.lattice_refinement_controller = None
         self.controllers_initialized = False
 
-        self.unit = 'E' #default units
+        self.unit = 'Channel' #default units
 
         self.title_name = ''
 
@@ -149,6 +149,8 @@ class hpmcaController(QObject):
         ui.radioq.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioq))
         ui.radioChannel.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioChannel))
         ui.radiod.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radiod))
+        ui.radiotth.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radiotth))
+        
         ui.actionExit.triggered.connect(self.widget.close)
         
         
@@ -602,6 +604,8 @@ class hpmcaController(QObject):
                 horzScale = 'Channel'
             elif self.widget.radiod.isChecked() == True:
                 horzScale = 'd'
+            elif self.widget.radiotth.isChecked() == True:
+                horzScale = '2 theta'
             self.set_unit(horzScale)
 
     def set_unit(self,unit):

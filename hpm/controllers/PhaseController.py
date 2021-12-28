@@ -89,7 +89,7 @@ class PhaseController(object):
         
         self.phases = []
         self.tth = self.getTth()
-        self.phase_widget.tth_lbl.setValue(self.tth)
+        #self.phase_widget.tth_lbl.setValue(self.tth)
 
 
     def set_prefs(self, params):

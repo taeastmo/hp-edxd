@@ -342,7 +342,7 @@ class PltWidget(pg.PlotWidget):
 
     def create_plots(self, xAxis,data,roiHorz,roiData, xLabel):
         # initialize some plots
-        self.pattern_plot.buttonsHidden = True
+        #self.pattern_plot.buttonsHidden = True
         self.setLabel('left', 'Counts')
         data_color = self.colors['data_color']
         self.plotForeground = pg.PlotDataItem(xAxis, data, title="",

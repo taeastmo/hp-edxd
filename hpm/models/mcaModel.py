@@ -14,8 +14,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+import re
 import numpy as np
-
+from numpy.core.records import array
+from scipy import interpolate
 from math import sqrt, sin, pi
 import utilities.centroid as centroid
 import copy
@@ -45,7 +47,8 @@ class MCA():  #
         Example:
             m = Mca('my_spectrum.dat')
         """
-        #super().__init__()
+        
+        self.dx_type = 'edx'
 
         self.name = ''
         self.file_name = ''
@@ -597,6 +600,8 @@ class MCA():  #
         else:
             if file.endswith('.mca'):
                 [r, success] = self.fileIO.read_mca_file(file)
+            elif file.endswith('.chi'):
+                [r, success] = self.fileIO.read_chi_file(file)
             else:
                 [r, success] = self.fileIO.read_ascii_file(file)
      
@@ -610,6 +615,7 @@ class MCA():  #
             self.set_rois(r['rois'][0], detector=0) 
             self.environment = r['environment']
             self.name = os.path.split(file)[-1]
+            self.dx_type = r['dx_type']
     
         return([file,success])
 
@@ -773,6 +779,7 @@ class mcaFileIO():
         r['rois'] = [rois]
         r['data'] = [data]
         r['environment'] = []
+        r['dx_type'] = 'edx'
         return [r, True]
         #mcafile.plot()
 
@@ -918,10 +925,38 @@ class mcaFileIO():
             r['rois'] = rois
             r['data'] = data
             r['environment'] = environment
+            r['dx_type'] = 'edx'
             
             return [r, True]
         except:
             return [None, False]
+
+    def read_chi_file(self, filename, E=30.):  #fit2d or dioptas chi type file
+        if filename.endswith('.chi'):
+            fp = open(filename, 'r')
+            first_line = fp.readline()
+            second_line = fp.readline()
+            unit = second_line.strip().upper()[:1]
+            fp.close()
+            
+            skiprows = 4
+            data = np.loadtxt(filename, skiprows=skiprows)
+            
+            x = data.T[0]
+            y = data.T[1]
+            name = os.path.basename(filename).split('.')[:-1][0]
+            
+            r = {}
+            r['n_detectors'] = 1
+            r['calibration'] = [McaCalibration(two_theta=x,units='degrees',wavelength=0.31)]
+            r['elapsed'] = [McaElapsed()]
+            r['rois'] = [[]]
+            r['data'] = [y]
+            r['environment'] = []
+            r['dx_type'] = 'adx'
+            return[r,True]
+            
+        return [None, False]
         
     #######################################################################
     def write_ascii_file(self, file, data, calibration, elapsed, presets, rois,
@@ -1145,7 +1180,7 @@ class McaROI():
         .energy    # Energy of the centroid for energy calibration
     """
     def __init__(self, left=0., right=0., centroid=0., fwhm=0., bgd_width=0,
-                    use=1, preset=0, label='', d_spacing=0., energy=0., q = 0.):
+                    use=1, preset=0, label='', d_spacing=0., energy=0., q = 0., two_theta=0.):
         """
         Keywords:
             There is a keyword with the same name as each attribute that can be
@@ -1165,6 +1200,7 @@ class McaROI():
         self.label = label
         self.d_spacing = d_spacing
         self.energy = energy
+        self.two_theta = two_theta
         self.yFit = []
         self.x_yfit = []
         self.channels = []
@@ -1252,47 +1288,105 @@ class McaCalibration():
         .quad      # Quadratic
         .units     # Calibration units, a string
         .two_theta # 2-theta of this Mca for energy-dispersive diffraction
+        .energy    # Energy to use for angle-dispersive diffraction
     """
-    def __init__(self, offset=0., slope=1.0, quad=0., units='keV', 
-                        two_theta=10.):
+    def __init__(self, offset=0., slope=1.0, quad=0., **kwargs):
         """
         There is a keyword with the same name as each field, so the object can
         be initialized when it is created.
         """
-        self.offset = offset
-        self.slope = slope
-        self.quad = quad
+        if 'units' in kwargs:
+            units = kwargs['units']
+        else:
+            units = 'keV'
+        if 'two_theta' in kwargs:
+            two_theta = kwargs['two_theta']
+        else:
+            two_theta =  None
+        if 'wavelength' in kwargs:
+            wavelength = kwargs['wavelength']
+        else:
+            wavelength = None
+
+        scales = ["E",
+                "q",
+                "Channel",
+                "d",
+                '2 theta'] 
+
+        if wavelength == None:
+            self.offset = offset
+            self.slope = slope
+            self.quad = quad
+            self.available_scales = scales[0:-1]
+        else :
+            bins = np.linspace(0,len(two_theta)-1, len(two_theta)) 
+            self.ch_to_tth_interpolator = interpolate.interp1d(bins,two_theta)
+            self.tth_to_ch_interpolator = interpolate.interp1d(two_theta, bins)
+            self.available_scales = scales[1:]
+            
         self.units = units
-        self.two_theta = two_theta
+        self.two_theta = two_theta      # for edx 
+        self.wavelength = wavelength    # for adx 
+
+
+        
+       
 
     ########################################################################
 
 
     def channel_to_scale(self, channel, unit):
-        if unit == 'E':
-            Scale = self.channel_to_energy(channel)
-        elif unit == 'd':
-            Scale = self.channel_to_d(channel)
-        elif unit == 'q':
-            Scale = self.channel_to_q(channel)
-        elif unit == 'Channel':
-            Scale = channel
-        return Scale
+        if unit in self.available_scales:
+            if unit == 'E':
+                Scale = self.channel_to_energy(channel)
+            elif unit == 'd':
+                Scale = self.channel_to_d(channel)
+            elif unit == 'q':
+                Scale = self.channel_to_q(channel)
+            elif unit == 'Channel':
+                Scale = channel
+            elif unit == '2 theta':
+                Scale = self.channel_to_tth(channel)
+            return Scale
+        return channel
+
+    def channel_to_tth(self, channel):
+        tth = self.ch_to_tth_interpolator(channel)
+        return tth
+    
+
 
     def scale_to_channel(self, scale, unit):
-        if unit == 'E':
-            channel = self.energy_to_channel(scale)
-        elif unit == 'd' or unit == 'q':
-            if unit == 'q':
-                q = scale
-            else :
-                if scale != 0:
-                    q = 2. * pi / scale
-            e   = 6.199 /((6.28318530718 /q)*sin(self.two_theta/180.*pi/2.))
-            channel = self.energy_to_channel(e)
-        elif unit == 'Channel':
-            channel = scale
+        if unit in self.available_scales:
+            if unit == 'E':
+                channel = self.energy_to_channel(scale)
+            elif unit == 'd' or unit == 'q':
+                
+                if unit == 'q':
+                    q = scale
+                else :
+                    if scale != 0:
+                        q = 2. * pi / scale
+                if 'E' in self.available_scales:
+                    e   = 6.199 /((6.28318530718 /q)*np.sin(self.two_theta*0.008726646259972))
+                    channel = self.energy_to_channel(e)
+                elif "2 theta" in self.available_scales:
+                   
+                    two_theta = self. q_to_2theta(q)
+                    channel = self.tth_to_ch_interpolator(two_theta)
+
+
+            elif unit == '2 theta':
+                channel = self.tth_to_ch_interpolator(scale)
+            elif unit == 'Channel':
+                channel = scale
+        else: channel = scale
         return channel
+
+    def q_to_2theta(self, q):
+        two_theta = np.arcsin(q/(4*pi/self.wavelength))/0.008726646259972 
+        return two_theta
 
     def channel_to_energy(self, channels):
         """
@@ -1365,9 +1459,13 @@ class McaCalibration():
         return d
 
     def channel_to_q(self,channels):
-        e = self.channel_to_energy(channels)   
-        q = 6.28318530718 /(6.199 / e / sin(self.two_theta/180.*pi/2.))
-
+        if "E" in self.available_scales:
+            e = self.channel_to_energy(channels)   
+            q = 6.28318530718 /(6.199 / e / sin(self.two_theta*0.008726646259972))
+        elif "2 theta" in self.available_scales:
+            two_theta = self.ch_to_tth_interpolator(channels)
+            
+            q = (4*pi/self.wavelength) * np.sin( two_theta * 0.008726646259972)
         return  q
 
     ########################################################################
@@ -1457,7 +1555,7 @@ class McaCalibration():
         """
         if tth ==None:
             tth = self.two_theta
-        e = 12.398 / (2. * d * sin(tth*pi/180./2.))
+        e = 12.398 / (2. * d * sin(tth*0.008726646259972))
         return self.energy_to_channel(e, clip=clip)
 
     ########################################################################
