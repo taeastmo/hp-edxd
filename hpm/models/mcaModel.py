@@ -1416,9 +1416,13 @@ class McaCalibration():
         else:
             c = channels
 
-        e = self.offset + self.slope * c
-        if self.quad != 0:
-            e += self.quad * np.power(c, 2)
+        if "E" in self.available_scales:
+            
+            e = self.offset + self.slope * c
+        elif "2 theta" in self.available_scales:
+
+            e = self.wavelength
+        
         
         return e
 
@@ -1553,10 +1557,21 @@ class McaCalibration():
             mca = Mca('mca.001')
             channel = mca.d_to_chan(1.598)
         """
-        if tth ==None:
-            tth = self.two_theta
-        e = 12.398 / (2. * d * sin(tth*0.008726646259972))
-        return self.energy_to_channel(e, clip=clip)
+        q = 2. * pi / d
+
+        if 'E' in self.available_scales:
+            if tth ==None:
+                tth = self.two_theta
+            e   = 6.199 /((6.28318530718 /q)*np.sin(self.two_theta*0.008726646259972))
+            channel = self.energy_to_channel(e)
+        elif "2 theta" in self.available_scales:
+            
+            two_theta = self. q_to_2theta(q)
+            channel = self.tth_to_ch_interpolator(two_theta)
+        else:
+            channel = d
+        
+        return channel
 
     ########################################################################
 

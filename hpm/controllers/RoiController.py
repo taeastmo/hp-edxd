@@ -123,7 +123,7 @@ class RoiController(QObject):
     def update_unit (self):
         self.unit_ = self.plotController.units[self.unit]
         self.rois_widget.set_tw_header_unit(self.unit,self.unit_)
-        self.update_rois(use_only=True)
+        #self.update_rois(use_only=True)
         if self.fitPlots is not None:
             if self.plotFitOpen:
                 cur_ind = self.rois_widget.get_selected_roi_row()

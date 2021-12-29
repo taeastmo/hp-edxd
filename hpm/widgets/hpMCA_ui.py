@@ -723,7 +723,7 @@ class Ui_hpMCA(object):
         self.CursorsLayout = QtWidgets.QHBoxLayout()
         self.CursorsLayout.setContentsMargins(0,6,0,6)
         self.CursorsLayout.setObjectName("CursorsLayout")
-        self.indexLabel = QtWidgets.QLabel(self.centralwidget)
+        self.indexLabel = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -735,7 +735,7 @@ class Ui_hpMCA(object):
         self.indexLabel.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.indexLabel.setObjectName("indexLabel")
         self.CursorsLayout.addWidget(self.indexLabel)
-        self.cursorLabel = QtWidgets.QLabel(self.centralwidget)
+        self.cursorLabel = QtWidgets.QLabel()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -857,6 +857,14 @@ class Ui_hpMCA(object):
         self.tth_btn.setChecked(True)
         #self.antialias_btn.setChecked(True)
         self.auto_range_btn.setChecked(True)
+
+        self.DisplayWidget.setStyleSheet("""
+            #cursorLabel {
+                
+                color: #00EE00;
+            }
+       
+	    """)
 
         self.plot_toolbar_top_widget.setStyleSheet("""
             #pattern_frame, #plot_toolbar_top_widget, QLabel {

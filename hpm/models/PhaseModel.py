@@ -248,15 +248,24 @@ class PhaseModel(QtCore.QObject):
             self.get_lines_d(ind)
 
     # need to modify this for EDXD mode
-    def get_phase_line_positions(self, ind, unit='E', wavelength='0.406626',tth=15):
+    def get_phase_line_positions(self, ind, unit='E', wavelength='0.31',tth=15):
         positions = self.reflections[ind][:, 0]
 
-        if unit == 'd': return positions
+        if unit == 'd': 
+            return positions
         e = 12.398 / (2. * positions * np.sin(tth * np.pi/180./2.))
-        if unit == 'E': return e
+        if unit == 'E': 
+            
+            return e
+
         if unit == 'q' :
+
             q = 6.28318530718 /(6.199 / e / np.sin(tth/180.*np.pi/2.))  
             return q  
+        if unit == '2 theta' : 
+            positions = 2 * \
+                        np.arcsin(wavelength / (2 * positions)) * 180.0 / np.pi
+            return positions
         else:
             return [0]*len(positions)
         #print (positions)

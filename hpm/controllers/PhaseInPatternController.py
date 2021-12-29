@@ -45,7 +45,7 @@ class PhaseInPatternController(object):
         self.phase_model = phase_model
         #self.integration_widget = integration_widget
         self.pattern_widget = pattern_widget
-        self.wavelength = 0.406626
+        self.wavelength = 0.31
         self.unit = self.plotController.get_unit()
         self.tth = self.phase_controller.getTth()
 

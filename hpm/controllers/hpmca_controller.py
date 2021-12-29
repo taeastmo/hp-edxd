@@ -668,11 +668,11 @@ class hpmcaController(QObject):
             hUnit = input['hUnit']
             vName = input['vName']
             vValue= input['vValue']
-            text = "<span style='color: "+color+"'>%s=%0.3f%s,  I(%s)=%.1f</span>" \
-                                                        % (hName,hValue,hUnit,vName,vValue)
+            text = "%s = %0.3f%s, %sI(%s) = %.1f" \
+                               % (hName,hValue,hUnit," ",vName,vValue)
         else:
             text = ''
-        return (text)
+        return text
 
     ########################################################################################
     ########################################################################################    

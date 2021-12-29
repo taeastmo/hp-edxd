@@ -89,7 +89,7 @@ class PhaseController(object):
         
         self.phases = []
         self.tth = self.getTth()
-        #self.phase_widget.tth_lbl.setValue(self.tth)
+        self.phase_widget.tth_lbl.setValue(15)
 
 
     def set_prefs(self, params):
@@ -178,7 +178,8 @@ class PhaseController(object):
 
         for reflection in reflections:
             channel = d_to_channel(reflection.d,tth = tth)
-            E = calibration.channel_to_energy(channel)
+            #E = calibration.channel_to_energy(channel)
+            E = 30
             lbl = str(name + " " + reflection.get_hkl())
 
             hw = round(a_0 + E * a_1)

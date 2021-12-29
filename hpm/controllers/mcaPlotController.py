@@ -248,8 +248,8 @@ class plotController(QObject):
         for roi in rois:
             use = roi.use
             if use == True:
-                left = roi.left
-                right = roi.right
+                left = int(roi.left)
+                right = int(roi.right)
                 label = roi.label
                 roi_data = data[left:right+1]
                 roi_horz = horz[left:right+1]

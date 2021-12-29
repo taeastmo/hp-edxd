@@ -149,7 +149,8 @@ class LatticeRefinementController(QObject):
         
         
         rois = self.roi
-        tth = self.two_theta
+        #tth = self.two_theta
+        tth = 15
         if len(rois)>0:
             roi_groups = {}     # separate rois into groups based on name 
             for r in rois:

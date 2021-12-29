@@ -20,8 +20,8 @@ import utilities.CARSMath as CARSMath
 
 def computeCentroid(data, roi, return_fit=0):    
     # Compute the centroid and FWHM of each ROI
-    left = roi.left
-    right = roi.right+1
+    left = int(roi.left)
+    right = int(roi.right+1)
     total_counts = data[left:right]
     n_sel        = right - left
     sel_chans    = left + Numeric.arange(n_sel)
