@@ -93,12 +93,12 @@ class Ui_hpMCA(object):
         self.PLTM_3 = pvQMessageButton()
         self.PLTM_4 = pvQMessageButton()
         self.PLTM_5 = pvQMessageButton()
-        self.PLTM_0.setMaximumWidth(36)
-        self.PLTM_1.setMaximumWidth(36)
-        self.PLTM_2.setMaximumWidth(36)
-        self.PLTM_3.setMaximumWidth(36)
-        self.PLTM_4.setMaximumWidth(36)
-        self.PLTM_5.setMaximumWidth(36)
+        self.PLTM_0.setMaximumWidth(28)
+        self.PLTM_1.setMaximumWidth(28)
+        self.PLTM_2.setMaximumWidth(28)
+        self.PLTM_3.setMaximumWidth(28)
+        self.PLTM_4.setMaximumWidth(28)
+        self.PLTM_5.setMaximumWidth(28)
         self.PLTM_0.setMaximumHeight(15)
         self.PLTM_1.setMaximumHeight(15)
         self.PLTM_2.setMaximumHeight(15)
@@ -110,7 +110,7 @@ class Ui_hpMCA(object):
         self.PLTM_btns = QtWidgets.QWidget()
         self._PLTM_btns_layout = QtWidgets.QGridLayout()
         self._PLTM_btns_layout.setSpacing(2)
-        self._PLTM_btns_layout.setContentsMargins(29,0,0,12)
+        self._PLTM_btns_layout.setContentsMargins(74,0,0,12)
         self._PLTM_btns_layout.addWidget( self.PLTM_0 ,0,0)
         self._PLTM_btns_layout.addWidget( self.PLTM_1 ,0,1)
         self._PLTM_btns_layout.addWidget( self.PLTM_2 ,0,2)
@@ -125,12 +125,12 @@ class Ui_hpMCA(object):
         self.PRTM_3 = pvQMessageButton()
         self.PRTM_4 = pvQMessageButton()
         self.PRTM_5 = pvQMessageButton()
-        self.PRTM_0.setMaximumWidth(36)
-        self.PRTM_1.setMaximumWidth(36)
-        self.PRTM_2.setMaximumWidth(36)
-        self.PRTM_3.setMaximumWidth(36)
-        self.PRTM_4.setMaximumWidth(36)
-        self.PRTM_5.setMaximumWidth(36)
+        self.PRTM_0.setMaximumWidth(28)
+        self.PRTM_1.setMaximumWidth(28)
+        self.PRTM_2.setMaximumWidth(28)
+        self.PRTM_3.setMaximumWidth(28)
+        self.PRTM_4.setMaximumWidth(28)
+        self.PRTM_5.setMaximumWidth(28)
         self.PRTM_0.setMaximumHeight(15)
         self.PRTM_1.setMaximumHeight(15)
         self.PRTM_2.setMaximumHeight(15)
@@ -141,7 +141,7 @@ class Ui_hpMCA(object):
         self.PRTM_btns = QtWidgets.QWidget()
         self._PRTM_btns_layout = QtWidgets.QGridLayout()
         self._PRTM_btns_layout.setSpacing(2)
-        self._PRTM_btns_layout.setContentsMargins(29,0,0,5)
+        self._PRTM_btns_layout.setContentsMargins(74,0,0,5)
         self._PRTM_btns_layout.addWidget( self.PRTM_0 ,0,0)
         self._PRTM_btns_layout.addWidget( self.PRTM_1 ,0,1)
         self._PRTM_btns_layout.addWidget( self.PRTM_2 ,0,2)
@@ -308,40 +308,47 @@ class Ui_hpMCA(object):
         
         
         self.groupBoxHorizontalScale = QtWidgets.QGroupBox()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.MinimumExpanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBoxHorizontalScale.sizePolicy().hasHeightForWidth())
-        self.groupBoxHorizontalScale.setSizePolicy(sizePolicy)
+        
         self.groupBoxHorizontalScale.setMinimumSize(QtCore.QSize(0, 0))
-        self.groupBoxHorizontalScale.setMaximumSize(QtCore.QSize(205, 16777215))
+        self.groupBoxHorizontalScale.setMaximumSize(QtCore.QSize(205, 400))
         self.groupBoxHorizontalScale.setObjectName("groupBoxHorizontalScale")
-        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.groupBoxHorizontalScale)
-        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        self.HorizontalScaleLayout = QtWidgets.QGridLayout()
-        self.HorizontalScaleLayout.setSpacing(5)
-        self.HorizontalScaleLayout.setObjectName("HorizontalScaleLayout")
-        self.radioE = QtWidgets.QRadioButton(self.groupBoxHorizontalScale)
-        self.radioE.setMinimumSize(QtCore.QSize(35, 0))
-        self.radioE.setChecked(True)
+        self._groupBoxHorizontalScale_layout = QtWidgets.QVBoxLayout(self.groupBoxHorizontalScale)
+        self._groupBoxHorizontalScale_layout.setObjectName("_groupBoxHorizontalScale_layout")
+        self.HorizontalScaleLayout = QtWidgets.QHBoxLayout()
+        self.HorizontalScaleLayout.setSpacing(0)
+        
+        self.HorizontalScale_btn_group = QtWidgets.QButtonGroup()
+        self.radioE = QtWidgets.QPushButton(self.groupBoxHorizontalScale)
+
         self.radioE.setObjectName("radioE")
-        self.HorizontalScaleLayout.addWidget(self.radioE, 0,0)
-        self.radioq = QtWidgets.QRadioButton(self.groupBoxHorizontalScale)
-        self.radioq.setMinimumSize(QtCore.QSize(35, 0))
+        self.HorizontalScaleLayout.addWidget(self.radioE)
+        self.radioq = QtWidgets.QPushButton(self.groupBoxHorizontalScale)
         self.radioq.setObjectName("radioq")
-        self.HorizontalScaleLayout.addWidget(self.radioq, 0,1)
-        self.radioChannel = QtWidgets.QRadioButton(self.groupBoxHorizontalScale)
-        self.radioChannel.setObjectName("radioChannel")
-        self.HorizontalScaleLayout.addWidget(self.radioChannel, 1,0)
-        self.radiod = QtWidgets.QRadioButton(self.groupBoxHorizontalScale)
+        self.HorizontalScaleLayout.addWidget(self.radioq)
+        
+        self.radiod = QtWidgets.QPushButton(self.groupBoxHorizontalScale)
         self.radiod.setObjectName("radiod")
-        self.HorizontalScaleLayout.addWidget(self.radiod, 1,1)
-
-        self.radiotth = QtWidgets.QRadioButton(self.groupBoxHorizontalScale)
+        self.HorizontalScaleLayout.addWidget(self.radiod)
+        self.radiotth = QtWidgets.QPushButton(self.groupBoxHorizontalScale)
         self.radiotth.setObjectName("radiotth")
-        self.HorizontalScaleLayout.addWidget(self.radiotth, 2,0)
+        self.HorizontalScaleLayout.addWidget(self.radiotth)
+        self.radioChannel = QtWidgets.QPushButton(self.groupBoxHorizontalScale)
+        self.radioChannel.setObjectName("radioChannel")
+        self.HorizontalScaleLayout.addWidget(self.radioChannel)
+        self.radioE.setCheckable(True)
+        self.radioq.setCheckable(True)
+        self.radioChannel.setCheckable(True)
+        self.radiod.setCheckable(True)
+        self.radiotth.setCheckable(True)
+        self.HorizontalScale_btn_group.addButton(self.radioE)
+        self.HorizontalScale_btn_group.addButton(self.radioq)
+        self.HorizontalScale_btn_group.addButton(self.radioChannel)
+        self.HorizontalScale_btn_group.addButton(self.radiod)
+        self.HorizontalScale_btn_group.addButton(self.radiotth)
+        self.radioE.setChecked(True)
+        
 
-        self.horizontalLayout_8.addLayout(self.HorizontalScaleLayout)
+        self._groupBoxHorizontalScale_layout.addLayout(self.HorizontalScaleLayout)
         
 
         # Save data file
@@ -862,6 +869,32 @@ class Ui_hpMCA(object):
             #cursorLabel {
                 
                 color: #00EE00;
+            }
+       
+	    """)
+
+        self.groupBoxElapsed.setStyleSheet("""
+            pvQMessageButton{
+                
+                padding: 0px;
+            }
+       
+	    """)
+        
+        self.groupBoxHorizontalScale.setStyleSheet("""
+            QPushButton{
+                
+                border-radius: 0px;
+            }
+            #radioE {
+
+                border-top-left-radius:5px;
+                border-bottom-left-radius:5px;
+            }
+            #radioChannel {
+
+                border-top-right-radius:5px;
+                border-bottom-right-radius:5px;
             }
        
 	    """)
