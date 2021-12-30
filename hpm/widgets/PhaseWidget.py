@@ -84,15 +84,22 @@ class PhaseWidget(QtWidgets.QWidget):
         self.temperature_step_msb = DoubleMultiplySpinBoxAlignRight()
         self.apply_to_all_cb = QtWidgets.QCheckBox('Apply to all phases')
         self.show_in_pattern_cb = QtWidgets.QCheckBox('Show in Pattern')
-        self.tth_lbl = DoubleSpinBoxAlignRight()
-        
-        self.tth_step = DoubleMultiplySpinBoxAlignRight()
-        self.wavelength_lbl = DoubleSpinBoxAlignRight()
-        
-        self.wavelength_step = DoubleMultiplySpinBoxAlignRight()
 
+        self._tth_lbl = QtWidgets.QLabel(u'2θ:')
+        self._tth_unit_lbl = QtWidgets.QLabel('deg')
+        self.tth_lbl = DoubleSpinBoxAlignRight()
+        self.tth_step = DoubleMultiplySpinBoxAlignRight()
         self.get_tth_btn = QtWidgets.QPushButton('Get')
-        
+
+        self._wavelength_lbl = QtWidgets.QLabel(f'\N{GREEK SMALL LETTER LAMDA}:')
+        self._wavelength_unit_lbl = QtWidgets.QLabel(f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
+        self.wavelength_lbl = DoubleSpinBoxAlignRight()
+        self.wavelength_step = DoubleMultiplySpinBoxAlignRight()
+        self.get_wavelength_btn = QtWidgets.QPushButton('Get')
+
+
+        self.edx_widgets= [self._tth_lbl, self._tth_unit_lbl, self.tth_lbl,self.tth_step,self.get_tth_btn]
+        self.adx_widgets= [self._wavelength_lbl, self._wavelength_unit_lbl, self.wavelength_lbl,self.wavelength_step,self.get_wavelength_btn]
 
         self._parameter_layout.addWidget(QtWidgets.QLabel('Parameter'), 0, 1)
         self._parameter_layout.addWidget(QtWidgets.QLabel('Step'), 0, 3)
@@ -110,17 +117,18 @@ class PhaseWidget(QtWidgets.QWidget):
         
         self._parameter_layout.addItem(VerticalSpacerItem(), 6, 0)
         self._parameter_layout.addWidget(HorizontalLine(),7,0,1,5)
-        self._parameter_layout.addWidget(QtWidgets.QLabel(u'2θ:'), 8, 0)
+
+        self._parameter_layout.addWidget(self._tth_lbl, 8, 0)
         self._parameter_layout.addWidget(self.tth_lbl, 8, 1)
-        self._parameter_layout.addWidget(QtWidgets.QLabel('deg'), 8, 2)
+        self._parameter_layout.addWidget(self._tth_unit_lbl, 8, 2)
         self._parameter_layout.addWidget(self.tth_step, 8, 3)
         self._parameter_layout.addWidget(self.get_tth_btn, 8, 4)
 
-        self._parameter_layout.addWidget(QtWidgets.QLabel(u'Wavelength:'), 9, 0)
+        self._parameter_layout.addWidget(self._wavelength_lbl, 9, 0)
         self._parameter_layout.addWidget(self.wavelength_lbl, 9, 1)
-        self._parameter_layout.addWidget(QtWidgets.QLabel(f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}'), 9, 2)
+        self._parameter_layout.addWidget(self._wavelength_unit_lbl, 9, 2)
         self._parameter_layout.addWidget(self.wavelength_step, 9, 3)
-
+        self._parameter_layout.addWidget(self.get_wavelength_btn, 9, 4)
         
         self.parameter_widget.setLayout(self._parameter_layout)
 
@@ -154,6 +162,28 @@ class PhaseWidget(QtWidgets.QWidget):
 
      
         self.setAcceptDrops(True) 
+    
+    def set_edx(self):
+        on = self.edx_widgets
+        off = self.adx_widgets
+        
+        self.hide_widgets(off)
+        self.show_widgets(on)
+
+    def set_adx(self):
+        off = self.edx_widgets
+        on = self.adx_widgets
+        
+        self.hide_widgets(off)
+        self.show_widgets(on)
+
+    def show_widgets(self, widgets):
+        for w in widgets:
+            w.show()
+
+    def hide_widgets(self, widgets):
+        for w in widgets:
+            w.hide()
 
     def pressure_sb_changed(self):
         cur_ind = self.get_selected_phase_row()
@@ -175,7 +205,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self.tth_step.setMaximumWidth(75)
         self.get_tth_btn.setMaximumWidth(75)
         self.wavelength_step.setMaximumWidth(75)
-        
+        self.get_wavelength_btn.setMaximumWidth(75)
         
         self.pressure_sb.setMinimumWidth(100)
 

@@ -101,6 +101,8 @@ class hpmcaController(QObject):
 
         self.unit = 'E' #default units
         self.dx_type = 'exd'
+       
+
         self.setHorzScaleBtnsEnabled(self.dx_type)
 
         self.title_name = ''
@@ -169,6 +171,7 @@ class hpmcaController(QObject):
         ui.actionLatticeRefinement.triggered.connect(self.lattice_refinement_module)
         ui.actionhklGen.triggered.connect(self.hklGen_module)
         ui.actionManualTth.triggered.connect(self.set_Tth)
+        ui.actionManualWavelength.triggered.connect(self.set_Wavelength)
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
         ui.actionRoiPrefs.triggered.connect(self.roi_preferences_module)
         ui.actionPresets.triggered.connect(self.presets_module)
@@ -226,6 +229,18 @@ class hpmcaController(QObject):
         if ok:
             calibration.two_theta = val
             mca.set_calibration([calibration])
+
+    def set_Wavelength(self):
+        mca = self.mca
+        calibration = copy.deepcopy(mca.get_calibration()[0])
+        wavelength = calibration.wavelength
+        val, ok = QInputDialog.getDouble(self.widget, "Manual wavelength setting", "Current wavelength = "+ '%.4f'%(wavelength)+"\nEnter new wavelength: \n(Note: calibrated wavelength value will be updated)",wavelength,0,180,4)
+        if ok:
+            calibration.wavelength = val
+            mca.set_calibration([calibration])
+            mca.wavelength = val
+
+           
 
 
 
@@ -459,8 +474,18 @@ class hpmcaController(QObject):
             self.setHorzScaleBtnsEnabled(self.dx_type)
             if dx_type == 'edx':
                 self.widget.radioE.setChecked(True)
+                self.phase_controller.phase_widget.set_edx()
+                self.widget.actionManualWavelength.setEnabled(False)
+                self.widget.actionManualTth.setEnabled(True)
+                self.widget.actionCalibrate_energy.setEnabled(True)
+                self.widget.actionCalibrate_2theta.setEnabled(True)
             if dx_type == 'adx':
                 self.widget.radiotth.setChecked(True)
+                self.phase_controller.phase_widget.set_adx()
+                self.widget.actionManualWavelength.setEnabled(True)
+                self.widget.actionManualTth.setEnabled(False)
+                self.widget.actionCalibrate_energy.setEnabled(False)
+                self.widget.actionCalibrate_2theta.setEnabled(False)
 
     def envs_updated_callback(self, envs):
         #print(envs)

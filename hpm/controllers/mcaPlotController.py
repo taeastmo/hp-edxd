@@ -108,7 +108,14 @@ class plotController(QObject):
             logMode] = self.formatDataForPlot(self.data, self.roi)
         # here we plot the foreground 
         pg = self.pg  
-        pg.plotData(xAxis, data, roiHorz,roiData,xLabel,'MCA, '+ self.elapsed.start_time[:-3])
+        dx_type = self.calibration.dx_type
+        if dx_type == 'edx':
+            data_label = 'MCA, '+ self.elapsed.start_time[:-3]
+        elif dx_type == 'adx':
+            data_label = 'ADXD, '+ self.name 
+        else:
+            data_label = 'MCA'
+        pg.plotData(xAxis, data, roiHorz,roiData,xLabel,data_label)
         self.update_cursors_text()
         update = {'x_range':[min(xAxis),max(xAxis)], 'y_range':[min(data),max(data)]}
         self.dataPlotUpdated.emit(update)

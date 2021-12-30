@@ -53,7 +53,7 @@ class Overlay_mca():
         self.bins = self.mca.get_bins(self.detector)
         self.calibration = self.mca.get_calibration()[self.detector]
         self.tth = self.calibration.two_theta
-        self.det_mode = 'EDXD'
+        self.det_mode = 'edx'
 
     def get_det_setting(self):
         return str(self.tth) + ' deg'
@@ -96,13 +96,13 @@ class Overlay_xy():
         self.det_setting = ''
         self.original_unit = ''
         if unit == '2':
-            self.det_mode = 'ADXD'
+            self.det_mode = 'adx'
             self.wavelength = xyPatternParametersDialog.showDialog(basefile,'wavelength',0.406626)
             self.det_setting = str(self.wavelength) + ' ' + f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}'
-            self.original_unit = 'tth'
+            self.original_unit = '2 theta'
             self.supported_scales = ['q','d']
         elif unit =='E':
-            self.det_mode = 'EDXD'
+            self.det_mode = 'edx'
             self.tth = xyPatternParametersDialog.showDialog(basefile,'tth',15)
             self.det_setting = str(self.tth) + ' deg'
             self.original_unit = 'E'
@@ -154,7 +154,7 @@ class Overlay_xy():
                 return q_to_d(self._original_x)
             elif self.original_unit == 'd':
                 return self._original_x
-            elif self.original_unit == 'tth':
+            elif self.original_unit == '2 theta':
                 return tth_to_d(self._original_x,self.wavelength)
             else: return None
         elif self.x_scale == 'q':
@@ -164,8 +164,13 @@ class Overlay_xy():
                 return self._original_x
             elif self.original_unit == 'd':
                 return d_to_q(self._original_x)
-            elif self.original_unit == 'tth':
+            elif self.original_unit == '2 theta':
                 return tth_to_q(self._original_x,self.wavelength)
+            else: return None
+        elif self.x_scale == '2 theta':
+        
+            if self.original_unit == '2 theta':
+                return self._original_x
             else: return None
         else:
             return None

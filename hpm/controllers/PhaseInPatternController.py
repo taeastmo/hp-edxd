@@ -48,6 +48,7 @@ class PhaseInPatternController(object):
         self.wavelength = 0.31
         self.unit = self.plotController.get_unit()
         self.tth = self.phase_controller.getTth()
+        self.wavelength = self.phase_controller.getWavelength()
 
         self.connect()
 
@@ -77,6 +78,11 @@ class PhaseInPatternController(object):
 
     def tth_update(self, tth):
         self.tth = tth
+        self.update_all_phase_lines()
+        self.pattern_data_changed()
+
+    def wavelength_update(self, wavelength):
+        self.wavelength = wavelength
         self.update_all_phase_lines()
         self.pattern_data_changed()
     

@@ -53,10 +53,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         self.app.closeAllWindows()
 
     def add_menu_items(self):
-        self.actionManualTth = QtWidgets.QAction(self)
-        self.actionManualTth.setText("Set 2theta...")
-        self.actionManualTth.setEnabled(False)
-        self.menuControl.addAction(self.actionManualTth)
+        
         self.actionPresets = QtWidgets.QAction(self)
         self.actionPresets.setText("Presets...")
         self.actionPresets.setEnabled(False)

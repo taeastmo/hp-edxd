@@ -18,6 +18,7 @@ import re
 import pyqtgraph as pg
 import numpy as np
 from numpy.core.records import array
+from pyqtgraph.graphicsItems.PlotDataItem import dataType
 from scipy import interpolate
 from math import sqrt, sin, pi
 import utilities.centroid as centroid
@@ -70,6 +71,8 @@ class MCA():  #
         self.elapsed = [McaElapsed()]
         self.presets = McaPresets()
         self.environment = []
+
+        self.wavelength = None  # persistent wavelength for axd mode useful when loading files without wavelength, e.g. *.chi
         #if (file != None):
         #    self.read_file(file, **filekw)
         self.fileIO = mcaFileIO()
@@ -607,7 +610,9 @@ class MCA():  #
             if file.endswith('.mca'):
                 [r, success] = self.fileIO.read_mca_file(file)
             elif file.endswith('.chi'):
-                [r, success] = self.fileIO.read_chi_file(file)
+                [r, success] = self.fileIO.read_chi_file(file, wavelength=self.wavelength)
+                wavelength = r['calibration'][0].wavelength
+                self.wavelength = wavelength
             else:
                 [r, success] = self.fileIO.read_ascii_file(file)
      
@@ -763,7 +768,8 @@ class mcaFileIO():
         elapsed.live_time = mcafile.get_live_time()
         elapsed.real_time = mcafile.get_real_time()
         elapsed.start_time = mcafile.get_start_time()
-        calibration = McaCalibration()
+        calibration = McaCalibration(dx_type='edx')
+        
         cal_func = mcafile.get_calibration_function()
         if cal_func is not None:
             calibration.offset, calibration.slope = cal_func
@@ -814,6 +820,12 @@ class mcaFileIO():
         Example:
             m = read_ascii_file('mca.001')
             m['elapsed'][0].real_time
+
+        Modification by RH Dec. 30 2021
+        Version 3.1A
+        Added a distionction between EDX and ADX files.
+        For ADX files a WAVELENGTH field is written rather than TWO_THETA.
+        For ADX data is written as float, for EDX the as int.
         """
         try:
             fp = open(file, 'r')
@@ -829,6 +841,7 @@ class mcaFileIO():
         elapsed = [McaElapsed()]
         calibration = [McaCalibration()]
         rois = [[]]
+        dx_type = ''
         try:
             
             while(1):
@@ -878,6 +891,17 @@ class mcaFileIO():
                 elif (tag == 'TWO_THETA:'):
                     for d in range(n_detectors):
                         calibration[d].two_theta = float(values[d])
+                        calibration[d].set_dx_type('edx')
+                        calibration[d].units = 'keV'
+                    data_type = int
+                    dx_type = 'edx'
+                elif (tag == 'WAVELENGTH:'):
+                    for d in range(n_detectors):
+                        calibration[d].wavelength = float(values[d])
+                        calibration[d].set_dx_type('adx')
+                        calibration[d].units = 'degrees'
+                    data_type = float
+                    dx_type = 'adx'
                 elif (tag == 'ENVIRONMENT:'):
                     env = McaEnvironment()
                     p1 = value.find('=')
@@ -890,12 +914,12 @@ class mcaFileIO():
                     
                     data = []
                     for d in range(n_detectors):
-                        data.append(np.zeros(nchans,  dtype=int))
+                        data.append(np.zeros(nchans,  dtype=data_type))
                     for chan in range(nchans):
                         line = fp.readline()
                         counts = line.split()
                         for d in range(n_detectors):
-                            data[d][chan]=int(counts[d])
+                            data[d][chan]=data_type(counts[d])
                     
                 else:
                     for i in range(max_rois):
@@ -931,7 +955,7 @@ class mcaFileIO():
             r['rois'] = rois
             r['data'] = data
             r['environment'] = environment
-            r['dx_type'] = 'edx'
+            r['dx_type'] = dx_type
             
             return [r, True]
         except:
@@ -943,12 +967,12 @@ class mcaFileIO():
         tth = tth[::50]
         weights = np.ones(len(tth)) 
 
-        coeffs = CARSMath.polyfitw(chan, tth, weights, 2)
+        coeffs = CARSMath.polyfitw(chan, tth, weights, 1)
         
-        '''offset = coeffs[0]
+        offset = coeffs[0]
         slope = coeffs[1]
-        quad = coeffs[2]
-        tth_calc = offset + slope * chan + quad * chan * chan
+        quad = 0 #coeffs[2]
+        '''tth_calc = offset + slope * chan + quad * chan * chan
         tth_diff = tth_calc - tth
 
         pltError = pg.plot(tth,tth_diff, 
@@ -960,34 +984,37 @@ class mcaFileIO():
         return coeffs
         
 
-    def read_chi_file(self, filename, E=30.):  #fit2d or dioptas chi type file
+    def read_chi_file(self, filename, wavelength=None):  #fit2d or dioptas chi type file
         if filename.endswith('.chi'):
-            fp = open(filename, 'r')
+            '''fp = open(filename, 'r')
             first_line = fp.readline()
             second_line = fp.readline()
-            unit = second_line.strip().upper()[:1]
-            fp.close()
+            unit = second_line.strip().upper()[:1]  # reserved for future functionality
+            fp.close()'''
             
             skiprows = 4
             data = np.loadtxt(filename, skiprows=skiprows)
             
             x = data.T[0]
             y = data.T[1]
-            name = os.path.basename(filename).split('.')[:-1][0]
+            basefile=os.path.basename(filename)
+            #name = basefile.split('.')[:-1][0]
 
-            then = time.time()
+
             coeffs = self.compute_tth_calibration_coefficients(x)
-            now = time.time()
-            print('elapsed: '+str(now-then))
-            
+            if wavelength == None:
+
+                wavelength = xyPatternParametersDialog.showDialog(basefile,'wavelength',.4)
+
             r = {}
             r['n_detectors'] = 1
             r['calibration'] = [McaCalibration(offset=coeffs[0],
                                                slope=coeffs[1],
-                                               quad=coeffs[2], 
-                                               two_theta=x,
+                                               quad=0, 
+                                               two_theta= np.mean(x),
                                                units='degrees',
-                                               wavelength=0.31)]
+                                               wavelength=wavelength)]
+            r['calibration'][0].set_dx_type('adx')
             r['elapsed'] = [McaElapsed()]
             r['rois'] = [[]]
             r['data'] = [y]
@@ -1040,6 +1067,12 @@ class mcaFileIO():
             
             environment:
                 A list of McaEnvironment objects, or a list of lists of such objects.
+        
+        Modification by RH Dec. 30 2021
+        Version 3.1A
+        Added a distionction between EDX and ADX files.
+        For ADX files a WAVELENGTH field is written rather than TWO_THETA.
+        For ADX data is written as float, for EDX the as int.
         """
 
 
@@ -1062,10 +1095,12 @@ class mcaFileIO():
             elapsed = elapsed
             """
         nchans = len(data[0])
+        dx_type = calibration[0].dx_type
+        version = '3.1A' if dx_type == 'adx'  else '3.1'
         start_time = elapsed[0].start_time
 
         fp = open(file, 'w')
-        fp.write('VERSION:    '+'3.1'+'\n')
+        fp.write('VERSION:    '+version+'\n')
         fp.write('ELEMENTS:   '+str(n_det)+'\n')
         fp.write('DATE:       '+str(start_time)+'\n')
         fp.write('CHANNELS:   '+str(nchans)+'\n')
@@ -1080,16 +1115,24 @@ class mcaFileIO():
             live_time.append(e.live_time)
         fp.write('REAL_TIME:  '+(fformat % tuple(real_time))+'\n')
         fp.write('LIVE_TIME:  '+(fformat % tuple(live_time))+'\n')
-        offset=[]; slope=[]; quad=[]; two_theta=[]
+        offset=[]; slope=[]; quad=[]; two_theta=[]; wavelength=[]
         for c in calibration:
             offset.append(c.offset)
             slope.append(c.slope)
             quad.append(c.quad)
-            two_theta.append(c.two_theta)
+            if c.dx_type == 'edx':
+                two_theta.append(c.two_theta)
+            if c.dx_type == 'adx':
+                wavelength.append(c.wavelength)
         fp.write('CAL_OFFSET: '+(eformat % tuple(offset))+'\n')
         fp.write('CAL_SLOPE: '+(eformat % tuple(slope))+'\n')
         fp.write('CAL_QUAD: '+(eformat % tuple(quad))+'\n')
-        fp.write('TWO_THETA: '+(fformat % tuple(two_theta))+'\n')
+        if c.dx_type == 'edx':
+            fp.write('TWO_THETA: '+(fformat % tuple(two_theta))+'\n')
+            data_format = iformat
+        if c.dx_type == 'adx':
+            fp.write('WAVELENGTH: '+(fformat % tuple(wavelength))+'\n')
+            data_format = fformat
 
         for i in range(max(nrois)):
             num = str(i)
@@ -1115,7 +1158,7 @@ class mcaFileIO():
         for i in range(nchans):
             for d in range(n_det):
                 counts[d]=data[d][i]
-            fp.write((iformat % tuple(counts))+'\n')
+            fp.write((data_format % tuple(counts))+'\n')
         fp.close()
 
 
@@ -1339,38 +1382,47 @@ class McaCalibration():
         self.offset = offset
         self.slope = slope
         self.quad = quad
+        self.dx_type = ''
+        self.available_scales = []
 
         if 'units' in kwargs:
             units = kwargs['units']
         else:
-            units = 'keV'
+            units = ''
+        
         if 'two_theta' in kwargs:
             two_theta = kwargs['two_theta']
         else:
-            two_theta =  None
+            two_theta = None
+
         if 'wavelength' in kwargs:
             wavelength = kwargs['wavelength']
         else:
             wavelength = None
 
-        scales = ["E",
-                "q",
-                "Channel",
-                "d",
-                '2 theta'] 
+        if 'dx_type' in kwargs:
+            self.set_dx_type(kwargs['dx_type'])
 
-        if wavelength == None:
-            self.available_scales = scales[0:-1]
-        else :
-            self.available_scales = scales[1:]
-            
         self.units = units
         self.two_theta = two_theta      # for edx 
         self.wavelength = wavelength    # for adx 
 
 
-        
-       
+    def set_dx_type(self, dx_type):
+        scales = ["E",
+                "q",
+                "Channel",
+                "d",
+                '2 theta'] 
+        self.dx_type = dx_type
+        if dx_type == 'edx':
+            
+            self.available_scales = scales[0:-1]
+        if dx_type == 'adx':
+            
+            self.available_scales = scales[1:]
+
+ 
 
     ########################################################################
 

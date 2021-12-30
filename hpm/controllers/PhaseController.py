@@ -69,7 +69,7 @@ class PhaseController(object):
         
         self.pattern_widget = plotWidget
         self.phase_widget = PhaseWidget()
-        self.wavelength = 0.406626
+        
         self.cif_conversion_dialog = CifConversionParametersDialog()
         self.phase_model = PhaseModel()
 
@@ -83,14 +83,18 @@ class PhaseController(object):
                     JcpdsEditorController(self.phase_widget, 
                                             phase_model=self.phase_model)
         self.phase_lw_items = []
-        self.create_signals()
-        self.update_temperature_step()
-        self.update_pressure_step()
+        
+        
         
         self.phases = []
         self.tth = self.getTth()
-        self.phase_widget.tth_lbl.setValue(15)
-        self.phase_widget.wavelength_lbl.setValue(0.4)
+        self.phase_widget.tth_lbl.setValue(self.tth)
+        self.wavelength = self.getWavelength()
+        self.phase_widget.wavelength_lbl.setValue(self.wavelength)
+
+        self.create_signals()
+        self.update_temperature_step()
+        self.update_pressure_step()
 
 
     def set_prefs(self, params):
@@ -132,7 +136,7 @@ class PhaseController(object):
         # wavelength
         self.phase_widget.wavelength_lbl.valueChanged.connect(self.wavelength_changed)
         self.phase_widget.wavelength_step.editingFinished.connect(self.update_wavelength_step)
-        #self.connect_click_function(self.phase_widget.get_wavelength_btn, self.get_wavelength_btn_callcack)
+        self.connect_click_function(self.phase_widget.get_wavelength_btn, self.get_wavelength_btn_callcack)
         
         # File drag and drop
         self.phase_widget.file_dragged_in.connect(self.file_dragged_in)
@@ -470,16 +474,23 @@ class PhaseController(object):
     def wavelength_changed(self):
         try:
             self.wavelength = np.clip(float(self.phase_widget.wavelength_lbl.text()),.001,179)
-            print(self.wavelength)
-            #self.phase_in_pattern_controller.wavelength_update(self.wavelength)
+            #print(self.wavelength)
+            self.phase_in_pattern_controller.wavelength_update(self.wavelength)
         except:
             pass
 
     def get_tth_btn_callcack(self):
         tth = self.getTth()
         self.phase_widget.tth_lbl.setValue(tth)
+
+    def get_wavelength_btn_callcack(self):
+        wavelength = self.getWavelength()
+        self.phase_widget.wavelength_lbl.setValue(wavelength)
         
     def getTth(self):
         tth = self.pattern.get_calibration()[0].two_theta
         return tth
 
+    def getWavelength(self):
+        wavelength = self.pattern.get_calibration()[0].wavelength
+        return wavelength
