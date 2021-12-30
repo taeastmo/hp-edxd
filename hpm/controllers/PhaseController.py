@@ -90,6 +90,7 @@ class PhaseController(object):
         self.phases = []
         self.tth = self.getTth()
         self.phase_widget.tth_lbl.setValue(15)
+        self.phase_widget.wavelength_lbl.setValue(0.4)
 
 
     def set_prefs(self, params):
@@ -126,7 +127,12 @@ class PhaseController(object):
         # 2th 
         self.phase_widget.tth_lbl.valueChanged.connect(self.tth_changed)
         self.phase_widget.tth_step.editingFinished.connect(self.update_tth_step)
-        self.connect_click_function(self.phase_widget.get_tth_btn, self.get_2th_btn_callcack)
+        self.connect_click_function(self.phase_widget.get_tth_btn, self.get_tth_btn_callcack)
+
+        # wavelength
+        self.phase_widget.wavelength_lbl.valueChanged.connect(self.wavelength_changed)
+        self.phase_widget.wavelength_step.editingFinished.connect(self.update_wavelength_step)
+        #self.connect_click_function(self.phase_widget.get_wavelength_btn, self.get_wavelength_btn_callcack)
         
         # File drag and drop
         self.phase_widget.file_dragged_in.connect(self.file_dragged_in)
@@ -377,6 +383,10 @@ class PhaseController(object):
         value = self.phase_widget.tth_step.value()
         self.phase_widget.tth_lbl.setSingleStep(value)    
 
+    def update_wavelength_step(self):
+        value = self.phase_widget.wavelength_step.value()
+        self.phase_widget.wavelength_lbl.setSingleStep(value)    
+
     def update_temperature_step(self):
         value = self.phase_widget.temperature_step_msb.value()
         self.phase_widget.temperature_sb.setSingleStep(value)
@@ -457,7 +467,15 @@ class PhaseController(object):
         except:
             pass
 
-    def get_2th_btn_callcack(self):
+    def wavelength_changed(self):
+        try:
+            self.wavelength = np.clip(float(self.phase_widget.wavelength_lbl.text()),.001,179)
+            print(self.wavelength)
+            #self.phase_in_pattern_controller.wavelength_update(self.wavelength)
+        except:
+            pass
+
+    def get_tth_btn_callcack(self):
         tth = self.getTth()
         self.phase_widget.tth_lbl.setValue(tth)
         

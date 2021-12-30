@@ -35,6 +35,7 @@ class plotController(QObject):
         super().__init__()
         
         self.mca = mcaModel
+        self.calibration= self.mca.get_calibration()[0]
         self.pg = plotWidget
         self.mcaController = mainController
         
@@ -59,7 +60,8 @@ class plotController(QObject):
                             'Channel':"",
                             '2 theta':f'\N{SUPERSCRIPT ZERO}'
         }
-        self.horzBins = [np.linspace(0,3999,1), 'Channel', self.units['Channel']]
+        self.makeXaxis()
+        #self.horzBins = [np.linspace(0,3999,1), 'E', self.units['E']]
         self.pg.plotMouseMoveSignal.connect(self.mouseMoved)         # connect signal to mouse mothion handler 
         self.pg.getViewBox().plotMouseCursorSignal.connect(self.mouseCursor)
         
@@ -201,7 +203,10 @@ class plotController(QObject):
     def makeXaxis(self):
         self.bins = np.linspace(0,len(self.data)-1, len(self.data))    # datapoint bins
         Scale=self.calibration.channel_to_scale(self.bins,self.unit)
-        self.horzBins = [Scale, self.unit , self.units[self.unit ]]
+        unit = self.unit
+        if unit == '2 theta':
+            unit = u'2θ'
+        self.horzBins = [Scale, unit , self.units[self.unit ]]
 
     def formatDataForPlot(self, data, rois):  
         #interpolated data for cursor movement:

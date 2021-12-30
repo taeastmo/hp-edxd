@@ -122,7 +122,10 @@ class RoiController(QObject):
 
     def update_unit (self):
         self.unit_ = self.plotController.units[self.unit]
-        self.rois_widget.set_tw_header_unit(self.unit,self.unit_)
+        unit = self.unit
+        if unit == '2 theta':
+            unit = u'2θ'
+        self.rois_widget.set_tw_header_unit(unit,self.unit_)
         #self.update_rois(use_only=True)
         if self.fitPlots is not None:
             if self.plotFitOpen:
@@ -181,6 +184,9 @@ class RoiController(QObject):
         elif self.unit == 'd': 
             centroid = roi.d_spacing
             fwhm = abs(roi.fwhm_d)
+        elif self.unit == '2 theta': 
+            centroid = roi.two_theta
+            fwhm = abs(roi.fwhm_tth)
         else: 
             centroid = roi.centroid
             fwhm = roi.fwhm

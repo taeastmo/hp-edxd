@@ -70,14 +70,14 @@ def main():
 
     # autoload a file, using for debugging
     au_pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
-    au_jcpds = os.path.join(resources_path,'au.jcpds')
+    au_jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
     controller.file_save_controller.openFile(filename=au_pattern)
     #controller.multiple_datasets_controller.show_view()
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
     #controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/hrubiak/Desktop/Guoyin/Cell2-HT')
     
-    #controller.phase_controller.add_btn_click_callback(filenames=[au_jcpds])
+    controller.phase_controller.add_btn_click_callback(filenames=[au_jcpds])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])

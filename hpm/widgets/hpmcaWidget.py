@@ -41,6 +41,11 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         Ui_hpMCA.__init__(self)
         self.app = app
         self.setupUi(self)
+        self.scales_btns = {'E':self.radioE,
+                            'q':self.radioq,
+                            'd':self.radiod,
+                            'Channel':self.radioChannel,
+                            '2 theta':self.radiotth}
         self.add_menu_items()
         self.setAcceptDrops(True)
 
@@ -162,6 +167,10 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         settings['export_png']= self.png_cb .isChecked()
         
         return settings
+
+    def set_scales_enabled_states(self, enabled=['E','q','d','Channel']):
+        for btn in self.scales_btns:
+            self.scales_btns[btn].setEnabled(btn in enabled)
 
     ########################################################################################
     ########################################################################################

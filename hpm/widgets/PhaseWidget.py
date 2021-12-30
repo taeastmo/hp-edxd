@@ -67,7 +67,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.delete_btn,0)
         self._button_layout.addWidget(self.clear_btn,0)
         self._button_layout.addWidget(self.rois_btn,0)
-        self._button_layout.addWidget(VerticalLine())
+       
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self._button_layout.addWidget(VerticalLine())
         self._button_layout.addWidget(self.save_list_btn,0)
@@ -87,6 +87,9 @@ class PhaseWidget(QtWidgets.QWidget):
         self.tth_lbl = DoubleSpinBoxAlignRight()
         
         self.tth_step = DoubleMultiplySpinBoxAlignRight()
+        self.wavelength_lbl = DoubleSpinBoxAlignRight()
+        
+        self.wavelength_step = DoubleMultiplySpinBoxAlignRight()
 
         self.get_tth_btn = QtWidgets.QPushButton('Get')
         
@@ -104,8 +107,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self._parameter_layout.addWidget(self.temperature_step_msb, 2, 3)
 
         self._parameter_layout.addWidget(self.apply_to_all_cb, 3, 0, 1, 5)
-        #self._parameter_layout.addWidget(self.show_in_pattern_cb, 4, 0, 1, 5)
-        self._parameter_layout.addWidget(HorizontalLine(),5,0,1,5)
+        
         self._parameter_layout.addItem(VerticalSpacerItem(), 6, 0)
         self._parameter_layout.addWidget(HorizontalLine(),7,0,1,5)
         self._parameter_layout.addWidget(QtWidgets.QLabel(u'2θ:'), 8, 0)
@@ -113,6 +115,11 @@ class PhaseWidget(QtWidgets.QWidget):
         self._parameter_layout.addWidget(QtWidgets.QLabel('deg'), 8, 2)
         self._parameter_layout.addWidget(self.tth_step, 8, 3)
         self._parameter_layout.addWidget(self.get_tth_btn, 8, 4)
+
+        self._parameter_layout.addWidget(QtWidgets.QLabel(u'Wavelength:'), 9, 0)
+        self._parameter_layout.addWidget(self.wavelength_lbl, 9, 1)
+        self._parameter_layout.addWidget(QtWidgets.QLabel(f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}'), 9, 2)
+        self._parameter_layout.addWidget(self.wavelength_step, 9, 3)
 
         
         self.parameter_widget.setLayout(self._parameter_layout)
@@ -167,6 +174,8 @@ class PhaseWidget(QtWidgets.QWidget):
         self.pressure_step_msb.setMaximumWidth(75)
         self.tth_step.setMaximumWidth(75)
         self.get_tth_btn.setMaximumWidth(75)
+        self.wavelength_step.setMaximumWidth(75)
+        
         
         self.pressure_sb.setMinimumWidth(100)
 
@@ -193,6 +202,15 @@ class PhaseWidget(QtWidgets.QWidget):
         self.tth_step.setMinimum(0.001)
         self.tth_step.setValue(1)
         self.tth_step.setDecimals(3)
+
+        self.wavelength_lbl.setMaximum(10.0)
+        self.wavelength_lbl.setMinimum(0.1)
+        self.wavelength_lbl.setDecimals(5)
+        self.wavelength_lbl.setSingleStep(0.01)
+        self.wavelength_step.setMaximum(180)
+        self.wavelength_step.setMinimum(0.0001)
+        self.wavelength_step.setValue(.01)
+        self.wavelength_step.setDecimals(5)
 
         self.setStyleSheet("""
             #phase_control_button_widget QPushButton {

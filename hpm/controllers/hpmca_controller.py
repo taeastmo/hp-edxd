@@ -99,7 +99,9 @@ class hpmcaController(QObject):
         self.lattice_refinement_controller = None
         self.controllers_initialized = False
 
-        self.unit = 'Channel' #default units
+        self.unit = 'E' #default units
+        self.dx_type = 'exd'
+        self.setHorzScaleBtnsEnabled(self.dx_type)
 
         self.title_name = ''
 
@@ -440,6 +442,9 @@ class hpmcaController(QObject):
         self.widget.setWindowTitle(name + u'hpMCA')
 
     def data_updated(self):
+        
+            #print(dx_type)
+
         self.plotController.update_plot()  
         environment = self.mca.environment
         self.environment_controller.set_environment(environment)
@@ -447,6 +452,15 @@ class hpmcaController(QObject):
         elapsed = self.mca.get_elapsed()[0]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
         self.widget.lblRealTime.setText("%0.2f" %(elapsed.real_time))
+        dx_type = self.mca.dx_type
+        if self.dx_type != dx_type:
+            
+            self.dx_type = dx_type
+            self.setHorzScaleBtnsEnabled(self.dx_type)
+            if dx_type == 'edx':
+                self.widget.radioE.setChecked(True)
+            if dx_type == 'adx':
+                self.widget.radiotth.setChecked(True)
 
     def envs_updated_callback(self, envs):
         #print(envs)
@@ -607,6 +621,15 @@ class hpmcaController(QObject):
             elif self.widget.radiotth.isChecked() == True:
                 horzScale = '2 theta'
             self.set_unit(horzScale)
+
+    def setHorzScaleBtnsEnabled(self, preset = 'edx'):
+        scales = ['Channel']
+        if preset == 'edx':
+            scales =['E','q','d','Channel']   
+        elif preset == 'adx':
+            scales =['2 theta','q','d','Channel']   
+        self.widget.set_scales_enabled_states(scales)
+        
 
     def set_unit(self,unit):
             self.unit = unit

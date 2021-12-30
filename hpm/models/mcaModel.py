@@ -15,6 +15,7 @@
 
 
 import re
+import pyqtgraph as pg
 import numpy as np
 from numpy.core.records import array
 from scipy import interpolate
@@ -26,7 +27,7 @@ import time
 from hpm.models.mcareader import McaReader
 from hpm.widgets.UtilityWidgets import xyPatternParametersDialog
 import os
-
+import utilities.CARSMath as CARSMath
 from utilities.filt import spectra_baseline
 
 from epics import caput, caget, PV
@@ -203,9 +204,14 @@ class MCA():  #
         roi.fwhm_d = (self.calibration[detector].channel_to_d(roi.centroid + 
                                         fwhm_chan/2.) - 
                             self.calibration[detector].channel_to_d(roi.centroid - 
-                                        fwhm_chan/2.))                                
+                                        fwhm_chan/2.))      
+        roi.fwhm_tth = (self.calibration[detector].channel_to_tth(roi.centroid + 
+                                        fwhm_chan/2.) - 
+                            self.calibration[detector].channel_to_tth(roi.centroid - 
+                                        fwhm_chan/2.))                             
 
         roi.energy = self.calibration[detector].channel_to_energy(roi.centroid)
+        roi.two_theta = self.calibration[detector].channel_to_tth(roi.centroid)
         roi.q = self.calibration[detector].channel_to_q(roi.centroid)
         roi.d_spacing = self.calibration[detector].channel_to_d(roi.centroid)
 
@@ -931,6 +937,29 @@ class mcaFileIO():
         except:
             return [None, False]
 
+    def compute_tth_calibration_coefficients(self, tth):
+
+        chan = np.linspace(0,len(tth)-1,len(tth))[::50]
+        tth = tth[::50]
+        weights = np.ones(len(tth)) 
+
+        coeffs = CARSMath.polyfitw(chan, tth, weights, 2)
+        
+        '''offset = coeffs[0]
+        slope = coeffs[1]
+        quad = coeffs[2]
+        tth_calc = offset + slope * chan + quad * chan * chan
+        tth_diff = tth_calc - tth
+
+        pltError = pg.plot(tth,tth_diff, 
+            pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
+            symbolPen='w', title="MCA Calibration"
+        )
+        pltError.setLabel('left', 'Calibration error')
+        pltError.setLabel('bottom', 'Energy')'''
+        return coeffs
+        
+
     def read_chi_file(self, filename, E=30.):  #fit2d or dioptas chi type file
         if filename.endswith('.chi'):
             fp = open(filename, 'r')
@@ -945,10 +974,20 @@ class mcaFileIO():
             x = data.T[0]
             y = data.T[1]
             name = os.path.basename(filename).split('.')[:-1][0]
+
+            then = time.time()
+            coeffs = self.compute_tth_calibration_coefficients(x)
+            now = time.time()
+            print('elapsed: '+str(now-then))
             
             r = {}
             r['n_detectors'] = 1
-            r['calibration'] = [McaCalibration(two_theta=x,units='degrees',wavelength=0.31)]
+            r['calibration'] = [McaCalibration(offset=coeffs[0],
+                                               slope=coeffs[1],
+                                               quad=coeffs[2], 
+                                               two_theta=x,
+                                               units='degrees',
+                                               wavelength=0.31)]
             r['elapsed'] = [McaElapsed()]
             r['rois'] = [[]]
             r['data'] = [y]
@@ -1194,6 +1233,7 @@ class McaROI():
         self.fwhm_E = fwhm
         self.fwhm_q = fwhm
         self.fwhm_d = fwhm
+        self.fwhm_tth = fwhm
         self.bgd_width = bgd_width
         self.use = use
         self.preset = preset
@@ -1295,6 +1335,11 @@ class McaCalibration():
         There is a keyword with the same name as each field, so the object can
         be initialized when it is created.
         """
+
+        self.offset = offset
+        self.slope = slope
+        self.quad = quad
+
         if 'units' in kwargs:
             units = kwargs['units']
         else:
@@ -1315,14 +1360,8 @@ class McaCalibration():
                 '2 theta'] 
 
         if wavelength == None:
-            self.offset = offset
-            self.slope = slope
-            self.quad = quad
             self.available_scales = scales[0:-1]
         else :
-            bins = np.linspace(0,len(two_theta)-1, len(two_theta)) 
-            self.ch_to_tth_interpolator = interpolate.interp1d(bins,two_theta)
-            self.tth_to_ch_interpolator = interpolate.interp1d(two_theta, bins)
             self.available_scales = scales[1:]
             
         self.units = units
@@ -1352,7 +1391,7 @@ class McaCalibration():
         return channel
 
     def channel_to_tth(self, channel):
-        tth = self.ch_to_tth_interpolator(channel)
+        tth = self.channel_to_energy(channel)
         return tth
     
 
@@ -1374,11 +1413,11 @@ class McaCalibration():
                 elif "2 theta" in self.available_scales:
                    
                     two_theta = self. q_to_2theta(q)
-                    channel = self.tth_to_ch_interpolator(two_theta)
+                    channel = self.energy_to_channel(two_theta)
 
 
             elif unit == '2 theta':
-                channel = self.tth_to_ch_interpolator(scale)
+                channel = self.energy_to_channel(scale)
             elif unit == 'Channel':
                 channel = scale
         else: channel = scale
@@ -1416,13 +1455,8 @@ class McaCalibration():
         else:
             c = channels
 
-        if "E" in self.available_scales:
-            
-            e = self.offset + self.slope * c
-        elif "2 theta" in self.available_scales:
-
-            e = self.wavelength
         
+        e = self.offset + self.slope * c
         
         return e
 
@@ -1467,7 +1501,7 @@ class McaCalibration():
             e = self.channel_to_energy(channels)   
             q = 6.28318530718 /(6.199 / e / sin(self.two_theta*0.008726646259972))
         elif "2 theta" in self.available_scales:
-            two_theta = self.ch_to_tth_interpolator(channels)
+            two_theta = self.channel_to_energy(channels)
             
             q = (4*pi/self.wavelength) * np.sin( two_theta * 0.008726646259972)
         return  q
@@ -1567,7 +1601,7 @@ class McaCalibration():
         elif "2 theta" in self.available_scales:
             
             two_theta = self. q_to_2theta(q)
-            channel = self.tth_to_ch_interpolator(two_theta)
+            channel = self.energy_to_channel(two_theta)
         else:
             channel = d
         
