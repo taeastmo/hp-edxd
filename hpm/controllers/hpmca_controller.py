@@ -84,11 +84,13 @@ class hpmcaController(QObject):
         self.last_saved = ''
         
         # initialize some stuff
-        self.mca = None              # mca model
+        self.mca = None             # mca model
 
-        self.live_mca = None
+     
 
-        self.epicsMCAholder = None   # holds a epicsMCA reference so that it doesnt
+        self.epicsMCAholder = None   # holds a epics based MCA reference 
+        self.fileMCAholder = None   # holds a file system based MCA reference 
+
         self.Foreground = None       # str, can be either 'epics' or 'file'
         
         self.plotController = None    
@@ -114,6 +116,8 @@ class hpmcaController(QObject):
         self.multiple_datasets_controller.channel_changed_signal.connect(self.multispectral_channel_changed_callback)
 
         self.make_prefs_menu()  # for mac
+
+        #self.initControllers()
         
     def create_connections(self):
         ui = self.widget
@@ -181,6 +185,8 @@ class hpmcaController(QObject):
 
         ui.file_view_btn.pressed.connect(self.file_view_btn_callback)
         ui.live_view_btn.pressed.connect(self.live_view_btn_callback)
+
+        
         
         # file save/read actions moved to self.file_save_controller
 
@@ -260,92 +266,114 @@ class hpmcaController(QObject):
             self.mca.set_presets(self.presets)
             #mcaUtil.save_file_settings(file_preferences)
     
+    
 
     def initMCA(self, mcaType, det_or_file):
-        [live_btn, real_btn] = self.epicsPresets
-        epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
-        epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
-        if mcaType == 'file':      
-            mca = MCA()
-            mca.auto_process_rois = True
-            [fileout, success] = mca.read_file(file=det_or_file, netcdf=0, detector=0)
-            
-            if not success:
-                return 1
-            if self.mca != None:
-                if self.Foreground == 'epics':
-                    self.mca.dataAcquired.disconnect()
-                    self.mca.acq_stopped.disconnect()
-                    
-                    self.epicsMCAholder = self.mca
-            #self.file_save_controller.McaFilename = fileout     
-            self.widget.file_view_btn.setEnabled(True)
-            self.widget.file_view_btn.setChecked(True)   
-            self.mca = mca
-            self.blockSignals(True)
-            for btn in self.epicsBtns:
-                btn.setEnabled(False)
-                btn.setChecked(False)
-            self.blockSignals(False)
-            live_btn.disconnect()
-            real_btn.disconnect()
-            for btn in epicsElapsedTimeBtns_PRTM:
-                btn.disconnect()
-            for btn in epicsElapsedTimeBtns_PLTM:
-                btn.disconnect()
-            self.widget.dead_time_indicator.disconnect()
-            #self.widget.dead_time_indicator.setValue(0)
+        if mcaType == 'file':    
+            init =    self.initFileMCA(det_or_file)
+            if init == 0:
+                self.widget.file_view_btn.setEnabled(True)
+                self.widget.file_view_btn.setChecked(True)  
         elif mcaType == 'epics': 
-            name = ''
-            
-            if self.epicsMCAholder is not None:
-                name = self.epicsMCAholder.name
-            
-          
-            if name == det_or_file :
-                self.mca = self.epicsMCAholder
-                self.mca.toggleEpicsWidgetsEnabled(True)
-            else:
-                
-                mca = epicsMCA(
-                                record_name = det_or_file, 
-                                epics_buttons = self.epicsBtns, 
-                                file_options = self.file_save_controller.file_options,
-                                environment_file = 'catch1d.env',
-                                
-                                dead_time_indicator = self.widget.dead_time_indicator
-                                )
-                
-                if not mca.initOK:
-                    live_btn.disconnect()
-                    real_btn.disconnect()
-                    return 1
-                    
-                
+            init =    self.initEpicsMCA(det_or_file)
+            if init == 0:
+                self.widget.live_view_btn.setEnabled(True)
+                self.widget.live_view_btn.setChecked(True) 
+        if init == 0:
+            self.Foreground = mcaType    
+            self.refresh_controllers_mca()
+        return init
 
-                self.mca = mca
-                if self.epicsMCAholder != None:
-                    self.epicsMCAholder.unload()
-                self.epicsMCAholder = self.mca
-            record = self.mca.name
-            live_btn.connect(record + '.PRTM')
-            real_btn.connect(record + '.PLTM')
-            for btn in epicsElapsedTimeBtns_PRTM:
-                btn.connect(record + '.PRTM')
-            for btn in epicsElapsedTimeBtns_PLTM:
-                btn.connect(record + '.PLTM')
-            self.widget.dead_time_indicator.re_connect()
-            
+    def refresh_controllers_mca(self):
         self.mca.auto_process_rois = True
         if self.controllers_initialized:
             self.plotController.set_mca(self.mca)
             self.phase_controller.set_mca(self.mca)
             self.roi_controller.set_mca(self.mca)
             self.fluorescence_controller.set_mca(self.mca)
-        self.Foreground = mcaType
-        #self.file_save_controller.McaFileName = self.mca.name
         
+    def initFileMCA(self, file):
+        mca = None
+        if self.Foreground == 'file':
+            if self.mca != None:  
+                mca = self.mca
+        if self.Foreground == 'epics':
+            if self.fileMCAholder != None:
+                mca = self.fileMCAholder
+        if mca == None:
+            mca = MCA()
+        mca.auto_process_rois = True
+        [fileout, success] = mca.read_file(file=file, netcdf=0, detector=0)
+        if not success:
+            return 1
+        self.set_file_mca(mca)
         return 0
+
+    def initEpicsMCA(self, det):
+        name = ''
+        if self.epicsMCAholder is not None:
+            name = self.epicsMCAholder.name
+        if name == det : #check if the same epics MCA is already initialized
+            self.mca = self.epicsMCAholder
+            self.mca.toggleEpicsWidgetsEnabled(True)
+        else:
+            if self.epicsMCAholder != None:
+                self.epicsMCAholder.unload()
+            mca = epicsMCA(record_name = det, 
+                            epics_buttons = self.epicsBtns, 
+                            file_options = self.file_save_controller.file_options,
+                            environment_file = 'catch1d.env',
+                            dead_time_indicator = self.widget.dead_time_indicator
+                            )
+            if not mca.initOK:
+                [live_val, real_val] = self.epicsPresets
+                live_val.disconnect()
+                real_val.disconnect()
+                return 1
+        self.set_epics_mca(mca)
+        return 0
+        
+
+    def set_epics_mca(self, mca):
+        if self.Foreground == 'file':
+            self.fileMCAholder = self.mca
+        self.mca = mca
+        [live_val, real_val] = self.epicsPresets
+        epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
+        epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
+        record = self.mca.name
+        live_val.connect(record + '.PRTM')
+        real_val.connect(record + '.PLTM')
+        for btn in epicsElapsedTimeBtns_PRTM:
+            btn.connect(record + '.PRTM')
+        for btn in epicsElapsedTimeBtns_PLTM:
+            btn.connect(record + '.PLTM')
+        self.widget.dead_time_indicator.re_connect()
+
+    def set_file_mca(self, mca):
+        if self.Foreground == 'epics':
+            [live_val, real_val] = self.epicsPresets
+            epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
+            epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
+            self.mca.dataAcquired.disconnect()
+            self.mca.acq_stopped.disconnect()
+            self.epicsMCAholder = self.mca
+            self.blockSignals(True)
+            for btn in self.epicsBtns:
+                btn.setEnabled(False)
+                btn.setChecked(False)
+                self.blockSignals(False)
+                live_val.disconnect()
+                real_val.disconnect()
+                for btn in epicsElapsedTimeBtns_PRTM:
+                    btn.disconnect()
+                for btn in epicsElapsedTimeBtns_PLTM:
+                    btn.disconnect()
+                self.widget.dead_time_indicator.disconnect()
+            self.blockSignals(False)
+        self.mca = mca
+        
+            
 
     def update_elapsed_preset_btn_messages(self, elapsed_presets):
         for i, btn in enumerate(self.epicsElapsedTimeBtns_PLTM):
@@ -479,6 +507,7 @@ class hpmcaController(QObject):
                 self.widget.actionManualTth.setEnabled(True)
                 self.widget.actionCalibrate_energy.setEnabled(True)
                 self.widget.actionCalibrate_2theta.setEnabled(True)
+                #old_tth = self.phase_controller .phase_widget.tth_lbl.text()
             if dx_type == 'adx':
                 self.widget.radiotth.setChecked(True)
                 self.phase_controller.phase_widget.set_adx()
@@ -486,6 +515,7 @@ class hpmcaController(QObject):
                 self.widget.actionManualTth.setEnabled(False)
                 self.widget.actionCalibrate_energy.setEnabled(False)
                 self.widget.actionCalibrate_2theta.setEnabled(False)
+                self.phase_controller.phase_widget.wavelength_lbl.setValue(self.mca.calibration[0].wavelength)
 
     def envs_updated_callback(self, envs):
         #print(envs)

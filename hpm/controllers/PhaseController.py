@@ -88,9 +88,12 @@ class PhaseController(object):
         
         self.phases = []
         self.tth = self.getTth()
-        self.phase_widget.tth_lbl.setValue(self.tth)
+        
+        if self.tth != None:
+            self.phase_widget.tth_lbl.setValue(self.tth)
         self.wavelength = self.getWavelength()
-        self.phase_widget.wavelength_lbl.setValue(self.wavelength)
+        if self.wavelength != None:
+            self.phase_widget.wavelength_lbl.setValue(self.wavelength)
 
         self.create_signals()
         self.update_temperature_step()
@@ -173,6 +176,7 @@ class PhaseController(object):
         phases = self.phase_model.phases
         files = self.phase_model.phase_files
         tth = self.phase_widget.tth_lbl.value()
+        wavelength = self.phase_widget.wavelength_lbl.value()
         calibration = self.pattern.get_calibration()[0]
         d_to_channel = calibration.d_to_channel
         phase = phases[index]
@@ -187,7 +191,7 @@ class PhaseController(object):
 
 
         for reflection in reflections:
-            channel = d_to_channel(reflection.d,tth = tth)
+            channel = d_to_channel(reflection.d,tth = tth, wavelength=wavelength)
             #E = calibration.channel_to_energy(channel)
             E = 30
             lbl = str(name + " " + reflection.get_hkl())
@@ -478,6 +482,14 @@ class PhaseController(object):
             self.phase_in_pattern_controller.wavelength_update(self.wavelength)
         except:
             pass
+
+    def get_widget_wavelength (self):
+        wavelength = np.clip(float(self.phase_widget.wavelength_lbl.text()),.001,179)
+        return wavelength
+
+    def get_widget_tth (self):
+        tth = np.clip(float(self.phase_widget.tth_lbl.text()),.001,179)
+        return tth
 
     def get_tth_btn_callcack(self):
         tth = self.getTth()

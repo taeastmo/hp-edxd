@@ -1475,8 +1475,8 @@ class McaCalibration():
         else: channel = scale
         return channel
 
-    def q_to_2theta(self, q):
-        two_theta = np.arcsin(q/(4*pi/self.wavelength))/0.008726646259972 
+    def q_to_2theta(self, q, wavelength):
+        two_theta = np.arcsin(q/(4*pi/wavelength))/0.008726646259972 
         return two_theta
 
     def channel_to_energy(self, channels):
@@ -1612,7 +1612,7 @@ class McaCalibration():
                 
 
     ########################################################################
-    def d_to_channel(self, d, clip=0, tth=None):
+    def d_to_channel(self, d, clip=0, tth=None, wavelength = None):
         """
         Converts "d-spacing" to channels using the current calibration values
         for the Mca.  This routine can convert a single "d-spacing" or an array
@@ -1652,7 +1652,7 @@ class McaCalibration():
             channel = self.energy_to_channel(e)
         elif "2 theta" in self.available_scales:
             
-            two_theta = self. q_to_2theta(q)
+            two_theta = self. q_to_2theta(q, wavelength)
             channel = self.energy_to_channel(two_theta)
         else:
             channel = d

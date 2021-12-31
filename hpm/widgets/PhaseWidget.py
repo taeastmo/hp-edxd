@@ -235,6 +235,7 @@ class PhaseWidget(QtWidgets.QWidget):
 
         self.wavelength_lbl.setMaximum(10.0)
         self.wavelength_lbl.setMinimum(0.1)
+        self.wavelength_lbl.setValue(0.4)
         self.wavelength_lbl.setDecimals(5)
         self.wavelength_lbl.setSingleStep(0.01)
         self.wavelength_step.setMaximum(180)

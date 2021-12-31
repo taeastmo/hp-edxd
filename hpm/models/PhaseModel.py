@@ -248,7 +248,7 @@ class PhaseModel(QtCore.QObject):
             self.get_lines_d(ind)
 
     # need to modify this for EDXD mode
-    def get_phase_line_positions(self, ind, unit='E', wavelength='0.31',tth=15):
+    def get_phase_line_positions(self, ind, unit='E', wavelength=0.4,tth=15):
         positions = self.reflections[ind][:, 0]
 
         if unit == 'd': 
@@ -293,7 +293,7 @@ class PhaseModel(QtCore.QObject):
         return phase_line_intensities, baseline
 
     def get_rescaled_reflections(self, ind, pattern, x_range,
-                                 y_range, wavelength, unit='E', tth=15):
+                                 y_range, wavelength=0.4, unit='E', tth=15):
         positions = self.get_phase_line_positions(ind, unit, wavelength, tth)
         intensities, baseline = self.get_phase_line_intensities(ind, positions, pattern, x_range, y_range)
         return positions, intensities, baseline
