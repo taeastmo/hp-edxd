@@ -47,7 +47,7 @@ class LatticeRefinementController(QObject):
         self.lattice_model = latticeRefinement()
 
         detector = 0
-        self.Ediff =[]
+        self.ddiff =[]
         self.roi = []     
       
         self.active = False
@@ -57,6 +57,9 @@ class LatticeRefinementController(QObject):
         self.plotController = plotController
   
         self.nrois = 0
+
+        self.unit = 'E'
+        self.unit_ = 'KeV'
         
         self.create_signals()
 
@@ -67,6 +70,19 @@ class LatticeRefinementController(QObject):
         self.two_theta =  self.calibration.two_theta
         if type(self.two_theta) == type(float()):
             self.widget.two_theta.setText(str(round(self.two_theta,5)))
+
+    '''def update_unit (self, unit):
+        self.unit_ = self.plotController.units[unit]
+        self.unit = unit
+        if unit == '2 theta':
+            unit = u'2θ'
+        self.widget.set_tw_header_unit(unit,self.unit_)
+        #self.update_rois(use_only=True)
+        if self.fitPlots is not None:
+            if self.plotFitOpen:
+                cur_ind = self.rois_widget.get_selected_roi_row()
+                if cur_ind >= 0 :
+                    self.updateFitPlot(cur_ind)'''
 
     def set_jcpds_directory(self, directory):
         self.widget.jcpds_directory  = directory
@@ -104,7 +120,7 @@ class LatticeRefinementController(QObject):
         while self.widget.roi_tw.rowCount() > 0:
             self.roi_removed(self.widget.roi_tw.rowCount()-1)
         self.lattice_model.clear()
-        self.Ediff =[]
+        self.ddiff =[]
         self.roi = []
         self.widget.roi_show_cbs = []
         self.widget.name_items = []
@@ -122,18 +138,18 @@ class LatticeRefinementController(QObject):
     def menu_plot_refinement(self):
         """ Private method """
         
-        E_diff = self.Ediff
+        E_diff = self.ddiff
         if len (E_diff):
-            energy_use = self.Eobs
+            energy_use = self.dobs
             E_diff_use = E_diff
            
             
             pltError = pg.plot(energy_use,E_diff_use, 
                     pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
-                    symbolPen='w', title= f'\N{GREEK CAPITAL LETTER DELTA} E'
+                    symbolPen='w', title= f'\N{GREEK CAPITAL LETTER DELTA} d'
             )
-            pltError.setLabel('left', f'\N{GREEK CAPITAL LETTER DELTA} E (KeV)')
-            pltError.setLabel('bottom', 'E (KeV)')
+            pltError.setLabel('left', f'\N{GREEK CAPITAL LETTER DELTA} d '+ f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
+            pltError.setLabel('bottom', 'd '+f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
 
 
     def set_rois_phases(self, rois, phases):
@@ -218,22 +234,22 @@ class LatticeRefinementController(QObject):
                         lbl += '\nT = '+ '%.2f'%(T) + ' K'
                         
 
-                        self.Ediff = []
-                        self.Eobs = []
+                        self.ddiff = []
+                        self.dobs = []
 
                         for i, dcalc in enumerate(DCalc):
-                            e = round(12.398 / (2. * dcalc * np.sin(tth*np.pi/180./2.)),3)
+                            d = dcalc 
                             #t = self.widget.widgets.calc_d[i]
                             #t.setText(str(e))
                             dobs = DHKL[i][0]
-                            eobs = round(12.398 / (2. * dobs * np.sin(tth*np.pi/180./2.)),3)
-                            ediff = round(eobs - e,3)
+                             
+                            ddiff = round(dobs - d,4)
                             #t = self.widget.widgets.calc_d_diff[i]
-                            #t.setText(str(ediff))
-                            self.Ediff.append(ediff)
-                            self.Eobs.append(eobs)
+                            #t.setText(str(ddiff))
+                            self.ddiff.append(ddiff)
+                            self.dobs.append(round(dobs,4))
 
-                            self.widget.update_roi(i,e,ediff)
+                            self.widget.update_roi(i,round(d,4),ddiff)
                         
      
             self.widget.phases_lbl.setText(lbl)

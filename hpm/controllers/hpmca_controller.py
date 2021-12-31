@@ -351,27 +351,28 @@ class hpmcaController(QObject):
         self.widget.dead_time_indicator.re_connect()
 
     def set_file_mca(self, mca):
-        if self.Foreground == 'epics':
-            [live_val, real_val] = self.epicsPresets
-            epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
-            epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
-            self.mca.dataAcquired.disconnect()
-            self.mca.acq_stopped.disconnect()
-            self.epicsMCAholder = self.mca
-            self.blockSignals(True)
-            for btn in self.epicsBtns:
-                btn.setEnabled(False)
-                btn.setChecked(False)
+        if self.mca != mca:
+            if self.Foreground == 'epics':
+                [live_val, real_val] = self.epicsPresets
+                epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
+                epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
+                self.mca.dataAcquired.disconnect()
+                self.mca.acq_stopped.disconnect()
+                self.epicsMCAholder = self.mca
+                self.blockSignals(True)
+                for btn in self.epicsBtns:
+                    btn.setEnabled(False)
+                    btn.setChecked(False)
+                    self.blockSignals(False)
+                    live_val.disconnect()
+                    real_val.disconnect()
+                    for btn in epicsElapsedTimeBtns_PRTM:
+                        btn.disconnect()
+                    for btn in epicsElapsedTimeBtns_PLTM:
+                        btn.disconnect()
+                    self.widget.dead_time_indicator.disconnect()
                 self.blockSignals(False)
-                live_val.disconnect()
-                real_val.disconnect()
-                for btn in epicsElapsedTimeBtns_PRTM:
-                    btn.disconnect()
-                for btn in epicsElapsedTimeBtns_PLTM:
-                    btn.disconnect()
-                self.widget.dead_time_indicator.disconnect()
-            self.blockSignals(False)
-        self.mca = mca
+            self.mca = mca
         
             
 
@@ -530,9 +531,9 @@ class hpmcaController(QObject):
     ########################################################################################
 
     def file_view_btn_callback(self, *args):
-        file = self.file_save_controller.McaFileName
-        if len(file):
-            self.file_save_controller.openFile(filename=file)
+        if self.fileMCAholder != None:
+        
+            self.set_file_mca(self.fileMCAholder)
 
         #pass
     def live_view_btn_callback(self, *args):
@@ -582,6 +583,7 @@ class hpmcaController(QObject):
         if self.mca !=None:
             rois = copy.deepcopy(self.roi_controller.roi)
             phases = self.phase_controller.get_phases()
+            
             self.lattice_refinement_controller.set_jcpds_directory(self.phase_controller.directories.phase)
             self.lattice_refinement_controller.set_mca(self.mca)
             self.lattice_refinement_controller.set_rois_phases(rois,phases)

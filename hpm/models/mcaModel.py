@@ -1645,12 +1645,12 @@ class McaCalibration():
         """
         q = 2. * pi / d
 
-        if 'E' in self.available_scales:
+        if self.dx_type == 'edx':
             if tth ==None:
                 tth = self.two_theta
             e   = 6.199 /((6.28318530718 /q)*np.sin(self.two_theta*0.008726646259972))
             channel = self.energy_to_channel(e)
-        elif "2 theta" in self.available_scales:
+        elif self.dx_type == 'adx':
             
             two_theta = self. q_to_2theta(q, wavelength)
             channel = self.energy_to_channel(two_theta)

@@ -259,6 +259,9 @@ class RoiController(QObject):
                 elif self.unit == 'd':
                     x_fit = self.calibration.channel_to_d(x_fit)
                     x = self.calibration.channel_to_d(x)
+                elif self.unit == '2 theta':
+                    x_fit = self.calibration.channel_to_tth(x_fit)
+                    x = self.calibration.channel_to_tth(x)
                 if label == '':
                     label = '#'+str(ind) 
                 label = 'ROI '+label+' fit'

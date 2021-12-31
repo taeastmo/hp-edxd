@@ -51,7 +51,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         t.setFixedWidth(110)
         self._button_layout.addWidget(t)
         self.plot_cal = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
-        t.setText(f'Plot \N{GREEK CAPITAL LETTER DELTA} E')
+        t.setText(f'Plot \N{GREEK CAPITAL LETTER DELTA} d')
         t.setFixedWidth(110)
         self._button_layout.addWidget(t)
         self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
@@ -69,18 +69,21 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.phases_lbl.setAcceptRichText(True)
         self._body_layout = QtWidgets.QHBoxLayout()
         self._layout.addLayout(self._body_layout)
+
+
+        
         self.init_roi_view()
         self.verticalLayout_4.addWidget(self.phases_lbl)
         self._body_layout.addLayout(self.verticalLayout_4)
         self.setLayout(self._layout)
         self.style_widgets()
 
-    def update_roi(self, ind, ecalc, ediff):
+    def update_roi(self, ind, dcalc, ddiff):
         self.roi_tw.blockSignals(True)
         counts_item = self.roi_tw.item(ind, 4)
-        counts_item.setText(str(ecalc))
+        counts_item.setText('%.4f' % dcalc)
         fwhm_item = self.roi_tw.item(ind, 5)
-        fwhm_item.setText(str(ediff))
+        fwhm_item.setText('%.4f' % ddiff)
         self.roi_tw.blockSignals(False)
 
     def set_rois(self, rois):
@@ -102,6 +105,8 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
     def set_jcpds_directory(self, jcpds_directory):
         self.jcpds_directory = jcpds_directory
 
+    
+
     def init_roi_view(self):
         self.initUI()
 
@@ -112,17 +117,19 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
             row=i+1
             use = self.roi[i].use==1
             label = self.roi[i].label.split(' ')[-1]
-            eobs = '%.3f' % self.roi[i].energy
-            ecalc = '%.4f' % 0.0
-            ediff = '%.4f' % 0.0
-            self.add_roi(row, use, label, eobs, ecalc, ediff)
+            dobs = '%.4f' % self.roi[i].d_spacing
+            dcalc = '%.4f' % 0.0
+            ddiff = '%.4f' % 0.0
+            self.add_roi(row, use, label, dobs, dcalc, ddiff)
 
 
     ################################################################################################
     # Now comes all the roi tw stuff
     ################################################################################################
 
-    def add_roi(self, row, use, label, eobs ,ecalc, ediff, silent=False):
+    
+
+    def add_roi(self, row, use, label, dobs ,dcalc, ddiff, silent=False):
 
         self.roi_tw.blockSignals(True)
         current_rows = self.roi_tw.rowCount()
@@ -150,17 +157,17 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.roi_tw.setItem(current_rows, 2, name_item)
         self.name_items.append(name_item)
 
-        centroid_item = QtWidgets.QTableWidgetItem(eobs)
+        centroid_item = QtWidgets.QTableWidgetItem(dobs)
         centroid_item.setFlags(centroid_item.flags() & ~QtCore.Qt.ItemIsEditable)
         centroid_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.roi_tw.setItem(current_rows, 3, centroid_item)
 
-        counts_item = QtWidgets.QTableWidgetItem(ecalc)
+        counts_item = QtWidgets.QTableWidgetItem(dcalc)
         counts_item.setFlags(counts_item.flags() & ~QtCore.Qt.ItemIsEditable)
         counts_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         self.roi_tw.setItem(current_rows, 4, counts_item)
 
-        fwhm_item = QtWidgets.QTableWidgetItem(ediff)
+        fwhm_item = QtWidgets.QTableWidgetItem(ddiff)
         fwhm_item.setFlags(fwhm_item.flags() & ~QtCore.Qt.ItemIsEditable)
         fwhm_item.setTextAlignment(QtCore.Qt.AlignHCenter| QtCore.Qt.AlignVCenter)
         self.roi_tw.setItem(current_rows, 5, fwhm_item)
@@ -190,11 +197,19 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         header_view.setResizeMode(2, QtWidgets.QHeaderView.Stretch)
         header_view.setResizeMode(3, QtWidgets.QHeaderView.Stretch)
         self.default_header = ['Use','ROI','HKL',
-            'E obs','E calc',f'\N{GREEK CAPITAL LETTER DELTA} E']
+            'd obs','d calc',f'\N{GREEK CAPITAL LETTER DELTA} d']
         self.header = copy.deepcopy(self.default_header)
         self.roi_tw.setHorizontalHeaderLabels(self.header)
         self.roi_tw.setItemDelegate(NoRectDelegate())
         self.verticalLayout_4.addWidget(self.roi_tw)
+
+    '''def set_tw_header_unit(self, unit, unit_=''):
+        if unit_ !='':
+            unit_=' ('+unit_+')'
+        self.header[3] = unit + " " + self.default_header[3]
+        self.header[4] = unit + " " + self.default_header[4]
+        self.header[5] =  self.default_header[5] + " " + unit
+        self.roi_tw.setHorizontalHeaderLabels(self.header)'''
 
     def del_roi(self, ind, silent=False):
         self.roi_tw.blockSignals(True)
