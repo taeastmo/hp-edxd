@@ -195,6 +195,18 @@ class ListTableWidget(QtWidgets.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.setShowGrid(False)
 
+class MultirowListTableWidget(QtWidgets.QTableWidget):
+    def __init__(self, columns=3):
+        super(ListTableWidget, self).__init__()
+
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.MultiSelection)
+        self.setColumnCount(columns)
+        self.horizontalHeader().setVisible(False)
+        self.verticalHeader().setVisible(False)
+        self.horizontalHeader().setStretchLastSection(True)
+        self.setShowGrid(False)
+
 
 class NoRectDelegate(QtWidgets.QItemDelegate):
     def __init__(self):

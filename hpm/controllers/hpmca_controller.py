@@ -396,6 +396,7 @@ class hpmcaController(QObject):
         
         #initialize roi controller
         self.roi_controller = self.plotController.roi_controller 
+        self.roi_controller .rois_widget.lock_rois_btn.toggled. connect( self.lock_rois_btn_callback)
         
         # initialize phase controller
         self.phase_controller = PhaseController(self.widget.pg, self.mca, 
@@ -574,6 +575,14 @@ class hpmcaController(QObject):
     def roi_module(self):
         if self.mca !=None:
             self.roi_controller.show_view()
+
+    def lock_rois_btn_callback(self, locked):
+        if locked:
+            rois = copy.deepcopy(self.mca.get_rois()[0])
+            
+        else:
+            rois = []
+        self.file_save_controller.persistent_rois = rois
             
     def fluorescence_module(self):
         if self.mca !=None:

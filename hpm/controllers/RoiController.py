@@ -40,6 +40,7 @@ class RoiController(QObject):
         self.set_mca(mcaModel)
         self.mcaController = mainController
         self.roi = []
+        self.roi_sets = []
         self.rois_widget = RoiWidget()
         self.plot_fit_window = plotFitWindow()
         
@@ -52,6 +53,7 @@ class RoiController(QObject):
         self.selectedROI = 0
         self.selectedROI_persist = 0
         self.roiLen = 0
+        self.roiSetsLen = 0
         self.dataLen = self.mca.nchans
         self.pattern_widget = plotWidget
         self.plotController = plotController
@@ -59,7 +61,7 @@ class RoiController(QObject):
         self.unit_ = 'KeV'
         self.roi_cursor = []
         color = self.add_roi_cursor_plot()
-        self.rois_widget.set_tw_header_unit(self.unit,self.unit_)
+        self.rois_widget.roi_tw.set_tw_header_unit(self.unit,self.unit_)
        
         #self.phases =dict()
         self.create_signals()
@@ -78,11 +80,12 @@ class RoiController(QObject):
         self.connect_click_function(self.rois_widget.clear_btn, self.clear_rois)
         self.connect_click_function(self.rois_widget.show_fit_btn, self.show_fit)
         self.connect_click_function(self.rois_widget.save_peaks_btn, self.save_peaks)
+        
 
         self.rois_widget.widget_closed.connect(self.view_closed)
         self.rois_widget.roi_tw.currentCellChanged.connect(self.roi_selection_changed)
         self.rois_widget.show_cb_state_changed.connect(self.change_roi_use)
-        self.rois_widget.name_item_changed.connect(self.edit_roi_name)
+        self.rois_widget.roi_tw.name_item_changed.connect(self.edit_roi_name)
 
         self.plot_fit_window.widget_closed.connect(self.plot_fit_closed)
         self.rois_widget.key_signal.connect(self.key_sig_callback)
@@ -106,6 +109,8 @@ class RoiController(QObject):
         if filename != '':
             self.mca.save_peaks_csv(filename)
 
+    
+
     def show_view(self):
         self.active = True
         #self.update_rois()
@@ -125,13 +130,50 @@ class RoiController(QObject):
         unit = self.unit
         if unit == '2 theta':
             unit = u'2θ'
-        self.rois_widget.set_tw_header_unit(unit,self.unit_)
+        self.rois_widget.roi_tw. set_tw_header_unit(unit,self.unit_)
         #self.update_rois(use_only=True)
         if self.fitPlots is not None:
             if self.plotFitOpen:
-                cur_ind = self.rois_widget.get_selected_roi_row()
+                cur_ind = self.rois_widget.roi_tw. get_selected_roi_row()
                 if cur_ind >= 0 :
                     self.updateFitPlot(cur_ind)
+
+
+    def update_set_rois (self, roi_sets, use_only=False):
+        oldLen =  copy.copy(self.roiSetsLen)
+        self.selectedROI_persist = copy.copy(self.selectedROI)
+       
+
+        newLen = len(roi_sets)
+        self.nrois = len(roi_sets)
+        self.blockSignals(True)
+        self.rois_widget.roi_sets_tw.blockSignals(True)
+        if newLen == oldLen:
+            for name in roi_sets:
+                index = roi_sets.index(name)
+                
+                self.update_roi_by_ind(index, name, True)
+        else:
+            while self.rois_widget.roi_sets_tw.rowCount() > 0:
+                self.rois_widget.roi_sets_tw.del_roi(self.rois_widget.roi_sets_tw.rowCount()-1,silent=True)
+            for name in roi_sets:
+        
+                self.rois_widget.roi_sets_tw.add_roi(name, True,  silent=True)
+        self.blockSignals(False)              
+        self.rois_widget.roi_sets_tw.blockSignals(False)    
+        self.rois_widget.roi_sets_tw.blockSignals(False)      
+        if self.selectedROI_persist<len(roi_sets):
+            sel = np.clip(self.selectedROI_persist,0,31)
+        else: 
+            sel = len(roi_sets)-1
+        self.rois_widget.roi_sets_tw. select_roi(sel) 
+        self.selectedROI=sel
+        
+        
+
+        self.roiSetsLen = copy.copy(self.nrois)
+        if self.plotFitOpen:
+            self.show_fit()
 
     def update_rois(self, use_only=False):
         oldLen =  copy.copy(self.roiLen)
@@ -143,10 +185,17 @@ class RoiController(QObject):
         self.calibration = self.mca.get_calibration()[0]
         if not use_only:
             self.roi = self.mca.get_rois()[0]
+            sets = []
+            for r in self.roi:
+                name_base = r.label.split(' ')[0]
+                if not name_base in sets:
+                    sets.append(name_base)
+            self.update_set_rois(sets)
+
         newLen = len(self.roi)
         self.nrois = len(self.roi)
         self.blockSignals(True)
-        self.rois_widget.blockSignals(True)
+        self.rois_widget.roi_tw.blockSignals(True)
         if newLen == oldLen:
             for r in self.roi:
                 index = self.roi.index(r)
@@ -154,24 +203,27 @@ class RoiController(QObject):
                 self.update_roi_by_ind(index, r.use, r.label, '%.3f'%(centroid), '%.3f'%(fwhm), '%d'%(counts))
         else:
             while self.rois_widget.roi_tw.rowCount() > 0:
-                self.rois_widget.del_roi(self.rois_widget.roi_tw.rowCount()-1,silent=True)
+                self.rois_widget.roi_tw.del_roi(self.rois_widget.roi_tw.rowCount()-1,silent=True)
             for r in self.roi:
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
-                self.rois_widget.add_roi(r.use, r.label, 
+                self.rois_widget.roi_tw.add_roi(r.use, r.label, 
                                 '%.3f'%(centroid), '%.3f'%(fwhm), self.roi.index(r),'%d'%(counts),  silent=True)
         self.blockSignals(False)              
-        self.rois_widget.blockSignals(False)    
+        self.rois_widget.roi_tw.blockSignals(False)    
         self.rois_widget.roi_tw.blockSignals(False)      
         if self.selectedROI_persist<len(self.roi):
             sel = np.clip(self.selectedROI_persist,0,31)
         else: 
             sel = len(self.roi)-1
-        self.rois_widget.select_roi(sel) 
+        self.rois_widget.roi_tw. select_roi(sel) 
         self.selectedROI=sel
         self.emit_rois_updated()
+        
+
         self.roiLen = copy.copy(self.nrois)
         if self.plotFitOpen:
             self.show_fit()
+        
      
 
     def get_roi_attributes(self, roi, unit):
@@ -197,7 +249,7 @@ class RoiController(QObject):
         return centroid, fwhm, counts
 
     def emit_rois_updated(self):
-        selection = self.rois_widget.get_selected_roi_row()
+        selection = self.rois_widget.roi_tw. get_selected_roi_row()
         if selection >-1 and selection < len(self.roi):
             out = self.roi[selection].label
             
@@ -227,7 +279,7 @@ class RoiController(QObject):
                 else:
                     new_ind=new_ind-n
             if new_ind != curr_ind:
-                self.rois_widget.select_roi(new_ind)    
+                self.rois_widget.roi_tw.select_roi(new_ind)    
 
     def roi_selection_changed(self, row, **kwargs):
         cur_ind = row
@@ -276,7 +328,7 @@ class RoiController(QObject):
             
 
     def show_fit(self):
-        cur_ind = self.rois_widget.get_selected_roi_row()
+        cur_ind = self.rois_widget.roi_tw. get_selected_roi_row()
         if not self.plotFitOpen:
             self.plot_fit_window.raise_widget()
             self.plotFitOpen = True
@@ -296,7 +348,7 @@ class RoiController(QObject):
         """
         Deletes the currently selected roi
         """
-        ind = self.rois_widget.get_selected_roi_row()
+        ind = self.rois_widget.roi_tw. get_selected_roi_row()
         if ind >= 0:
             rois = self.roi
             if ind >=0 and len(rois)>0 and ind < len(rois):
@@ -309,7 +361,7 @@ class RoiController(QObject):
                 self.blockSignals(False)
 
     def roi_removed(self, ind):
-        self.rois_widget.del_roi(ind)
+        self.rois_widget.roi_tw. del_roi(ind)
         
 
     def clear_rois(self, *args, **kwargs):
@@ -409,10 +461,10 @@ class RoiController(QObject):
             self.update_rois()
                 
     def update_roi_by_ind(self, ind, use, name, centroid, fwhm, counts):
-        self.rois_widget.update_roi(ind, use, name, centroid, fwhm, counts)
+        self.rois_widget.roi_tw. update_roi(ind, use, name, centroid, fwhm, counts)
 
     def roi_name_changed(self, ind, name):
-        self.rois_widget.rename_roi(ind, name)
+        self.rois_widget.roi_tw. rename_roi(ind, name)
 
 
 

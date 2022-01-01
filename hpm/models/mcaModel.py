@@ -577,7 +577,7 @@ class MCA():  #
     ########################################################################
     
     
-    def read_file(self, file, netcdf=0, detector=0):
+    def read_file(self, file, netcdf=0, detector=0, persistent_rois=[]):
         """
         Reads a disk file into an MCA object.  If the netcdf=1 flag is set it
         reads a netcdf file, else it assumes the file is ASCII.
@@ -623,7 +623,11 @@ class MCA():  #
             self.nchans = len(r['data'][0])
             self.n_detectors=len(self.data)
             self.elapsed = r['elapsed']
-            self.set_rois(r['rois'][0], detector=0) 
+            if persistent_rois == []:
+                rois = r['rois'][0]
+            else:
+                rois = persistent_rois
+            self.set_rois(rois, detector=0) 
             self.environment = r['environment']
             self.name = os.path.split(file)[-1]
             self.dx_type = r['dx_type']

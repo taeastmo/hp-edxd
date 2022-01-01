@@ -53,6 +53,8 @@ class FileSaveController(object):
         self.pvs_file = {}
         record_name_file = defaults_options.file_record
         self.record_name_file = record_name_file 
+
+        self.persistent_rois = []
         
         if epics_sync:
             if record_name_file != None:
@@ -324,6 +326,7 @@ class FileSaveController(object):
 
     def openFile(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
+        persistent_rois = self.persistent_rois
         if filename is None:
             filename = open_file_dialog(self.widget, "Open spectrum file.",
                                     self.mca_controller.working_directories .readdata)
@@ -333,7 +336,7 @@ class FileSaveController(object):
                     success = self.mca_controller.initMCA('file',filename) == 0
                 else:
                     #start_time = time.time()
-                    [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0)
+                    [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0, persistent_rois=persistent_rois)
                     #print("--- %s seconds ---" % (time.time() - start_time))
                 if success:
                     self.McaFileName = filename
