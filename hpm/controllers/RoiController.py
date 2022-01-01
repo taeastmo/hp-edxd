@@ -25,6 +25,8 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from hpm.widgets.RoiWidget import RoiWidget, plotFitWindow
 
+from hpm.models.roiSetsModel import RoiSets
+
 from hpm.models.mcaModel import  McaROI
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -40,7 +42,7 @@ class RoiController(QObject):
         self.set_mca(mcaModel)
         self.mcaController = mainController
         self.roi = []
-        self.roi_sets = []
+        self.roi_sets = RoiSets()
         self.rois_widget = RoiWidget()
         self.plot_fit_window = plotFitWindow()
         
@@ -139,7 +141,9 @@ class RoiController(QObject):
                     self.updateFitPlot(cur_ind)
 
 
-    def update_set_rois (self, roi_sets, use_only=False):
+    def update_set_rois (self, use_only=False):
+
+        roi_sets = self.roi_sets.sets
         oldLen =  copy.copy(self.roiSetsLen)
         self.selectedROI_persist = copy.copy(self.selectedROI)
        
@@ -185,12 +189,13 @@ class RoiController(QObject):
         self.calibration = self.mca.get_calibration()[0]
         if not use_only:
             self.roi = self.mca.get_rois()[0]
-            sets = []
+            sets = self.roi_sets.sets
             for r in self.roi:
                 name_base = r.label.split(' ')[0]
                 if not name_base in sets:
-                    sets.append(name_base)
-            self.update_set_rois(sets)
+                    sets[name_base]=[]
+                sets[name_base].append(r)
+            self.update_set_rois()
 
         newLen = len(self.roi)
         self.nrois = len(self.roi)
