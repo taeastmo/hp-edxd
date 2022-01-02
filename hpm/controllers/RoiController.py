@@ -153,10 +153,11 @@ class RoiController(QObject):
         self.blockSignals(True)
         self.rois_widget.roi_sets_tw.blockSignals(True)
         if newLen == oldLen:
+            names = list(roi_sets.keys())
             for name in roi_sets:
-                index = roi_sets.index(name)
+                index = names.index(name)
                 
-                self.update_roi_by_ind(index, name, True)
+                #self.update_set_roi_by_ind(index, name, True)
         else:
             while self.rois_widget.roi_sets_tw.rowCount() > 0:
                 self.rois_widget.roi_sets_tw.del_roi(self.rois_widget.roi_sets_tw.rowCount()-1,silent=True)
