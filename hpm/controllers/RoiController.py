@@ -86,7 +86,7 @@ class RoiController(QObject):
 
         self.rois_widget.widget_closed.connect(self.view_closed)
         self.rois_widget.roi_tw.currentCellChanged.connect(self.roi_selection_changed)
-        self.rois_widget.show_cb_state_changed.connect(self.change_roi_use)
+        #self.rois_widget.show_cb_state_changed.connect(self.change_roi_use)
         self.rois_widget.roi_tw.name_item_changed.connect(self.edit_roi_name)
 
         self.plot_fit_window.widget_closed.connect(self.plot_fit_closed)
@@ -115,9 +115,9 @@ class RoiController(QObject):
 
     def show_view(self):
         self.active = True
-        #self.update_rois()
+        
         self.rois_widget.raise_widget()
-        #print('roi view opened')
+       
     def view_closed(self):
         self.active = False
         if self.plotFitOpen:
@@ -125,7 +125,7 @@ class RoiController(QObject):
             self.plot_fit_window.close()
 
     def update_log_y_scale (self, log_mode):
-        self.update_roi_cursor_lines()
+        self.update_roi_cursor_line()
 
     def update_unit (self):
         self.unit_ = self.plotController.units[self.unit]
@@ -133,7 +133,7 @@ class RoiController(QObject):
         if unit == '2 theta':
             unit = u'2θ'
         self.rois_widget.roi_tw. set_tw_header_unit(unit,self.unit_)
-        #self.update_rois(use_only=True)
+        
         if self.fitPlots is not None:
             if self.plotFitOpen:
                 cur_ind = self.rois_widget.roi_tw. get_selected_roi_row()
@@ -181,26 +181,26 @@ class RoiController(QObject):
             self.show_fit()
 
     def update_rois(self, use_only=False):
-        oldLen =  copy.copy(self.roiLen)
-        self.selectedROI_persist = copy.copy(self.selectedROI)
+
+        if not use_only:
+            self.roi = self.get_rois_for_use()
+
         unit =self.plotController.get_unit()
         if self.unit !=unit:
             self.unit=unit
             self.update_unit()
-        self.calibration = self.mca.get_calibration()[0]
-        if not use_only:
-            self.roi = self.mca.get_rois()[0]
-            sets = self.roi_sets.sets
-            for r in self.roi:
-                name_base = r.label.split(' ')[0]
-                if not name_base in sets:
-                    sets[name_base]=[]
-                sets[name_base].append(r)
-            self.update_set_rois()
 
+        self.update_widgets(self.roi)
+
+        
+    def update_widgets(self, roi):
+
+        oldLen =  copy.copy(self.roiLen)
+        self.selectedROI_persist = copy.copy(self.selectedROI)
+        
         newLen = len(self.roi)
         self.nrois = len(self.roi)
-        self.blockSignals(True)
+        
         self.rois_widget.roi_tw.blockSignals(True)
         if newLen == oldLen:
             for r in self.roi:
@@ -214,9 +214,10 @@ class RoiController(QObject):
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
                 self.rois_widget.roi_tw.add_roi(r.use, r.label, 
                                 '%.3f'%(centroid), '%.3f'%(fwhm), self.roi.index(r),'%d'%(counts),  silent=True)
-        self.blockSignals(False)              
-        self.rois_widget.roi_tw.blockSignals(False)    
+               
+       
         self.rois_widget.roi_tw.blockSignals(False)      
+
         if self.selectedROI_persist<len(self.roi):
             sel = np.clip(self.selectedROI_persist,0,31)
         else: 
@@ -229,8 +230,36 @@ class RoiController(QObject):
         self.roiLen = copy.copy(self.nrois)
         if self.plotFitOpen:
             self.show_fit()
+
+    ####################################################################################
+    # interaction with mca model
+    ####################################################################################
         
-     
+    def add_roi_to_mca(self, roi, det=0):
+        # adding rois to mca should happen only throgh one place
+        self.mca.add_roi(roi, detector=det)
+
+    def del_roi_from_mca(self, ind, det=0):
+        # deleting rois from mca should happen only throgh one place
+        self.mca.delete_roi(ind,det)
+
+    def clear_mca_rois(self):
+        # clearing rois from mca should happen only throgh one place
+        self.mca.clear_rois()
+
+    def get_rois_for_use(self):
+        rois = self.mca.get_rois()[0]
+        return rois
+
+    def set_mca_rois(self, rois):
+        self.mca.auto_process_rois = False
+        self.mca.set_rois(rois)
+        self.mca.auto_process_rois = True
+
+    ####################################################################################
+    # end interaction with mca model
+    ####################################################################################
+
 
     def get_roi_attributes(self, roi, unit):
         if self.unit == 'E': 
@@ -262,7 +291,7 @@ class RoiController(QObject):
         else: 
             out = ''
         self.selectedROI = selection
-        self.update_roi_cursor_lines()
+        self.update_roi_cursor_line()
         self.roi_updated_signal.emit(selection, out)
 
     def navigate_btn_click_callback(self, action=''):
@@ -296,7 +325,7 @@ class RoiController(QObject):
             out = self.roi[cur_ind].label
                
         else: out = ''
-        self.update_roi_cursor_lines() 
+        self.update_roi_cursor_line() 
         self.roi_selection_changed_signal.emit(cur_ind, out)
         #print('selected: ' + str(cur_ind))
 
@@ -344,11 +373,11 @@ class RoiController(QObject):
         self.plotFitOpen = False
 
 
-    def change_roi_use(self, ind, use):
+    '''def change_roi_use(self, ind, use):
         rois = self.roi
         if ind >=0 and len(rois)>0 and ind < len(rois):
             self.mca.change_roi_use(ind, use)  
-            self.update_rois(use_only=True)
+            self.update_rois(use_only=True)'''
             
     def remove_btn_click_callback(self, *args, **kwargs):
         """
@@ -359,12 +388,12 @@ class RoiController(QObject):
             rois = self.roi
             if ind >=0 and len(rois)>0 and ind < len(rois):
                 self.blockSignals(True)
-                self.mca.delete_roi(ind,0)
+                self.del_roi_from_mca(ind,0)
                 self.roi_removed(ind)
-                self.roiLen = self.roiLen -1 
+                
                 self.blockSignals(False)
                 self.update_rois()
-                self.blockSignals(False)
+                
 
     def roi_removed(self, ind):
         self.rois_widget.roi_tw. del_roi(ind)
@@ -377,7 +406,7 @@ class RoiController(QObject):
         self.blockSignals(True)
         while self.rois_widget.roi_tw.rowCount() > 0:
             self.roi_removed(self.rois_widget.roi_tw.rowCount()-1)
-        self.mca.clear_rois()
+        self.clear_mca_rois()
         self.roiLen = 0
         self.blockSignals(False)
         self.update_rois()
@@ -404,8 +433,8 @@ class RoiController(QObject):
             rois.append(self.make_roi_by_channel(r['channel'],r['halfwidth'], \
                                                  r['label'],r['name'],r['hkl']))
         rois = self.validate_rois(rois)
-        #self.phases[phase.name]=[rois,phase]
-        self.mca.add_rois(rois, detector=0)
+    
+        self.add_roi_to_mca(rois, detector=0)
         self.blockSignals(False)
         self.update_rois()
 
@@ -426,7 +455,7 @@ class RoiController(QObject):
         for r in reflections:
             rois.append(self.make_roi_by_channel(r['channel'],r['halfwidth'],r['label']))
         rois = self.validate_rois(rois)
-        self.mca.add_rois(rois, detector=0)
+        self.add_roi_to_mca(rois, detector=0)
         self.blockSignals(False)
         self.update_rois()
 
@@ -449,7 +478,7 @@ class RoiController(QObject):
         dataLen = self.mca.nchans
         if left >= halfWidth and right <= dataLen-1-halfWidth:
             newRoi = McaROI(left,right,label=label)
-            self.mca.add_roi(newRoi, detector=0)
+            self.add_roi_to_mca(newRoi, detector=0)
             ind = self.mca.find_roi(newRoi.left,newRoi.right)
             self.selectedROI = ind
             self.update_rois()
@@ -458,12 +487,12 @@ class RoiController(QObject):
         rois = self.roi
         
         if ind >=0 and len(rois)>0 and ind < len(rois):
-            self.mca.auto_process_rois = False
+            
             curr_roi = rois[ind]
             curr_roi.label = name
             rois[ind] = curr_roi
-            self.mca.set_rois(rois)
-            self.mca.auto_process_rois = True
+            self.set_mca_rois(rois)
+            
             self.update_rois()
                 
     def update_roi_by_ind(self, ind, use, name, centroid, fwhm, counts):
@@ -473,7 +502,7 @@ class RoiController(QObject):
         self.rois_widget.roi_tw. rename_roi(ind, name)
 
 
-
+    
 
     ###############################################################
     #######  roi cursor stuff  ####################################
@@ -503,7 +532,7 @@ class RoiController(QObject):
     def clear_roi_cursor(self):
         self.show_state_changed(0,False)
 
-    def update_roi_cursor_lines(self):
+    def update_roi_cursor_line(self):
         """
         """
         roi_ind = self.selectedROI
