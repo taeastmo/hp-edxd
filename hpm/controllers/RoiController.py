@@ -25,7 +25,7 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog
 from hpm.widgets.RoiWidget import RoiWidget, plotFitWindow
 
-from hpm.models.roiSetsModel import RoiSets
+from hpm.models.roiSetsModel import RoiModel
 
 from hpm.models.mcaModel import  McaROI
 from PyQt5.QtCore import pyqtSignal, QObject
@@ -42,7 +42,7 @@ class RoiController(QObject):
         self.set_mca(mcaModel)
         self.mcaController = mainController
         self.roi = []
-        self.roi_sets = RoiSets()
+        self.roi_sets = RoiModel()
         self.rois_widget = RoiWidget()
         self.plot_fit_window = plotFitWindow()
         
