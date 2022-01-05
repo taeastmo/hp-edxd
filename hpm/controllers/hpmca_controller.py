@@ -121,11 +121,11 @@ class hpmcaController(QObject):
         
     def create_connections(self):
         ui = self.widget
-        ui.btnROIadd.clicked.connect(lambda:self.roi_action('add'))
+        '''ui.btnROIadd.clicked.connect(lambda:self.roi_action('add'))
         ui.btnROIclear.clicked.connect(lambda:self.roi_action('clear'))
         ui.btnROIdelete.clicked.connect(lambda:self.roi_action('delete'))
         ui.btnROIprev.clicked.connect(lambda:self.roi_action('prev'))
-        ui.btnROInext.clicked.connect(lambda:self.roi_action('next'))
+        ui.btnROInext.clicked.connect(lambda:self.roi_action('next'))'''
         ui.btnKLMprev.clicked.connect(lambda:self.xrf_action('prev'))
         ui.btnKLMnext.clicked.connect(lambda:self.xrf_action('next'))
         ui.lineEdit_2.editingFinished.connect(lambda:self.xrf_search(ui.lineEdit_2.text()))
@@ -619,7 +619,7 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def roi_action(self, action):
+    '''def roi_action(self, action):
         if self.mca != None:
             if action == 'add':
                 if self.plotController.is_cursor_in_range():
@@ -653,7 +653,7 @@ class hpmcaController(QObject):
                 pass
         else:
             if action == 'add':
-                self.widget.btnROIadd.setChecked(False)
+                self.widget.btnROIadd.setChecked(False)'''
 
     def roi_selection_updated(self, text):
         self.widget.lineROI.setText(text)

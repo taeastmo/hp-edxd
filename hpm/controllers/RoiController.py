@@ -17,6 +17,7 @@
 
 from functools import partial
 import copy
+from typing import Iterator
 import utilities.centroid
 import numpy as np
 import os
@@ -68,15 +69,23 @@ class RoiController(QObject):
         #self.phases =dict()
         self.create_signals()
         
-
     def set_mca(self, mca):
         self.mca = mca
         self.calibration = self.mca.get_calibration()[0]
+    
 
     def get_calibration(self):
         return self.calibration
         
     def create_signals(self):
+
+        ui = self.mcaController.widget
+        ui.btnROIadd.clicked.connect(lambda:self.roi_action('add'))
+        ui.btnROIclear.clicked.connect(lambda:self.roi_action('clear'))
+        ui.btnROIdelete.clicked.connect(lambda:self.roi_action('delete'))
+        ui.btnROIprev.clicked.connect(lambda:self.roi_action('prev'))
+        ui.btnROInext.clicked.connect(lambda:self.roi_action('next'))
+
         self.plotController.logScaleYUpdated.connect(self.update_log_y_scale)
         self.connect_click_function(self.rois_widget.delete_btn, self.remove_btn_click_callback)
         self.connect_click_function(self.rois_widget.clear_btn, self.clear_rois)
@@ -98,20 +107,6 @@ class RoiController(QObject):
     def key_sig_callback(self, sig):
         if sig == 'delete' :
             self.remove_btn_click_callback()
-
-
-
-    def save_peaks(self):
-        img_filename, _ = os.path.splitext(os.path.basename(self.mca.name))
-        filename = save_file_dialog(
-            self.mcaController.widget, "Save ROI's Data.",
-            os.path.join(self.mcaController.working_directories.savedata,
-                        img_filename + '.csv'),
-            ('Comma separated values (*.csv)'))
-        if filename != '':
-            self.mca.save_peaks_csv(filename)
-
-    
 
     def show_view(self):
         self.active = True
@@ -147,7 +142,6 @@ class RoiController(QObject):
         oldLen =  copy.copy(self.roiSetsLen)
         self.selectedROI_persist = copy.copy(self.selectedROI)
        
-
         newLen = len(roi_sets)
         self.nrois = len(roi_sets)
         self.blockSignals(True)
@@ -232,12 +226,16 @@ class RoiController(QObject):
             self.show_fit()
 
     ####################################################################################
-    # interaction with mca model
+    # roi-related interaction with mca model
     ####################################################################################
-        
-    def add_roi_to_mca(self, roi, det=0):
+
+    def add_rois_to_mca(self, rois, detector=0):
+        # rois: list of McaRoi objects
         # adding rois to mca should happen only throgh one place
-        self.mca.add_roi(roi, detector=det)
+        if type(rois) == list:
+            self.mca.add_rois(rois, detector=detector, source = 'controller')
+        else:
+            self.mca.add_roi(rois, detector=detector, source = 'controller')
 
     def del_roi_from_mca(self, ind, det=0):
         # deleting rois from mca should happen only throgh one place
@@ -253,13 +251,63 @@ class RoiController(QObject):
 
     def set_mca_rois(self, rois):
         self.mca.auto_process_rois = False
-        self.mca.set_rois(rois)
+        self.mca.set_rois(rois, source = 'controller')
         self.mca.auto_process_rois = True
 
+    def save_peaks(self):
+        img_filename, _ = os.path.splitext(os.path.basename(self.mca.name))
+        filename = save_file_dialog(
+            self.mcaController.widget, "Save ROI's Data.",
+            os.path.join(self.mcaController.working_directories.savedata,
+                        img_filename + '.csv'),
+            ('Comma separated values (*.csv)'))
+        if filename != '':
+            self.mca.save_peaks_csv(filename)
+
+    
+
     ####################################################################################
-    # end interaction with mca model
+    # end roi-related interaction with mca model
     ####################################################################################
 
+
+    def roi_action(self, action):
+        widget = self.mcaController.widget
+        if self.mca != None:
+            
+            if action == 'add':
+                if self.plotController.is_cursor_in_range():
+                    #self.add_roi_btn()
+                    mode = widget.btnROIadd.text()
+                    #self.plotController.roi_construct(mode)
+                    widths = {'E': 0.7, 'q': 0.1, 'Channel':20, 'd': 0.1}
+                    if mode == 'Add':
+                        widget.btnROIadd.setText("Set")
+                        if self.unit in widths:
+                            width = widths[self.unit]
+                        else:
+                            width = 2
+                        self.plotController.roi_construct(mode,width=width)
+                    else:
+                        widget.btnROIadd.setText("Add")
+                        reg = self.plotController.roi_construct(mode)
+                        if reg is not None:
+                            self.addROIbyChannel(reg[0],reg[1])
+                else:
+                    widget.btnROIadd.setChecked(False)
+            elif action == 'delete':
+                self.remove_btn_click_callback()
+            elif action == 'clear':
+                self.clear_rois()
+            elif action == 'next':
+                self.navigate_btn_click_callback('next')
+            elif action == 'prev':
+                self.navigate_btn_click_callback('prev')
+            else: 
+                pass
+        else:
+            if action == 'add':
+                widget.btnROIadd.setChecked(False)
 
     def get_roi_attributes(self, roi, unit):
         if self.unit == 'E': 
@@ -412,10 +460,10 @@ class RoiController(QObject):
         self.update_rois()
 
 
-    def addROISbyE(self, e):
+    def addROISbyE(self, e_rois):
         E2C = self.get_calibration().energy_to_channel
         rois = []
-        for roi in e:
+        for roi in e_rois:
             r={}
             ch=E2C(roi[0])
             hw=roi[1]
@@ -434,7 +482,7 @@ class RoiController(QObject):
                                                  r['label'],r['name'],r['hkl']))
         rois = self.validate_rois(rois)
     
-        self.add_roi_to_mca(rois, detector=0)
+        self.add_rois_to_mca(rois, detector=0)
         self.blockSignals(False)
         self.update_rois()
 
@@ -455,7 +503,7 @@ class RoiController(QObject):
         for r in reflections:
             rois.append(self.make_roi_by_channel(r['channel'],r['halfwidth'],r['label']))
         rois = self.validate_rois(rois)
-        self.add_roi_to_mca(rois, detector=0)
+        self.add_rois_to_mca(rois, detector=0)
         self.blockSignals(False)
         self.update_rois()
 
@@ -472,13 +520,15 @@ class RoiController(QObject):
         return None
 
     def addROIbyChannel(self, channel, halfWidth=10, label=''):
+        # adds ROI to mca and triggers 
+        # a view update to set it as the selected roi in the widgets
         cP = channel
         left = cP - halfWidth
         right = cP + halfWidth + 1
         dataLen = self.mca.nchans
         if left >= halfWidth and right <= dataLen-1-halfWidth:
             newRoi = McaROI(left,right,label=label)
-            self.add_roi_to_mca(newRoi, detector=0)
+            self.add_rois_to_mca(newRoi, detector=0)
             ind = self.mca.find_roi(newRoi.left,newRoi.right)
             self.selectedROI = ind
             self.update_rois()

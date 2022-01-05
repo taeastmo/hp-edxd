@@ -65,6 +65,7 @@ class MCA():  #
         self.baseline_state = 0
         
         self.rois = [[]]
+        self.rois_from_file = [[]]
         self.auto_process_rois = True
 
         self.calibration = [McaCalibration()]
@@ -220,7 +221,7 @@ class MCA():  #
 
         #print("--- %s seconds ---" % (time.time() - start_time))
     ########################################################################
-    def set_rois(self, rois, energy=0, detector=0):
+    def set_rois(self, rois, energy=0, detector=0, source='file'):
         """
         Sets the region-of-interest parameters for the MCA.
         The rois information is contained in an object of class McaRoi.
@@ -247,7 +248,11 @@ class MCA():  #
             r2.right = 6.2
             mca.set_rois([r1,r2], energy=1)
         """
-        self.rois = [[]]
+        if source == 'file':
+            self.rois_from_file = [[]]
+            set_rois = self.rois_from_file
+        elif source == 'controller':
+            set_rois = self.rois
         
         for roi in rois:
             if self.auto_process_rois :
@@ -258,9 +263,57 @@ class MCA():  #
                 r.left =  self.calibration.energy_to_channel(r.left, clip=1)
                 r.right = self.calibration.energy_to_channel(r.right, clip=1)
             '''
-            self.rois[detector].append(roi)
+            set_rois[detector].append(roi)
+
+
     ########################################################################
-    def add_rois(self, rois, energy=0, detector = 0):
+    
+    def add_roi(self, roi, energy=0, detector=0, source='file'):
+        """
+        This procedure adds a new region-of-interest to the MCA.
+
+        Inputs:
+            roi: An object of type mcaROI.
+            
+        Kyetwords:
+            energy:
+                Set this flag to 1 to indicate that the .left and .right 
+                fields of roi are in units of energy rather than channel 
+                number.
+                
+        Example:
+            mca = Mca('mca.001')
+            roi = McaROI()
+            roi.left = 500
+            roi.right = 600
+            roi.label = 'Fe Ka'
+            mca,add_roi(roi)
+        """
+
+        if source == 'file':
+            
+            set_rois = self.rois_from_file
+        elif source == 'controller':
+            set_rois = self.rois
+
+        r = copy.copy(roi)
+        if self.auto_process_rois :
+            self.compute_roi(r, detector)
+        '''
+        if (energy == 1):
+            r.left = self.calibration.energy_to_channel(r.left, clip=1)
+            r.right = self.calibration.energy_to_channel(r.right, clip=1)
+        '''
+        set_rois[detector].append(r)
+
+        # Sort ROIs.  This sorts by left channel.
+        tempRois = copy.copy(set_rois[detector])
+        tempRois.sort()
+        
+        set_rois[detector] = tempRois
+        
+    
+    def add_rois(self, rois, energy=0, detector = 0, source ='file'):
         """
         Adds multiple new ROIs to the epicsMca.
 
@@ -268,9 +321,15 @@ class MCA():  #
             rois:
                 List of McaROI objects.
         """
+
+        if source == 'file':
+            
+            set_rois = self.rois_from_file
+        elif source == 'controller':
+            set_rois = self.rois
        
         n_new_rois = len(rois)
-        nrois = len(self.rois[detector])
+        nrois = len(set_rois[detector])
         new_total = n_new_rois + nrois
         if new_total > self.max_rois:
             extra = new_total - self.max_rois 
@@ -286,13 +345,13 @@ class MCA():  #
                 r.left = self.calibration.energy_to_channel(r.left, clip=1)
                 r.right = self.calibration.energy_to_channel(r.right, clip=1)
             '''
-            self.rois[detector].append(r)
+            set_rois[detector].append(r)
 
             # Sort ROIs.  This sorts by left channel.
-            tempRois = copy.copy(self.rois[detector])
+            tempRois = copy.copy(set_rois[detector])
             tempRois.sort()
             
-            self.rois[detector] = tempRois
+            set_rois[detector] = tempRois
 
     def change_roi_use(self, ind, use, detector=0):
         roi = self.rois[detector][ind].use = use
@@ -406,43 +465,7 @@ class MCA():  #
     ########################################################################    
 
     ########################################################################
-    def add_roi(self, roi, energy=0, detector=0):
-        """
-        This procedure adds a new region-of-interest to the MCA.
-
-        Inputs:
-            roi: An object of type mcaROI.
-            
-        Kyetwords:
-            energy:
-                Set this flag to 1 to indicate that the .left and .right 
-                fields of roi are in units of energy rather than channel 
-                number.
-                
-        Example:
-            mca = Mca('mca.001')
-            roi = McaROI()
-            roi.left = 500
-            roi.right = 600
-            roi.label = 'Fe Ka'
-            mca,add_roi(roi)
-        """
-        r = copy.copy(roi)
-        if self.auto_process_rois :
-            self.compute_roi(r, detector)
-        '''
-        if (energy == 1):
-            r.left = self.calibration.energy_to_channel(r.left, clip=1)
-            r.right = self.calibration.energy_to_channel(r.right, clip=1)
-        '''
-        self.rois[detector].append(r)
-
-        # Sort ROIs.  This sorts by left channel.
-        tempRois = copy.copy(self.rois[detector])
-        tempRois.sort()
-        
-        self.rois[detector] = tempRois
-        
+    
 
     ########################################################################
     def find_roi(self, left, right, energy=0, detector =0):
