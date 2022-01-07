@@ -217,11 +217,11 @@ class hpmcaController(QObject):
 
     def key_sig_callback(self, sig):
         if sig == 'right' :
-            self.roi_action('next')
+            self.roi_controller. roi_action('next')
         if sig == 'left' :
-            self.roi_action('prev')
+            self.roi_controller. roi_action('prev')
         if sig == 'delete' :
-            self.roi_action('delete')
+            self.roi_controller. roi_action('delete')
         if sig == 'shift_press' :
             self.zoomPan(1)
         if sig == 'shift_release' :
@@ -488,9 +488,8 @@ class hpmcaController(QObject):
 
     def data_updated(self):
         
-            #print(dx_type)
-
-        self.plotController.update_plot()  
+        self.plotController.update_plot_data() 
+        self.plotController.roi_controller.data_updated()  #this will in turn trigger updateViews() 
         environment = self.mca.environment
         self.environment_controller.set_environment(environment)
         self.update_titlebar()
@@ -619,41 +618,6 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
-    '''def roi_action(self, action):
-        if self.mca != None:
-            if action == 'add':
-                if self.plotController.is_cursor_in_range():
-                    #self.add_roi_btn()
-                    mode = self.widget.btnROIadd.text()
-                    #self.plotController.roi_construct(mode)
-                    widths = {'E': 0.7, 'q': 0.1, 'Channel':20, 'd': 0.1}
-                    if mode == 'Add':
-                        self.widget.btnROIadd.setText("Set")
-                        if self.unit in widths:
-                            width = widths[self.unit]
-                        else:
-                            width = 2
-                        self.plotController.roi_construct(mode,width=width)
-                    else:
-                        self.widget.btnROIadd.setText("Add")
-                        reg = self.plotController.roi_construct(mode)
-                        if reg is not None:
-                            self.roi_controller.addROIbyChannel(reg[0],reg[1])
-                else:
-                    self.widget.btnROIadd.setChecked(False)
-            elif action == 'delete':
-                self.roi_controller.remove_btn_click_callback()
-            elif action == 'clear':
-                self.roi_controller.clear_rois()
-            elif action == 'next':
-                self.roi_controller.navigate_btn_click_callback('next')
-            elif action == 'prev':
-                self.roi_controller.navigate_btn_click_callback('prev')
-            else: 
-                pass
-        else:
-            if action == 'add':
-                self.widget.btnROIadd.setChecked(False)'''
 
     def roi_selection_updated(self, text):
         self.widget.lineROI.setText(text)
@@ -739,18 +703,16 @@ class hpmcaController(QObject):
     ########################################################################################
 
     def mouseMoved(self, input):
-        color = '#FFFFFF'
-        text =self.format_cursor_label(input, color)
+        text =self.format_cursor_label(input)
         self.widget.indexLabel.setText(text)
         
 
     def mouseCursor(self, input):
-        color = '#00CC00'
-        text =self.format_cursor_label(input, color)
+        text =self.format_cursor_label(input)
         self.widget.cursorLabel.setText(text)
         self.multiple_datasets_controller.set_channel_cursor(input)
 
-    def format_cursor_label(self, input, color):
+    def format_cursor_label(self, input):
         if len(input):
             hName = input['hName']
             hValue= input['hValue']

@@ -153,6 +153,19 @@ class MCA():  #
         self.name = name
 
     ########################################################################
+    
+    def get_file_rois(self, energy=0):
+        """ Returns the Mca ROIS, as a list of McaROI objects """
+        
+        rois = copy.copy(self.rois_from_file)
+        '''
+        if (energy != 0):
+            for roi in rois:
+                roi.left = self.calibration.channel_to_energy(roi.left)
+                roi.right = self.calibration.channel_to_energy(roi.right)
+        '''
+        return rois 
+    
     def get_rois(self, energy=0):
         """ Returns the Mca ROIS, as a list of McaROI objects """
         
@@ -252,6 +265,7 @@ class MCA():  #
             self.rois_from_file = [[]]
             set_rois = self.rois_from_file
         elif source == 'controller':
+            self.rois = [[]]
             set_rois = self.rois
         
         for roi in rois:
@@ -357,8 +371,8 @@ class MCA():  #
         roi = self.rois[detector][ind].use = use
             
     
-    def clear_rois(self):
-        self.set_rois([])
+    def clear_rois(self,source):
+        self.set_rois([],source=source)
 
     
 

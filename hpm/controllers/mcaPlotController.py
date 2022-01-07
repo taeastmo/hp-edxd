@@ -71,7 +71,7 @@ class plotController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def update_plot(self):
+    def update_plot_data(self):
         #print(str(self.Foreground))
         m = self.mca
         baseline_state = self.mca.baseline_state
@@ -83,7 +83,7 @@ class plotController(QObject):
         self.calibration = m.get_calibration()[0]
         self.elapsed = m.get_elapsed()[0]
         self.name = m.get_name()
-        self.roi_controller.update_rois()  #this will in turn trigger updateViews()
+        #self.roi_controller.update_rois()  #this will in turn trigger updateViews()
         self.envs = m.get_environment()
         envs = {}
         for env in self.envs:
@@ -91,8 +91,8 @@ class plotController(QObject):
         self.envUpdated.emit(envs)
 
     def updated_baseline_state(self):
-        self.update_plot()
-        
+        self.update_plot_data()
+        self.updateWidget()
         
     def rois_updated(self, ind, text ):
         self.roi_selection_updated(ind, text)
@@ -155,7 +155,7 @@ class plotController(QObject):
         old_unit = self.unit
         inverted_x_old = old_unit == 'd'
         inverted_x_new = unit == 'd'
-        x_direction_changed = inverted_x_old != inverted_x_new
+        #x_direction_changed = inverted_x_old != inverted_x_new
         
         #cursor_old_unit = self.pg.get_cursor_pos()
         #fast_cursor_old_unit = self.pg.get_cursorFast_pos()
@@ -166,11 +166,11 @@ class plotController(QObject):
         if cursor_index !=None:
              if cursor_index >= 0:
                 self.cursorPosition= cursor_index
-                cursor_new_unit = self.calibration.channel_to_scale(cursor_index,unit)
+                #cursor_new_unit = self.calibration.channel_to_scale(cursor_index,unit)
         if fast_cursor_index != None:
             if fast_cursor_index >= 0:
                 self.fastCursorPosition = fast_cursor_index
-                fast_cursor_new_unit = self.calibration.channel_to_scale(fast_cursor_index,unit)
+                #fast_cursor_new_unit = self.calibration.channel_to_scale(fast_cursor_index,unit)
         x_axis_autorange = self.pg.viewBox.state['autoRange'][0]
         if not x_axis_autorange:
             x_axis = self.pg.getAxis('bottom')
@@ -181,7 +181,9 @@ class plotController(QObject):
        
         self.makeXaxis()
         
-        self.update_plot()
+        self.update_plot_data()
+        self.roi_controller.data_updated() 
+
         self.unitUpdated.emit(self.unit)
         self.update_cursors()
         

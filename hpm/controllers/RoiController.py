@@ -43,7 +43,7 @@ class RoiController(QObject):
         self.set_mca(mcaModel)
         self.mcaController = mainController
         self.roi = []
-        self.roi_sets = RoiModel()
+        self.roi_model = RoiModel()
         self.rois_widget = RoiWidget()
         self.plot_fit_window = plotFitWindow()
         
@@ -138,7 +138,7 @@ class RoiController(QObject):
 
     def update_set_rois (self, use_only=False):
 
-        roi_sets = self.roi_sets.sets
+        roi_sets = self.roi_model.sets
         oldLen =  copy.copy(self.roiSetsLen)
         self.selectedROI_persist = copy.copy(self.selectedROI)
        
@@ -174,6 +174,8 @@ class RoiController(QObject):
         if self.plotFitOpen:
             self.show_fit()
 
+   
+
     def update_rois(self, use_only=False):
 
         if not use_only:
@@ -192,30 +194,30 @@ class RoiController(QObject):
         oldLen =  copy.copy(self.roiLen)
         self.selectedROI_persist = copy.copy(self.selectedROI)
         
-        newLen = len(self.roi)
-        self.nrois = len(self.roi)
+        newLen = len(roi)
+        self.nrois = len(roi)
         
         self.rois_widget.roi_tw.blockSignals(True)
         if newLen == oldLen:
-            for r in self.roi:
-                index = self.roi.index(r)
+            for r in roi:
+                index = roi.index(r)
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
                 self.update_roi_by_ind(index, r.use, r.label, '%.3f'%(centroid), '%.3f'%(fwhm), '%d'%(counts))
         else:
             while self.rois_widget.roi_tw.rowCount() > 0:
                 self.rois_widget.roi_tw.del_roi(self.rois_widget.roi_tw.rowCount()-1,silent=True)
-            for r in self.roi:
+            for r in roi:
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
                 self.rois_widget.roi_tw.add_roi(r.use, r.label, 
-                                '%.3f'%(centroid), '%.3f'%(fwhm), self.roi.index(r),'%d'%(counts),  silent=True)
+                                '%.3f'%(centroid), '%.3f'%(fwhm), roi.index(r),'%d'%(counts),  silent=True)
                
        
         self.rois_widget.roi_tw.blockSignals(False)      
 
-        if self.selectedROI_persist<len(self.roi):
+        if self.selectedROI_persist<len(roi):
             sel = np.clip(self.selectedROI_persist,0,31)
         else: 
-            sel = len(self.roi)-1
+            sel = len(roi)-1
         self.rois_widget.roi_tw. select_roi(sel) 
         self.selectedROI=sel
         self.emit_rois_updated()
@@ -229,21 +231,38 @@ class RoiController(QObject):
     # roi-related interaction with mca model
     ####################################################################################
 
+    def data_updated(self):
+
+        file_rois = self.mca.get_file_rois()[0]
+        self.roi_model.set_file_rois(file_rois)
+        rois_for_use = self.roi_model.get_rois_for_use()
+        self.set_mca_rois(rois_for_use)
+        
+        self.update_rois()
+
     def add_rois_to_mca(self, rois, detector=0):
         # rois: list of McaRoi objects
         # adding rois to mca should happen only throgh one place
         if type(rois) == list:
-            self.mca.add_rois(rois, detector=detector, source = 'controller')
+            for r in rois:
+                self.mca.compute_roi(r, 0)
+                self.roi_model.add_roi(r)
         else:
-            self.mca.add_roi(rois, detector=detector, source = 'controller')
+            self.mca.compute_roi(rois, 0)
+            self.roi_model.add_roi(rois)
+
+        rois_for_use = self.roi_model.get_rois_for_use()
+        self.set_mca_rois(rois_for_use)
 
     def del_roi_from_mca(self, ind, det=0):
         # deleting rois from mca should happen only throgh one place
+        self.roi_model. delete_roi(ind)
         self.mca.delete_roi(ind,det)
 
     def clear_mca_rois(self):
         # clearing rois from mca should happen only throgh one place
-        self.mca.clear_rois()
+        self.mca.clear_rois(source='controller')
+        self.roi_model.clear_rois()
 
     def get_rois_for_use(self):
         rois = self.mca.get_rois()[0]
