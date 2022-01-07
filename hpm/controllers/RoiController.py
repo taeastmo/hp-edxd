@@ -234,6 +234,7 @@ class RoiController(QObject):
     def data_updated(self):
 
         file_rois = self.mca.get_file_rois()[0]
+        #self.roi_model.clear_file_rois()
         self.roi_model.set_file_rois(file_rois)
         rois_for_use = self.roi_model.get_rois_for_use()
         self.set_mca_rois(rois_for_use)

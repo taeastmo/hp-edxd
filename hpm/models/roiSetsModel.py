@@ -20,9 +20,25 @@ class RoiModel():
 
     def get_rois(self):
         return self.rois
+
+    def clear_file_rois(self):
+        self.file_rois = []
+
+    def add_file_rois(self, rois):
+        if len(self.file_rois) == 0:
+            self.file_rois = rois
+        else:
+            for r in rois:
+                new = True
+                for fr in self.file_rois:
+                    if r == fr:
+                        new = False
+                if new:
+                    self.file_rois.append(r)
         
     def set_file_rois(self, rois):
         self.file_rois = rois
+        
 
     def get_rois_for_use(self):
 
