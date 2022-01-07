@@ -70,8 +70,7 @@ class RoiWidget(QtWidgets.QWidget):
       
         self.show_parameter_in_pattern = True
         
-        self.show_cb_state_changed = self.roi_tw.show_cb_state_changed
-        self.name_item_changed = self.roi_tw.name_item_changed
+        
         self.style_widgets()
 
     def keyPressEvent(self, e):
@@ -125,7 +124,7 @@ class roiTableWidget(ListTableWidget):
     show_cb_state_changed = QtCore.pyqtSignal(int, int)
     name_item_changed = QtCore.pyqtSignal(int, str)
     def __init__(self ):
-        self.default_header = ['#', 'Name','Center', 'Counts', 'fwhm']
+        self.default_header = ['#', 'Use', 'Name','Center', 'Counts', 'fwhm']
         super().__init__(len(self.default_header))
         self.roi_show_cbs = []
         self.name_items = []
@@ -135,7 +134,8 @@ class roiTableWidget(ListTableWidget):
 
         # first column size fixed, the rest are strechable
         header_view.setResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
-        for i in range(len(self.default_header))[1:]:
+        header_view.setResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        for i in range(len(self.default_header))[2:]:
             header_view.setResizeMode(i, QtWidgets.QHeaderView.Stretch)
         
         self.header = copy.deepcopy(self.default_header)
@@ -156,40 +156,40 @@ class roiTableWidget(ListTableWidget):
         self.setItem(current_rows, 0, index_item)
         self.index_items.append(index_item)
 
-        '''
+        
         show_cb = QtWidgets.QCheckBox()
         show_cb.setChecked(True)
         show_cb.stateChanged.connect(partial(self.roi_show_cb_changed, show_cb))
         show_cb.setStyleSheet("background-color: transparent")
         self.setCellWidget(current_rows, 1, show_cb)
         self.roi_show_cbs.append(show_cb)
-        '''
+        
 
         name_item = QtWidgets.QTableWidgetItem(name)
         name_item.setText(name)
         #name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemIsEditable)
         name_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.setItem(current_rows, 1, name_item)
+        self.setItem(current_rows, 2, name_item)
         self.name_items.append(name_item)
 
         centroid_item = QtWidgets.QTableWidgetItem(centroid)
         centroid_item.setFlags(centroid_item.flags() & ~QtCore.Qt.ItemIsEditable)
         centroid_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.setItem(current_rows, 2, centroid_item)
+        self.setItem(current_rows, 3, centroid_item)
 
         counts_item = QtWidgets.QTableWidgetItem(counts)
         counts_item.setFlags(counts_item.flags() & ~QtCore.Qt.ItemIsEditable)
         counts_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.setItem(current_rows, 3, counts_item)
+        self.setItem(current_rows, 4, counts_item)
 
         fwhm_item = QtWidgets.QTableWidgetItem(fwhm)
         fwhm_item.setFlags(fwhm_item.flags() & ~QtCore.Qt.ItemIsEditable)
         fwhm_item.setTextAlignment(QtCore.Qt.AlignHCenter| QtCore.Qt.AlignVCenter)
-        self.setItem(current_rows, 4, fwhm_item)
+        self.setItem(current_rows, 5, fwhm_item)
 
-        self.setColumnWidth(0, 25)
+        '''self.setColumnWidth(0, 25)
         #self.setColumnWidth(1, 20)
-        self.setRowHeight(current_rows, 25)
+        self.setRowHeight(current_rows, 25)'''
         
         if not silent:
             self.select_roi(current_rows)
@@ -198,7 +198,7 @@ class roiTableWidget(ListTableWidget):
     def set_tw_header_unit(self, unit, unit_=''):
         if unit_ !='':
             unit_=' ('+unit_+')'
-        self.header[2] = self.default_header[2] + ', '+unit+unit_
+        self.header[3] = self.default_header[3] + ', '+unit+unit_
         self.setHorizontalHeaderLabels(self.header)
     
         
@@ -218,7 +218,7 @@ class roiTableWidget(ListTableWidget):
         self.removeRow(ind)
         if not silent:
             self.blockSignals(False)
-        #del self.roi_show_cbs[ind]
+        del self.roi_show_cbs[ind]
         del self.name_items[ind]
         del self.index_items[ind]
         #del self.roi_color_btns[ind]
@@ -239,15 +239,15 @@ class roiTableWidget(ListTableWidget):
         index_item = self.item(ind, 0)
         index_item.setText(str(ind))
 
-        #show_cb = self.roi_show_cbs[ind]
-        #show_cb.setChecked(use)
-        name_item = self.item(ind, 1)
+        show_cb = self.roi_show_cbs[ind]
+        show_cb.setChecked(use)
+        name_item = self.item(ind, 2)
         name_item.setText(name)
-        centroid_item = self.item(ind, 2)
+        centroid_item = self.item(ind, 3)
         centroid_item.setText(centroid)
-        counts_item = self.item(ind, 3)
+        counts_item = self.item(ind, 4)
         counts_item.setText(counts)
-        fwhm_item = self.item(ind, 4)
+        fwhm_item = self.item(ind, 5)
         fwhm_item.setText(fwhm)
         self.blockSignals(False)
 
@@ -269,7 +269,7 @@ class roiSetsTableWidget(ListTableWidget):
     show_cb_state_changed = QtCore.pyqtSignal(int, int)
     name_item_changed = QtCore.pyqtSignal(int, str)
     def __init__(self,):
-        self.default_header = ['Use','Name' ]
+        self.default_header = ['Use','Group' ]
         super().__init__(len(self.default_header))
         self.roi_show_cbs = []
         self.name_items = []
@@ -300,6 +300,7 @@ class roiSetsTableWidget(ListTableWidget):
 
         
         show_cb = QtWidgets.QCheckBox()
+        #show_cb.setTristate(True)
         show_cb.setChecked(use)
         show_cb.stateChanged.connect(partial(self.roi_show_cb_changed, show_cb))
         show_cb.setStyleSheet("background-color: transparent")
@@ -329,9 +330,9 @@ class roiSetsTableWidget(ListTableWidget):
         fwhm_item.setTextAlignment(QtCore.Qt.AlignHCenter| QtCore.Qt.AlignVCenter)
         self.setItem(current_rows, 4, fwhm_item)'''
 
-        self.setColumnWidth(0, 25)
+        '''self.setColumnWidth(0, 25)
         #self.setColumnWidth(1, 20)
-        self.setRowHeight(current_rows, 25)
+        self.setRowHeight(current_rows, 25)'''
         
         if not silent:
             self.select_roi(current_rows)
@@ -375,8 +376,8 @@ class roiSetsTableWidget(ListTableWidget):
     def update_roi(self, ind, name, use):
         self.blockSignals(True)
         
-        use_item = self.item(ind, 0)
-        use_item.setText(use)
+        use_item = self.roi_show_cbs[ind]
+        use_item.setChecked(use)
     
         name_item = self.item(ind, 1)
         name_item.setText(name)

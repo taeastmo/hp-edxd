@@ -6,14 +6,30 @@ class RoiModel():
 
         self.rois = []
         self.file_rois = []
-        
+        self.roi_sets = {}
 
     def add_roi( self, roi):
-        self.rois.append(roi)
+        self._add_roi(roi)
+        
 
     def add_rois( self, rois):
         for r in rois:
-            self.rois.append(r)
+            self._add_roi(r)
+
+    def get_sets(self):
+
+        rois = self. rois + self. file_rois
+        labels = []
+        for r in rois:
+            label = r.label.split(' ')[0]
+            if not label in labels:
+                labels.append(label)
+        sets = {}
+        for set in self.roi_sets:
+            if set in labels:
+                sets[set]= self.roi_sets[set]
+        
+        return sets
 
     def clear_rois(self):
         self.__init__()
@@ -24,28 +40,49 @@ class RoiModel():
     def clear_file_rois(self):
         self.file_rois = []
 
+
     def add_file_rois(self, rois):
-        if len(self.file_rois) == 0:
-            self.file_rois = rois
-        else:
-            for r in rois:
-                new = True
-                for fr in self.file_rois:
-                    if r == fr:
-                        new = False
-                if new:
-                    self.file_rois.append(r)
+        
+        for r in rois:
+            new = True
+            for fr in self.file_rois:
+                if r == fr:
+                    new = False
+            if new:
+                self.file_rois.append(r)
+                label = r.label.split(' ')[0]
+                if not label in self.roi_sets:
+                    self.roi_sets[label]=True
+                
         
     def set_file_rois(self, rois):
-        self.file_rois = rois
+        self.file_rois = []
+        self.add_file_rois(rois)
+
+    def set_rois(self, rois):
+        self.__init__()
+        self.add_rois(rois)
         
+    def _add_roi(self, roi):
+        self.rois.append(roi)
+        label = roi.label.split(' ')[0]
+        if not label in self.roi_sets:
+            self.roi_sets[label]=True
+
+    def change_roi_set_use(self, name, use):
+        self.roi_sets[name] = use
 
     def get_rois_for_use(self):
 
-        rois_out = self. rois + self. file_rois
-
+        file_rois = self.file_rois
+        rois = self.rois + self.file_rois
+        rois_out = []
+        for r in rois:
+            label = r.label.split(' ')[0]
+            if self.roi_sets[label]:
+                rois_out.append(r)
         # Sort ROIs.  This sorts by left channel.
-        self.display_rois = tempRois = copy.copy(rois_out)
+        self.display_rois = copy.copy(rois_out)
         self.display_rois.sort()
         return self.display_rois
     
@@ -59,12 +96,21 @@ class RoiModel():
 
         """
         roi = self.display_rois[index]
-        if roi in self.rois:
-            ind = self.rois.index(roi)
-            del self.rois[index]
-        if roi in self.file_rois:
-            ind = self.file_rois.index(roi)
-            del self.file_rois[index]
+        
+        
+        for r in self.rois:
+            if r == roi:
+                ind = self.rois.index(r)
+                self.rois.remove(self.rois[ind])
+                break
+        for r in self.file_rois:
+            if r == roi:
+                ind = self.file_rois.index(r)
+                self.file_rois.remove(self.file_rois[ind])
+                break
+        del self.display_rois[index]
+        
+        self.roi_sets =  self.get_sets()
 
 class RoiSet():
     def __init__(self):
