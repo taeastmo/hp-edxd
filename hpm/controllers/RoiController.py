@@ -570,9 +570,9 @@ class RoiController(QObject):
         
         if ind >=0 and len(rois)>0 and ind < len(rois):
             
-            curr_roi = rois[ind]
-            curr_roi.label = name
-            rois[ind] = curr_roi
+            
+            self.roi_model.edit_roi_name(ind, name)
+            rois = self.roi_model.get_rois_for_use()
             self.set_mca_rois(rois)
             
             self.update_rois()

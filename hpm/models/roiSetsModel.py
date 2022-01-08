@@ -19,17 +19,22 @@ class RoiModel():
     def get_sets(self):
 
         rois = self. rois + self. file_rois
-        labels = []
+        labels = {}
         for r in rois:
             label = r.label.split(' ')[0]
             if not label in labels:
-                labels.append(label)
-        sets = {}
-        for set in self.roi_sets:
-            if set in labels:
-                sets[set]= self.roi_sets[set]
+                labels[label]=True
         
-        return sets
+        for set in labels:
+            if set in self.roi_sets:
+                labels[set]= self.roi_sets[set]
+        
+        return labels
+
+    def edit_roi_name(self, ind, name):
+        roi = self.display_rois[ind]
+        roi.label = name
+        self.roi_sets =  self.get_sets()
 
     def clear_rois(self):
         self.__init__()
