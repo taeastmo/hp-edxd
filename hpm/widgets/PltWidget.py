@@ -201,12 +201,14 @@ class PltWidget(pg.PlotWidget):
     range_changed = QtCore.pyqtSignal(list)
     auto_range_status_changed = QtCore.pyqtSignal(bool)
 
-    def __init__(self, parent=None, colors = None):
+    def __init__(self, parent=None, colors = None, toolbar_widgets=[]):
         """
         Constructor of the widget
         """
         #app = pg.mkQApp()
         vb = CustomViewBox()  
+        self.parent_widget = parent
+        self.toolbar_widgets =toolbar_widgets
         
         super().__init__(parent, viewBox=vb)
         self.viewBox = self.getViewBox() # Get the ViewBox of the widget
@@ -299,6 +301,12 @@ class PltWidget(pg.PlotWidget):
                 self.colors[p] = color
                 if p == 'plot_background_color':
                     self.setBackground(color)
+                    self.parent_widget.setStyleSheet( 'background-color: '+ color+';')
+                    #toolbar_widgets are widgets containing or surrounding the plot
+                    #this sets their backgorund to match the plot
+                    for widget in self.toolbar_widgets:
+                        widget.setStyleSheet( 'background-color: '+ color+';')
+                        
                 elif p == 'data_color':
                     if self.plotForeground is not None:
                         self.plotForeground.setPen(color)

@@ -717,7 +717,9 @@ class Ui_hpMCA(object):
         self._plot_widget_layout.setContentsMargins(10,0,5,10)
         
         
-        self.pg = PltWidget(self.plot_widget)
+        self.pg = PltWidget(self.plot_widget,
+                        toolbar_widgets=[self.plot_toolbar_right_widget,
+                                        self.plot_toolbar_top_widget])
         self.pg.setMinimumSize(QtCore.QSize(205, 100))
         self.pg.setObjectName("pg")
 
