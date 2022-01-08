@@ -35,7 +35,7 @@ class RoiWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self._layout = QtWidgets.QVBoxLayout()  
-        self.setWindowTitle('ROIs control')
+        self.setWindowTitle('Regions of interest')
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setObjectName('button_widget')
         self._button_layout = QtWidgets.QHBoxLayout()
@@ -53,7 +53,7 @@ class RoiWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.clear_btn)
         self._button_layout.addWidget(self.show_fit_btn)
         self._button_layout.addWidget(self.save_peaks_btn)
-        self._button_layout.addWidget(self.lock_rois_btn)
+        #self._button_layout.addWidget(self.lock_rois_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
 
         self.button_widget.setLayout(self._button_layout)
@@ -158,7 +158,7 @@ class roiTableWidget(ListTableWidget):
 
         
         show_cb = QtWidgets.QCheckBox()
-        show_cb.setChecked(True)
+        show_cb.setChecked(use)
         show_cb.stateChanged.connect(partial(self.roi_show_cb_changed, show_cb))
         show_cb.setStyleSheet("background-color: transparent")
         self.setCellWidget(current_rows, 1, show_cb)

@@ -226,11 +226,11 @@ class LatticeRefinementController(QObject):
                             parameter = line.replace('alpha', f'\N{GREEK SMALL LETTER ALPHA}') \
                                                 .replace('beta', f'\N{GREEK SMALL LETTER BETA}') \
                                                     .replace('gamma', f'\N{GREEK SMALL LETTER GAMMA}')
-                            lbl += parameter + " = " + str(round(l[line],4)) + '\n'
+                            lbl += parameter + " = " + '%.4f'%(round(l[line],4)) + '\n'
 
-                        lbl += '\nV = ' + '%.3f'%(v) + u' \u212B'+f'\N{SUPERSCRIPT THREE}'
+                        lbl += 'V = ' + '%.3f'%(v) + '\n'
                         lbl += f'\nV/V\N{SUBSCRIPT ZERO} = '+ '%.3f'%(v_over_v0)
-                        lbl += '\nP = '+ '%.2f'%(P)+ ' GPa '
+                        lbl += '\nP = '+ '%.2f'%(round(P,2))+ ' GPa '
                         lbl += '\nT = '+ '%.2f'%(T) + ' K'
                         
 
