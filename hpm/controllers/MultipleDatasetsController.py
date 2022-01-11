@@ -67,8 +67,14 @@ class MultipleDatasetsController(QObject):
     def file_list_selection_changed_callback(self, row):
         files = self.multi_spectra_model.r['files_loaded']
         if len(files):
-            self.file_changed_signal.emit(files[row])
+            file = files[row]
+            self.file_changed(file)
             self.widget.select_spectrum(row)
+
+    def file_changed(self, file):
+        self.file_changed_signal.emit(file)
+        file_display = os.path.split(file)[-1]
+        self.widget.file_name.setText(file_display)  
 
     def fastCursorMove(self, index):
         index = int(index)
@@ -82,9 +88,7 @@ class MultipleDatasetsController(QObject):
         files = self.multi_spectra_model.r['files_loaded']
         if index < len(files) and index >= 0:
             file = files[index]
-            file_display = os.path.split(file)[-1]
-            self.widget.file_name.setText(file_display)    
-            self.file_changed_signal.emit(file)
+            self.file_changed(file)
             self.channel_changed_signal.emit(E)
 
             self.widget.select_file(index)
@@ -94,7 +98,11 @@ class MultipleDatasetsController(QObject):
         self.load_data(filenames, progress_dialog=progress_dialog)
         
     def load_data(self, paths, progress_dialog):
-        self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
+        firstfile = paths[0]
+        if firstfile.endswith('hpmca'):
+            self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
+        elif firstfile.endswith('chi') or firstfile.endswith('xy'):
+            self.multi_spectra_model.read_chi_files_2d(paths, progress_dialog=progress_dialog)
         
     def file_filter_refresh_btn_callback(self):
         if self.folder != '':
@@ -119,7 +127,7 @@ class MultipleDatasetsController(QObject):
         if os.path.exists(folder):
             files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
             for f in files:
-                if "hpmca" in f and filter in f:
+                if ("hpmca" in f or 'chi' in f or 'xy' in f) and filter in f:
                     file = os.path.join(folder, f) 
                     paths.append(file)  
                     files_filtered.append(f)
@@ -143,7 +151,8 @@ class MultipleDatasetsController(QObject):
             self.multi_spectra_model.clear()
         data = self.multi_spectra_model.r['data']
         self.widget.set_spectral_data(data)
-        self.widget.reload_files(files_filtered)
+        files_loaded = self.multi_spectra_model.r['files_loaded']
+        self.widget.reload_files(files_loaded)
 
     def connect_click_function(self, emitter, function):
         emitter.clicked.connect(function)      

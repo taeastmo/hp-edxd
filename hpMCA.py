@@ -17,7 +17,6 @@ from hpm import main
 
 main()
 
-# TODO load angle dispersive data
 # TODO epics PVs for application flow control
 # TODO try smooth_bruckner for baseline subtraction, save bg subtracted file
 # TODO multi detector display, optional stacked pltwidgets for each detector

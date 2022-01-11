@@ -396,7 +396,8 @@ class hpmcaController(QObject):
         
         #initialize roi controller
         self.roi_controller = self.plotController.roi_controller 
-        self.roi_controller .rois_widget.lock_rois_btn.toggled. connect( self.lock_rois_btn_callback)
+        #self.roi_controller .rois_widget.lock_rois_btn.toggled. connect( self.lock_rois_btn_callback)
+        self.roi_controller.roi_updated_signal.connect (self.roi_updated_signal_callback)
         
         # initialize phase controller
         self.phase_controller = PhaseController(self.widget.pg, self.mca, 
@@ -575,27 +576,41 @@ class hpmcaController(QObject):
         if self.mca !=None:
             self.roi_controller.show_view()
 
-    def lock_rois_btn_callback(self, locked):
+    '''def lock_rois_btn_callback(self, locked):
         if locked:
             rois = copy.deepcopy(self.mca.get_rois()[0])
             
         else:
             rois = []
-        self.file_save_controller.persistent_rois = rois
+        self.file_save_controller.persistent_rois = rois'''
             
     def fluorescence_module(self):
         if self.mca !=None:
             self.fluorescence_controller.show()
 
-    def lattice_refinement_module(self):
-        if self.mca !=None:
-            rois = copy.deepcopy(self.roi_controller.roi)
+    def roi_updated_signal_callback(self, *args, **kwargs):
+        if self.lattice_refinement_controller.active and self.mca !=None:
+            
+            rois = self.mca.get_rois()[0]
             phases = self.phase_controller.get_phases()
             
             self.lattice_refinement_controller.set_jcpds_directory(self.phase_controller.directories.phase)
             self.lattice_refinement_controller.set_mca(self.mca)
             self.lattice_refinement_controller.set_rois_phases(rois,phases)
-            self.lattice_refinement_controller.pressure()
+            autoprocess = self.lattice_refinement_controller.widget.auto_fit.isChecked()
+            if autoprocess:
+                self.lattice_refinement_controller.update_phases()
+
+
+    def lattice_refinement_module(self):
+        if self.mca !=None:
+            rois = self.mca.get_rois()[0]
+            phases = self.phase_controller.get_phases()
+            
+            self.lattice_refinement_controller.set_jcpds_directory(self.phase_controller.directories.phase)
+            self.lattice_refinement_controller.set_mca(self.mca)
+            self.lattice_refinement_controller.set_rois_phases(rois,phases)
+            self.lattice_refinement_controller.show_view()
 
     def environment_module(self):
         if self.mca !=None:

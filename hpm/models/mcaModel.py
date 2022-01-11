@@ -650,6 +650,10 @@ class MCA():  #
                 [r, success] = self.fileIO.read_chi_file(file, wavelength=self.wavelength)
                 wavelength = r['calibration'][0].wavelength
                 self.wavelength = wavelength
+            elif file.endswith('.xy'):
+                [r, success] = self.fileIO.read_chi_file(file, wavelength=self.wavelength)
+                wavelength = r['calibration'][0].wavelength
+                self.wavelength = wavelength
             else:
                 [r, success] = self.fileIO.read_ascii_file(file)
      
@@ -1026,7 +1030,7 @@ class mcaFileIO():
         
 
     def read_chi_file(self, filename, wavelength=None):  #fit2d or dioptas chi type file
-        if filename.endswith('.chi'):
+        if filename.endswith('.chi') or filename.endswith('.xy'):
             '''fp = open(filename, 'r')
             first_line = fp.readline()
             second_line = fp.readline()

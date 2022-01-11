@@ -16,6 +16,8 @@
 
 import numpy as np
 from PyQt5 import QtCore, QtWidgets
+from pyqtgraph.functions import pseudoScatter
+import os
 
 class MultipleSpectraModel(QtCore.QObject):  # 
     def __init__(self, *args, **filekw):
@@ -42,6 +44,88 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
     def was_canceled(self):
         return False
+
+    def find_chi_file_nelements(self, file):
+        fp = open(file, 'r')
+            
+
+
+        file_text = open(file, "r")
+
+        a = True
+        comment_rows = 0
+        first_data_line = 0
+        line_n = 0
+        while a:
+            file_line = file_text.readline()
+            
+            if not file_line:
+                print("End Of File")
+                a = False
+            else:
+                if file_line.startswith("#"):
+                    comment_rows +=1
+                else:
+                    if first_data_line == 0 :
+                        if  file_line.split()[0].isdigit():
+                            first_data_line = line_n
+            line_n +=1
+        nelem = line_n - first_data_line
+        return nelem
+    
+    def read_chi_files_2d(self, paths, *args, **kwargs):
+        #fit2d or dioptas chi type file
+
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
+
+        paths = paths [:self.max_spectra]
+        nfiles = len (paths)   
+
+        nchans = self. find_chi_file_nelements(paths[0])
+        self.data = np.zeros([nfiles, nchans])
+        files_loaded = []
+        times = []
+        self.nchans = nchans
+        QtWidgets.QApplication.processEvents()
+        for d, file in enumerate(paths):
+            if d % 2 == 0:
+                #update progress bar only every 10 files to save time
+                progress_dialog.setValue(d)
+                QtWidgets.QApplication.processEvents()
+            
+
+           
+
+
+            file_text = open(file, "r")
+
+            a = True
+            row = 0
+            while a:
+                file_line = file_text.readline()
+                if not file_line.startswith ('#'):
+                    columns = file_line.split()
+                    if len(columns):
+                        self.data[d][row]=float(columns[1])
+                    row +=1
+                if row >= nchans-1:
+                    a = False
+            files_loaded.append(file)
+            file_text.close()
+          
+            
+            if progress_dialog.wasCanceled():
+                break
+        QtWidgets.QApplication.processEvents()
+        r = self.r
+        r['files_loaded'] = files_loaded
+        r['start_times'] = times
+        r['data'] = self.data
+
+        
 
     def read_ascii_files_2d(self, paths, *args, **kwargs):
         """

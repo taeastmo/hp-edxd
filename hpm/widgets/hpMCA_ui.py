@@ -573,7 +573,7 @@ class Ui_hpMCA(object):
                     'save_data':['Save data file',self.groupBoxSaveDataFile, 'collapsed'],
                     'file_name_options':['File saving options',self.groupBoxFileNamingOptions, 'collapsed'],
                     
-                    'rois':['ROIs',self.groupBoxROIs, 'expanded'],
+                    'rois':['Regions of interest',self.groupBoxROIs, 'expanded'],
                     'xrf':['Fluorescence markers',self.groupBoxXRF, 'collapsed'],
                     'v_scale':['Vertical scale',self.groupBoxVerticalScale, 'collapsed'],
                     'h_scale':['Horizontal scale',self.groupBoxHorizontalScale, 'collapsed']}
@@ -1004,7 +1004,7 @@ class Ui_hpMCA(object):
         self.actionOpen_file.setText(_translate("hpMCA", "Open file..."))
         self.actionCalibrate_2theta.setText(_translate("hpMCA", "Calibrate 2theta..."))
         self.actionFluor.setText(_translate("hpMCA", "Fluorescence"))
-        self.actionROIs.setText(_translate("hpMCA", "ROIs"))
+        self.actionROIs.setText(_translate("hpMCA", "Regions of interest"))
         self.actionOverlay.setText(_translate("hpMCA", "Overlay"))
         self.actionExport_pattern.setText(_translate("hpMCA", "Export pattern"))
         self.actionSave_next.setText(_translate("hpMCA", "Save next"))

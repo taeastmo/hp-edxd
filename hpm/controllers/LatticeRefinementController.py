@@ -95,6 +95,7 @@ class LatticeRefinementController(QObject):
     def create_signals(self):
         
         self.widget.do_fit.clicked.connect(self.menu_do_fit)
+        self.widget.auto_fit.toggled.connect(self.auto_fit_callback)
         self.widget.plot_cal.clicked.connect(self.menu_plot_refinement)
        
     def pressure(self):
@@ -107,6 +108,9 @@ class LatticeRefinementController(QObject):
     def view_closed(self):
         self.active = False
 
+    def auto_fit_callback(self, state):
+        if state:
+            self.update_phases()
 
     def menu_do_fit(self):
        
@@ -126,7 +130,8 @@ class LatticeRefinementController(QObject):
         self.widget.name_items = []
         self.widget.index_items = []
         self.blockSignals(False)
-        self.update_rois()
+        self.widget.phases_lbl.setText('')
+        #self.update_rois()
 
     def update_rois(self):
         pass
@@ -188,8 +193,8 @@ class LatticeRefinementController(QObject):
                         curr_phase = self.phases[p]
                         
                     else: 
-                        lbl += 'Phase not recognized. \nAdd corresponding phase \nto Phase control.'
-                        break
+                        lbl += 'Phase '+ p +' not recognized. \nAdd corresponding phase \nto Phase control.'
+                        continue
                     #lbl += p + ':\n '
                     DHKL = []
                     phase = roi_groups[p]
@@ -232,6 +237,7 @@ class LatticeRefinementController(QObject):
                         lbl += f'\nV/V\N{SUBSCRIPT ZERO} = '+ '%.3f'%(v_over_v0)
                         lbl += '\nP = '+ '%.2f'%(round(P,2))+ ' GPa '
                         lbl += '\nT = '+ '%.2f'%(T) + ' K'
+                        lbl += '\n\n'
                         
 
                         self.ddiff = []
@@ -250,6 +256,7 @@ class LatticeRefinementController(QObject):
                             self.dobs.append(round(dobs,4))
 
                             self.widget.update_roi(i,round(d,4),ddiff)
+                        break
                         
      
             self.widget.phases_lbl.setText(lbl)

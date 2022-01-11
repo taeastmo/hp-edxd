@@ -128,7 +128,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
     def set_spectral_data(self, data):
         if len(data):
-            img_data = np.log10( data+.5)
+            data = np.clip(data, .5, np.amax(data))
+            data [0,0]= 0.1
+            img_data = np.log10( data)
             self.img.setImage(img_data)
         else:
             self.img.clear()
