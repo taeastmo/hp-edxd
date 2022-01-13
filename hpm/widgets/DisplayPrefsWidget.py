@@ -104,7 +104,7 @@ class DisplayPreferencesWidget(QWidget):
             color = str(new_color.name())
         else:
             color = str(previous_color.name())
-        #print(color)
+    
         btn.setStyleSheet('background-color:' + color)
 
     def set_params(self,params):

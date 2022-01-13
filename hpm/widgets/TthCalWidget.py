@@ -290,22 +290,21 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         value = self.widgets.use_flag[roi].isChecked()
         """ Private method """
         self.roi[roi].use = value 
-        #print('use: '+str(value))
-        #print('roi: '+str(roi))
+   
 
     def menu_energy(self, roi):
         """ Private method """
         energy = float(self.widgets.energy[roi].text())
         self.roi[roi].energy = energy
         self.widgets.energy[roi].setText('%.3f' % energy)
-        #print('energy: %.3f' % energy)
+    
 
     def menu_d_spacing(self, roi):
         """ Private method """
         d_spacing = float(self.widgets.d_spacing[roi].text())
         self.roi[roi].d_spacing = d_spacing
         self.widgets.d_spacing[roi].setText('%.3f' % d_spacing)
-        #print('d-spacing: %.3f' % d_spacing)
+     
 
     def menu_label(self, roi):
         """ Private method """

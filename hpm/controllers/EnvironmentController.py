@@ -72,15 +72,15 @@ class EnvironmentController(QObject):
             out = self.env[cur_ind].description
                
         else: out = ''
-        #self.update_env_cursor_lines() 
+        
         self.env_selection_changed_signal.emit(cur_ind, out)
-        #print('selected: ' + str(cur_ind))
+        
 
     def show_view(self):
         self.active = True
-        #self.update_envs()
+        
         self.environment_widget.raise_widget()
-        #print('env view opened')
+        
         
     def view_closed(self):
         self.active = False

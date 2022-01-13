@@ -268,8 +268,7 @@ class PhaseModel(QtCore.QObject):
             return positions
         else:
             return [0]*len(positions)
-        #print (positions)
-        
+       
 
     def get_phase_line_intensities(self, ind, positions, pattern, x_range, y_range):
         

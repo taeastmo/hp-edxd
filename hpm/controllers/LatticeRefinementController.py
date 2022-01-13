@@ -225,7 +225,7 @@ class LatticeRefinementController(QObject):
                         curr_phase.compute_pressure(volume = v)
                         P = curr_phase.params['pressure']
                         T = curr_phase.params['temperature']
-                        #print(str(DHKL))
+                     
                         
                         for line in l:
                             parameter = line.replace('alpha', f'\N{GREEK SMALL LETTER ALPHA}') \

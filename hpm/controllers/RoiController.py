@@ -398,7 +398,7 @@ class RoiController(QObject):
         else: out = ''
         self.update_roi_cursor_line() 
         self.roi_selection_changed_signal.emit(cur_ind, out)
-        #print('selected: ' + str(cur_ind))
+    
 
     def updateFitPlot(self,ind):
         if self.plotFitOpen:

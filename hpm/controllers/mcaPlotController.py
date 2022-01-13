@@ -72,7 +72,7 @@ class plotController(QObject):
     ########################################################################################
 
     def update_plot_data(self):
-        #print(str(self.Foreground))
+        
         m = self.mca
         baseline_state = self.mca.baseline_state
         if baseline_state:
@@ -115,6 +115,7 @@ class plotController(QObject):
             data_label = 'ADXD, '+ self.name 
         else:
             data_label = 'MCA'
+      
         pg.plotData(xAxis, data, roiHorz,roiData,xLabel,data_label)
         self.update_cursors_text()
         update = {'x_range':[min(xAxis),max(xAxis)], 'y_range':[min(data),max(data)]}

@@ -232,7 +232,7 @@ class MCA():  #
         roi.q = self.calibration[detector].channel_to_q(roi.centroid)
         roi.d_spacing = self.calibration[detector].channel_to_d(roi.centroid)
 
-        #print("--- %s seconds ---" % (time.time() - start_time))
+
     ########################################################################
     def set_rois(self, rois, energy=0, detector=0, source='file'):
         """
@@ -406,7 +406,7 @@ class MCA():  #
         for d in self.data:
             
             baselines.append(spectra_baseline(d, 0.04, 50, method='gust'))
-            #print(d)
+       
         self.baselines = baselines
         return self.baselines
 
@@ -584,17 +584,7 @@ class MCA():  #
         presets = self.get_presets()
         rois = self.get_rois()
         environment = self.get_environment()
-        # the following is used for de-bouncing the auto-save when-acquisition-stops
-        # there was an issue that files would be written in duplicates becasue of multiple stops issued by epicsMCA
-        '''if self.file_saved_timestamp is not None:
-            elapsed_since_last_save = time.time() - self.file_saved_timestamp
-            #print ('elapsed_since_last_save: '+ str(elapsed_since_last_save))
-        else:
-            elapsed_since_last_save = 1
-        self.file_saved_timestamp = time.time()
-        if elapsed_since_last_save < 0.2:
-            #print('autosave skipped')
-            return [file, False]'''
+        
 
         if (netcdf != 0):
             pass
@@ -986,7 +976,7 @@ class mcaFileIO():
                                     rois[d][i].label = labels[d].strip()
                                 break
                         else:
-                            #print('Unknown tag = '+tag+' in file: ' + file + '.')
+                           
                             pass
             
             # Make sure DATA array is defined, else this was not a valid data file

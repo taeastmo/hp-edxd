@@ -325,7 +325,7 @@ class xrfWidget(QtWidgets.QWidget):
         symbol = Xrf.atomic_symbol(self.xrf_show_cbs.index(checkbox)+1)
         cur_atom = self.get_stored_atom(symbol)
         cur_atom.show = checkbox.isChecked()
-        #print (symbol + " "+ str(checkbox.isChecked()))
+        
         
     def get_current_symbol (self):
         curr_row = self.xrf_tw.currentRow()
@@ -359,7 +359,7 @@ class xrfWidget(QtWidgets.QWidget):
                                               positions,
                                               intensities,
                                               baseline)
-        #print(color)
+    
         return color
 
     def show_state_changed(self, ind, state):

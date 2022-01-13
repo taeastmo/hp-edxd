@@ -171,7 +171,7 @@ class MultipleDatasetsController(QObject):
         self.active = True
         #self.update_envs()
         self.widget.raise_widget()
-        #print('env view opened')
+        
         
     def view_closed(self):
         self.active = False

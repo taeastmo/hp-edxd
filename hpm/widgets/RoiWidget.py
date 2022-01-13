@@ -261,8 +261,7 @@ class roiTableWidget(ListTableWidget):
         
         selected = self.get_selected_roi_row()
         self.name_item_changed.emit(selected, self.name_items[selected].text())
-        #print ('roi_name_item_changed: ' +str(selected))
-
+   
 
 class roiSetsTableWidget(ListTableWidget):
   
@@ -395,8 +394,7 @@ class roiSetsTableWidget(ListTableWidget):
         
         selected = self.get_selected_roi_row()
         self.name_item_changed.emit(selected, self.name_items[selected].text())
-        #print ('roi_name_item_changed: ' +str(selected))
-
+  
 
 class plotFitWindow(QtWidgets.QWidget):
     widget_closed = QtCore.pyqtSignal()

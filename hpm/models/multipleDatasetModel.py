@@ -37,7 +37,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 'start_times' :[],
                 'data': np.empty((0,0))}
 
-        print(self.r['data'])
+      
 
     def clear(self):
         self.__init__()

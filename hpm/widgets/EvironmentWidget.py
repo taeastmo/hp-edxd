@@ -219,7 +219,6 @@ class EnvironmentWidget(QtWidgets.QWidget):
         
         selected = self.get_selected_env_row()
         self.pv_item_changed.emit(selected, self.pv_items[selected].text())
-        #print ('env_pv_item_changed: ' +str(selected))
-
+  
 
 

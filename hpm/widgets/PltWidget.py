@@ -409,7 +409,7 @@ class PltWidget(pg.PlotWidget):
             self.addItem(self.lr)
         if mode == 'Set':
             reg = self.lr.getRegion()
-            #print(str(reg))
+     
             self.removeItem(self.lr)
             return reg
 

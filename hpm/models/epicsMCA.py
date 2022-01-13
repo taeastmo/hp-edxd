@@ -186,7 +186,7 @@ class epicsMCA(MCA):
             
             self.dt_pv = self.name + '.IDTIM'
             dead_time_indicator.connect(self.dt_pv)
-            #print(self.dt_pv)
+           
 
             # Construct the names of the PVs for the environment
             self.env_pvs = [] 
@@ -606,8 +606,7 @@ class epicsMCA(MCA):
         
 
         if type(data).__name__ == 'int':   ## if MCA is erased, for some reason the pyepics returns 0 instead of an array
-            
-            #print (str(nuse))
+      
             data = np.zeros(nuse) 
         if len(data) !=nuse:
             data = np.zeros(nuse)
@@ -632,15 +631,14 @@ class epicsMCA(MCA):
         self.read_done_monitor.SetPVmonitor()
         self.stop_monitor.SetPVmonitor()
         self.end_time_monitor.SetPVmonitor()
-        #print('setting stop monitor')
+       
 
     def acq_off(self):
         acq = self.get_acquire_status() 
         if acq == 1:
             self.pvs['acquire']['stop'].put(1)
         self.read_done_monitor.unSetPVmonitor() 
-        
-        #print('un-setting stop monitor')
+  
         if acq == 1:
             time.sleep(0.25) #wait for late arriving data
             self.dataAcquired.emit()
@@ -656,42 +654,36 @@ class epicsMCA(MCA):
         return self.read_done_monitor.monitor_On
 
     def handle_mca_callback(self, Status):
-        #print('handle_mca_callback: ' + str(Status))
+       
         if Status == 'Done':
-            #why_stopped = self.pvs['acquire']['swhy'].get()
-            #print ('read_why_stopped: ' + str(why_stopped))
-            #d = {}
-            #for p in self.pvs['acquire']:
-            #    ans = self.pvs['acquire']['swhy'].get()
-            #    d[p]=ans
-            #print (d)
+           
             self.dataAcquired.emit()
 
     def handle_mca_callback_erase_start(self, Status):
-        #print('handle_mca_callback_erase_start: ' + str(Status))
+     
         if Status == 'Acquire' or Status == '1':
             if self.acq_status == 'off':
                 self.acqOn()
 
     def handle_mca_callback_erase(self, Status):  
-        #print('handle_mca_callback_erase: ' + str(Status))
+        
         pass
 
 
     def handle_mca_callback_start(self, Status):
-        #print('handle_mca_callback_start: ' + Status)
+        
         if Status == 'Acquire' or Status == '1':
             if self.acq_status == 'off':
                 self.acqOn()
-                #print('start: ' + str(Status))
+               
 
     def handle_mca_callback_stop(self, Status):
-        #print('handle_mca_callback_stop: ' + Status)
+        
         if Status == 'Done':
             #if self.acq_status == 'on':
             self.set_epics_btns_state('off')
             self.acq_status = 'off'
-            #print('stop emit (handle_mca_callback_stop)')
+            
             self.stop_monitor.unSetPVmonitor()
             self.end_time_monitor.unSetPVmonitor()
             self.acq_stopped.emit()
@@ -700,28 +692,28 @@ class epicsMCA(MCA):
 
     def handle_mca_callback_end_time(self, Status):
         # this is the only way I could figure out how detect stop when scanning
-        #print('handle_mca_callback_end_time: ' + Status)
+        
         if Status != self.end_time:
             # ans = 0 if stopped by live or real time, 1 if stopped by user
             ans = self.pvs['acquire']['swhy'].get()
             if ans == 0:
                 self.acqOff()
-                #print('stop emit (handle_mca_callback_end_time)')
+               
                 self.stop_monitor.unSetPVmonitor()
                 self.end_time_monitor.unSetPVmonitor()
                 self.acq_stopped.emit()
                 
                 
     def handle_mca_callback_why_stopped(self, Status):
-        #print('handle_mca_callback_why_stopped: ' + str(Status))
+      
         pass
 
     def handle_mca_callback_pltm(self, Status):
-        #print('handle_mca_callback_pltm: ' + str(Status))
+       
         pass
 
     def handle_mca_callback_prtm(self, Status):
-        #print('handle_mca_callback_prtm: ' + str(Status))
+     
         pass
    
     #######################################################################
@@ -769,12 +761,12 @@ class custom_signal(QtCore.QObject):
             # the following is the de-bouncing code
             if self.emitted_timestamp is not None:
                 elapsed_since_last_emit = time.time() - self.emitted_timestamp
-                #print ('elapsed_since_last_emit: '+ str(elapsed_since_last_emit))
+             
             else:
                 elapsed_since_last_emit = -1
             self.emitted_timestamp = time.time()
             if elapsed_since_last_emit >= 0 and elapsed_since_last_emit < self.debounce_time:
-                #print('signal skipped')
+            
                 pass
             else:
                 self.signal.emit()

@@ -145,13 +145,13 @@ class FileSaveController(object):
         ui.save_file_btn.clicked.connect(self.save_file_btn_callback)
 
     def acq_stopped(self):
-        #print('stopped (acq_stopped)')
+        
         if self.file_options.autosave:
             if self.mca_controller.mca.file_name != '':
                 new_file = increment_filename(self.mca_controller.mca.file_name)
                 if new_file != self.mca_controller.mca.file_name:
                     self.saveFile(new_file)
-                    #print('save: ' + new_file)
+                 
                     
         if self.file_options.autorestart:
             # Important: this will only run if the mca is of epics type, the regular mca does not have the acq_erase_method
@@ -160,10 +160,10 @@ class FileSaveController(object):
     def save_file_btn_callback(self, *args):
         ext = '.hpmca'
         basename = self.get_next_filename()
-        #print(basename)
+        
         folder = self.mca_controller.working_directories.savedata
         filepath = os.path.join(folder,basename + ext)
-        #print(filepath)
+    
         self.saveFile(filepath)
         self.increment_file_number()
 
@@ -335,9 +335,9 @@ class FileSaveController(object):
                 if self.mca_controller.Foreground != 'file':
                     success = self.mca_controller.initMCA('file',filename) == 0
                 else:
-                    #start_time = time.time()
+                
                     [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0, persistent_rois=persistent_rois)
-                    #print("--- %s seconds ---" % (time.time() - start_time))
+                   
                 if success:
                     self.McaFileName = filename
                     self.update_readDataDir (os.path.dirname(str(filename)) )#working directory xrd files

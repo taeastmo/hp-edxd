@@ -520,7 +520,7 @@ class hpmcaController(QObject):
                 self.phase_controller.phase_widget.wavelength_lbl.setValue(self.mca.calibration[0].wavelength)
 
     def envs_updated_callback(self, envs):
-        #print(envs)
+        
         pass
 
     def xrf_updated(self,text):
@@ -744,7 +744,7 @@ class hpmcaController(QObject):
     ########################################################################################    
 
     def setStyle(self, Style):
-        #print('style:  ' + str(Style))
+        
         if Style==1:
             WStyle = 'plastique'
             file = open(os.path.join(self.style_path, "stylesheet.qss"))

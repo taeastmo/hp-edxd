@@ -561,7 +561,7 @@ class jcpds(object):
                            2. * (np.cos(self.params['alpha0'] * dtor) *
                                  np.cos(self.params['beta0'] * dtor) *
                                  np.cos(self.params['gamma0'] * dtor))))
-        #print(self.params)
+      
 
         # jcpds V5
         for key in self.EOS:

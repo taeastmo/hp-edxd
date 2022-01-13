@@ -296,7 +296,7 @@ class PhaseController(object):
                                               positions,
                                               intensities,
                                               baseline)
-        #print(color)
+        
         return color
         
 
@@ -478,7 +478,7 @@ class PhaseController(object):
     def wavelength_changed(self):
         try:
             self.wavelength = np.clip(float(self.phase_widget.wavelength_lbl.text()),.001,179)
-            #print(self.wavelength)
+          
             self.phase_in_pattern_controller.wavelength_update(self.wavelength)
         except:
             pass
