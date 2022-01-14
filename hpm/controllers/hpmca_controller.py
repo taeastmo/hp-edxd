@@ -314,8 +314,8 @@ class hpmcaController(QObject):
         if self.epicsMCAholder is not None:
             name = self.epicsMCAholder.name
         if name == det : #check if the same epics MCA is already initialized
-            self.mca = self.epicsMCAholder
-            self.mca.toggleEpicsWidgetsEnabled(True)
+            mca = self.epicsMCAholder
+            mca.toggleEpicsWidgetsEnabled(True)
         else:
             if self.epicsMCAholder != None:
                 self.epicsMCAholder.unload()
@@ -535,13 +535,16 @@ class hpmcaController(QObject):
         if self.fileMCAholder != None:
         
             self.set_file_mca(self.fileMCAholder)
+            self.refresh_controllers_mca()
+            self.data_updated()
 
         #pass
     def live_view_btn_callback(self, *args):
         detector = self.defaults_options.detector
         if len(detector):
             self.openDetector(detector=detector)
-
+            self.refresh_controllers_mca()
+            self.data_updated()
         #pass
         
 

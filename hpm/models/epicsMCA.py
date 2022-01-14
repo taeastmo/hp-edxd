@@ -368,7 +368,7 @@ class epicsMCA(MCA):
     #######################################################################
 
 
-    def set_rois(self, rois, energy=0, detector = 0):
+    def set_rois(self, rois, energy=0, detector = 0, source='controller'):
         """
         Writes the ROI information from a list of mcaROI objects to the EPICS mca
         record.
@@ -389,7 +389,7 @@ class epicsMCA(MCA):
         if nrois > available_rois:
             nrois = available_rois
             rois = rois[:nrois]
-        super().set_rois(rois)
+        super().set_rois(rois, source=source)
 
         
         nrois = len(rois)
@@ -428,7 +428,7 @@ class epicsMCA(MCA):
 
     #######################################################################
 
-    def add_roi(self, roi, energy=0, detector = 0):
+    def add_roi(self, roi, energy=0, detector = 0, source='file'):
         """
         Adds a new ROI to the epicsMca.
 
@@ -446,7 +446,7 @@ class epicsMCA(MCA):
         
     #######################################################################
 
-    def add_rois(self, rois, energy=0, detector = 0):
+    def add_rois(self, rois, energy=0, detector = 0, source='file'):
         """
         Adds multiple new ROIs to the epicsMca.
 
@@ -468,8 +468,8 @@ class epicsMCA(MCA):
         super().delete_roi(index, detector)
         self.set_rois(self.rois[detector])
 
-    def clear_rois(self):
-        self.set_rois([])
+    def clear_rois(self, source):
+        self.set_rois([],source=source)
 
     #######################################################################
     def get_environment(self):
@@ -508,6 +508,8 @@ class epicsMCA(MCA):
         calibration.quad      = pvs['calq'].get()
         calibration.two_theta = pvs['tth'].get()
         calibration.units     = pvs['egu'].get()
+        calibration.set_dx_type('edx')
+        
 
         super().set_calibration([calibration])
         if self.verbose:
