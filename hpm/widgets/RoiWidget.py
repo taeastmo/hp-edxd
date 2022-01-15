@@ -16,6 +16,7 @@
 # Principal author: R. Hrubiak (hrubiak@anl.gov)
 # Copyright (C) 2018-2019 ANL, Lemont, USA
 
+from email.policy import strict
 from functools import partial
 from typing import List
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
@@ -235,21 +236,25 @@ class roiTableWidget(ListTableWidget):
         self.blockSignals(False)
 
     def update_roi(self, ind, use, name, centroid,fwhm,counts):
-        self.blockSignals(True)
-        index_item = self.item(ind, 0)
-        index_item.setText(str(ind))
+        
+        if ind >= 0 and ind < len(self.roi_show_cbs):
+            self.blockSignals(True)
+            index_item = self.item(ind, 0)
+            index_item.setText(str(ind))
 
-        show_cb = self.roi_show_cbs[ind]
-        show_cb.setChecked(use)
-        name_item = self.item(ind, 2)
-        name_item.setText(name)
-        centroid_item = self.item(ind, 3)
-        centroid_item.setText(centroid)
-        counts_item = self.item(ind, 4)
-        counts_item.setText(counts)
-        fwhm_item = self.item(ind, 5)
-        fwhm_item.setText(fwhm)
-        self.blockSignals(False)
+            show_cb = self.roi_show_cbs[ind]
+            show_cb.setChecked(use)
+            name_item = self.item(ind, 2)
+            name_item.setText(name)
+            centroid_item = self.item(ind, 3)
+            centroid_item.setText(centroid)
+            counts_item = self.item(ind, 4)
+            counts_item.setText(counts)
+            fwhm_item = self.item(ind, 5)
+            fwhm_item.setText(fwhm)
+            self.blockSignals(False)
+        else:
+            print('ind error, ind = ' + str(ind))
 
     def roi_show_cb_changed(self, checkbox):
         checked = checkbox.isChecked()

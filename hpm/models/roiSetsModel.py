@@ -6,6 +6,7 @@ class RoiModel():
 
         self.rois = []
         self.file_rois = []
+        self.detector_rois = []
         self.roi_sets = {}
 
     def add_roi( self, roi):
@@ -18,7 +19,7 @@ class RoiModel():
 
     def get_sets(self):
 
-        rois = self. rois + self. file_rois
+        rois = self. rois + self. file_rois + self.detector_rois
         labels = {}
         for r in rois:
             label = r.label.split(' ')[0]
@@ -45,24 +46,44 @@ class RoiModel():
     def clear_file_rois(self):
         self.file_rois = []
 
+    def clear_det_rois(self):
+        self.detector_rois = []
+
 
     def add_file_rois(self, rois):
         
-        for r in rois:
-            new = True
-            for fr in self.file_rois:
-                if r == fr:
-                    new = False
-            if new:
-                self.file_rois.append(r)
-                label = r.label.split(' ')[0]
-                if not label in self.roi_sets:
-                    self.roi_sets[label]=True
+        self._add_rois(rois,'file')
+
+    def add_det_rois(self, rois):
+        
+        self._add_rois(rois,'detector')    
+
+    def _add_rois(self, rois, type):
+        R = None
+        if type == 'file':
+            R = self.file_rois
+        elif type == 'detector':
+            R = self.detector_rois
+        if R != None:
+            for r in rois:
+                new = True
+                for fr in R:
+                    if r == fr:
+                        new = False
+                if new:
+                    R.append(r)
+                    label = r.label.split(' ')[0]
+                    if not label in self.roi_sets:
+                        self.roi_sets[label]=True    
                 
         
     def set_file_rois(self, rois):
         self.file_rois = []
         self.add_file_rois(rois)
+
+    def set_det_rois(self, rois):
+        self.detector_rois = []
+        self.add_det_rois(rois)
 
     def set_rois(self, rois):
         self.__init__()
@@ -80,7 +101,8 @@ class RoiModel():
     def get_rois_for_use(self):
 
         file_rois = self.file_rois
-        rois = self.rois + self.file_rois
+        det_rois = self.detector_rois
+        rois = self.rois + self.file_rois + self.detector_rois
         rois_out = []
         for r in rois:
             label = r.label.split(' ')[0]
@@ -112,6 +134,11 @@ class RoiModel():
             if r == roi:
                 ind = self.file_rois.index(r)
                 self.file_rois.remove(self.file_rois[ind])
+                break
+        for r in self.detector_rois:
+            if r == roi:
+                ind = self.detector_rois.index(r)
+                self.detector_rois.remove(self.detector_rois[ind])
                 break
         del self.display_rois[index]
         

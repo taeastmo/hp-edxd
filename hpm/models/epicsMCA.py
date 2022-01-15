@@ -359,7 +359,7 @@ class epicsMCA(MCA):
             roi.use = 1
             if (roi.left > 0) and (roi.right > 0): rois.append(roi)
         self.auto_process_rois=True
-        super().set_rois(rois)
+        super().set_rois(rois, source='controller')
         if self.verbose:
             print("get_rois --- %s seconds ---" % (time.time() - start_time))
         return self.rois
@@ -428,7 +428,7 @@ class epicsMCA(MCA):
 
     #######################################################################
 
-    def add_roi(self, roi, energy=0, detector = 0, source='file'):
+    def add_roi(self, roi, energy=0, detector = 0, source='controller'):
         """
         Adds a new ROI to the epicsMca.
 
@@ -442,11 +442,11 @@ class epicsMCA(MCA):
                 By default these fields are assumed to be in channels.
         """
         super().add_roi(roi, energy, detector)
-        self.set_rois(self.rois[detector])
+        self.set_rois(self.rois[detector],source=source)
         
     #######################################################################
 
-    def add_rois(self, rois, energy=0, detector = 0, source='file'):
+    def add_rois(self, rois, energy=0, detector = 0, source='controller'):
         """
         Adds multiple new ROIs to the epicsMca.
 
@@ -454,8 +454,8 @@ class epicsMCA(MCA):
             rois:
                 List of McaROI objects.
         """
-        super().add_rois(rois)
-        self.set_rois(self.rois[detector])
+        super().add_rois(rois, source=source)
+        self.set_rois(self.rois[detector], source=source)
 
     def delete_roi(self, index, detector = 0):
         """
