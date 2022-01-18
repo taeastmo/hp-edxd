@@ -310,8 +310,6 @@ class epicsMCA(MCA):
     #######################################################################
     #######################################################################
 
-
-    #######################################################################
     def read_environment_file(self, file):
         """
         Reads a file containing the "environment" PVs.  The values and desriptions of these
@@ -341,7 +339,29 @@ class epicsMCA(MCA):
                 env.description = ' '
             self.environment.append(env)
 
-    def get_rois(self):
+    def get_environment(self):
+        """
+        Reads the current values of the environment PVs.  Returns a list of
+        McaEnvironment objects with Mca.get_environment().
+        """
+        try:
+            if (len(self.env_pvs) > 0):
+                
+                for i in range(len(self.environment)):
+                    
+                    val = self.env_pvs[i].get()
+                    if type(val) == float:
+                        val = round(val,12) # python rounding bug workaround
+                    self.environment[i].value = val
+        except:
+            pass
+        env = super().get_environment()
+        return env
+
+    #######################################################################
+    #######################################################################
+
+    def get_det_rois(self):
         """     Reads the ROI information from the EPICS mca record.  Stores this information
         in the epicsMca object, and returns a list of McaROI objects with this information.
         """
@@ -359,13 +379,12 @@ class epicsMCA(MCA):
             roi.use = 1
             if (roi.left > 0) and (roi.right > 0): rois.append(roi)
         self.auto_process_rois=True
-        super().set_rois(rois, source='controller')
+        super().set_rois(rois, source='detector')
         if self.verbose:
             print("get_rois --- %s seconds ---" % (time.time() - start_time))
-        return self.rois
+        return self.rois_from_det
 
-    #######################################################################
-    #######################################################################
+
 
 
     def set_rois(self, rois, energy=0, detector = 0, source='controller'):
@@ -426,7 +445,7 @@ class epicsMCA(MCA):
         if self.verbose:
             print("set_rois --- %s seconds ---" % (time.time() - start_time))
 
-    #######################################################################
+    
 
     def add_roi(self, roi, energy=0, detector = 0, source='controller'):
         """
@@ -444,7 +463,7 @@ class epicsMCA(MCA):
         super().add_roi(roi, energy, detector)
         self.set_rois(self.rois[detector],source=source)
         
-    #######################################################################
+  
 
     def add_rois(self, rois, energy=0, detector = 0, source='controller'):
         """
@@ -472,24 +491,9 @@ class epicsMCA(MCA):
         self.set_rois([],source=source)
 
     #######################################################################
-    def get_environment(self):
-        """
-        Reads the current values of the environment PVs.  Returns a list of
-        McaEnvironment objects with Mca.get_environment().
-        """
-        try:
-            if (len(self.env_pvs) > 0):
-                
-                for i in range(len(self.environment)):
-                    
-                    val = self.env_pvs[i].get()
-                    if type(val) == float:
-                        val = round(val,12) # python rounding bug workaround
-                    self.environment[i].value = val
-        except:
-            pass
-        env = super().get_environment()
-        return env
+    #######################################################################
+
+    
 
     def get_calibration(self):
         

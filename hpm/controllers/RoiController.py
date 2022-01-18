@@ -235,11 +235,19 @@ class RoiController(QObject):
 
         file_rois = self.mca.get_file_rois()[0]
         det_rois = self.mca.get_det_rois()[0]
-        #rois = self.mca.get_rois()[0]
-        #self.roi_model.clear_file_rois()
-        #self.roi_model.set_rois(rois)
+        rois = self.mca.get_rois()[0]
+        d_rois = []
+        for dr in det_rois:
+            new = True
+            for r in rois:
+                if r == dr:
+                    new = False
+            if new:
+                d_rois.append(dr)
+
+        
         self.roi_model.set_file_rois(file_rois)
-        self.roi_model.set_det_rois(det_rois)
+        self.roi_model.add_rois(d_rois)
         rois_for_use = self.roi_model.get_rois_for_use()
         for r in rois_for_use:
             self.mca.compute_roi(r, 0)
@@ -626,7 +634,7 @@ class RoiController(QObject):
         """
         """
         roi_ind = self.selectedROI
-        if len(self.roi) < 1:
+        if len(self.roi) < 1 or roi_ind> (len(self.roi)-1):
             roi_label = ''
             positions = 0
             intensities = 1
