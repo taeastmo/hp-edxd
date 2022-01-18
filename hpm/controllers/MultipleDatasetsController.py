@@ -152,7 +152,10 @@ class MultipleDatasetsController(QObject):
         data = self.multi_spectra_model.r['data']
         self.widget.set_spectral_data(data)
         files_loaded = self.multi_spectra_model.r['files_loaded']
-        self.widget.reload_files(files_loaded)
+        files = []
+        for f in files_loaded:
+            files.append(os.path.basename(f))
+        self.widget.reload_files(files)
 
     def connect_click_function(self, emitter, function):
         emitter.clicked.connect(function)      
