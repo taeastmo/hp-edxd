@@ -201,6 +201,13 @@ class FileSaveController(object):
         
 
     def add_date(self, s, text_in, delimiter=' '):
+        '''
+        formats=
+        ['YYYYMMDD',
+        'YYYY-MM-DD',
+        'YYYY-Month-DD',
+        'Month-DD-YYYY']
+        '''
         if s.add_date:
             d_format = s.d_format
             df = ''
@@ -208,7 +215,10 @@ class FileSaveController(object):
                 df = '%Y%m%d'
             if d_format == 1:
                 df = '%Y-%m-%d'
-            
+            if d_format == 2:
+                df = '%Y-%b-%d'
+            if d_format == 3:
+                df = '%b-%d-%Y'
             dstr = datetime.today().strftime(df)
             if len(text_in):
                 text_in += delimiter
@@ -220,9 +230,9 @@ class FileSaveController(object):
             t_format = s.t_format
             tf = ''
             if t_format == 0:
-                tf = '%H:%M:%S'
+                tf = '%H-%M-%S'
             if t_format == 1:
-                tf = '%I:%M:%S %p'
+                tf = '%I-%M-%S-%p'
             tstr = datetime.today().strftime(tf)
             if len(text_in):
                 text_in += delimiter

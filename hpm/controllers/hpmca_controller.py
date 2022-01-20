@@ -617,6 +617,8 @@ class hpmcaController(QObject):
 
     def environment_module(self):
         if self.mca !=None:
+            environment = self.mca.environment
+            self.environment_controller.set_environment(environment)
             self.environment_controller.show_view()
 
     def multi_spectra_module(self):

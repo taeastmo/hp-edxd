@@ -497,8 +497,8 @@ class Ui_hpMCA(object):
         #time_format_lbl.setMinimumWidth(55)
         time_format_lbl.setAlignment(QtCore.Qt.AlignRight)
         self.time_format_cmb = QtWidgets.QComboBox()
-        self.time_format_cmb.addItems( ['hh:mm:ss (24h)',
-                                        'hh:mm:ss am/pm'])
+        self.time_format_cmb.addItems( ['hh-mm-ss (24h)',
+                                        'hh-mm-ss AM/PM'])
         self.time_format_cmb.setMinimumWidth(134)
         self.time_format_cmb.setMaximumWidth(134)
         self._time_format_widget_layout.addWidget(time_format_lbl)
@@ -785,6 +785,7 @@ class Ui_hpMCA(object):
         self.actionPreferences.setObjectName("actionPreferences")
         self.actionEvironment = QtWidgets.QAction(hpMCA)
         self.actionEvironment.setObjectName("actionEvironment")
+        self.actionEvironment.setEnabled(False)
         self.actionMultiSpectra = QtWidgets.QAction(hpMCA)
         self.actionMultiSpectra.setObjectName("actionMultiSpectra")
         self.actionExit = QtWidgets.QAction(hpMCA)
