@@ -267,8 +267,8 @@ class MCA():  #
             set_rois = self.rois_from_det
         
         for roi in rois:
-            if self.auto_process_rois :
-                self.compute_roi(roi, 0)
+            '''if self.auto_process_rois :
+                self.compute_roi(roi, 0)'''
             
             '''
             if (energy == 1):
@@ -307,6 +307,8 @@ class MCA():  #
             set_rois = self.rois_from_file
         elif source == 'controller':
             set_rois = self.rois
+        elif source == 'detector':
+            set_rois = self.rois_from_det
 
         r = copy.copy(roi)
         if self.auto_process_rois :
@@ -339,6 +341,9 @@ class MCA():  #
             set_rois = self.rois_from_file
         elif source == 'controller':
             set_rois = self.rois
+
+        elif source == 'detector':
+            set_rois = self.rois_from_det
        
         n_new_rois = len(rois)
         nrois = len(set_rois[detector])

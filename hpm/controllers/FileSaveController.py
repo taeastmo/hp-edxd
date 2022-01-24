@@ -125,21 +125,21 @@ class FileSaveController(object):
         ui.actionPreferences.triggered.connect(self.preferences_module)
         ui.folder_browse_btn.clicked.connect(self.folder_browse_btn_callback)
 
-        
-        ui.increment_file_name_cbx.clicked.         connect(self.file_naming_option_changed_callback)
-        ui.starting_num_int.       textChanged.     connect(self.file_naming_option_changed_callback)
-        ui.min_digits_int.         currentIndexChanged.    connect(self.file_naming_option_changed_callback)
-        ui.add_date_cbx.           stateChanged.         connect(self.file_naming_option_changed_callback)
-        ui.add_time_cbx.           stateChanged.         connect(self.file_naming_option_changed_callback)
-        ui.date_format_cmb.        currentIndexChanged.    connect(self.file_naming_option_changed_callback)
-        ui.time_format_cmb.        currentIndexChanged.    connect(self.file_naming_option_changed_callback)
-        ui.prefix_rad.             toggled.         connect(self.file_naming_option_changed_callback)
-        ui.suffix_rad.             toggled.         connect(self.file_naming_option_changed_callback)
-        ui.xy_cb  .              stateChanged.    connect(self.file_naming_option_changed_callback)
-        ui.chi_cb .              stateChanged.    connect(self.file_naming_option_changed_callback) 
-        ui.dat_cb .              stateChanged.    connect(self.file_naming_option_changed_callback)
-        ui.fxye_cb.              stateChanged.    connect(self.file_naming_option_changed_callback)
-        ui.png_cb .              stateChanged.    connect(self.file_naming_option_changed_callback)
+        ui.file_name_ebx.           textChanged.         connect(self.file_naming_option_changed_callback)
+        ui.increment_file_name_cbx. clicked.             connect(self.file_naming_option_changed_callback)
+        ui.starting_num_int.        textChanged.         connect(self.file_naming_option_changed_callback)
+        ui.min_digits_int.          currentIndexChanged. connect(self.file_naming_option_changed_callback)
+        ui.add_date_cbx.            stateChanged.        connect(self.file_naming_option_changed_callback)
+        ui.add_time_cbx.            stateChanged.        connect(self.file_naming_option_changed_callback)
+        ui.date_format_cmb.         currentIndexChanged. connect(self.file_naming_option_changed_callback)
+        ui.time_format_cmb.         currentIndexChanged. connect(self.file_naming_option_changed_callback)
+        ui.prefix_rad.              toggled.             connect(self.file_naming_option_changed_callback)
+        ui.suffix_rad.              toggled.             connect(self.file_naming_option_changed_callback)
+        ui.xy_cb  .                 stateChanged.        connect(self.file_naming_option_changed_callback)
+        ui.chi_cb .                 stateChanged.        connect(self.file_naming_option_changed_callback) 
+        ui.dat_cb .                 stateChanged.        connect(self.file_naming_option_changed_callback)
+        ui.fxye_cb.                 stateChanged.        connect(self.file_naming_option_changed_callback)
+        ui.png_cb .                 stateChanged.        connect(self.file_naming_option_changed_callback)
 
 
         ui.save_file_btn.clicked.connect(self.save_file_btn_callback)
@@ -147,10 +147,9 @@ class FileSaveController(object):
     def acq_stopped(self):
         
         if self.file_options.autosave:
-            if self.mca_controller.mca.file_name != '':
-                new_file = increment_filename(self.mca_controller.mca.file_name)
-                if new_file != self.mca_controller.mca.file_name:
-                    self.saveFile(new_file)
+            basename = self.get_next_filename()
+            if len(basename):
+                self.save_file_btn_callback()
                  
                     
         if self.file_options.autorestart:

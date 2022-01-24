@@ -421,6 +421,7 @@ class mcaDisplay_file:
 class mcaDisplay_file_naming:
    def __init__(self):
       home = str(Path.home())
+      self.base_name            = 'test'
       self.increment_file_name  = True
       self.starting_number      = 1        
       self.minimum_digits       = 2      

@@ -210,9 +210,9 @@ class epicsMCA(MCA):
             self.real_time_preset_monitor = epicsMonitor(self.pvs['presets']['prtm'], self.handle_mca_callback_prtm, autostart=True)  
             
             # a way to send a signal to the parent controller that new data is ready
-            self.dataAcquired = custom_signal(debounce_time=0.25)  
+            self.dataAcquired = custom_signal(debounce_time=0.8)  
             
-            self.acq_stopped = custom_signal(debounce_time=0.25)  
+            self.acq_stopped = custom_signal(debounce_time=0.8)  
 
             self.toggleEpicsWidgetsEnabled(True)
             if self.verbose:
@@ -771,7 +771,7 @@ class custom_signal(QtCore.QObject):
             else:
                 elapsed_since_last_emit = -1
             self.emitted_timestamp = time.time()
-            if elapsed_since_last_emit >= 0 and elapsed_since_last_emit < self.debounce_time:
+            if elapsed_since_last_emit >= 0 and (elapsed_since_last_emit < self.debounce_time):
             
                 pass
             else:

@@ -499,25 +499,28 @@ class hpmcaController(QObject):
         self.widget.lblRealTime.setText("%0.2f" %(elapsed.real_time))
         dx_type = self.mca.dx_type
         if self.dx_type != dx_type:
+            self.set_dx_type(dx_type)
             
-            self.dx_type = dx_type
-            self.setHorzScaleBtnsEnabled(self.dx_type)
-            if dx_type == 'edx':
-                self.widget.radioE.setChecked(True)
-                self.phase_controller.phase_widget.set_edx()
-                self.widget.actionManualWavelength.setEnabled(False)
-                self.widget.actionManualTth.setEnabled(True)
-                self.widget.actionCalibrate_energy.setEnabled(True)
-                self.widget.actionCalibrate_2theta.setEnabled(True)
-                #old_tth = self.phase_controller .phase_widget.tth_lbl.text()
-            if dx_type == 'adx':
-                self.widget.radiotth.setChecked(True)
-                self.phase_controller.phase_widget.set_adx()
-                self.widget.actionManualWavelength.setEnabled(True)
-                self.widget.actionManualTth.setEnabled(False)
-                self.widget.actionCalibrate_energy.setEnabled(False)
-                self.widget.actionCalibrate_2theta.setEnabled(False)
-                self.phase_controller.phase_widget.wavelength_lbl.setValue(self.mca.calibration[0].wavelength)
+
+    def set_dx_type(self, dx_type):
+        self.dx_type = dx_type
+        self.setHorzScaleBtnsEnabled(self.dx_type)
+        if dx_type == 'edx':
+            self.widget.radioE.setChecked(True)
+            self.phase_controller.phase_widget.set_edx()
+            self.widget.actionManualWavelength.setEnabled(False)
+            self.widget.actionManualTth.setEnabled(True)
+            self.widget.actionCalibrate_energy.setEnabled(True)
+            self.widget.actionCalibrate_2theta.setEnabled(True)
+            #old_tth = self.phase_controller .phase_widget.tth_lbl.text()
+        if dx_type == 'adx':
+            self.widget.radiotth.setChecked(True)
+            self.phase_controller.phase_widget.set_adx()
+            self.widget.actionManualWavelength.setEnabled(True)
+            self.widget.actionManualTth.setEnabled(False)
+            self.widget.actionCalibrate_energy.setEnabled(False)
+            self.widget.actionCalibrate_2theta.setEnabled(False)
+            self.phase_controller.phase_widget.wavelength_lbl.setValue(self.mca.calibration[0].wavelength)
 
     def envs_updated_callback(self, envs):
         

@@ -111,6 +111,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
             super().keyPressEvent(e)
 
     def set_file_naming_settings(self, settings):
+        base_name = settings.base_name
         increment_file_name = settings.increment_file_name 
         starting_number = settings.starting_number             
         minimum_digits = settings.minimum_digits            
@@ -126,7 +127,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         export_png           = settings.export_png
         
         self.groupBoxFileNamingOptions.blockSignals(True)
-
+        self.file_name_ebx.setText(base_name)
         self.increment_file_name_cbx.setChecked(increment_file_name)
         self.starting_num_int.setText(str(starting_number))
         self.min_digits_int.setCurrentIndex(minimum_digits)
@@ -150,6 +151,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
 
     def get_file_naming_settings(self):
         settings = dict()
+        settings['base_name'] = self.file_name_ebx.text()
         settings['increment_file_name'] = self.increment_file_name_cbx.isChecked()
         settings['starting_number'] =     int(self.starting_num_int.text())      
         settings['minimum_digits'] =      self.min_digits_int.currentIndex()    
