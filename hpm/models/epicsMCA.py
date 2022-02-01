@@ -93,7 +93,8 @@ class epicsMCA(MCA):
         
         self.last_saved=''
         self.file_settings = file_options
-        self.verbose = False
+        self.verbose = True
+        
         self.mcaRead = None
         [self.btnOn, self.btnOff, self.btnErase] = epics_buttons  
         self.record_name = record_name
