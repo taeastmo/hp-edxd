@@ -16,6 +16,7 @@
 
 
 from functools import partial
+import collections
 import copy
 from typing import Iterator
 import utilities.centroid
@@ -251,7 +252,18 @@ class RoiController(QObject):
         rois_for_use = self.roi_model.get_rois_for_use()
         for r in rois_for_use:
             self.mca.compute_roi(r, 0)
-        self.set_mca_rois(rois_for_use)
+
+        # check if rois already in mca, no update if all rois are already in mca
+        for_det = []
+        for r in rois_for_use:
+            not_in_det = True
+            for r_d in rois:
+                if r == r_d:
+                    not_in_det = False
+            if not_in_det:
+                for_det.append(r)
+        if len(for_det):
+            self.set_mca_rois(rois_for_use)
         
         self.update_rois()
 
