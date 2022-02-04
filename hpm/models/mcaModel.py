@@ -1686,7 +1686,7 @@ class McaCalibration():
         if self.dx_type == 'edx':
             if tth ==None:
                 tth = self.two_theta
-            e   = 6.199 /((6.28318530718 /q)*np.sin(self.two_theta*0.008726646259972))
+            e   = 6.199 /((6.28318530718 /q)*np.sin(tth*0.008726646259972))
             channel = self.energy_to_channel(e)
         elif self.dx_type == 'adx':
             
