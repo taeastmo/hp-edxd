@@ -59,12 +59,33 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         t.setText(f'Plot \N{GREEK CAPITAL LETTER DELTA} d')
         t.setFixedWidth(110)
         self._button_layout.addWidget(t)
-        self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
+
+
+
+        '''self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
         t.setText(f'2\N{GREEK SMALL LETTER THETA}:')
         t.setFixedWidth(70)
         t.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self._button_layout.addWidget(t)
-        self.two_theta = t = QtWidgets.QLabel(self.button_widget)
+        self.two_theta = t = QtWidgets.QLabel(self.button_widget)'''
+
+        self._tth_lbl = QtWidgets.QLabel(u'2θ:')
+        self._tth_unit_lbl = QtWidgets.QLabel('deg')
+        self.tth_lbl = DoubleSpinBoxAlignRight()
+        self.tth_step = DoubleMultiplySpinBoxAlignRight()
+        self.get_tth_btn = QtWidgets.QPushButton('Get')
+
+        self._wavelength_lbl = QtWidgets.QLabel(f'\N{GREEK SMALL LETTER LAMDA}:')
+        self._wavelength_unit_lbl = QtWidgets.QLabel(f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
+        self.wavelength_lbl = DoubleSpinBoxAlignRight()
+        self.wavelength_step = DoubleMultiplySpinBoxAlignRight()
+        self.get_wavelength_btn = QtWidgets.QPushButton('Get')
+
+
+        self.edx_widgets= [self._tth_lbl, self._tth_unit_lbl, self.tth_lbl,self.tth_step,self.get_tth_btn]
+        self.adx_widgets= [self._wavelength_lbl, self._wavelength_unit_lbl, self.wavelength_lbl,self.wavelength_step,self.get_wavelength_btn]
+
+
         self._button_layout.addWidget(t)
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
