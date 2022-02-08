@@ -311,14 +311,14 @@ class FileSaveController(object):
             self.update_saveDataDir(folder)
 
     def update_readDataDir(self, dir):
-        self.mca_controller.working_directories.readdata = dir
+        self.mca_controller.working_directories.readdata = os.path.abspath(dir)
         mcaUtil.save_folder_settings(self.mca_controller.working_directories )
         
 
     def update_saveDataDir(self, dir, file=''):
-        self.mca_controller.working_directories.savedata = dir
+        self.mca_controller.working_directories.savedata = os.path.abspath(dir)
         if len(file):
-            self.mca_controller.working_directories.last_saved_file = file
+            self.mca_controller.working_directories.last_saved_file = os.path.abspath(file)
         mcaUtil.save_folder_settings(self.mca_controller.working_directories )
         lbl = self.mca_controller.widget.folder_lbl
         
