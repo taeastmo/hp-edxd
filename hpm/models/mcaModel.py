@@ -1342,6 +1342,9 @@ class McaROI():
         eq = self.left == other.left and  self.right == other.right and  self.label == other.label
         return eq
 
+    def __repr__(self):
+        return (self.label + ' ' + str(self.left)+':'+str(self.right))
+
 ########################################################################
 class McaPeak():
     """
