@@ -62,14 +62,14 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
 
 
 
-        '''self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
+        self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
         t.setText(f'2\N{GREEK SMALL LETTER THETA}:')
         t.setFixedWidth(70)
         t.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self._button_layout.addWidget(t)
-        self.two_theta = t = QtWidgets.QLabel(self.button_widget)'''
+        self.two_theta = t = QtWidgets.QLabel(self.button_widget)
 
-        self._tth_lbl = QtWidgets.QLabel(u'2θ:')
+        '''self._tth_lbl = QtWidgets.QLabel(u'2θ:')
         self._tth_unit_lbl = QtWidgets.QLabel('deg')
         self.tth_lbl = DoubleSpinBoxAlignRight()
         self.tth_step = DoubleMultiplySpinBoxAlignRight()
@@ -84,7 +84,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
 
         self.edx_widgets= [self._tth_lbl, self._tth_unit_lbl, self.tth_lbl,self.tth_step,self.get_tth_btn]
         self.adx_widgets= [self._wavelength_lbl, self._wavelength_unit_lbl, self.wavelength_lbl,self.wavelength_step,self.get_wavelength_btn]
-
+        '''
 
         self._button_layout.addWidget(t)
         self.button_widget.setLayout(self._button_layout)
