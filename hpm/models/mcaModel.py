@@ -275,6 +275,18 @@ class MCA():  #
                 r.left =  self.calibration.energy_to_channel(r.left, clip=1)
                 r.right = self.calibration.energy_to_channel(r.right, clip=1)
             '''
+            lbl = roi.label
+            if len(lbl)> 12:
+                if ' ' in lbl:
+                    parts = lbl.split(' ')
+                    end = parts[-1]
+                    end = end[:3]
+                    start = parts[0]
+                    start = start[:8]
+                    lbl = start + ' ' +end
+                else:
+                    lbl = lbl[:12]
+            roi.label = lbl
             set_rois[detector].append(roi)
 
 
