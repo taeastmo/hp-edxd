@@ -52,11 +52,11 @@ win.show()
 
 
 # Generate image data
-directory_name = r"C:\Users\Ross\Desktop\e249953-Hrubiak\Data analysis\cell4\Pressure\S2\P2"
-files = glob.glob(glob.escape(directory_name) + "\\*.dat")
+directory_name = "/Users/hrubiak/Library/CloudStorage/Box-Box/0 File pass/e249953-Hrubiak/Data analysis/cell4/Pressure/S1/P6"
+files = glob.glob(glob.escape(directory_name) + "/*.dat")
 
 # prefix the string with r (to produce a raw string):
-array2d = np.loadtxt(files[0])
+array2d = np.loadtxt(files[0],)
 mn = np.amin(array2d)
 mask = array2d > mn
 
@@ -74,8 +74,11 @@ array2d = array2d / include
 data = np.transpose( array2d)
 
 img.setImage(data)
-hist.setLevels(3.4, 4.5)
-hist.setHistogramRange(3.4, 4.5)
+
+H_range=(18,23)
+
+hist.setLevels(*H_range)
+hist.setHistogramRange(*H_range)
 
 
 # zoom to fit imageo
@@ -85,10 +88,12 @@ p1.autoRange()
 # Callbacks for handling user interaction
 
 
-h = np.histogram(data, bins=10, range=(3.8,4.2))
+h = np.histogram(data, bins=10, range=H_range)
 x = h[1][:-1]
 y = h[0]
 pg.plot(x,y, title="histogram")
+for i in range (len(x)):
+    print( str(round(x[i],2)) +'\t'+str(y[i]))
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
 if __name__ == '__main__':
