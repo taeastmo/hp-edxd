@@ -373,7 +373,9 @@ class Ui_hpMCA(object):
         self._groupBoxSaveDataFileLayout.addWidget(self.folder_browse_widget)
 
     
-        self.file_name_ebx = QtWidgets.QLineEdit('test')
+        self.file_name_ebx = QtWidgets.QComboBox()
+        self.file_name_ebx.setEditable(True)
+        
         
         self._groupBoxSaveDataFileLayout.addWidget(QtWidgets.QLabel("File name:"))
         self._groupBoxSaveDataFileLayout.addWidget(self.file_name_ebx)

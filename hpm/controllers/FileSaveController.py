@@ -125,7 +125,7 @@ class FileSaveController(object):
         ui.actionPreferences.triggered.connect(self.preferences_module)
         ui.folder_browse_btn.clicked.connect(self.folder_browse_btn_callback)
 
-        ui.file_name_ebx.           textChanged.         connect(self.file_naming_option_changed_callback)
+        ui.file_name_ebx.           editTextChanged.     connect(self.file_naming_option_changed_callback)
         ui.increment_file_name_cbx. clicked.             connect(self.file_naming_option_changed_callback)
         ui.starting_num_int.        textChanged.         connect(self.file_naming_option_changed_callback)
         ui.min_digits_int.          currentIndexChanged. connect(self.file_naming_option_changed_callback)
@@ -175,7 +175,7 @@ class FileSaveController(object):
     def get_next_filename(self):
         delimiter = '_'
         s = self.file_naming_options
-        base_name = self.widget.file_name_ebx.text()
+        base_name = self.widget.file_name_ebx.currentText()
         filename = ''
         if s.dt_append_possition == 0:
             filename = self.add_date(s,filename, delimiter)
