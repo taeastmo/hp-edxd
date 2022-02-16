@@ -115,9 +115,9 @@ class pvQWidget(QObject):
     def WidgetValueChangedCallback(self,value):
         if self.connected:
             # value must be a string !!!
-            if value != self.put_value:
-                self.put_value = value
-                self.signal.emit()
+            #if value != self.put_value:
+            self.put_value = value
+            self.signal.emit()
                 #print('caput ' + self.pv_name + ' ' +value)
        
     # set value is called when monitor detects a change
