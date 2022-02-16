@@ -52,7 +52,7 @@ win.show()
 
 
 # Generate image data
-directory_name = "/Users/hrubiak/Library/CloudStorage/Box-Box/0 File pass/e249953-Hrubiak/Data analysis/cell4/Pressure/S1/P6"
+directory_name = "/Users/hrubiak/Library/CloudStorage/Box-Box/0 File pass/e249953-Hrubiak/Data analysis/cell4/Pressure/S1/P2"
 files = glob.glob(glob.escape(directory_name) + "/*.dat")
 
 # prefix the string with r (to produce a raw string):
@@ -75,7 +75,7 @@ data = np.transpose( array2d)
 
 img.setImage(data)
 
-H_range=(18,23)
+H_range=(3,5)
 
 hist.setLevels(*H_range)
 hist.setHistogramRange(*H_range)
