@@ -21,7 +21,6 @@ import time
 
 from utilities.hpMCAutilities import compare
 from utilities.hpMCAutilities import Preferences as Calculator
-
             
 class primaryBeam(Calculator):
     def __init__(self):
@@ -129,7 +128,7 @@ class structureFactor(Calculator):
     def __init__(self):
 
         params = ['model_func',
-                'p_opt',
+                'p_opt', 
                 'Emin',
                 'Emax',
                 'polynomial_deg',
@@ -250,31 +249,209 @@ class structureFactor(Calculator):
                 sq_even_err.append(rmserr)
         sq_even_err = np.array(sq_even_err)    
         
-     
+        # Check the GOF between overlapping S(q) segments
+        chisq = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
+        print("chisq = " + str(chisq))
 
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
         self.out_params['sq_even_err'] = sq_even_err
-        
+        self.out_params['chisq'] = chisq ### Is this correct? Trying to pass chisq to the global variable pool so it can be used in the class below 
+
+
+########### Class for Monte Carlo Optimization of the primary white beam profile ##########
+class primaryBeamOptimize(Calculator):
+    def __init__(self):
+        params = ['inputdataformat', ## not sure what this is
+                'inputdatadirectory', # or this
+                'polynomial_deg',
+                'sq_par',
+                'xp',
+                'yp',
+                'thh',
+                'model_func',
+                'p_opt',
+                'Emin',
+                'Emax',
+                'itr_comp',
+                'model_mre',
+                'sq_smoothing_factor',
+                'q_spacing',
+                'outputsavedirectory',
+                'dataarray',
+                'ttharray',
+                'chisq']
+        super().__init__(params)
+        self.name = "primary beam optimize"
+        self.note = ''
+
+    def update(self):
+        polynomial_deg = self.params['polynomial_deg']
+        sq_par = self.params['sq_par']
+        xp = self.params['xp']
+        yp = self.params['yp']
+        tth = self.params['thh']
+        dataarray=self.params['dataarray']
+        ttharray=self.params['ttharray']
+        model_func = self.params['model_func']
+        p_opt = self.params['p_opt']
+        Emin = self.params['Emin']
+        Emax = self.params['Emax']
+        itr_comp = self.params['itr_comp']
+        model_mre = self.params['model_mre']
+        sq_smoothing_factor = self.params['sq_smoothing_factor']
+        q_spacing = self.params['q_spacing']
+        chisq = self.params['chisq']
+
     
-    def save_structure_factor(self, filename):
-        try:
-            outfilename = filename
-            q_even = self.out_params['q_even']
-            sq_even = self.out_params['sq_even']
-            sq_even_err = self.out_params['sq_even_err']
-            outputsavedirectory = os.path.dirname(filename)
-            self.params['outputsavedirectory'] =  outputsavedirectory
-            np.savetxt(outfilename, np.transpose([q_even,sq_even,sq_even_err]),fmt='%.4e')
-            S_q = self.out_params['S_q_fragments']
+        p_init = p_opt
+        max_int = max(yp) # find the max intensity of the highest 2th spectrum
+        for i in range(4): # Eventually we should allow the user to input the number of iterations from the gui
+            p_new = rand_param(max_int,polynomial_deg,p_init)
+            """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
+            y_model = model_func(xp,*p_new)*Iq_base
+            I_p = model_func(xp,*p_new)
+            xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+            I_p_inc = model_func(xpc,*p_new)
+            fs = I_p_inc/I_p
+            # propagate the mean residual error - NEED TO CHECK IF THIS IS STILL APPROPRIATE GIVEN THE ITERATIONS ON THE BEAM PROFILE 
+            model_mre = np.sqrt(sum((yp/Iq_base - y_model/Iq_base))**2/len(yp))
+            # Note that the mean residual error defined here is non-standard.
+            # The concept of best primary beam estimation here is obtaining a function
+            # that fulfils sum(y-y_model)/N ~ 0, not sum((y-y_model)**2)/N ~ 0, i.e.,
+            # minimizing the sum of deviation not the deviation itself.
+            # Also note that the final model_mre is for the function for the primary beam
+            # estimated.
+            self.out_params['primary_beam_y'] = y_model
+            self.out_params['primary_beam_x'] = xp 
+            self.out_params['model_func'] = model_func
+            self.out_params['model_mre'] = model_mre
+            self.out_params['p_opt'] = p_new
+
+
+            """normalize individual spectrum to be S(q) in [[qi],[Sqi],[Sqi_err]] array"""
+            S_q = []
+            #tth_used = []
+            for i in range(len(dataarray)):
+                
+                xi = []; yi = []; y_primary = []
+                xi = dataarray[i][0]
+                yi = dataarray[i][1]
+                
+                Emin_indx = (np.abs(xi-Emin)).argmin() # find the nearest index to Emin
+                Emax_indx = (np.abs(xi-Emax)).argmin() # find the nearest index to Emax
+                xn = xi[Emin_indx:Emax_indx]
+                yn = yi[Emin_indx:Emax_indx]
+                tth = ttharray[i]
+                qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
+                xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+                qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+                mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
+                y_primary = model_func(xn,*p_new)
+                Iq_base = mean_fqsquare + mean_I_inc
+                s = (Iq_base*y_primary).mean()/yn.mean()
+                sqi = (s*yn-Iq_base*y_primary)/y_primary/mean_fq**2 + 1.0
+                sqi_err = s*yn/y_primary/mean_fq**2*np.sqrt(1.0/yn+(model_mre/y_primary)**2)
+                S_q.append([qi,sqi,sqi_err])
+                #tth_used.append(tth)
+                
+            self.out_params['S_q_fragments'] = S_q = np.array(S_q)
+            #self.out_params['tth']
+            
+            # find consequencial scale               
             for i in range(len(S_q)):
-                fname = os.path.join(outputsavedirectory,'S_q_'+str("%03d" % i))
-                q = S_q[i][0]
-                sq =S_q[i][1]
-                sq_err=S_q[i][2]
-                np.savetxt(fname,np.transpose([q,sq,sq_err]),fmt='%.4e')
-        except:
-            print("\nThe file has not been saved!")
+                if (len(S_q)-1-i) >= 1:
+                    data1 = S_q[len(S_q)-1-i]
+                    data2 = S_q[len(S_q)-2-i]
+                    
+                    q1 = np.abs(data1[0][0]-data2[0]).argmin()
+                    q2 = np.abs(data1[0]-data2[0][-1]).argmin()
+                    y1_mean = data1[1][0:q2].mean()
+                    y2_mean = data2[1][q1:].mean()
+                    s = y1_mean/y2_mean
+                    S_q[len(S_q)-2-i][1] = s*S_q[len(S_q)-2-i][1] # scale I(Q)
+                    S_q[len(S_q)-2-i][2] = s*S_q[len(S_q)-2-i][2] # scale I_err(Q)
+            
+            # respace and smooth the merged S(q) data using UnivariateSpine fucntion
+            q_all = []; q_sort =[]
+            S_q_all = []; sq_sort =[]
+            S_q_err_all = []; sq_sort_err =[]
+            
+            # combine all data
+            for i in range(len(S_q)):
+                q_all += list(S_q[i][0][:])
+                S_q_all += list(S_q[i][1][:])
+                S_q_err_all += list(S_q[i][2][:])
+            
+            # sort in q
+            sort_index = np.argsort(q_all)
+            for j in sort_index:
+                q_sort.append(q_all[j])
+                sq_sort.append(S_q_all[j])
+                sq_sort_err.append(S_q_err_all[j])
+            
+            q_sort = np.array(q_sort)
+            sq_sort = np.array(sq_sort)
+            sq_sort_err = np.array(sq_sort_err)
+            
+            # make evenly spaced [q,sq,sq_err] array using spline interpolation
+            weight = sq_smoothing_factor/sq_sort_err
+            spl = interpolate.UnivariateSpline(
+                q_sort,sq_sort,w=weight,bbox=[None,None],k=3,s=None)
+            q_even = np.arange(q_sort[0],q_sort[-1],q_spacing) # evenly spaced q
+            sq_even = spl(q_even) # evenly spaced I(q)
+            # estimate the root mean squre error for each spline smoothed point
+            sq_even_err = []
+            for i in range(len(q_even)):
+                q_box_min = q_even[i]-0.5*q_spacing
+                q_box_max = q_even[i]+0.5*q_spacing
+                indxb = np.abs(q_box_min-q_sort).argmin()
+                indxe = np.abs(q_box_max-q_sort).argmin()
+                if indxe-indxb == 0:
+                    sq_even_err.append(sq_sort_err[indxb])
+                else:
+                    # mean square error from the original data
+                    mserr = sum([err**2 for err in sq_sort_err[indxb:indxe]])/len(sq_sort_err[indxb:indxe])
+                    # mean square residaul for the spline fit at original data points
+                    msres = sum((spl(q_sort[indxb:indxe])-sq_sort[indxb:indxe])**2)/len(sq_sort[indxb:indxe])
+                    rmserr = np.sqrt(mserr+msres) # geometric average of the errors
+                    sq_even_err.append(rmserr)
+            sq_even_err = np.array(sq_even_err)    
+            
+            # Calculate the GOF between overlapping S(q) segments
+            chisq_new = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
+            # Check the current GOF against the previous value
+            if chisq_new < chisq:
+                p_init = p_new # if GOF decreases, set the new initial coefficients to be the newly obtained coefficients 
+                chisq = chisq_new # update chisq value
+            else:
+                p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration  
+        print("chisq = " + str(chisq))
+        print(p_opt)
+        print(p_new)
+
+        self.out_params['q_even'] = q_even
+        self.out_params['sq_even'] = sq_even
+        self.out_params['sq_even_err'] = sq_even_err   
+        
+        def save_structure_factor(self, filename):
+            try:
+                outfilename = filename
+                q_even = self.out_params['q_even']
+                sq_even = self.out_params['sq_even']
+                sq_even_err = self.out_params['sq_even_err']
+                outputsavedirectory = os.path.dirname(filename)
+                self.params['outputsavedirectory'] =  outputsavedirectory
+                np.savetxt(outfilename, np.transpose([q_even,sq_even,sq_even_err]),fmt='%.4e')
+                S_q = self.out_params['S_q_fragments']
+                for i in range(len(S_q)):
+                    fname = os.path.join(outputsavedirectory,'S_q_'+str("%03d" % i))
+                    q = S_q[i][0]
+                    sq =S_q[i][1]
+                    sq_err=S_q[i][2]
+                    np.savetxt(fname,np.transpose([q,sq,sq_err]),fmt='%.4e')
+            except:
+                print("\nThe file has not been saved!")
 
             
 class Pdf(Calculator):

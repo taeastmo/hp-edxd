@@ -25,6 +25,8 @@ import numpy as np
 from scipy import interpolate
 from scipy.special import erfc
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
+import random
 import json
 
 def fversion():
@@ -181,4 +183,132 @@ def is_e(val):
 
         return True
     return False
+  
 
+####################### Tyler's GOF script (work in progress) ###########################3
+def GOF_test(q,Sq,e):
+
+    q = np.transpose(q)
+    Sq = np.transpose(Sq)
+    e = np.transpose(e)
+
+    ########## CREATE ROIS AND CALCULATE AVERAGE SPACING BETWEEN Q-VALUES IN EACH ROI#############
+    ### A few things to check:
+    ### 1) Check for Sq_roi_all arrays that have null values as the last few elements and exclude them from the GOF calculation
+    ### 2) Call the function in the aedxd_components.py script and get it to display on the structure factor page
+    ### 3) Play around with the normalization of the global chi^2 value - for now it is normalized by the total number of data points 
+
+    ## Split the complete S(q) into discrete regions of overlapped (call them ROIs)
+    ## A new ROI begins each time a new fragment is introduced or ends
+    # Find points of overlap and store those boundaries as ROI edges 
+    roi = []
+    for i in range(len(q[0,:])):
+        roi.append(q[0,i]) 
+        roi.append(q[-1,i])
+    roi = np.sort(roi) # sort the values in ascending order  
+    # remove first and last regions as there is no overlap there
+    roi = roi[1:-1]
+    # print("Number of unique overlapping regions = " + str(len(roi)))
+
+    # Find average dq for each SF fragment (for determining bin widths) 
+    dq_avg_roi = []
+    for i in range(len(roi) - 1): # loops over each ROI region
+        nfrags = 0 # counter to keep track of the number of S(q) fragments in a single ROI
+        dq = 0
+        dq_total = 0 # used to calculate the average dq spacing of a single ROI
+        dq_avg = 0
+        for j in range(len(q[0,:])): # loops over S(q) fragments
+            roi_data_q = [] # if the S(q) fragment has data within the current ROI, those points will be stored here
+            nfrags_true = False # Used as a trigger later on
+            for k in range(len(q[:,j])): # loops over q in each S(q) fragment
+                if q[k,j] > roi[i] and q[k,j] < roi[i + 1]: # is q value within ROI bounds?
+                    roi_data_q.append(q[k,j])
+                    nfrags_true = True # indicates that some portion of the current S(q) is contained in the ROI
+            if nfrags_true == True:
+                nfrags = nfrags + 1 
+                dq = np.mean(np.diff(roi_data_q))
+                dq_total = dq_total + dq
+                dq_avg = dq_total/nfrags # average q-spacing of the ROI 
+        dq_avg_roi.append(dq_avg)
+
+    dq_avg_roi = np.array(dq_avg_roi)
+    ## check for ROIs that have too few points and throw them out. The dq spacings for these ROIs either contain NaN or zeros
+    roi_idx_del = np.nonzero(np.isnan(dq_avg_roi))
+    dq_avg_roi = np.delete(dq_avg_roi,roi_idx_del[0])
+    roi = np.delete(roi,roi_idx_del[0])
+    roi_idx_del = np.where(dq_avg_roi == 0)
+    dq_avg_roi = np.delete(dq_avg_roi,roi_idx_del)
+    roi = np.delete(roi,roi_idx_del) 
+
+    # plot the SF fragments (for debugging)
+    # for i in range(len(q[0,:])):
+    #     plt.scatter(q[0:len(q),i],Sq[0:len(Sq),i],s=4)
+    # # plt.scatter(q[:,1],Sq[:,1])
+    # for i in range(len(roi)):
+    #     plt.axvline(x=roi[i],color="grey",ls = ":")
+    # plt.show()
+
+    ############# BIN THE DATA AND CALCULATE A CHI^2 VALUE #############
+    CHISQ = np.zeros((len(roi)-1,1)) # stores chi^2 values for each ROI
+    for i in range(len(roi)-1): # loop over each ROI
+        Sq_all_roi = []; e_all_roi = [] # arrays containing S(q) and error values for all S(q) fragments in a given ROI
+        chisq_roi = [] # stores summed chi^2 values between S(q) fragments in a given ROI
+        # create bins
+        nbins = int(np.round((roi[i+1]-roi[i])/(1.5*dq_avg_roi[i]))) # calculates number of bins in the current ROI based on a width of 1.5x the avg q spacing
+        edges = np.linspace(roi[i],roi[i+1],num = nbins + 1) # the number of edges for the binning is always nbins + 1 
+        for j in range(len(q[0,:])): # loops over S(q) fragments
+            Sq_bin_avg = np.zeros(len(edges)-1); e_bin_avg = np.zeros(len(edges)-1)  
+            roi_data_q = []; roi_data_Sq = []; roi_data_e = [] # stores q, S(q), and error for values of a fragmented S(q) that lie in the ROI
+            n_frags_true = False # Used as a trigger later on
+            counter = 0 # used to track number of q values from each S(q) within the ROI
+            for k in range(len(q[:,j])): # loops over q values in each S(q) fragment
+                if q[k,j] > roi[i] and q[k,j] < roi[i+1]: # is q within the ROI bounds?
+                    roi_data_q.append(q[k,j])      #
+                    roi_data_Sq.append(Sq[k,j])    # collecting the data points within in the ROI
+                    roi_data_e.append(e[k,j])      #
+                    counter = counter + 1          # used to check if there are more than 2 data points in the ROI (filters out rogue data points on the edges of the ROIs)
+            if counter > 2:
+                n_frags_true = True
+            else:
+                n_frags_true = False # if there are only 2 or less q-values in the ROI, don't use its associated S(q) fragment for the chi^2 calculation
+            # bin the y values and the error
+            bin_id = np.digitize(roi_data_q,edges) # get bin index for each q in the ROI
+            n_in_bin = np.bincount(bin_id) # num of data points in each bin per S(q) fragment
+            if n_frags_true == True:
+                for m in range(len(roi_data_q)):
+                    Sq_bin_avg[bin_id[m]-1] += roi_data_Sq[m]/n_in_bin[bin_id[m]] # calculates the cumulative average S(q) value in each bin
+                    e_bin_avg[bin_id[m]-1] += roi_data_e[m]/n_in_bin[bin_id[m]] # calculates the cumulative average S(q) error value in each bin
+                Sq_all_roi.append(Sq_bin_avg)
+                e_all_roi.append(e_bin_avg)
+
+        # Check for zeros in Sq_all_roi - do not use these elements for the chi^2 calculation - COME BACK TO THIS LATER
+        # indx_zero = [] # will be used to store indexes of null values 
+        # Sq_all_roi = np.array(Sq_all_roi)
+        # for p in range(len(Sq_all_roi)):
+        #     indx_zero.append(np.where(Sq_all_roi[p,:] == 0))    
+
+        # Calculation of chi^2 terms between the uth and wth S(q) fragment
+        for u in range(len(Sq_all_roi)): 
+            for w in range((u + 1),(len(Sq_all_roi)),1):
+                chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((e_all_roi[:][u] + e_all_roi[:][w])/2)))
+        CHISQ[i] = np.sum(chisq_roi)
+
+    # CHISQ_TOT = np.sum(CHISQ)/np.size(q) # total chisq normalized by the number of data points
+    CHISQ_TOT = np.sum(CHISQ)
+    return CHISQ_TOT
+
+
+######### This function randomly varies the polynomial coefficients of the white beam estimation ########
+#### For now, only 3rd order polynomials are possible
+def rand_param(max_int,p_deg,p_init): # inputs are the maximum intensity of the highest 2theta spectrum, and the polynomial order and coefficients of the initial guess
+    
+    # Calculate the bounds on the random changes to the polynomial coefficients
+    # The values are calculated according to a calibration based on the intensity of the highest 2theta spectrum
+    p_change_ratio = np.array([(1e-5*max_int - 0.0066)/100, (-1e-7*max_int + 0.0097)/100, \
+        (-7e-6*max_int + 0.5246)/100, (7e-7*max_int + 0.0395)/100])
+    p_change_bnd = np.abs(np.multiply(p_init,p_change_ratio))
+    # Randomly change the polynomial coefficients within calibrated limits
+    p_change = np.array([p_change_bnd[0]/100*random.randrange(-100,100,1), p_change_bnd[1]/100*random.randrange(-100,100,1), \
+        p_change_bnd[2]/100*random.randrange(-100,100,1), p_change_bnd[3]/10*random.randrange(-10,10,1)])
+    p_new = p_init + p_change
+    return p_new # returns the randomly-varied polynomial coefficients
