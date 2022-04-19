@@ -84,7 +84,12 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         
         self.file_view_tabs.setObjectName("file_view_tabs")
         self.make_img_plot()
-        self.plot_widget = self.win
+        self.plot_widget = QtWidgets.QWidget()
+        self._plot_widget_layout = QtWidgets.QHBoxLayout(self.plot_widget)
+        self._plot_widget_layout.setContentsMargins(0,0,0,0)
+
+        self._plot_widget_layout.addWidget( self.win)
+        
         self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
         self.file_list_view = QtWidgets.QListWidget()
         self.file_view_tabs.addTab(self.file_list_view, 'Files')
@@ -103,7 +108,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.env_show_cbs = []
         self.pv_items = []
         self.index_items = []
-        self.resize(300,633)
+        self.resize(500,633)
 
     def get_selected_row(self):
         selected  = self.file_list_view.selectionModel().selectedRows()
@@ -148,19 +153,25 @@ class MultiSpectraWidget(QtWidgets.QWidget):
       
     def make_img_plot(self):
         ## Create window with GraphicsView widget
-        self.win = pg.PlotWidget(parent=self)
-        
-        self.win.getPlotItem().setLabel(axis='left', text='Channel')
-        self.win.getPlotItem().setLabel(axis='bottom', text='File index')
+        self.win = pg.GraphicsLayoutWidget(parent=self)
+        self.p1 = self.win.addPlot()
+        self.p1.setLabel(axis='left', text='Channel')
+        self.p1.setLabel(axis='bottom', text='File index')
 
         #self.plot = pg.PlotItem(self.win)
-        self.view = self.win.getViewBox()
+        self.view = self.p1.getViewBox()
         self.view.setMouseMode(pg.ViewBox.RectMode)
         self.view.setAspectLocked(False)
         ## Create image item
         self.img = pg.ImageItem(border='w')
         #self.img.setScaledMode()
         self.view.addItem(self.img)
+
+        # Contrast/color control
+        self.hist = pg.HistogramLUTItem()
+        self.hist.setImageItem(self.img)
+        self.win.addItem(self.hist)
+        
 
         self.vLine = pg.InfiniteLine(movable=False, pen=pg.mkPen(color=(200, 200, 200), width=2 , style=QtCore.Qt.DashLine))
         self.hLine = pg.InfiniteLine(movable=False, angle = 0, pen=pg.mkPen(color=(0, 255, 0), width=2 , style=QtCore.Qt.DashLine))
