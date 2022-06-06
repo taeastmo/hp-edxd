@@ -81,7 +81,7 @@ class epicsMCA(MCA):
         
         super().__init__()
         
-        #self.file_settings = file_settings
+        
         record_name = kwargs['record_name']
         epics_buttons = kwargs['epics_buttons']
         file_options  = kwargs['file_options']
