@@ -213,7 +213,7 @@ class epicsMCA(MCA):
             # a way to send a signal to the parent controller that new data is ready
             self.dataAcquired = custom_signal(debounce_time=0.8)  
             
-            self.acq_stopped = custom_signal(debounce_time=0.8)  
+            self.acq_stopped = custom_signal(debounce_time=1.2)  
 
             self.toggleEpicsWidgetsEnabled(True)
             if self.verbose:
