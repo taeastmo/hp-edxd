@@ -102,12 +102,7 @@ class plotController(QObject):
         self.roi= self.roi_controller.roi
         self.selectedRoiChanged.emit(text)
 
-    def updateWidget(self):  
-        [xAxis, xLabel, data, 
-            nrois, roiHorz, roiData, self.dataInterpolated, 
-            logMode] = self.formatDataForPlot(self.data, self.roi)
-        # here we plot the foreground 
-        pg = self.pg  
+    def get_data_label(self):
         dx_type = self.calibration.dx_type
         if dx_type == 'edx':
             data_label = 'MCA, '+ self.elapsed.start_time[:-3]
@@ -115,6 +110,17 @@ class plotController(QObject):
             data_label = 'ADXD, '+ self.name 
         else:
             data_label = 'MCA'
+        return data_label
+
+    def updateWidget(self):  
+        [xAxis, xLabel, data, 
+            nrois, roiHorz, roiData, self.dataInterpolated, 
+            logMode] = self.formatDataForPlot(self.data, self.roi)
+        # here we plot the foreground 
+        pg = self.pg  
+        
+
+        data_label = self.get_data_label()
       
         pg.plotData(xAxis, data, roiHorz,roiData,xLabel,data_label)
         self.update_cursors_text()

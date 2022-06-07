@@ -60,7 +60,7 @@ class mcaCalibrate2theta_widgets(object):
       self.two_theta_fit        = [None]*nrois
 
 class mcaCalibrate2theta(QtWidgets.QWidget):
-    def __init__(self, mca, detector=0, command=None,jcpds_directory=''):
+    def __init__(self, mca, detector=0, command=None,jcpds_directory='', data_label = ''):
         """
         Creates a new GUI window for calibrating 2-theta for an Mca object.
 
@@ -98,6 +98,7 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         self.calibration = copy.deepcopy(mca.get_calibration()[detector])   
         #self.data = copy.deepcopy(mca.get_data()[detector])
         self.jcpds_directory = jcpds_directory
+        self.data_label = data_label
 
         self.fname_label = 'Phase file not found. For automatic calibration, please close this \nwindow and load the corresponding phase file (.jcpds) first.'
         self.phase_name = ''
@@ -138,7 +139,9 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
 
         #### display column headings    
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)
+        self.data_lbl = QtWidgets.QLabel(self.data_label)
         self.phase_file_label = QtWidgets.QLabel(self.fname_label)
+        self.verticalLayout_4.addWidget(self.data_lbl)
         self.verticalLayout_4.addWidget(self.phase_file_label)
         self.groupBox = QtWidgets.QGroupBox(self)
         self.container = self.groupBox        

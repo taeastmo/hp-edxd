@@ -567,7 +567,8 @@ class hpmcaController(QObject):
     def calibrate_tth_module(self):
         if self.mca != None:
             phase=self.working_directories.phase
-            self.ctth = mcaCalibrate2theta(self.mca, jcpds_directory=phase)
+            data_label = self.plotController.get_data_label()
+            self.ctth = mcaCalibrate2theta(self.mca, jcpds_directory=phase, data_label=data_label)
             if self.ctth.nrois < 1:
                 mcaUtil.displayErrorMessage( 'calroi')
                 self.ctth.destroy()
