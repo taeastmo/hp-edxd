@@ -58,11 +58,13 @@ class FileSaveController(object):
         
         if epics_sync:
             if record_name_file != None:
-                self.pvs_file ={'FilePath': None,
+                self.pvs_file ={'FullFileName_RBV': None}
+                '''             ,
+                                'FilePath': None,
                                 'FilePath_RBV': None,
                                 'FileName': None,
                                 'FileName_RBV': None,
-                                'FullFileName_RBV': None,
+                                
                                 'FileTemplate': None,
                                 'FileTemplate_RBV': None,
                                 'WriteMessage': None,
@@ -75,7 +77,7 @@ class FileSaveController(object):
                                 'AutoSave': None,
                                 'AutoSave_RBV': None,
                                 'WriteFile': None,
-                                'WriteFile_RBV': None}
+                                'WriteFile_RBV': None}'''
                 for pv_file in self.pvs_file.keys():
                     name = self.record_name_file + ':' + pv_file
                     self.pvs_file[pv_file] = PV(name)
