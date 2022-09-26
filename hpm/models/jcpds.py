@@ -36,7 +36,7 @@ Modifications:
         - changed np function to numpy versions,
         - using scipy optimize for solving the inverse Birch-Murnaghan problem
         - fixed a bug which was causing a gamma0 to be 0 for cubic unit cell
-    August 22, 2014 Clemens Prescher
+    August 22, 2jcpds014 Clemens Prescher
         - calculation of d spacings is now done by using arrays
         - added several new utility function -- calculate_d0, add_reflection
         - updated the write_file function to be able to use new standard
@@ -72,7 +72,7 @@ import os.path
 from burnman.eos.equation_of_state import EquationOfState
 from burnman.eos.helper import create as create_eos
 from .birch_murnaghan_thermal import JCPDS4
-from hpm.models.eos_definitions import equations_of_state
+from .eos_definitions import equations_of_state
 
 class jcpds_reflection:
     """
@@ -561,7 +561,7 @@ class jcpds(object):
                            2. * (np.cos(self.params['alpha0'] * dtor) *
                                  np.cos(self.params['beta0'] * dtor) *
                                  np.cos(self.params['gamma0'] * dtor))))
-        #print(self.params)
+      
 
         # jcpds V5
         for key in self.EOS:

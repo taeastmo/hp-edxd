@@ -67,6 +67,8 @@ class DisplayPreferences(Preferences):
         self.set_config(params)
         save_config(params, self.config_file)
 
+
+    # the update method gets called automatically by the parent class
     def update(self):
         updated_params = {}
         for c in self.config_modified:

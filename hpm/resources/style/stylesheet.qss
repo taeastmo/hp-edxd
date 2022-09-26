@@ -72,7 +72,7 @@ QTabWidget::tab-bar{
 }
 
 QTabWidget::pane {
-  border:  1px solid #2F2F2F;
+  border:  0px solid #2F2F2F;
   border-radius: 3px;
 }
 
@@ -198,40 +198,86 @@ QLineEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled{
 QSpinBox, QDoubleSpinBox {
 	background-color:  #F1F1F1;
 	color: black;
+    
 	/*margin-left: -15px;
 	margin-right: -2px;*/
 }
 
-QComboBox QAbstractItemView{
-	background: #2D2D30;
-	color: #F1F1F1;
-	selection-background-color: rgba(221, 124, 40, 120);
-	border-radius: 5px;
-	min-height: 40px;
-
+QComboBox {
+    border-top-left-radius: 2px; 
+    border-bottom-left-radius: 2px;
+    border-top-right-radius: 5px; 
+    border-bottom-right-radius: 5px;
+    border-style: solid;
+    background-color: #dbdbdb;
+    color:  #151515 ;
+    
+    height: 22px;
 }
 
-QComboBox QAbstractItemView:QScrollbar::vertical {
-    width:100px;
+QComboBox:disabled {
+    
+    color:rgb(154, 154, 154);
+    
 }
 
-QComboBox:!editable {
-    margin-left: 1px;
-    padding: 0px 10px 0px 10px;
-    height: 23px;
-    background-color: #3C3C3C;
+QComboBox::down-arrow {
+    image: url(hpm/resources/style/angle-down.png);
+    width: 12px;
+    height: 12px;
+ 
 }
 
-QComboBox::item{
-    background-color: #3C3C3C;
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 15px;
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #323232, stop:1 #505050);
+     
+
+    border-width: 1px;
+    border-color: #848d94;
+    border-style: solid; 
+    border-top-right-radius: 5px; 
+    border-bottom-right-radius: 5px;
 }
 
-QComboBox::item::selected {
-    background-color: #505050;
+QComboBox::drop-down:on { /* shift the arrow when popup is open */
+    top: 1px;
+    left: 1px;
 }
+
+
+
+/*  After dropping, the entire drop-down form style */
+QComboBox QAbstractItemView {
+    outline: 0px solid gray;   /*  The virtual frame of the selected item */
+    border: 1px solid #FBFBFB;   /*  Border of the entire drop-down form */
+    color: #151515;
+    background-color: #FBFBFB;   /*  Whole drop-down form background color */
+    
+}
+
+/*  Down pull, the entire drop-down window */
+QComboBox QAbstractItemView::item {
+    height: 50px;   /*  The height of the item (set pcomboBox-> setView (new qlistview ()); after this item works) */
+}
+
+/*  After dropping, the entire drop-down window crossing each pattern */
+QComboBox QAbstractItemView::item:hover {
+    color: #FFFFFF;
+    
+}
+
+/*  After dropping, the entire drop-down window is selected for each pattern. */
+QComboBox QAbstractItemView::item:selected {
+    color: #FFFFFF;
+    
+}
+
 QToolBox::tab:QToolButton{
     background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #3C3C3C, stop:1 #505050);
-     border: 1px solid  #5B5B5B;
+     border: 1px solid #5B5B5B;
 
      border-radius:2px;
      padding-right: 10px;
@@ -293,11 +339,13 @@ QPushButton::checked{
 QPushButton::focus {
 	outline: None;
 }
+
+
  QGroupBox {
-     border: 1px solid #ADADAD;
-     border-radius: 4px;
-     margin-top: 7px;
-     padding: 0px
+     border: 1px solid #26282b;
+     border-radius: 5px;
+     
+     
  }
  QGroupBox::title {
       subcontrol-origin: margin;
@@ -419,16 +467,39 @@ QFrame#main_frame {
     border-radius: 5px;
 }
 
-#calibration_mode_btn, #mask_mode_btn, #integration_mode_btn {
-    font: normal 12px;
+#live_view_btn,  #file_view_btn  {
+    font: normal 14px;
     border-radius: 1px;
+    height: 22px;
+    background: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 #6f6f6f, stop:1 #323232);
+    border: 1px solid  #151515;
 }
 
-#calibration_mode_btn {
-   border-top-right-radius:8px;
-   border-bottom-right-radius: 8px;
-}
-#integration_mode_btn {
+
+
+#live_view_btn {
+
    border-top-left-radius:8px;
-   border-bottom-left-radius: 8px;
+   border-bottom: 0px solid #151515;
+}
+
+#live_view_btn:pressed, #file_view_btn:pressed{
+		margin-top: 0px;
+		margin-left: 0px;
+}
+
+#file_view_btn {
+   border-top-right-radius:8px;
+   border-bottom: 0px solid #151515;
+}
+
+#live_view_btn::checked, #file_view_btn::checked{
+	background: qlineargradient(
+        x1: 0, y1: 1,
+        x2: 0, y2: 0,
+        stop: 0 #151515,
+        stop: 1 #4f4f4f
+    );
+     
+     
 }

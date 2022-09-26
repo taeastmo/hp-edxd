@@ -155,7 +155,7 @@ class PhasePlot(object):
             self.legend_item.removeItem(self.ref_legend_line)
         except IndexError:
             pass
-            #print('this phase had no lines in the appropriate region')
+         
         for ind, item in enumerate(self.line_items):
             if self.line_visible[ind]:
                 self.plot_item.removeItem(item)

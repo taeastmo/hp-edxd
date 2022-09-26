@@ -171,7 +171,8 @@ class CustomViewBox(pg.ViewBox):
             pos = ev.pos()  ## using signal proxy turns original arguments into a tuple
             mousePoint = self.mapToView(pos)
             self.cursorPoint=mousePoint.x()
-            self.plotMouseCursorSignal.emit(mousePoint.x())    
+            self.plotMouseCursorSignal.emit(mousePoint.x()) 
+        ev.accept()   
 
 class myLegendItem(LegendItem):
     def __init__(self, size=None, offset=None, horSpacing=25, verSpacing=0, box=True, labelAlignment='center', showLines=True):
@@ -197,19 +198,21 @@ class PltWidget(pg.PlotWidget):
     Subclass of PlotWidget
     """
     plotMouseMoveSignal = pyqtSignal(float)  
-    range_changed = QtCore.Signal(list)
-    auto_range_status_changed = QtCore.Signal(bool)
+    range_changed = QtCore.pyqtSignal(list)
+    auto_range_status_changed = QtCore.pyqtSignal(bool)
 
-    def __init__(self, parent=None, colors = None):
+    def __init__(self, parent=None, colors = None, toolbar_widgets=[]):
         """
         Constructor of the widget
         """
         #app = pg.mkQApp()
         vb = CustomViewBox()  
+        self.parent_widget = parent
+        self.toolbar_widgets =toolbar_widgets
         
         super().__init__(parent, viewBox=vb)
         self.viewBox = self.getViewBox() # Get the ViewBox of the widget
-       
+        
         self.cursorPoints = [nan,nan]
         # defined default colors
         self.colors = { 'plot_background_color': '#ffffff',\
@@ -243,7 +246,7 @@ class PltWidget(pg.PlotWidget):
         # cursor
         
         
-        self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=60, slot=self.fastCursorMove)
+        self.proxy = pg.SignalProxy(self.scene().sigMouseMoved, rateLimit=25, slot=self.fastCursorMove)
         # self.getViewBox().addItem(self.hLine, ignoreBounds=True)
         self.create_graphics()
         self.pattern_plot = self.plotItem
@@ -298,6 +301,12 @@ class PltWidget(pg.PlotWidget):
                 self.colors[p] = color
                 if p == 'plot_background_color':
                     self.setBackground(color)
+                    self.parent_widget.setStyleSheet( 'background-color: '+ color+';')
+                    #toolbar_widgets are widgets containing or surrounding the plot
+                    #this sets their backgorund to match the plot
+                    for widget in self.toolbar_widgets:
+                        widget.setStyleSheet( 'background-color: '+ color+';')
+                        
                 elif p == 'data_color':
                     if self.plotForeground is not None:
                         self.plotForeground.setPen(color)
@@ -341,6 +350,7 @@ class PltWidget(pg.PlotWidget):
 
     def create_plots(self, xAxis,data,roiHorz,roiData, xLabel):
         # initialize some plots
+        #self.pattern_plot.buttonsHidden = True
         self.setLabel('left', 'Counts')
         data_color = self.colors['data_color']
         self.plotForeground = pg.PlotDataItem(xAxis, data, title="",
@@ -399,7 +409,7 @@ class PltWidget(pg.PlotWidget):
             self.addItem(self.lr)
         if mode == 'Set':
             reg = self.lr.getRegion()
-            #print(str(reg))
+     
             self.removeItem(self.lr)
             return reg
 

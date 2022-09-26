@@ -81,12 +81,12 @@ class epicsMCA(MCA):
         
         super().__init__()
         
-        #self.file_settings = file_settings
+        
         record_name = kwargs['record_name']
         epics_buttons = kwargs['epics_buttons']
         file_options  = kwargs['file_options']
         environment_file  = kwargs['environment_file']
-        record_name_file  = kwargs['record_name_file']
+        
         dead_time_indicator  = kwargs['dead_time_indicator']
 
         self.name = record_name
@@ -94,10 +94,11 @@ class epicsMCA(MCA):
         self.last_saved=''
         self.file_settings = file_options
         self.verbose = False
+        
         self.mcaRead = None
         [self.btnOn, self.btnOff, self.btnErase] = epics_buttons  
         self.record_name = record_name
-        self.record_name_file = record_name_file
+        
         self.max_rois = 24           
         self.initOK = False             
         self.mcaPV = PV(self.record_name)
@@ -155,44 +156,8 @@ class epicsMCA(MCA):
                     name = self.record_name + '.' + pv.upper()
                     self.pvs[group][pv] = PV(name)
 
-            # these may get implemented in the future to be in line with area detector file saving workflow
-            '''self.pvs_file ={'FilePath': None,
-                            'FilePath_RBV': None,
-                            'FileName': None,
-                            'FileName_RBV': None,
-                            'FullFileName_RBV': None,
-                            'FileTemplate': None,
-                            'FileTemplate_RBV': None,
-                            'WriteMessage': None,
-                            'FileNumber': None,
-                            'FileNumber_RBV': None,
-                            'AutoIncrement': None,
-                            'AutoIncrement_RBV': None,
-                            'WriteStatus': None,
-                            'FilePathExists_RBV': None,
-                            'AutoSave': None,
-                            'AutoSave_RBV': None,
-                            'WriteFile': None,
-                            'WriteFile_RBV': None}'''
-
-            # filenames are written by hpMCA to this PV to be grabbed by an external data logger.
-            ''' EPICS record should be created as follows:
-                record(waveform,"16bmb:mca_file:FullFileName_RBV"){
-                    field(DESC,"FullFileName")
-                    field(DTYP,"Soft Channel")
-                    field(DESC,"file name")
-                    field(NELM,"256")
-                    field(FTVL,"CHAR")
-                } 
-            '''
-            self.pvs_file = {}
-            if record_name_file != None:
-                self.pvs_file ={
-                                'FullFileName_RBV': None
-                                }
-                for pv_file in self.pvs_file.keys():
-                    name = self.record_name_file + ':' + pv_file
-                    self.pvs_file[pv_file] = PV(name)
+            
+            
             
                     
             self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
@@ -222,7 +187,7 @@ class epicsMCA(MCA):
             
             self.dt_pv = self.name + '.IDTIM'
             dead_time_indicator.connect(self.dt_pv)
-            #print(self.dt_pv)
+           
 
             # Construct the names of the PVs for the environment
             self.env_pvs = [] 
@@ -246,9 +211,9 @@ class epicsMCA(MCA):
             self.real_time_preset_monitor = epicsMonitor(self.pvs['presets']['prtm'], self.handle_mca_callback_prtm, autostart=True)  
             
             # a way to send a signal to the parent controller that new data is ready
-            self.dataAcquired = custom_signal(debounce_time=0.25)  
+            self.dataAcquired = custom_signal(debounce_time=0.8)  
             
-            self.acq_stopped = custom_signal(debounce_time=0.25)  
+            self.acq_stopped = custom_signal(debounce_time=1.2)  
 
             self.toggleEpicsWidgetsEnabled(True)
             if self.verbose:
@@ -346,8 +311,6 @@ class epicsMCA(MCA):
     #######################################################################
     #######################################################################
 
-
-    #######################################################################
     def read_environment_file(self, file):
         """
         Reads a file containing the "environment" PVs.  The values and desriptions of these
@@ -377,7 +340,29 @@ class epicsMCA(MCA):
                 env.description = ' '
             self.environment.append(env)
 
-    def get_rois(self):
+    def get_environment(self):
+        """
+        Reads the current values of the environment PVs.  Returns a list of
+        McaEnvironment objects with Mca.get_environment().
+        """
+        try:
+            if (len(self.env_pvs) > 0):
+                
+                for i in range(len(self.environment)):
+                    
+                    val = self.env_pvs[i].get()
+                    if type(val) == float:
+                        val = round(val,12) # python rounding bug workaround
+                    self.environment[i].value = val
+        except:
+            pass
+        env = super().get_environment()
+        return env
+
+    #######################################################################
+    #######################################################################
+
+    def get_det_rois(self):
         """     Reads the ROI information from the EPICS mca record.  Stores this information
         in the epicsMca object, and returns a list of McaROI objects with this information.
         """
@@ -395,16 +380,15 @@ class epicsMCA(MCA):
             roi.use = 1
             if (roi.left > 0) and (roi.right > 0): rois.append(roi)
         self.auto_process_rois=True
-        super().set_rois(rois)
+        super().set_rois(rois, source='detector')
         if self.verbose:
             print("get_rois --- %s seconds ---" % (time.time() - start_time))
-        return self.rois
-
-    #######################################################################
-    #######################################################################
+        return self.rois_from_det
 
 
-    def set_rois(self, rois, energy=0, detector = 0):
+
+
+    def set_rois(self, rois, energy=0, detector = 0, source='controller'):
         """
         Writes the ROI information from a list of mcaROI objects to the EPICS mca
         record.
@@ -425,7 +409,7 @@ class epicsMCA(MCA):
         if nrois > available_rois:
             nrois = available_rois
             rois = rois[:nrois]
-        super().set_rois(rois)
+        super().set_rois(rois, source=source)
 
         
         nrois = len(rois)
@@ -462,9 +446,9 @@ class epicsMCA(MCA):
         if self.verbose:
             print("set_rois --- %s seconds ---" % (time.time() - start_time))
 
-    #######################################################################
+    
 
-    def add_roi(self, roi, energy=0, detector = 0):
+    def add_roi(self, roi, energy=0, detector = 0, source='controller'):
         """
         Adds a new ROI to the epicsMca.
 
@@ -478,11 +462,11 @@ class epicsMCA(MCA):
                 By default these fields are assumed to be in channels.
         """
         super().add_roi(roi, energy, detector)
-        self.set_rois(self.rois[detector])
+        self.set_rois(self.rois[detector],source=source)
         
-    #######################################################################
+  
 
-    def add_rois(self, rois, energy=0, detector = 0):
+    def add_rois(self, rois, energy=0, detector = 0, source='controller'):
         """
         Adds multiple new ROIs to the epicsMca.
 
@@ -490,8 +474,8 @@ class epicsMCA(MCA):
             rois:
                 List of McaROI objects.
         """
-        super().add_rois(rois)
-        self.set_rois(self.rois[detector])
+        super().add_rois(rois, source=source)
+        self.set_rois(self.rois[detector], source=source)
 
     def delete_roi(self, index, detector = 0):
         """
@@ -504,28 +488,13 @@ class epicsMCA(MCA):
         super().delete_roi(index, detector)
         self.set_rois(self.rois[detector])
 
-    def clear_rois(self):
-        self.set_rois([])
+    def clear_rois(self, source):
+        self.set_rois([],source=source)
 
     #######################################################################
-    def get_environment(self):
-        """
-        Reads the current values of the environment PVs.  Returns a list of
-        McaEnvironment objects with Mca.get_environment().
-        """
-        try:
-            if (len(self.env_pvs) > 0):
-                
-                for i in range(len(self.environment)):
-                    
-                    val = self.env_pvs[i].get()
-                    if type(val) == float:
-                        val = round(val,12) # python rounding bug workaround
-                    self.environment[i].value = val
-        except:
-            pass
-        env = super().get_environment()
-        return env
+    #######################################################################
+
+    
 
     def get_calibration(self):
         
@@ -544,6 +513,8 @@ class epicsMCA(MCA):
         calibration.quad      = pvs['calq'].get()
         calibration.two_theta = pvs['tth'].get()
         calibration.units     = pvs['egu'].get()
+        calibration.set_dx_type('edx')
+        
 
         super().set_calibration([calibration])
         if self.verbose:
@@ -642,8 +613,7 @@ class epicsMCA(MCA):
         
 
         if type(data).__name__ == 'int':   ## if MCA is erased, for some reason the pyepics returns 0 instead of an array
-            
-            #print (str(nuse))
+      
             data = np.zeros(nuse) 
         if len(data) !=nuse:
             data = np.zeros(nuse)
@@ -668,15 +638,14 @@ class epicsMCA(MCA):
         self.read_done_monitor.SetPVmonitor()
         self.stop_monitor.SetPVmonitor()
         self.end_time_monitor.SetPVmonitor()
-        #print('setting stop monitor')
+       
 
     def acq_off(self):
         acq = self.get_acquire_status() 
         if acq == 1:
             self.pvs['acquire']['stop'].put(1)
         self.read_done_monitor.unSetPVmonitor() 
-        
-        #print('un-setting stop monitor')
+  
         if acq == 1:
             time.sleep(0.25) #wait for late arriving data
             self.dataAcquired.emit()
@@ -692,42 +661,36 @@ class epicsMCA(MCA):
         return self.read_done_monitor.monitor_On
 
     def handle_mca_callback(self, Status):
-        #print('handle_mca_callback: ' + str(Status))
+       
         if Status == 'Done':
-            #why_stopped = self.pvs['acquire']['swhy'].get()
-            #print ('read_why_stopped: ' + str(why_stopped))
-            #d = {}
-            #for p in self.pvs['acquire']:
-            #    ans = self.pvs['acquire']['swhy'].get()
-            #    d[p]=ans
-            #print (d)
+           
             self.dataAcquired.emit()
 
     def handle_mca_callback_erase_start(self, Status):
-        #print('handle_mca_callback_erase_start: ' + str(Status))
+     
         if Status == 'Acquire' or Status == '1':
             if self.acq_status == 'off':
                 self.acqOn()
 
     def handle_mca_callback_erase(self, Status):  
-        #print('handle_mca_callback_erase: ' + str(Status))
+        
         pass
 
 
     def handle_mca_callback_start(self, Status):
-        #print('handle_mca_callback_start: ' + Status)
+        
         if Status == 'Acquire' or Status == '1':
             if self.acq_status == 'off':
                 self.acqOn()
-                #print('start: ' + str(Status))
+               
 
     def handle_mca_callback_stop(self, Status):
-        #print('handle_mca_callback_stop: ' + Status)
+        
         if Status == 'Done':
             #if self.acq_status == 'on':
             self.set_epics_btns_state('off')
             self.acq_status = 'off'
-            #print('stop emit (handle_mca_callback_stop)')
+            
             self.stop_monitor.unSetPVmonitor()
             self.end_time_monitor.unSetPVmonitor()
             self.acq_stopped.emit()
@@ -736,28 +699,28 @@ class epicsMCA(MCA):
 
     def handle_mca_callback_end_time(self, Status):
         # this is the only way I could figure out how detect stop when scanning
-        #print('handle_mca_callback_end_time: ' + Status)
+        
         if Status != self.end_time:
             # ans = 0 if stopped by live or real time, 1 if stopped by user
             ans = self.pvs['acquire']['swhy'].get()
             if ans == 0:
                 self.acqOff()
-                #print('stop emit (handle_mca_callback_end_time)')
+               
                 self.stop_monitor.unSetPVmonitor()
                 self.end_time_monitor.unSetPVmonitor()
                 self.acq_stopped.emit()
                 
                 
     def handle_mca_callback_why_stopped(self, Status):
-        #print('handle_mca_callback_why_stopped: ' + str(Status))
+      
         pass
 
     def handle_mca_callback_pltm(self, Status):
-        #print('handle_mca_callback_pltm: ' + str(Status))
+       
         pass
 
     def handle_mca_callback_prtm(self, Status):
-        #print('handle_mca_callback_prtm: ' + str(Status))
+     
         pass
    
     #######################################################################
@@ -779,11 +742,7 @@ class epicsMCA(MCA):
         if ok:
             self.last_saved = copy.copy(self.elapsed[0].start_time)
             
-            try:
-                if 'FullFileName_RBV' in self.pvs_file:
-                    self.pvs_file['FullFileName_RBV'].put(file)
-            except:
-                pass
+            
         return [file, ok]
         
 
@@ -809,12 +768,12 @@ class custom_signal(QtCore.QObject):
             # the following is the de-bouncing code
             if self.emitted_timestamp is not None:
                 elapsed_since_last_emit = time.time() - self.emitted_timestamp
-                #print ('elapsed_since_last_emit: '+ str(elapsed_since_last_emit))
+             
             else:
                 elapsed_since_last_emit = -1
             self.emitted_timestamp = time.time()
-            if elapsed_since_last_emit >= 0 and elapsed_since_last_emit < self.debounce_time:
-                #print('signal skipped')
+            if elapsed_since_last_emit >= 0 and (elapsed_since_last_emit < self.debounce_time):
+            
                 pass
             else:
                 self.signal.emit()

@@ -13,6 +13,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# Written by Ross Hrubiak, ANL.
+
+# Based on formulations by G.A. Novak & A.A. Colville - 1989
+# American Mineralogist, v. 74, p. 488-490.
+
 from numpy import sqrt, std, average, matrix, matmul, linalg, sin, pi, arccos, cos
 
 
@@ -31,11 +36,15 @@ class latticeRefinement():
         self.esd_beta = -1
         self.esd_gamma = -1
         self.dhkl = []
+        self.DelD = []
         self.volume = -1
         self.symmetry = ''
         self.refinement_output = dict()
         self.lattice = dict()
         self.esd_lattice = dict()
+
+    def clear(self):
+        self.__init__()
 
     def set_dhkl(self, dhkl):
         self.dhkl=dhkl
@@ -55,6 +64,7 @@ class latticeRefinement():
         if self.symmetry == 'monoclinic':
             l = monoclinic(self.dhkl)
         self.refinement_output = l
+    
         lattice, esd_lattice = dict_to_lattice(l,self.symmetry)
         self.set_lattice(lattice, esd_lattice)
             
@@ -87,12 +97,17 @@ class latticeRefinement():
 
 
 def isometric(reflections):
-    """
-    reflections = [[d, h, k, l]]
-    """
-    # Python port based on excel Cubic least squares template, by:
-    # G.A. Novak & A.A. Colville - 1989
-    # American Mineralogist, v. 74, p. 488-490.
+    ''' 
+    Usage:
+    iso_dhkl = [[2.030, 1, 1, 0],
+                [1.435, 2, 0, 0],
+                [1.170, 1, 1, 2],
+                [1.014, 2, 2, 0],
+                [0.906, 3, 1, 0]]
+    i_cell = isometric(iso_dhkl)
+    print ('isometric: a = ' +'%.3f'%(i_cell['a']) + ' ('+str(i_cell['esd_a'])+') A')
+    '''
+
     Q = []
     hkl = []
     for r in reflections:
@@ -104,8 +119,10 @@ def isometric(reflections):
     a = 1/ sqrt(aStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         dcalc = 1/sqrt(hkl[i]*aStar2)
+        DCalc.append(dcalc)
         deld = r[0]-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -115,22 +132,19 @@ def isometric(reflections):
     ave_del_d = average(DelD)
     esd = sqrt(1/(sum_hkl))*stdev_q
     esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd)))+0.005,0))
-    return {'a':a, 'esd_a':esd_a, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'esd_a':esd_a, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def hexagonal(reflections):
-    """
-    reflections = [[d, h, k, l]]
-    """
-    # Python port based on excel Hexagonal least squares template, by:
-    # G.A. Novak & A.A. Colville - 1989
-    # American Mineralogist, v. 74, p. 488-490.
-    # Compute sums for Least Squares
-
-    # l^4
-    # (h^2+hk+k^2)
-    # (h^2+h*k+k^2)*l^2
-    # l^2Q
-    # (h2+hk+k2)^2Q
+    ''' 
+    Usage:
+    hex_dhkl = [[2.8369, 0, 0, 1],
+                [1.7795, 1, 1, 1],
+                [1.6227, 2, 0, 1],
+                [1.4199, 0, 0, 2]] 
+    h_cell = hexagonal(hex_dhkl)
+    print ('hexagonal: a = ' +'%.3f'%(h_cell['a']) + ' ('+str(h_cell['esd_a'])+') A'+ \
+                '; c = '+'%.3f'%(h_cell['c'])+ ' ('+str(h_cell['esd_c'])+') A')
+    '''
     Q = []
     l4 = []
     h2hkk2 = []
@@ -166,12 +180,14 @@ def hexagonal(reflections):
     c =1/sqrt(cStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt((h**2+h*k+k**2)*aStar2+l**2*cStar2)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -183,17 +199,18 @@ def hexagonal(reflections):
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[1][1])
     esd_a = int(round(1000*(abs(a-2/sqrt(3*(aStar2+esd_astar2))+0.005)),0))
     esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
-    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def tetragonal(reflections):
-    """
-    reflections = [[d, h, k, l]]
-    """
-    # l^4=
-    # (h^2+k^2)^2=
-    # (h^2+k^2)*l^2=
-    # l^2Q=
-    # (h2+K2)^2Q=
+    ''' 
+    Usage:
+    tet_dhkl = [[4.400, 0, 0, 2],
+            [4.290, 2, 0, 0],
+            [3.016, 2, 2, 0]]  
+    t_cell = tetragonal(tet_dhkl)
+    print ('tetragonal: a = ' +'%.3f'%(t_cell['a']) + ' ('+str(t_cell['esd_a'])+') A'+ \
+                 '; c = '+'%.3f'%(t_cell['c'])+ ' ('+str(t_cell['esd_c'])+') A')     
+    '''
     Q = []
     l4 = []
     h2k22 = []
@@ -230,12 +247,14 @@ def tetragonal(reflections):
     c =1/sqrt(cStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt((h**2+k**2)*aStar2+l**2*cStar2)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -247,21 +266,22 @@ def tetragonal(reflections):
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[1][1])
     esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)+0.005)),0))
     esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
-    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def orthorhombic(reflections):
-    """
-    reflections = [[d, h, k, l]]
-    """
-    # h^4 
-    # k^4
-    # l^4
-    # h^2k^2
-    # h^2l^2
-    # k^2l^2
-    # h^2Q
-    # k^2Q
-    # l^2Q
+    ''' 
+    Usage:
+    ort_dhkl = [[8.897, 0, 2, 0],
+                [9.307, 2, 0, 0],
+                [4.899, 1, 1, 1],
+                [4.448, 2, 1, 1],
+                [2.342, 3, 2, 2]]  
+
+    o_cell = orthorhombic(ort_dhkl)
+    print ('orthorhombic: a = ' +'%.3f'%(o_cell['a']) + ' ('+str(o_cell['esd_a'])+') A'+ \
+                 '; b = '+'%.3f'%(o_cell['b'])+ ' ('+str(o_cell['esd_b'])+') A'+ \
+                 '; c = '+'%.3f'%(o_cell['c'])+ ' ('+str(o_cell['esd_c'])+') A')
+    '''
     Q = []
     h4 = []
     k4 = []
@@ -314,12 +334,14 @@ def orthorhombic(reflections):
     c = 1/sqrt(cStar2)
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt(h**2*aStar2+k**2*bStar2+l**2*cStar2)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -333,25 +355,27 @@ def orthorhombic(reflections):
     esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)+0.005)),0))
     esd_b = int(round(1000*(abs(b-1/sqrt(bStar2+esd_bstar2)+0.005)),0))
     esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
-    return {'a':a, 'b':b, 'c':c, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'b':b, 'c':c, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def monoclinic(reflections):
-    """
-    reflections = [[d, h, k, l]]
-    """
-    # h^4
-    # k^4
-    # l^4
-    # h^2k^2
-    # h^2l^2
-    # k^2l^2
-    # h^3l
-    # hk^2l
-    # hl^3
-    # h2^Q
-    # k^2Q
-    # l^2Q
-    # hlQ
+    ''' 
+    Usage:
+    mon_dhkl = [[2.990, 2, 2, -1],
+                [2.529, 0, 0,  2],
+                [2.529, 2, 0, -2],
+                [2.892, 3, 1, -1],
+                [2.517, 1, 1, -2],
+                [2.517, 2, 2,  1],
+                [3.225, 2, 2,  0],
+                [2.948, 3, 1,  0],
+                [1.626, 2, 2, -3],
+                [1.626, 5, 3, -1]]
+    m_cell = monoclinic(mon_dhkl)
+    print ('monoclinic: a = ' +'%.3f'%(m_cell['a']) + ' ('+str(m_cell['esd_a'])+') A'+ \
+                 '; b = '+'%.3f'%(m_cell['b'])+ ' ('+str(m_cell['esd_b'])+') A'+ \
+                 '; c = '+'%.3f'%(m_cell['c'])+ ' ('+str(m_cell['esd_c'])+') A'+ \
+                 '; beta = '+'%.3f'%(m_cell['beta'])+ ' ('+str(m_cell['esd_beta'])+') deg') 
+    '''
 
     Q       = []
     h4      = []
@@ -428,12 +452,14 @@ def monoclinic(reflections):
     
     DelQ=[]
     DelD=[]
+    DCalc=[]
     for i, r in enumerate(reflections):
         d = r[0]
         h = r[1]
         k = r[2]
         l = r[3]
         dcalc = 1/sqrt(h**2*aStar2+k**2*bStar2+l**2*cStar2+h*l*pStar)
+        DCalc.append(dcalc)
         deld = d-dcalc
         DelD.append(deld)
         qcalc = 1/dcalc**2
@@ -450,7 +476,7 @@ def monoclinic(reflections):
     esd_b = int(round(1000*abs(0.5*(bStar2)**(-3/2)*esd_bstar2),0))
     esd_c = int(round(1000*abs(0.5*(cStar2)**(-3/2)*esd_cstar2/(sin(beta*pi/180))),0))
     esd_beta = int(round(1000*((1/(2*(1/d_100)*(1/d_001))*180/pi)/sqrt(1-(((pStar/(2*(1/d_100)*(1/d_001)))*2)**180/pi)))*esd_Bstar+0.5,0))
-    return {'a':a, 'b':b, 'c':c, 'beta':beta, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'esd_beta':esd_beta, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q}
+    return {'a':a, 'b':b, 'c':c, 'beta':beta, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'esd_beta':esd_beta, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def triclinic(reflections):
     pass

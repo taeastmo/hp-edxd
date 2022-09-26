@@ -29,10 +29,10 @@ from ...model.util.HelperModule import calculate_color
 
 
 class PatternWidget(QtCore.QObject):
-    mouse_moved = QtCore.Signal(float, float)
-    mouse_left_clicked = QtCore.Signal(float, float)
-    range_changed = QtCore.Signal(list)
-    auto_range_status_changed = QtCore.Signal(bool)
+    mouse_moved = QtCore.pyqtSignal(float, float)
+    mouse_left_clicked = QtCore.pyqtSignal(float, float)
+    range_changed = QtCore.pyqtSignal(list)
+    auto_range_status_changed = QtCore.pyqtSignal(bool)
 
     def __init__(self, pg_layout):
         super(PatternWidget, self).__init__()
@@ -350,6 +350,7 @@ class PatternWidget(QtCore.QObject):
             x = pos.x()
             y = pos.y()
             self.mouse_left_clicked.emit(x, y)
+        ev.accept()
 
     def myMouseDoubleClickEvent(self, ev):
         if (ev.button() == QtCore.Qt.RightButton) or (ev.button() == QtCore.Qt.LeftButton and

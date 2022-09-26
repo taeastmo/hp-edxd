@@ -24,6 +24,8 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
 from pathlib import Path
 import numpy as np
 
+from hpm import folder_settings_file, file_settings_file, defaults_settings_file, file_naming_settings_file
+
 from pathlib import Path
 home_path = os.path.join(str(Path.home()), 'hpMCA')
 if not os.path.exists(home_path):
@@ -271,22 +273,31 @@ def restore(file, obj):
    return obj
 
 ############################################################
-def restore_file_settings(file):
+def restore_file_settings():
+   file = file_settings_file
    filepath = os.path.join(home_path, file)
    obj = mcaDisplay_options() 
    return restore(filepath, obj)
 
 ############################################################
-def restore_folder_settings(file):
+def restore_folder_settings():
+   file = folder_settings_file
    filepath = os.path.join(home_path, file)
    obj = mcaDisplay_file()
    return restore(filepath, obj)
 
-
 ############################################################
-def restore_defaults_settings(file):
+def restore_defaults_settings():
+   file = defaults_settings_file
    filepath = os.path.join(home_path, file)
    obj = mcaDisplay_defaults()
+   return restore(filepath, obj)
+
+############################################################
+def restore_file_naming_settings():
+   file = file_naming_settings_file
+   filepath = os.path.join(home_path, file)
+   obj = mcaDisplay_file_naming()
    return restore(filepath, obj)
    
 
@@ -304,19 +315,27 @@ def save(options, file):
       displayErrorMessage( 'opt_save') 
 
 ############################################################
-def save_folder_settings(options, file = 'hpMCA_folder_settings.json'):
+def save_folder_settings(options):
+   file = folder_settings_file
    filepath = os.path.join(home_path, file)
    save(options, filepath)
 
 ############################################################
-def save_file_settings(options, file='hpMCA_file_settings.json'):
-
+def save_file_settings(options):
+   file = file_settings_file
    filepath = os.path.join(home_path, file)
    save(options, filepath)
 
 ############################################################
-def save_defaults_settings(options, file='hpMCA_defaults.json'):
+def save_defaults_settings(options):
+   file = defaults_settings_file
+   filepath = os.path.join(home_path, file)
+   save(options, filepath)
 
+############################################################
+
+def save_file_naming_settings(options):
+   file = file_naming_settings_file
    filepath = os.path.join(home_path, file)
    save(options, filepath)
 
@@ -391,51 +410,32 @@ class mcaDisplay_file:
       home = str(Path.home())
       self.phase         = home
       self.savedata      = home          # name of saved or read
-      self.export_ext    = '.xy'
+      self.readdata      = home
+      self.exportdata    = home
+      self.last_saved_file = ''
+      
       
 
 ############################################################
-class mcaDisplay_display:
+
+class mcaDisplay_file_naming:
    def __init__(self):
-      self.update_time = .5
-      self.current_time = 0.
-      self.current_counts = 0
-      self.current_bgd = 0
-      self.current_acqg = 0
-      self.prev_time   = 0.
-      self.prev_counts = 0
-      self.prev_bgd    = 0
-      self.prev_acqg   = 0
-      self.new_stats   = 0
-      self.horiz_mode  = 0
-      self.hmin        = 0
-      self.hmax        = 2048
-      self.vlog        = 1
-      self.lmarker     = 100
-      self.rmarker     = 200
-      self.cursor      = 300
-      self.klm         = 26 # Start with Fe
-      self.current_roi = 0
-      self.pressure    = 0.
-      self.temperature = 0.
-      self.psym        = 0
-      self.k_lines = ['Ka1', 'Ka2', 'Kb1', 'Kb2']
-      self.l_lines = ['La1', 'Lb1', 'Lb2', 'Lg1', 'Lg2', 'Lg3', 'Lg4', 'Ll']
+      home = str(Path.home())
+      self.base_name            = 'test'
+      self.increment_file_name  = True
+      self.starting_number      = 1        
+      self.minimum_digits       = 2      
+      self.add_date             = True
+      self.add_time             = False
+      self.d_format             = 0
+      self.t_format             = 0
+      self.dt_append_possition  = 0
+      self.export_xy            = False
+      self.export_chi           = False
+      self.export_dat           = False
+      self.export_fxye          = False
+      self.export_png           = False
 
-############################################################
-class mcaDisplay_mca:
-   def __init__(self):
-      self.mca          = None
-      self.name         = ''
-      self.valid        = 0
-      self.is_detector  = 0
-      self.nchans       = 0
-      self.data         = []
-      self.elapsed      = None
-      self.roi          = []
-
-
-############################################################
 ############################################################
 
 class mcaDisplay_presets():
@@ -464,7 +464,7 @@ class mcaDisplay_defaults():
 ############################################################
 
 class mcaControlPresets(QtWidgets.QDialog):
-   def __init__(self, parent,presets=mcaDisplay_presets(), options=None):
+   def __init__(self, parent,presets=None, options=None):
       """
       Creates a new GUI window 
       The preset live time, real time, start channel, end channel and total

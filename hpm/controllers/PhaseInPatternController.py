@@ -45,9 +45,10 @@ class PhaseInPatternController(object):
         self.phase_model = phase_model
         #self.integration_widget = integration_widget
         self.pattern_widget = pattern_widget
-        self.wavelength = 0.406626
+        
         self.unit = self.plotController.get_unit()
         self.tth = self.phase_controller.getTth()
+        self.wavelength = self.phase_controller.getWavelength()
 
         self.connect()
 
@@ -79,6 +80,11 @@ class PhaseInPatternController(object):
         self.tth = tth
         self.update_all_phase_lines()
         self.pattern_data_changed()
+
+    def wavelength_update(self, wavelength):
+        self.wavelength = wavelength
+        self.update_all_phase_lines()
+        self.pattern_data_changed()
     
     def add_phase_plot(self):
         """
@@ -93,9 +99,9 @@ class PhaseInPatternController(object):
            self.phase_model.get_rescaled_reflections(
                 -1, 'pattern_placeholder_var',
                 x_range, y_range,
-                self.wavelength,
+                self.phase_controller.get_widget_wavelength(),
                 self.unit,
-                tth=self.tth)
+                tth=self.phase_controller.get_widget_tth())
 
         self.pattern_widget.add_phase(self.phase_model.phases[-1].name,
                                       positions,
@@ -119,9 +125,9 @@ class PhaseInPatternController(object):
         positions, intensities, baseline = self.phase_model.get_rescaled_reflections(
             ind, 'pattern_placeholder_var',
             x_range, y_range,
-            self.wavelength,
+            self.phase_controller.get_widget_wavelength(),
             self.unit,
-            tth=self.tth
+            tth=self.phase_controller.get_widget_tth()
         )
 
         self.pattern_widget.update_phase_intensities(ind, positions, intensities, y_range[0])

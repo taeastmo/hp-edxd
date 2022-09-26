@@ -44,7 +44,7 @@ class JcpdsEditorController(QtCore.QObject):
     """
     JcpdsEditorController handles all the signals and changes associated with Jcpds editor widget
     """
-    #canceled_editor = QtCore.Signal(jcpds)
+    #canceled_editor = QtCore.pyqtSignal(jcpds)
     
     def __init__(self, phase_widget, phase_model=None, jcpds_phase=None):
         """

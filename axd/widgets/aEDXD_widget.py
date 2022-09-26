@@ -49,7 +49,7 @@ class aEDXDWidget(QMainWindow):
         self.all_spectra_widget = aEDXDAllSpectraWidget(all_spectra_fig_params)
         self.vertical_layout_tab_all_spectra.addWidget(self.all_spectra_widget)
         
-        sq_fig_parameters = 'S(q) Merged and Smoothened', 'S(q)', u'q (A<sup>-1</sup>)'
+        sq_fig_parameters = 'S(q) Merged and Smoothened', 'S(q)', u'q (\u212B<sup>-1</sup>)'
         self.sq_widget = aEDXDSqWidget(sq_fig_parameters)
         self.vertical_layout_tab_sq.addWidget(self.sq_widget )
 
@@ -57,7 +57,7 @@ class aEDXDWidget(QMainWindow):
         self.pdf_widget = aEDXDPDFWidget(pdf_fig_parameters)
         self.vertical_layout_tab_pdf.addWidget(self.pdf_widget)
 
-        inverse_fig_parameters = 'S(q) filtered', 'S(q)', u'q (A<sup>-1</sup>)' 
+        inverse_fig_parameters = 'S(q) filtered', 'S(q)', u'q (\u212B<sup>-1</sup>)' 
         self.inverse_widget = aEDXDInverseWidget(inverse_fig_parameters)
         self.vertical_layout_tab_inverse.addWidget(self.inverse_widget)
 
@@ -184,26 +184,26 @@ class aEDXDWidget(QMainWindow):
         self.menubar = QtWidgets.QMenuBar(self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 793, 22))
 
-        self.file_menu = self.menubar.addMenu('File')
-        self.file_op_act = QtWidgets.QAction('Open project', self)        
+        self.file_menu = self.menubar.addMenu('&File')
+        self.file_op_act = QtWidgets.QAction('&Open project', self)        
         self.file_menu.addAction(self.file_op_act)
-        self.file_save_act = QtWidgets.QAction('Save project', self)  
+        self.file_save_act = QtWidgets.QAction('&Save project', self)  
         self.file_save_act.setEnabled(False)      
         self.file_menu.addAction(self.file_save_act)
-        self.file_save_as_act = QtWidgets.QAction('Save project as...', self)  
+        self.file_save_as_act = QtWidgets.QAction('Save project &as...', self)  
         self.file_save_as_act.setEnabled(False)
         self.file_menu.addAction(self.file_save_as_act)
         self.file_save_hdf5_act = QtWidgets.QAction('Save to HDF5', self)        
         #self.file_menu.addAction(self.file_save_hdf5_act)
 
-        self.file_exp_menu = QtWidgets.QMenu('Export', self)
-        self.file_exp_data_act = QtWidgets.QAction('I(E)', self) 
+        self.file_exp_menu = QtWidgets.QMenu('&Export', self)
+        self.file_exp_data_act = QtWidgets.QAction('&I(E)', self) 
         self.file_exp_menu.addAction(self.file_exp_data_act)
-        self.file_exp_sf_act = QtWidgets.QAction('S(q)', self) 
+        self.file_exp_sf_act = QtWidgets.QAction('&S(q)', self) 
         self.file_exp_menu.addAction(self.file_exp_sf_act)
-        self.file_exp_pdf_act = QtWidgets.QAction('G(r)', self) 
+        self.file_exp_pdf_act = QtWidgets.QAction('&G(r)', self) 
         self.file_exp_menu.addAction(self.file_exp_pdf_act)
-        self.file_exp_sf_inv_act = QtWidgets.QAction('Inverse Fourier-filtered S(q)', self) 
+        self.file_exp_sf_inv_act = QtWidgets.QAction('Inverse &Fourier-filtered S(q)', self) 
         self.file_exp_menu.addAction(self.file_exp_sf_inv_act)
         self.file_menu.addMenu(self.file_exp_menu)
         

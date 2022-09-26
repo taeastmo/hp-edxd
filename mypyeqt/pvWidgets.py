@@ -86,6 +86,10 @@ class pvQWidget(QObject):
     def disconnect(self):
         if self.connected:
             self.disconnect_pv()
+
+    def re_connect(self):
+        if not self.connected:
+            self.connect_pv()
             
     def connect_pv(self):
         if not self.connected:
@@ -111,9 +115,9 @@ class pvQWidget(QObject):
     def WidgetValueChangedCallback(self,value):
         if self.connected:
             # value must be a string !!!
-            if value != self.put_value:
-                self.put_value = value
-                self.signal.emit()
+            #if value != self.put_value:
+            self.put_value = value
+            self.signal.emit()
                 #print('caput ' + self.pv_name + ' ' +value)
        
     # set value is called when monitor detects a change

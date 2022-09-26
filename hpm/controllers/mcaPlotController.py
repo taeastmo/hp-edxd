@@ -23,8 +23,8 @@ from utilities.HelperModule import getInterpolatedCounts
 
 class plotController(QObject):
 
-    fastCursorMovedSignal = pyqtSignal(str)  
-    staticCursorMovedSignal = pyqtSignal(str) 
+    fastCursorMovedSignal = pyqtSignal(dict)  
+    staticCursorMovedSignal = pyqtSignal(dict) 
     unitUpdated = pyqtSignal(str)
     logScaleYUpdated = pyqtSignal(bool)
     selectedRoiChanged =pyqtSignal(str)
@@ -35,6 +35,7 @@ class plotController(QObject):
         super().__init__()
         
         self.mca = mcaModel
+        self.calibration= self.mca.get_calibration()[0]
         self.pg = plotWidget
         self.mcaController = mainController
         
@@ -56,9 +57,11 @@ class plotController(QObject):
         self.units =  {     'E':'KeV',
                             'd':f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}',
                             'q':f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}\N{SUPERSCRIPT MINUS}\N{SUPERSCRIPT ONE}',
-                      'Channel':""
+                            'Channel':"",
+                            '2 theta':f'\N{SUPERSCRIPT ZERO}'
         }
-        self.horzBins = [self.mca.get_energy(0), 'E', self.units['E']]
+        self.makeXaxis()
+        #self.horzBins = [np.linspace(0,3999,1), 'E', self.units['E']]
         self.pg.plotMouseMoveSignal.connect(self.mouseMoved)         # connect signal to mouse mothion handler 
         self.pg.getViewBox().plotMouseCursorSignal.connect(self.mouseCursor)
         
@@ -68,8 +71,8 @@ class plotController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def update_plot(self):
-        #print(str(self.Foreground))
+    def update_plot_data(self):
+        
         m = self.mca
         baseline_state = self.mca.baseline_state
         if baseline_state:
@@ -80,7 +83,7 @@ class plotController(QObject):
         self.calibration = m.get_calibration()[0]
         self.elapsed = m.get_elapsed()[0]
         self.name = m.get_name()
-        self.roi_controller.update_rois()  #this will in turn trigger updateViews()
+        #self.roi_controller.update_rois()  #this will in turn trigger updateViews()
         self.envs = m.get_environment()
         envs = {}
         for env in self.envs:
@@ -88,8 +91,8 @@ class plotController(QObject):
         self.envUpdated.emit(envs)
 
     def updated_baseline_state(self):
-        self.update_plot()
-        
+        self.update_plot_data()
+        self.updateWidget()
         
     def rois_updated(self, ind, text ):
         self.roi_selection_updated(ind, text)
@@ -99,13 +102,27 @@ class plotController(QObject):
         self.roi= self.roi_controller.roi
         self.selectedRoiChanged.emit(text)
 
+    def get_data_label(self):
+        dx_type = self.calibration.dx_type
+        if dx_type == 'edx':
+            data_label = 'MCA, '+ self.elapsed.start_time[:-3]
+        elif dx_type == 'adx':
+            data_label = 'ADXD, '+ self.name 
+        else:
+            data_label = 'MCA'
+        return data_label
+
     def updateWidget(self):  
         [xAxis, xLabel, data, 
             nrois, roiHorz, roiData, self.dataInterpolated, 
             logMode] = self.formatDataForPlot(self.data, self.roi)
         # here we plot the foreground 
         pg = self.pg  
-        pg.plotData(xAxis, data, roiHorz,roiData,xLabel,'MCA, '+ self.elapsed.start_time[:-3])
+        
+
+        data_label = self.get_data_label()
+      
+        pg.plotData(xAxis, data, roiHorz,roiData,xLabel,data_label)
         self.update_cursors_text()
         update = {'x_range':[min(xAxis),max(xAxis)], 'y_range':[min(data),max(data)]}
         self.dataPlotUpdated.emit(update)
@@ -145,20 +162,22 @@ class plotController(QObject):
         old_unit = self.unit
         inverted_x_old = old_unit == 'd'
         inverted_x_new = unit == 'd'
-        x_direction_changed = inverted_x_old != inverted_x_new
+        #x_direction_changed = inverted_x_old != inverted_x_new
         
-        cursor_old_unit = self.pg.get_cursor_pos()
-        fast_cursor_old_unit = self.pg.get_cursorFast_pos()
+        #cursor_old_unit = self.pg.get_cursor_pos()
+        #fast_cursor_old_unit = self.pg.get_cursorFast_pos()
         self.is_cursor_in_range()
 
-        cursor_index = self.calibration.scale_to_channel(cursor_old_unit, old_unit)
-        fast_cursor_index = self.calibration.scale_to_channel(fast_cursor_old_unit, old_unit)
-        if cursor_index >= 0:
-            self.cursorPosition= cursor_index
-            cursor_new_unit = self.calibration.channel_to_scale(cursor_index,unit)
-        if fast_cursor_index >= 0:
-            self.fastCursorPosition = fast_cursor_index
-            fast_cursor_new_unit = self.calibration.channel_to_scale(fast_cursor_index,unit)
+        cursor_index = self.cursorPosition #self.calibration.scale_to_channel(cursor_old_unit, old_unit)
+        fast_cursor_index = self.fastCursorPosition #self.calibration.scale_to_channel(fast_cursor_old_unit, old_unit)
+        if cursor_index !=None:
+             if cursor_index >= 0:
+                self.cursorPosition= cursor_index
+                #cursor_new_unit = self.calibration.channel_to_scale(cursor_index,unit)
+        if fast_cursor_index != None:
+            if fast_cursor_index >= 0:
+                self.fastCursorPosition = fast_cursor_index
+                #fast_cursor_new_unit = self.calibration.channel_to_scale(fast_cursor_index,unit)
         x_axis_autorange = self.pg.viewBox.state['autoRange'][0]
         if not x_axis_autorange:
             x_axis = self.pg.getAxis('bottom')
@@ -166,15 +185,12 @@ class plotController(QObject):
             x_min = self.calibration.scale_to_channel(x_range[0],self.unit)
             x_max = self.calibration.scale_to_channel(x_range[1],self.unit)
         self.unit = unit
-        '''
-        if unit == 'd':
-            self.pg.viewBox.invertX(True)
-        else:
-            self.pg.viewBox.invertX(False)
-        '''
+       
         self.makeXaxis()
         
-        self.update_plot()
+        self.update_plot_data()
+        self.roi_controller.data_updated() 
+
         self.unitUpdated.emit(self.unit)
         self.update_cursors()
         
@@ -184,23 +200,7 @@ class plotController(QObject):
             new_x_max = self.calibration.channel_to_scale(x_max,self.unit)
             self.pg.setXRange(new_x_min, new_x_max, padding=0)
 
-    def update_cursors(self):
-        # update cursor positions or counts
-        if self.cursorPosition is not None:
-            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
-            self.mouseCursor(position)
-        if self.fastCursorPosition is not None:   
-            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
-            self.mouseMoved(fastPosition)
-
-    def update_cursors_text(self):
-        # update cursor positions or counts
-        if self.cursorPosition is not None:
-            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
-            self.mouseCursor_text(position)
-        if self.fastCursorPosition is not None:   
-            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
-            self.mouseMoved_text(fastPosition)
+    
 
     def getRange(self):
         xAx = self.horzBins[0]
@@ -219,7 +219,10 @@ class plotController(QObject):
     def makeXaxis(self):
         self.bins = np.linspace(0,len(self.data)-1, len(self.data))    # datapoint bins
         Scale=self.calibration.channel_to_scale(self.bins,self.unit)
-        self.horzBins = [Scale, self.unit , self.units[self.unit ]]
+        unit = self.unit
+        if unit == '2 theta':
+            unit = u'2θ'
+        self.horzBins = [Scale, unit , self.units[self.unit ]]
 
     def formatDataForPlot(self, data, rois):  
         #interpolated data for cursor movement:
@@ -266,8 +269,8 @@ class plotController(QObject):
         for roi in rois:
             use = roi.use
             if use == True:
-                left = roi.left
-                right = roi.right
+                left = int(roi.left)
+                right = int(roi.right)
                 label = roi.label
                 roi_data = data[left:right+1]
                 roi_horz = horz[left:right+1]
@@ -280,51 +283,63 @@ class plotController(QObject):
         dataDel[s] = 1
         return [roiHorz, roiData, copy.deepcopy(dataDel), copy.deepcopy(horzDel)]       
     
-    
+    def update_cursors(self):
+        # update cursor positions or counts
+        if self.cursorPosition is not None:
+            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
+            self.mouseCursor(position)
+        if self.fastCursorPosition is not None:   
+            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
+            self.mouseMoved(fastPosition)
+
+    def update_cursors_text(self):
+        # update cursor positions or counts
+        if self.cursorPosition is not None:
+            position = self.calibration.channel_to_scale(self.cursorPosition,self.unit)
+            self.mouseCursor_text(position)
+        if self.fastCursorPosition is not None:   
+            fastPosition = self.calibration.channel_to_scale(self.fastCursorPosition,self.unit)
+            self.mouseMoved_text(fastPosition)
+
+
+    def mouseCursor_non_signalling(self, channel):
+        point = self.calibration.channel_to_scale(channel,self.unit)
+        self.cursorPosition = channel
+        self.pg.set_cursor_pos(point)
     
     def mouseMoved(self, mousePoint):
         self.mouseMoved_text(mousePoint)
         self.pg.set_cursorFast_pos(mousePoint)
-        
-    def mouseMoved_text(self, mousePoint):
-        text = ''
-        if self.horzBins != None and self.dataInterpolated != None:
-            if mousePoint >=0 and mousePoint <= max(self.horzBins[0]):
-                self.fastCursorPosition = frac = getInterpolatedCounts(mousePoint,self.horzBins[0])
-                try:
-                    i = self.dataInterpolated(frac)
-                    text = "%s=%0.3f%s, I(%s)=%.1f" \
-                                                    % (self.horzBins[1],mousePoint,self.horzBins[2],self.horzBins[1], i)
-                except:
-                    text =''
-                    #self.myPlot.setData([mousePoint],[i])      # on-data cursor
-                #self.ui.pg.enableAutoRange('xy', False)    # turn of autoscale when drawign on-data cursor point       
-        else:
-            text = ''
-        self.fastCursorMovedSignal.emit(text)  
 
     def mouseCursor(self, mousePoint):
         self.mouseCursor_text(mousePoint)
         self.pg.set_cursor_pos(mousePoint)
 
+
+        
+    def mouseMoved_text(self, mousePoint):
+        frac, out = self.get_label_values(mousePoint)
+        self.fastCursorPosition = frac
+        self.fastCursorMovedSignal.emit(out)  
+
     def mouseCursor_text(self, mousePoint):
+        frac, out = self.get_label_values(mousePoint)
+        self.cursorPosition = frac
+        self.staticCursorMovedSignal.emit(out)    
+
+    def get_label_values(self, mousePoint):
+        out = {}
+        cursorPosition = None
         if self.horzBins != None and self.dataInterpolated != None:
             if mousePoint >=0 and mousePoint <= max(self.horzBins[0]):
-                
-                self.cursorPosition = frac = getInterpolatedCounts(mousePoint,self.horzBins[0])
+                cursorPosition = getInterpolatedCounts(mousePoint,self.horzBins[0])
                 try:
-                    i = self.dataInterpolated(frac)
-                    text = "<span style='color: #00CC00'>%s=%0.3f%s, I(%s)=%.1f</span>" \
-                                                    % (self.horzBins[1],mousePoint,self.horzBins[2],self.horzBins[1], i)
+                    i = self.dataInterpolated(cursorPosition)
                 except:
-                    text = ''
-                    #self.myPlot.setData([mousePoint],[i])      # on-data cursor
-                #self.ui.pg.enableAutoRange('xy', False)    # turn of autoscale when drawign on-data cursor point        
-            else:
-                text = ''
-                self.cursorPosition = None
-        else: text = ''
-        self.staticCursorMovedSignal.emit(text)    
+                    i = None
+                if i != None:
+                    out = {'hName':self.horzBins[1],'hValue':mousePoint,'hUnit':self.horzBins[2],'vName':self.horzBins[1], 'vValue':i, 'channel':cursorPosition}
+        return cursorPosition, out
     
     def get_cursor_position(self):
         return self.cursorPosition

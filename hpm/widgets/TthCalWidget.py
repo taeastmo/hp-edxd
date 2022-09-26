@@ -60,7 +60,7 @@ class mcaCalibrate2theta_widgets(object):
       self.two_theta_fit        = [None]*nrois
 
 class mcaCalibrate2theta(QtWidgets.QWidget):
-    def __init__(self, mca, detector=0, command=None,jcpds_directory=''):
+    def __init__(self, mca, detector=0, command=None,jcpds_directory='', data_label = ''):
         """
         Creates a new GUI window for calibrating 2-theta for an Mca object.
 
@@ -98,17 +98,22 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         self.calibration = copy.deepcopy(mca.get_calibration()[detector])   
         #self.data = copy.deepcopy(mca.get_data()[detector])
         self.jcpds_directory = jcpds_directory
+        self.data_label = data_label
 
         self.fname_label = 'Phase file not found. For automatic calibration, please close this \nwindow and load the corresponding phase file (.jcpds) first.'
+        self.phase_name = ''
+        self.phase_found = False
         if len(self.roi):
             roi = self.roi[0]
             label = roi.label
             temp = label.split()
             if len(temp) >= 2:
                 file = temp[0]
+                self.phase_name = file
                 item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
                 if item is not None:
                     self.fname_label = 'Using phase file: ' + item['full_file']
+                    self.phase_found = True
                 
 
         self.exit_command = command
@@ -134,7 +139,9 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
 
         #### display column headings    
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)
+        self.data_lbl = QtWidgets.QLabel(self.data_label)
         self.phase_file_label = QtWidgets.QLabel(self.fname_label)
+        self.verticalLayout_4.addWidget(self.data_lbl)
         self.verticalLayout_4.addWidget(self.phase_file_label)
         self.groupBox = QtWidgets.QGroupBox(self)
         self.container = self.groupBox        
@@ -144,8 +151,8 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
 
         
         
-        header = {'ROI':0,'Use?':1,'Energy':2,
-            'D-spacing':3,'HKL':4,f'2\N{GREEK SMALL LETTER THETA}':5, f'2\N{GREEK SMALL LETTER THETA}' + ' error':6
+        header = {'ROI':0,'Use?':1,'HKL':2,
+            'd-spacing':3,'Energy':4,f'2\N{GREEK SMALL LETTER THETA}':5, f'2\N{GREEK SMALL LETTER THETA}' + ' error':6
         }
 
         row = 0
@@ -197,14 +204,14 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
             t.setText('%.4f' % self.roi[i].d_spacing)
             t.setFixedWidth(70)
             t.setAlignment(QtCore.Qt.AlignHCenter)
-            t.returnPressed.connect(functools.partial(self.menu_d_spacing, i))
+            t.editingFinished.connect(functools.partial(self.menu_d_spacing, i))
             self.gridLayout.addWidget(t, row, 3, QtCore.Qt.AlignHCenter)
             
             self.widgets.energy[i] = t = QtWidgets.QLineEdit(self.groupBox)
             t.setText('%.3f' % self.roi[i].energy)
             t.setFixedWidth(70)
             t.setAlignment(QtCore.Qt.AlignHCenter)
-            t.returnPressed.connect(functools.partial(self.menu_energy, i))
+            t.editingFinished.connect(functools.partial(self.menu_energy, i))
             self.gridLayout.addWidget(t, row, 4, QtCore.Qt.AlignHCenter)
 
 
@@ -290,22 +297,21 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         value = self.widgets.use_flag[roi].isChecked()
         """ Private method """
         self.roi[roi].use = value 
-        #print('use: '+str(value))
-        #print('roi: '+str(roi))
+   
 
     def menu_energy(self, roi):
         """ Private method """
         energy = float(self.widgets.energy[roi].text())
         self.roi[roi].energy = energy
         self.widgets.energy[roi].setText('%.3f' % energy)
-        #print('energy: %.3f' % energy)
+    
 
     def menu_d_spacing(self, roi):
         """ Private method """
         d_spacing = float(self.widgets.d_spacing[roi].text())
         self.roi[roi].d_spacing = d_spacing
         self.widgets.d_spacing[roi].setText('%.3f' % d_spacing)
-        #print('d-spacing: %.3f' % d_spacing)
+     
 
     def menu_label(self, roi):
         """ Private method """
@@ -318,37 +324,57 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         self.roi[roi].label=label
 
     def menu_do_fit(self):
-        """ Private method """
-        # Compute 2-theta for each ROI
+        all_d_non_zero = True
         for i in range(self.nrois):
-            case = self.roi[i].energy == 0 #or (self.roi[i].d_spacing == 0)
-            if case:
-                self.two_theta[i] = 0.
-            if not case:
-                e = self.roi[i].energy
-                d = self.roi[i].d_spacing
-                self.two_theta[i] = 2.0 * math.asin(12.398 / (2.0*e*d))*180./math.pi
-            self.widgets.two_theta[i].setText('%.5f' % self.two_theta[i])
-        # Find which ROIs should be used for the calibration
-        use = []
-        for i in range(self.nrois):
-            if (self.roi[i].use): use.append(i)
-        nuse = len(use)
-        if (nuse < 1):
-            message='Must have at least one valid point for calibration'
-            print(message)
-            return
-        two_theta=[]
-        for u in use:
-            two_theta.append(self.two_theta[u])
-        self.calibration.two_theta = Numeric.mean(two_theta)
-        sdev = Numeric.std(two_theta)
-        self.widgets.two_theta_fit.setText(
-                                    ('%.5f' % self.calibration.two_theta)
-                                    + ' +/- ' + ('%.5f' % sdev))
-        for i in range(self.nrois):
-            two_theta_diff = self.two_theta[i] - self.calibration.two_theta
-            self.widgets.two_theta_diff[i].setText('%.5f' % two_theta_diff)
+            d = self.roi[i].d_spacing
+            u = self.roi[i].use
+            if (not d>0) and u :
+                all_d_non_zero = False
+
+        if (self.phase_found and all_d_non_zero) or all_d_non_zero:
+            """ Private method """
+            # Compute 2-theta for each ROI
+            for i in range(self.nrois):
+                case = self.roi[i].energy == 0 #or (self.roi[i].d_spacing == 0)
+                if case:
+                    self.two_theta[i] = 0.
+                if not case:
+                    e = self.roi[i].energy
+                    d = self.roi[i].d_spacing
+                    if d > 0:
+                        self.two_theta[i] = 2.0 * math.asin(12.398 / (2.0*e*d))*180./math.pi
+                    
+                        self.widgets.two_theta[i].setText('%.5f' % self.two_theta[i])
+                    else:
+                        self.widgets.two_theta[i].setText('inf')
+            # Find which ROIs should be used for the calibration
+            use = []
+            for i in range(self.nrois):
+                if (self.roi[i].use): use.append(i)
+            nuse = len(use)
+            if (nuse < 1):
+                message='Must have at least one valid point for calibration'
+                print(message)
+                return
+            two_theta=[]
+            for u in use:
+                two_theta.append(self.two_theta[u])
+            self.calibration.two_theta = Numeric.mean(two_theta)
+            sdev = Numeric.std(two_theta)
+            self.widgets.two_theta_fit.setText(
+                                        ('%.5f' % self.calibration.two_theta)
+                                        + ' +/- ' + ('%.5f' % sdev))
+            for i in range(self.nrois):
+                two_theta_diff = self.two_theta[i] - self.calibration.two_theta
+                self.widgets.two_theta_diff[i].setText('%.5f' % two_theta_diff)
+        else:
+
+            msg_box = QtWidgets.QMessageBox(self)
+            msg_box.setIcon(QtWidgets. QMessageBox.Information) 
+            msg_box.setStandardButtons(QtWidgets. QMessageBox.Ok )
+            msg_box.setWindowTitle("Phase not recognized")
+            msg_box.setText(self.phase_name + ' phase file not found. For automatic calibration, please close this \nwindow and load the corresponding phase file (.jcpds) first. Or manually enter d-spacing values for each hkl line.')
+            msg_box.show()
         
     def menu_plot_calibration(self):
         """ Private method """

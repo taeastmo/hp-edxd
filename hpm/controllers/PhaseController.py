@@ -31,6 +31,8 @@ from hpm.models.PhaseModel import PhaseModel
 from hpm.widgets.PhaseWidget import PhaseWidget
 import utilities.hpMCAutilities as mcaUtil
 
+
+
 class PhaseController(object):
     """
     IntegrationPhaseController handles all the interaction between the phase controls in the IntegrationView and the
@@ -48,17 +50,26 @@ class PhaseController(object):
         """
 
         self.pattern = mcaModel
-        self.mca = mcaModel
+        
         self.directories = directories
         self.unit = ''
+
+        # for automatic roi adding 
+        # ROI hwhm = int( a0 + E(KeV) * a1 )
+        self.a_0 = 7
+        self.a_1 = 0.08 
+        self.prefs = {
+                            "a_0": 6.0,
+                            "a_1": 0.08
+                        }
         
         self.roi_controller = roiController
         self.plotController = plotController
-
+        
         
         self.pattern_widget = plotWidget
         self.phase_widget = PhaseWidget()
-        self.wavelength = 0.406626
+        
         self.cif_conversion_dialog = CifConversionParametersDialog()
         self.phase_model = PhaseModel()
 
@@ -72,13 +83,30 @@ class PhaseController(object):
                     JcpdsEditorController(self.phase_widget, 
                                             phase_model=self.phase_model)
         self.phase_lw_items = []
-        self.create_signals()
-        self.update_temperature_step()
-        self.update_pressure_step()
+        
+        
         
         self.phases = []
         self.tth = self.getTth()
-        self.phase_widget.tth_lbl.setValue(self.tth)
+        
+        if self.tth != None:
+            self.phase_widget.tth_lbl.setValue(self.tth)
+        self.wavelength = self.getWavelength()
+        if self.wavelength != None:
+            self.phase_widget.wavelength_lbl.setValue(self.wavelength)
+
+        self.create_signals()
+        self.update_temperature_step()
+        self.update_pressure_step()
+
+
+    def set_prefs(self, params):
+        
+        for p in params:
+            if p in self.prefs:
+                val = params[p]
+                self.prefs[p] = val
+                
 
     def set_mca(self, mca):
         self.pattern = mca
@@ -106,7 +134,12 @@ class PhaseController(object):
         # 2th 
         self.phase_widget.tth_lbl.valueChanged.connect(self.tth_changed)
         self.phase_widget.tth_step.editingFinished.connect(self.update_tth_step)
-        self.connect_click_function(self.phase_widget.get_tth_btn, self.get_2th_btn_callcack)
+        self.connect_click_function(self.phase_widget.get_tth_btn, self.get_tth_btn_callcack)
+
+        # wavelength
+        self.phase_widget.wavelength_lbl.valueChanged.connect(self.wavelength_changed)
+        self.phase_widget.wavelength_step.editingFinished.connect(self.update_wavelength_step)
+        self.connect_click_function(self.phase_widget.get_wavelength_btn, self.get_wavelength_btn_callcack)
         
         # File drag and drop
         self.phase_widget.file_dragged_in.connect(self.file_dragged_in)
@@ -123,29 +156,52 @@ class PhaseController(object):
         self.phase_model.phase_added.connect(self.phase_added)
         self.phase_model.phase_removed.connect(self.phase_removed)
         self.phase_model.phase_changed.connect(self.phase_changed)
+
+    def get_phases(self):
+        phases = {}
+        for phase in self.phase_model.phases:
+            phases[phase._name]=copy.deepcopy(phase)
+        return phases
         
     def file_dragged_in(self,files):
         self.add_btn_click_callback(filenames=files)
 
     def JCPDS_roi_btn_clicked(self, index):
+        rois, phase, filename = self.get_phase_reflections(index)
+        
+        self.roi_controller.addJCPDSReflections(rois, phase)
+
+    def get_phase_reflections(self, index):
         # add rois based on selected JCPDS phase
         phases = self.phase_model.phases
         files = self.phase_model.phase_files
         tth = self.phase_widget.tth_lbl.value()
-        d_to_channel = self.mca.get_calibration()[0].d_to_channel
+        wavelength = self.phase_widget.wavelength_lbl.value()
+        calibration = self.pattern.get_calibration()[0]
+        d_to_channel = calibration.d_to_channel
         phase = phases[index]
         filename = files[index]
         name = phase.name
         reflections = phase.get_reflections()
         rois = []
-        for reflection in reflections:
-            channel = d_to_channel(reflection.d,tth = tth)
-            
-            lbl = str(name + " " + reflection.get_hkl())
-            rois.append({'channel':channel,'halfwidth':10, 'label':lbl, \
-                           'name':name, 'hkl':reflection.get_hkl_list()})
+
         
-        self.roi_controller.addJCPDSReflections(rois, phase)
+        a_0 = self.prefs['a_0']
+        a_1 = self.prefs['a_1']
+
+
+        for reflection in reflections:
+            channel = d_to_channel(reflection.d,tth = tth, wavelength=wavelength)
+            #E = calibration.channel_to_energy(channel)
+            E = 30
+            lbl = str(name + " " + reflection.get_hkl())
+
+            hw = round(a_0 + E * a_1)
+            
+
+            rois.append({'channel':channel,'halfwidth':hw, 'label':lbl, \
+                           'name':name, 'hkl':reflection.get_hkl_list()})
+        return rois, phase, filename
 
     
     def connect_click_function(self, emitter, function):
@@ -240,7 +296,7 @@ class PhaseController(object):
                                               positions,
                                               intensities,
                                               baseline)
-        #print(color)
+        
         return color
         
 
@@ -335,6 +391,10 @@ class PhaseController(object):
         value = self.phase_widget.tth_step.value()
         self.phase_widget.tth_lbl.setSingleStep(value)    
 
+    def update_wavelength_step(self):
+        value = self.phase_widget.wavelength_step.value()
+        self.phase_widget.wavelength_lbl.setSingleStep(value)    
+
     def update_temperature_step(self):
         value = self.phase_widget.temperature_step_msb.value()
         self.phase_widget.temperature_sb.setSingleStep(value)
@@ -415,11 +475,34 @@ class PhaseController(object):
         except:
             pass
 
-    def get_2th_btn_callcack(self):
+    def wavelength_changed(self):
+        try:
+            self.wavelength = np.clip(float(self.phase_widget.wavelength_lbl.text()),.001,179)
+          
+            self.phase_in_pattern_controller.wavelength_update(self.wavelength)
+        except:
+            pass
+
+    def get_widget_wavelength (self):
+        wavelength = np.clip(float(self.phase_widget.wavelength_lbl.text()),.001,179)
+        return wavelength
+
+    def get_widget_tth (self):
+        tth = np.clip(float(self.phase_widget.tth_lbl.text()),.001,179)
+        return tth
+
+    def get_tth_btn_callcack(self):
         tth = self.getTth()
         self.phase_widget.tth_lbl.setValue(tth)
+
+    def get_wavelength_btn_callcack(self):
+        wavelength = self.getWavelength()
+        self.phase_widget.wavelength_lbl.setValue(wavelength)
         
     def getTth(self):
         tth = self.pattern.get_calibration()[0].two_theta
         return tth
 
+    def getWavelength(self):
+        wavelength = self.pattern.get_calibration()[0].wavelength
+        return wavelength

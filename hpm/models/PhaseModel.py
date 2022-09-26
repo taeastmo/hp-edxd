@@ -51,13 +51,13 @@ class PhaseLoadError(Exception):
 
 
 class PhaseModel(QtCore.QObject):
-    phase_added = QtCore.Signal()
-    phase_removed = QtCore.Signal(int)  # phase ind
-    phase_changed = QtCore.Signal(int)  # phase ind
-    phase_reloaded = QtCore.Signal(int)  # phase ind
+    phase_added = QtCore.pyqtSignal()
+    phase_removed = QtCore.pyqtSignal(int)  # phase ind
+    phase_changed = QtCore.pyqtSignal(int)  # phase ind
+    phase_reloaded = QtCore.pyqtSignal(int)  # phase ind
 
-    reflection_added = QtCore.Signal(int)
-    reflection_deleted = QtCore.Signal(int, int)  # phase index, reflection index
+    reflection_added = QtCore.pyqtSignal(int)
+    reflection_deleted = QtCore.pyqtSignal(int, int)  # phase index, reflection index
 
     num_phases = 0
 
@@ -248,19 +248,27 @@ class PhaseModel(QtCore.QObject):
             self.get_lines_d(ind)
 
     # need to modify this for EDXD mode
-    def get_phase_line_positions(self, ind, unit='E', wavelength='0.406626',tth=15):
+    def get_phase_line_positions(self, ind, unit='E', wavelength=0.4,tth=15):
         positions = self.reflections[ind][:, 0]
 
-        if unit == 'd': return positions
+        if unit == 'd': 
+            return positions
         e = 12.398 / (2. * positions * np.sin(tth * np.pi/180./2.))
-        if unit == 'E': return e
+        if unit == 'E': 
+            
+            return e
+
         if unit == 'q' :
+
             q = 6.28318530718 /(6.199 / e / np.sin(tth/180.*np.pi/2.))  
             return q  
+        if unit == '2 theta' : 
+            positions = 2 * \
+                        np.arcsin(wavelength / (2 * positions)) * 180.0 / np.pi
+            return positions
         else:
             return [0]*len(positions)
-        #print (positions)
-        
+       
 
     def get_phase_line_intensities(self, ind, positions, pattern, x_range, y_range):
         
@@ -284,7 +292,7 @@ class PhaseModel(QtCore.QObject):
         return phase_line_intensities, baseline
 
     def get_rescaled_reflections(self, ind, pattern, x_range,
-                                 y_range, wavelength, unit='E', tth=15):
+                                 y_range, wavelength=0.4, unit='E', tth=15):
         positions = self.get_phase_line_positions(ind, unit, wavelength, tth)
         intensities, baseline = self.get_phase_line_intensities(ind, positions, pattern, x_range, y_range)
         return positions, intensities, baseline

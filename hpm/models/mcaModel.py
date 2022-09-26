@@ -14,8 +14,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+import re
+import pyqtgraph as pg
 import numpy as np
-
+from numpy.core.records import array
+from pyqtgraph.graphicsItems.PlotDataItem import dataType
+from scipy import interpolate
 from math import sqrt, sin, pi
 import utilities.centroid as centroid
 import copy
@@ -24,7 +28,7 @@ import time
 from hpm.models.mcareader import McaReader
 from hpm.widgets.UtilityWidgets import xyPatternParametersDialog
 import os
-
+import utilities.CARSMath as CARSMath
 from utilities.filt import spectra_baseline
 
 from epics import caput, caget, PV
@@ -45,7 +49,8 @@ class MCA():  #
         Example:
             m = Mca('my_spectrum.dat')
         """
-        #super().__init__()
+        
+        self.dx_type = 'edx'
 
         self.name = ''
         self.file_name = ''
@@ -60,12 +65,16 @@ class MCA():  #
         self.baseline_state = 0
         
         self.rois = [[]]
+        self.rois_from_file = [[]]
+        self.rois_from_det = [[]]
         self.auto_process_rois = True
 
         self.calibration = [McaCalibration()]
         self.elapsed = [McaElapsed()]
         self.presets = McaPresets()
         self.environment = []
+
+        self.wavelength = None  # persistent wavelength for axd mode useful when loading files without wavelength, e.g. *.chi
         #if (file != None):
         #    self.read_file(file, **filekw)
         self.fileIO = mcaFileIO()
@@ -145,16 +154,23 @@ class MCA():  #
         self.name = name
 
     ########################################################################
+    
+    def get_file_rois(self, energy=0):
+        """ Returns the Mca ROIS, as a list of McaROI objects """
+        rois = copy.copy(self.rois_from_file)
+     
+        return rois 
+    
+    def get_det_rois(self, energy=0):
+        """ Returns the Mca ROIS, as a list of McaROI objects """
+        rois = copy.copy(self.rois_from_det)
+       
+        return rois 
+    
     def get_rois(self, energy=0):
         """ Returns the Mca ROIS, as a list of McaROI objects """
-        
         rois = copy.copy(self.rois)
-        '''
-        if (energy != 0):
-            for roi in rois:
-                roi.left = self.calibration.channel_to_energy(roi.left)
-                roi.right = self.calibration.channel_to_energy(roi.right)
-        '''
+      
         return rois
 
     def get_rois_offline(self, energy=0):
@@ -200,15 +216,20 @@ class MCA():  #
         roi.fwhm_d = (self.calibration[detector].channel_to_d(roi.centroid + 
                                         fwhm_chan/2.) - 
                             self.calibration[detector].channel_to_d(roi.centroid - 
-                                        fwhm_chan/2.))                                
+                                        fwhm_chan/2.))      
+        roi.fwhm_tth = (self.calibration[detector].channel_to_tth(roi.centroid + 
+                                        fwhm_chan/2.) - 
+                            self.calibration[detector].channel_to_tth(roi.centroid - 
+                                        fwhm_chan/2.))                             
 
         roi.energy = self.calibration[detector].channel_to_energy(roi.centroid)
+        roi.two_theta = self.calibration[detector].channel_to_tth(roi.centroid)
         roi.q = self.calibration[detector].channel_to_q(roi.centroid)
         roi.d_spacing = self.calibration[detector].channel_to_d(roi.centroid)
 
-        #print("--- %s seconds ---" % (time.time() - start_time))
+
     ########################################################################
-    def set_rois(self, rois, energy=0, detector=0):
+    def set_rois(self, rois, energy=0, detector=0, source='file'):
         """
         Sets the region-of-interest parameters for the MCA.
         The rois information is contained in an object of class McaRoi.
@@ -235,20 +256,90 @@ class MCA():  #
             r2.right = 6.2
             mca.set_rois([r1,r2], energy=1)
         """
-        self.rois = [[]]
+        if source == 'file':
+            self.rois_from_file = [[]]
+            set_rois = self.rois_from_file
+        elif source == 'controller':
+            self.rois = [[]]
+            set_rois = self.rois
+        elif source == 'detector':
+            self.rois_from_det = [[]]
+            set_rois = self.rois_from_det
         
         for roi in rois:
-            if self.auto_process_rois :
-                self.compute_roi(roi, 0)
+            '''if self.auto_process_rois :
+                self.compute_roi(roi, 0)'''
             
             '''
             if (energy == 1):
                 r.left =  self.calibration.energy_to_channel(r.left, clip=1)
                 r.right = self.calibration.energy_to_channel(r.right, clip=1)
             '''
-            self.rois[detector].append(roi)
+            lbl = roi.label
+            if len(lbl)> 12:
+                if ' ' in lbl:
+                    parts = lbl.split(' ')
+                    end = parts[-1]
+                    end = end[:3]
+                    start = parts[0]
+                    start = start[:8]
+                    lbl = start + ' ' +end
+                else:
+                    lbl = lbl[:12]
+            roi.label = lbl
+            set_rois[detector].append(roi)
+
+
     ########################################################################
-    def add_rois(self, rois, energy=0, detector = 0):
+    
+    def add_roi(self, roi, energy=0, detector=0, source='file'):
+        """
+        This procedure adds a new region-of-interest to the MCA.
+
+        Inputs:
+            roi: An object of type mcaROI.
+            
+        Kyetwords:
+            energy:
+                Set this flag to 1 to indicate that the .left and .right 
+                fields of roi are in units of energy rather than channel 
+                number.
+                
+        Example:
+            mca = Mca('mca.001')
+            roi = McaROI()
+            roi.left = 500
+            roi.right = 600
+            roi.label = 'Fe Ka'
+            mca,add_roi(roi)
+        """
+
+        if source == 'file':
+            
+            set_rois = self.rois_from_file
+        elif source == 'controller':
+            set_rois = self.rois
+        elif source == 'detector':
+            set_rois = self.rois_from_det
+
+        r = copy.copy(roi)
+        if self.auto_process_rois :
+            self.compute_roi(r, detector)
+        '''
+        if (energy == 1):
+            r.left = self.calibration.energy_to_channel(r.left, clip=1)
+            r.right = self.calibration.energy_to_channel(r.right, clip=1)
+        '''
+        set_rois[detector].append(r)
+
+        # Sort ROIs.  This sorts by left channel.
+        tempRois = copy.copy(set_rois[detector])
+        tempRois.sort()
+        
+        set_rois[detector] = tempRois
+        
+    
+    def add_rois(self, rois, energy=0, detector = 0, source ='file'):
         """
         Adds multiple new ROIs to the epicsMca.
 
@@ -256,9 +347,18 @@ class MCA():  #
             rois:
                 List of McaROI objects.
         """
+
+        if source == 'file':
+            
+            set_rois = self.rois_from_file
+        elif source == 'controller':
+            set_rois = self.rois
+
+        elif source == 'detector':
+            set_rois = self.rois_from_det
        
         n_new_rois = len(rois)
-        nrois = len(self.rois[detector])
+        nrois = len(set_rois[detector])
         new_total = n_new_rois + nrois
         if new_total > self.max_rois:
             extra = new_total - self.max_rois 
@@ -274,20 +374,20 @@ class MCA():  #
                 r.left = self.calibration.energy_to_channel(r.left, clip=1)
                 r.right = self.calibration.energy_to_channel(r.right, clip=1)
             '''
-            self.rois[detector].append(r)
+            set_rois[detector].append(r)
 
             # Sort ROIs.  This sorts by left channel.
-            tempRois = copy.copy(self.rois[detector])
+            tempRois = copy.copy(set_rois[detector])
             tempRois.sort()
             
-            self.rois[detector] = tempRois
+            set_rois[detector] = tempRois
 
     def change_roi_use(self, ind, use, detector=0):
         roi = self.rois[detector][ind].use = use
             
     
-    def clear_rois(self):
-        self.set_rois([])
+    def clear_rois(self,source):
+        self.set_rois([],source=source)
 
     
 
@@ -321,7 +421,7 @@ class MCA():  #
         for d in self.data:
             
             baselines.append(spectra_baseline(d, 0.04, 50, method='gust'))
-            #print(d)
+       
         self.baselines = baselines
         return self.baselines
 
@@ -394,43 +494,7 @@ class MCA():  #
     ########################################################################    
 
     ########################################################################
-    def add_roi(self, roi, energy=0, detector=0):
-        """
-        This procedure adds a new region-of-interest to the MCA.
-
-        Inputs:
-            roi: An object of type mcaROI.
-            
-        Kyetwords:
-            energy:
-                Set this flag to 1 to indicate that the .left and .right 
-                fields of roi are in units of energy rather than channel 
-                number.
-                
-        Example:
-            mca = Mca('mca.001')
-            roi = McaROI()
-            roi.left = 500
-            roi.right = 600
-            roi.label = 'Fe Ka'
-            mca,add_roi(roi)
-        """
-        r = copy.copy(roi)
-        if self.auto_process_rois :
-            self.compute_roi(r, detector)
-        '''
-        if (energy == 1):
-            r.left = self.calibration.energy_to_channel(r.left, clip=1)
-            r.right = self.calibration.energy_to_channel(r.right, clip=1)
-        '''
-        self.rois[detector].append(r)
-
-        # Sort ROIs.  This sorts by left channel.
-        tempRois = copy.copy(self.rois[detector])
-        tempRois.sort()
-        
-        self.rois[detector] = tempRois
-        
+    
 
     ########################################################################
     def find_roi(self, left, right, energy=0, detector =0):
@@ -535,17 +599,7 @@ class MCA():  #
         presets = self.get_presets()
         rois = self.get_rois()
         environment = self.get_environment()
-        # the following is used for de-bouncing the auto-save when-acquisition-stops
-        # there was an issue that files would be written in duplicates becasue of multiple stops issued by epicsMCA
-        if self.file_saved_timestamp is not None:
-            elapsed_since_last_save = time.time() - self.file_saved_timestamp
-            #print ('elapsed_since_last_save: '+ str(elapsed_since_last_save))
-        else:
-            elapsed_since_last_save = 1
-        self.file_saved_timestamp = time.time()
-        if elapsed_since_last_save < 0.2:
-            #print('autosave skipped')
-            return [file, False]
+        
 
         if (netcdf != 0):
             pass
@@ -561,11 +615,11 @@ class MCA():  #
         
         return [file, True]
 
-    
+    
     ########################################################################
     
     
-    def read_file(self, file, netcdf=0, detector=0):
+    def read_file(self, file, netcdf=0, detector=0, persistent_rois=[]):
         """
         Reads a disk file into an MCA object.  If the netcdf=1 flag is set it
         reads a netcdf file, else it assumes the file is ASCII.
@@ -597,6 +651,14 @@ class MCA():  #
         else:
             if file.endswith('.mca'):
                 [r, success] = self.fileIO.read_mca_file(file)
+            elif file.endswith('.chi'):
+                [r, success] = self.fileIO.read_chi_file(file, wavelength=self.wavelength)
+                wavelength = r['calibration'][0].wavelength
+                self.wavelength = wavelength
+            elif file.endswith('.xy'):
+                [r, success] = self.fileIO.read_chi_file(file, wavelength=self.wavelength)
+                wavelength = r['calibration'][0].wavelength
+                self.wavelength = wavelength
             else:
                 [r, success] = self.fileIO.read_ascii_file(file)
      
@@ -607,8 +669,14 @@ class MCA():  #
             self.nchans = len(r['data'][0])
             self.n_detectors=len(self.data)
             self.elapsed = r['elapsed']
-            self.set_rois(r['rois'][0], detector=0) 
+            if persistent_rois == []:
+                rois = r['rois'][0]
+            else:
+                rois = persistent_rois
+            self.set_rois(rois, detector=0) 
             self.environment = r['environment']
+            self.name = os.path.split(file)[-1]
+            self.dx_type = r['dx_type']
     
         return([file,success])
 
@@ -750,7 +818,8 @@ class mcaFileIO():
         elapsed.live_time = mcafile.get_live_time()
         elapsed.real_time = mcafile.get_real_time()
         elapsed.start_time = mcafile.get_start_time()
-        calibration = McaCalibration()
+        calibration = McaCalibration(dx_type='edx')
+        
         cal_func = mcafile.get_calibration_function()
         if cal_func is not None:
             calibration.offset, calibration.slope = cal_func
@@ -772,6 +841,7 @@ class mcaFileIO():
         r['rois'] = [rois]
         r['data'] = [data]
         r['environment'] = []
+        r['dx_type'] = 'edx'
         return [r, True]
         #mcafile.plot()
 
@@ -800,6 +870,12 @@ class mcaFileIO():
         Example:
             m = read_ascii_file('mca.001')
             m['elapsed'][0].real_time
+
+        Modification by RH Dec. 30 2021
+        Version 3.1A
+        Added a distionction between EDX and ADX files.
+        For ADX files a WAVELENGTH field is written rather than TWO_THETA.
+        For ADX data is written as float, for EDX the as int.
         """
         try:
             fp = open(file, 'r')
@@ -815,8 +891,9 @@ class mcaFileIO():
         elapsed = [McaElapsed()]
         calibration = [McaCalibration()]
         rois = [[]]
+        dx_type = ''
         try:
-
+            
             while(1):
                 line = fp.readline()
                 if (line == ''): break
@@ -864,6 +941,17 @@ class mcaFileIO():
                 elif (tag == 'TWO_THETA:'):
                     for d in range(n_detectors):
                         calibration[d].two_theta = float(values[d])
+                        calibration[d].set_dx_type('edx')
+                        calibration[d].units = 'keV'
+                    data_type = int
+                    dx_type = 'edx'
+                elif (tag == 'WAVELENGTH:'):
+                    for d in range(n_detectors):
+                        calibration[d].wavelength = float(values[d])
+                        calibration[d].set_dx_type('adx')
+                        calibration[d].units = 'degrees'
+                    data_type = float
+                    dx_type = 'adx'
                 elif (tag == 'ENVIRONMENT:'):
                     env = McaEnvironment()
                     p1 = value.find('=')
@@ -873,14 +961,16 @@ class mcaFileIO():
                     env.description = value[p1+2+p2+3:-1]
                     environment.append(env)
                 elif (tag == 'DATA:'):
+                    
                     data = []
                     for d in range(n_detectors):
-                        data.append(np.zeros(nchans,  dtype=int))
+                        data.append(np.zeros(nchans,  dtype=data_type))
                     for chan in range(nchans):
                         line = fp.readline()
                         counts = line.split()
                         for d in range(n_detectors):
-                            data[d][chan]=int(counts[d])
+                            data[d][chan]=data_type(counts[d])
+                    
                 else:
                     for i in range(max_rois):
                         roi = 'ROI_'+str(i)+'_'
@@ -901,9 +991,9 @@ class mcaFileIO():
                                     rois[d][i].label = labels[d].strip()
                                 break
                         else:
-                            #print('Unknown tag = '+tag+' in file: ' + file + '.')
+                           
                             pass
-
+            
             # Make sure DATA array is defined, else this was not a valid data file
             if (data == None): return [None, False]
             fp.close()
@@ -915,9 +1005,74 @@ class mcaFileIO():
             r['rois'] = rois
             r['data'] = data
             r['environment'] = environment
+            r['dx_type'] = dx_type
+            
             return [r, True]
         except:
             return [None, False]
+
+    def compute_tth_calibration_coefficients(self, tth):
+
+        chan = np.linspace(0,len(tth)-1,len(tth))[::50]
+        tth = tth[::50]
+        weights = np.ones(len(tth)) 
+
+        coeffs = CARSMath.polyfitw(chan, tth, weights, 1)
+        
+        offset = coeffs[0]
+        slope = coeffs[1]
+        quad = 0 #coeffs[2]
+        '''tth_calc = offset + slope * chan + quad * chan * chan
+        tth_diff = tth_calc - tth
+
+        pltError = pg.plot(tth,tth_diff, 
+            pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
+            symbolPen='w', title="MCA Calibration"
+        )
+        pltError.setLabel('left', 'Calibration error')
+        pltError.setLabel('bottom', 'Energy')'''
+        return coeffs
+        
+
+    def read_chi_file(self, filename, wavelength=None):  #fit2d or dioptas chi type file
+        if filename.endswith('.chi') or filename.endswith('.xy'):
+            '''fp = open(filename, 'r')
+            first_line = fp.readline()
+            second_line = fp.readline()
+            unit = second_line.strip().upper()[:1]  # reserved for future functionality
+            fp.close()'''
+            
+            skiprows = 4
+            data = np.loadtxt(filename, skiprows=skiprows)
+            
+            x = data.T[0]
+            y = data.T[1]
+            basefile=os.path.basename(filename)
+            #name = basefile.split('.')[:-1][0]
+
+
+            coeffs = self.compute_tth_calibration_coefficients(x)
+            if wavelength == None:
+
+                wavelength = xyPatternParametersDialog.showDialog(basefile,'wavelength',.4)
+
+            r = {}
+            r['n_detectors'] = 1
+            r['calibration'] = [McaCalibration(offset=coeffs[0],
+                                               slope=coeffs[1],
+                                               quad=0, 
+                                               two_theta= np.mean(x),
+                                               units='degrees',
+                                               wavelength=wavelength)]
+            r['calibration'][0].set_dx_type('adx')
+            r['elapsed'] = [McaElapsed()]
+            r['rois'] = [[]]
+            r['data'] = [y]
+            r['environment'] = []
+            r['dx_type'] = 'adx'
+            return[r,True]
+            
+        return [None, False]
         
     #######################################################################
     def write_ascii_file(self, file, data, calibration, elapsed, presets, rois,
@@ -962,6 +1117,12 @@ class mcaFileIO():
             
             environment:
                 A list of McaEnvironment objects, or a list of lists of such objects.
+        
+        Modification by RH Dec. 30 2021
+        Version 3.1A
+        Added a distionction between EDX and ADX files.
+        For ADX files a WAVELENGTH field is written rather than TWO_THETA.
+        For ADX data is written as float, for EDX the as int.
         """
 
 
@@ -984,10 +1145,12 @@ class mcaFileIO():
             elapsed = elapsed
             """
         nchans = len(data[0])
+        dx_type = calibration[0].dx_type
+        version = '3.1A' if dx_type == 'adx'  else '3.1'
         start_time = elapsed[0].start_time
 
         fp = open(file, 'w')
-        fp.write('VERSION:    '+'3.1'+'\n')
+        fp.write('VERSION:    '+version+'\n')
         fp.write('ELEMENTS:   '+str(n_det)+'\n')
         fp.write('DATE:       '+str(start_time)+'\n')
         fp.write('CHANNELS:   '+str(nchans)+'\n')
@@ -1002,16 +1165,24 @@ class mcaFileIO():
             live_time.append(e.live_time)
         fp.write('REAL_TIME:  '+(fformat % tuple(real_time))+'\n')
         fp.write('LIVE_TIME:  '+(fformat % tuple(live_time))+'\n')
-        offset=[]; slope=[]; quad=[]; two_theta=[]
+        offset=[]; slope=[]; quad=[]; two_theta=[]; wavelength=[]
         for c in calibration:
             offset.append(c.offset)
             slope.append(c.slope)
             quad.append(c.quad)
-            two_theta.append(c.two_theta)
+            if c.dx_type == 'edx':
+                two_theta.append(c.two_theta)
+            if c.dx_type == 'adx':
+                wavelength.append(c.wavelength)
         fp.write('CAL_OFFSET: '+(eformat % tuple(offset))+'\n')
         fp.write('CAL_SLOPE: '+(eformat % tuple(slope))+'\n')
         fp.write('CAL_QUAD: '+(eformat % tuple(quad))+'\n')
-        fp.write('TWO_THETA: '+(fformat % tuple(two_theta))+'\n')
+        if c.dx_type == 'edx':
+            fp.write('TWO_THETA: '+(fformat % tuple(two_theta))+'\n')
+            data_format = iformat
+        if c.dx_type == 'adx':
+            fp.write('WAVELENGTH: '+(fformat % tuple(wavelength))+'\n')
+            data_format = fformat
 
         for i in range(max(nrois)):
             num = str(i)
@@ -1037,7 +1208,7 @@ class mcaFileIO():
         for i in range(nchans):
             for d in range(n_det):
                 counts[d]=data[d][i]
-            fp.write((iformat % tuple(counts))+'\n')
+            fp.write((data_format % tuple(counts))+'\n')
         fp.close()
 
 
@@ -1141,7 +1312,7 @@ class McaROI():
         .energy    # Energy of the centroid for energy calibration
     """
     def __init__(self, left=0., right=0., centroid=0., fwhm=0., bgd_width=0,
-                    use=1, preset=0, label='', d_spacing=0., energy=0., q = 0.):
+                    use=1, preset=0, label='', d_spacing=0., energy=0., q = 0., two_theta=0.):
         """
         Keywords:
             There is a keyword with the same name as each attribute that can be
@@ -1155,12 +1326,14 @@ class McaROI():
         self.fwhm_E = fwhm
         self.fwhm_q = fwhm
         self.fwhm_d = fwhm
+        self.fwhm_tth = fwhm
         self.bgd_width = bgd_width
         self.use = use
         self.preset = preset
         self.label = label
         self.d_spacing = d_spacing
         self.energy = energy
+        self.two_theta = two_theta
         self.yFit = []
         self.x_yfit = []
         self.channels = []
@@ -1180,6 +1353,9 @@ class McaROI():
         """
         eq = self.left == other.left and  self.right == other.right and  self.label == other.label
         return eq
+
+    def __repr__(self):
+        return (self.label + ' ' + str(self.left)+':'+str(self.right))
 
 ########################################################################
 class McaPeak():
@@ -1248,47 +1424,113 @@ class McaCalibration():
         .quad      # Quadratic
         .units     # Calibration units, a string
         .two_theta # 2-theta of this Mca for energy-dispersive diffraction
+        .energy    # Energy to use for angle-dispersive diffraction
     """
-    def __init__(self, offset=0., slope=1.0, quad=0., units='keV', 
-                        two_theta=10.):
+    def __init__(self, offset=0., slope=1.0, quad=0., **kwargs):
         """
         There is a keyword with the same name as each field, so the object can
         be initialized when it is created.
         """
+
         self.offset = offset
         self.slope = slope
         self.quad = quad
+        self.dx_type = ''
+        self.available_scales = []
+
+        if 'units' in kwargs:
+            units = kwargs['units']
+        else:
+            units = ''
+        
+        if 'two_theta' in kwargs:
+            two_theta = kwargs['two_theta']
+        else:
+            two_theta = None
+
+        if 'wavelength' in kwargs:
+            wavelength = kwargs['wavelength']
+        else:
+            wavelength = None
+
+        if 'dx_type' in kwargs:
+            self.set_dx_type(kwargs['dx_type'])
+
         self.units = units
-        self.two_theta = two_theta
+        self.two_theta = two_theta      # for edx 
+        self.wavelength = wavelength    # for adx 
+
+
+    def set_dx_type(self, dx_type):
+        scales = ["E",
+                "q",
+                "Channel",
+                "d",
+                '2 theta'] 
+        self.dx_type = dx_type
+        if dx_type == 'edx':
+            
+            self.available_scales = scales[0:-1]
+        if dx_type == 'adx':
+            
+            self.available_scales = scales[1:]
+
+ 
 
     ########################################################################
 
 
     def channel_to_scale(self, channel, unit):
-        if unit == 'E':
-            Scale = self.channel_to_energy(channel)
-        elif unit == 'd':
-            Scale = self.channel_to_d(channel)
-        elif unit == 'q':
-            Scale = self.channel_to_q(channel)
-        elif unit == 'Channel':
-            Scale = channel
-        return Scale
+        if unit in self.available_scales:
+            if unit == 'E':
+                Scale = self.channel_to_energy(channel)
+            elif unit == 'd':
+                Scale = self.channel_to_d(channel)
+            elif unit == 'q':
+                Scale = self.channel_to_q(channel)
+            elif unit == 'Channel':
+                Scale = channel
+            elif unit == '2 theta':
+                Scale = self.channel_to_tth(channel)
+            return Scale
+        return channel
+
+    def channel_to_tth(self, channel):
+        tth = self.channel_to_energy(channel)
+        return tth
+    
+
 
     def scale_to_channel(self, scale, unit):
-        if unit == 'E':
-            channel = self.energy_to_channel(scale)
-        elif unit == 'd' or unit == 'q':
-            if unit == 'q':
-                q = scale
-            else :
-                if scale != 0:
-                    q = 2. * pi / scale
-            e   = 6.199 /((6.28318530718 /q)*sin(self.two_theta/180.*pi/2.))
-            channel = self.energy_to_channel(e)
-        elif unit == 'Channel':
-            channel = scale
+        if unit in self.available_scales:
+            if unit == 'E':
+                channel = self.energy_to_channel(scale)
+            elif unit == 'd' or unit == 'q':
+                
+                if unit == 'q':
+                    q = scale
+                else :
+                    if scale != 0:
+                        q = 2. * pi / scale
+                if 'E' in self.available_scales:
+                    e   = 6.199 /((6.28318530718 /q)*np.sin(self.two_theta*0.008726646259972))
+                    channel = self.energy_to_channel(e)
+                elif "2 theta" in self.available_scales:
+                   
+                    two_theta = self. q_to_2theta(q)
+                    channel = self.energy_to_channel(two_theta)
+
+
+            elif unit == '2 theta':
+                channel = self.energy_to_channel(scale)
+            elif unit == 'Channel':
+                channel = scale
+        else: channel = scale
         return channel
+
+    def q_to_2theta(self, q, wavelength):
+        two_theta = np.arcsin(q/(4*pi/wavelength))/0.008726646259972 
+        return two_theta
 
     def channel_to_energy(self, channels):
         """
@@ -1318,9 +1560,8 @@ class McaCalibration():
         else:
             c = channels
 
+        
         e = self.offset + self.slope * c
-        if self.quad != 0:
-            e += self.quad * np.power(c, 2)
         
         return e
 
@@ -1361,9 +1602,13 @@ class McaCalibration():
         return d
 
     def channel_to_q(self,channels):
-        e = self.channel_to_energy(channels)   
-        q = 6.28318530718 /(6.199 / e / sin(self.two_theta/180.*pi/2.))
-
+        if "E" in self.available_scales:
+            e = self.channel_to_energy(channels)   
+            q = 6.28318530718 /(6.199 / e / sin(self.two_theta*0.008726646259972))
+        elif "2 theta" in self.available_scales:
+            two_theta = self.channel_to_energy(channels)
+            
+            q = (4*pi/self.wavelength) * np.sin( two_theta * 0.008726646259972)
         return  q
 
     ########################################################################
@@ -1420,7 +1665,7 @@ class McaCalibration():
                 
 
     ########################################################################
-    def d_to_channel(self, d, clip=0, tth=None):
+    def d_to_channel(self, d, clip=0, tth=None, wavelength = None):
         """
         Converts "d-spacing" to channels using the current calibration values
         for the Mca.  This routine can convert a single "d-spacing" or an array
@@ -1451,10 +1696,21 @@ class McaCalibration():
             mca = Mca('mca.001')
             channel = mca.d_to_chan(1.598)
         """
-        if tth ==None:
-            tth = self.two_theta
-        e = 12.398 / (2. * d * sin(tth*pi/180./2.))
-        return self.energy_to_channel(e, clip=clip)
+        q = 2. * pi / d
+
+        if self.dx_type == 'edx':
+            if tth ==None:
+                tth = self.two_theta
+            e   = 6.199 /((6.28318530718 /q)*np.sin(tth*0.008726646259972))
+            channel = self.energy_to_channel(e)
+        elif self.dx_type == 'adx':
+            
+            two_theta = self. q_to_2theta(q, wavelength)
+            channel = self.energy_to_channel(two_theta)
+        else:
+            channel = d
+        
+        return channel
 
     ########################################################################
 

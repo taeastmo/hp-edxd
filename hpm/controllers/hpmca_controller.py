@@ -37,10 +37,15 @@ from hpm.controllers.PhaseController import PhaseController
 from hpm.controllers.mcaPlotController import plotController
 from hpm.controllers.RoiController import RoiController
 from hpm.controllers.OverlayController import OverlayController
+from hpm.controllers.LatticeRefinementController import LatticeRefinementController
+from hpm.controllers.EnvironmentController import EnvironmentController
+from hpm.controllers.MultipleDatasetsController import MultipleDatasetsController
 
 from hpm.controllers.FileSaveController import FileSaveController
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
 #from hpm.controllers.hklGenController import hklGenController
+from hpm.controllers.RoiPrefsController import RoiPreferences
+
 
 import utilities.hpMCAutilities as mcaUtil
 from utilities.HelperModule import increment_filename
@@ -63,6 +68,7 @@ class hpmcaController(QObject):
         self.widget = hpMCAWidget(app) 
         
         self.displayPrefs = DisplayPreferences(self.widget.pg)
+        
 
         self.elapsed_time_presets = ['0','2','5','30','60','120'] 
         
@@ -70,16 +76,21 @@ class hpmcaController(QObject):
         
         self.create_connections() 
         
-        self.working_directories = mcaUtil.restore_folder_settings('hpMCA_folder_settings.json')
+        self.working_directories = mcaUtil.restore_folder_settings()
         
-        self.defaults_options = mcaUtil.restore_defaults_settings('hpMCA_defaults.json')
+        self.defaults_options = mcaUtil.restore_defaults_settings()
         
         self.presets = mcaUtil.mcaDisplay_presets() 
         self.last_saved = ''
         
         # initialize some stuff
-        self.mca = None              # mca model
-        self.epicsMCAholder = None   # holds a epicsMCA reference so that it doesnt
+        self.mca = None             # mca model
+
+     
+
+        self.epicsMCAholder = None   # holds a epics based MCA reference 
+        self.fileMCAholder = None   # holds a file system based MCA reference 
+
         self.Foreground = None       # str, can be either 'epics' or 'file'
         
         self.plotController = None    
@@ -87,22 +98,34 @@ class hpmcaController(QObject):
         self.phase_controller = None  # phase controller 
         self.fluorescence_controller = None
         self.overlay_controller = None
+        self.lattice_refinement_controller = None
         self.controllers_initialized = False
 
         self.unit = 'E' #default units
+        self.dx_type = 'exd'
+       
+
+        self.setHorzScaleBtnsEnabled(self.dx_type)
+
+        self.title_name = ''
 
         #initialize file saving controller
-        self.file_save_controller = FileSaveController(self)
-    
+        self.file_save_controller = FileSaveController(self, defaults_options=self.defaults_options)
+        self.multiple_datasets_controller = MultipleDatasetsController(self.file_save_controller)
+        self.multiple_datasets_controller.file_changed_signal.connect(self.file_changed_signal_callback)
+        self.multiple_datasets_controller.channel_changed_signal.connect(self.multispectral_channel_changed_callback)
+
         self.make_prefs_menu()  # for mac
+
+        #self.initControllers()
         
     def create_connections(self):
         ui = self.widget
-        ui.btnROIadd.clicked.connect(lambda:self.roi_action('add'))
+        '''ui.btnROIadd.clicked.connect(lambda:self.roi_action('add'))
         ui.btnROIclear.clicked.connect(lambda:self.roi_action('clear'))
         ui.btnROIdelete.clicked.connect(lambda:self.roi_action('delete'))
         ui.btnROIprev.clicked.connect(lambda:self.roi_action('prev'))
-        ui.btnROInext.clicked.connect(lambda:self.roi_action('next'))
+        ui.btnROInext.clicked.connect(lambda:self.roi_action('next'))'''
         ui.btnKLMprev.clicked.connect(lambda:self.xrf_action('prev'))
         ui.btnKLMnext.clicked.connect(lambda:self.xrf_action('next'))
         ui.lineEdit_2.editingFinished.connect(lambda:self.xrf_search(ui.lineEdit_2.text()))
@@ -134,6 +157,8 @@ class hpmcaController(QObject):
         ui.radioq.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioq))
         ui.radioChannel.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioChannel))
         ui.radiod.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radiod))
+        ui.radiotth.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radiotth))
+        
         ui.actionExit.triggered.connect(self.widget.close)
         
         
@@ -144,15 +169,24 @@ class hpmcaController(QObject):
         ui.actionROIs.triggered.connect(self.roi_module)
         ui.actionOverlay.triggered.connect(self.overlay_module)
         ui.actionFluor.triggered.connect(self.fluorescence_module)
+        ui.actionEvironment.triggered.connect(self.environment_module)
+        ui.actionMultiSpectra.triggered.connect(self.multi_spectra_module)
         
-        ui.actionPressure.triggered.connect(self.pressure_module)
+        ui.actionLatticeRefinement.triggered.connect(self.lattice_refinement_module)
         ui.actionhklGen.triggered.connect(self.hklGen_module)
         ui.actionManualTth.triggered.connect(self.set_Tth)
+        ui.actionManualWavelength.triggered.connect(self.set_Wavelength)
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
+        ui.actionRoiPrefs.triggered.connect(self.roi_preferences_module)
         ui.actionPresets.triggered.connect(self.presets_module)
         ui.actionAbout.triggered.connect(self.about_module)
 
         ui.baseline_subtract.clicked.connect(self.baseline_subtract_callback)
+
+        ui.file_view_btn.pressed.connect(self.file_view_btn_callback)
+        ui.live_view_btn.pressed.connect(self.live_view_btn_callback)
+
+        
         
         # file save/read actions moved to self.file_save_controller
 
@@ -183,11 +217,11 @@ class hpmcaController(QObject):
 
     def key_sig_callback(self, sig):
         if sig == 'right' :
-            self.roi_action('next')
+            self.roi_controller. roi_action('next')
         if sig == 'left' :
-            self.roi_action('prev')
+            self.roi_controller. roi_action('prev')
         if sig == 'delete' :
-            self.roi_action('delete')
+            self.roi_controller. roi_action('delete')
         if sig == 'shift_press' :
             self.zoomPan(1)
         if sig == 'shift_release' :
@@ -202,10 +236,25 @@ class hpmcaController(QObject):
             calibration.two_theta = val
             mca.set_calibration([calibration])
 
+    def set_Wavelength(self):
+        mca = self.mca
+        calibration = copy.deepcopy(mca.get_calibration()[0])
+        wavelength = calibration.wavelength
+        val, ok = QInputDialog.getDouble(self.widget, "Manual wavelength setting", "Current wavelength = "+ '%.4f'%(wavelength)+"\nEnter new wavelength: \n(Note: calibrated wavelength value will be updated)",wavelength,0,180,4)
+        if ok:
+            calibration.wavelength = val
+            mca.set_calibration([calibration])
+            mca.wavelength = val
+
+           
+
 
 
     def display_preferences_module(self, *args, **kwargs):
         self.displayPrefs.show()
+
+    def roi_preferences_module(self, *args, **kwargs):
+        self.roiPrefs.show()
             
     
     def presets_module(self, *args, **kwargs):
@@ -217,90 +266,115 @@ class hpmcaController(QObject):
             self.mca.set_presets(self.presets)
             #mcaUtil.save_file_settings(file_preferences)
     
+    
 
     def initMCA(self, mcaType, det_or_file):
-        [live_btn, real_btn] = self.epicsPresets
-        epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
-        epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
-        if mcaType == 'file':      
-            mca = MCA()
-            mca.auto_process_rois = True
-            [fileout, success] = mca.read_file(file=det_or_file, netcdf=0, detector=0)
-            
-            if not success:
-                return 1
-            if self.mca != None:
-                if self.Foreground == 'epics':
-                    self.mca.dataAcquired.disconnect()
-                    self.mca.acq_stopped.disconnect()
-                    
-                    self.file_save_controller.McaFileNameHolder = self.file_save_controller.McaFilename
-                    self.epicsMCAholder = self.mca
-            self.file_save_controller.McaFilename = None        
-            self.mca = mca
-            self.blockSignals(True)
-            for btn in self.epicsBtns:
-                btn.setEnabled(False)
-                btn.setChecked(False)
-            self.blockSignals(False)
-            live_btn.disconnect()
-            real_btn.disconnect()
-            for btn in epicsElapsedTimeBtns_PRTM:
-                btn.disconnect()
-            for btn in epicsElapsedTimeBtns_PLTM:
-                btn.disconnect()
-            self.widget.dead_time_indicator.disconnect()
-            #self.widget.dead_time_indicator.setValue(None)
+        if mcaType == 'file':    
+            init =    self.initFileMCA(det_or_file)
+            if init == 0:
+                self.widget.file_view_btn.setEnabled(True)
+                self.widget.file_view_btn.setChecked(True)  
         elif mcaType == 'epics': 
-            name = ''
-            
-            if self.epicsMCAholder is not None:
-                name = self.epicsMCAholder.name
-            if self.file_save_controller.McaFileNameHolder is not None:
-                self.file_save_controller.McaFilename = self.file_save_controller.McaFileNameHolder
-          
-            if name == det_or_file :
-                self.mca = self.epicsMCAholder
-                self.mca.toggleEpicsWidgetsEnabled(True)
-            else:
-                record_name_file = self.defaults_options.file_record
-                mca = epicsMCA(
-                                record_name = det_or_file, 
-                                epics_buttons = self.epicsBtns, 
-                                file_options = self.file_save_controller.file_options,
-                                environment_file = 'catch1d.env',
-                                record_name_file = record_name_file,
-                                dead_time_indicator = self.widget.dead_time_indicator
-                                )
-                
-                if not mca.initOK:
-                    live_btn.disconnect()
-                    real_btn.disconnect()
-                    return 1
-                    
-                
+            init =    self.initEpicsMCA(det_or_file)
+            if init == 0:
+                self.widget.live_view_btn.setEnabled(True)
+                self.widget.live_view_btn.setChecked(True) 
+        if init == 0:
+            self.Foreground = mcaType    
+            self.refresh_controllers_mca()
+        return init
 
-                self.mca = mca
-                if self.epicsMCAholder != None:
-                    self.epicsMCAholder.unload()
-                self.epicsMCAholder = self.mca
-            record = self.mca.name
-            live_btn.connect(record + '.PRTM')
-            real_btn.connect(record + '.PLTM')
-            for btn in epicsElapsedTimeBtns_PRTM:
-                btn.connect(record + '.PRTM')
-            for btn in epicsElapsedTimeBtns_PLTM:
-                btn.connect(record + '.PLTM')
-            
+    def refresh_controllers_mca(self):
         self.mca.auto_process_rois = True
         if self.controllers_initialized:
             self.plotController.set_mca(self.mca)
             self.phase_controller.set_mca(self.mca)
             self.roi_controller.set_mca(self.mca)
             self.fluorescence_controller.set_mca(self.mca)
-        self.Foreground = mcaType
         
+    def initFileMCA(self, file):
+        mca = None
+        if self.Foreground == 'file':
+            if self.mca != None:  
+                mca = self.mca
+        if self.Foreground == 'epics':
+            if self.fileMCAholder != None:
+                mca = self.fileMCAholder
+        if mca == None:
+            mca = MCA()
+        mca.auto_process_rois = True
+        [fileout, success] = mca.read_file(file=file, netcdf=0, detector=0)
+        if not success:
+            return 1
+        self.set_file_mca(mca)
         return 0
+
+    def initEpicsMCA(self, det):
+        name = ''
+        if self.epicsMCAholder is not None:
+            name = self.epicsMCAholder.name
+        if name == det : #check if the same epics MCA is already initialized
+            mca = self.epicsMCAholder
+            mca.toggleEpicsWidgetsEnabled(True)
+        else:
+            if self.epicsMCAholder != None:
+                self.epicsMCAholder.unload()
+            mca = epicsMCA(record_name = det, 
+                            epics_buttons = self.epicsBtns, 
+                            file_options = self.file_save_controller.file_options,
+                            environment_file = 'catch1d.env',
+                            dead_time_indicator = self.widget.dead_time_indicator
+                            )
+            if not mca.initOK:
+                [live_val, real_val] = self.epicsPresets
+                live_val.disconnect()
+                real_val.disconnect()
+                return 1
+        self.set_epics_mca(mca)
+        return 0
+        
+
+    def set_epics_mca(self, mca):
+        if self.Foreground == 'file':
+            self.fileMCAholder = self.mca
+        self.mca = mca
+        [live_val, real_val] = self.epicsPresets
+        epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
+        epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
+        record = self.mca.name
+        live_val.connect(record + '.PRTM')
+        real_val.connect(record + '.PLTM')
+        for btn in epicsElapsedTimeBtns_PRTM:
+            btn.connect(record + '.PRTM')
+        for btn in epicsElapsedTimeBtns_PLTM:
+            btn.connect(record + '.PLTM')
+        self.widget.dead_time_indicator.re_connect()
+
+    def set_file_mca(self, mca):
+        if self.mca != mca:
+            if self.Foreground == 'epics':
+                [live_val, real_val] = self.epicsPresets
+                epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
+                epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
+                self.mca.dataAcquired.disconnect()
+                self.mca.acq_stopped.disconnect()
+                self.epicsMCAholder = self.mca
+                self.blockSignals(True)
+                for btn in self.epicsBtns:
+                    btn.setEnabled(False)
+                    btn.setChecked(False)
+                    self.blockSignals(False)
+                    live_val.disconnect()
+                    real_val.disconnect()
+                    for btn in epicsElapsedTimeBtns_PRTM:
+                        btn.disconnect()
+                    for btn in epicsElapsedTimeBtns_PLTM:
+                        btn.disconnect()
+                    self.widget.dead_time_indicator.disconnect()
+                self.blockSignals(False)
+            self.mca = mca
+        
+            
 
     def update_elapsed_preset_btn_messages(self, elapsed_presets):
         for i, btn in enumerate(self.epicsElapsedTimeBtns_PLTM):
@@ -317,21 +391,30 @@ class hpmcaController(QObject):
         self.plotController.fastCursorMovedSignal.connect(self.mouseMoved)  
         self.plotController.selectedRoiChanged.connect(self.roi_selection_updated) 
         self.plotController.envUpdated.connect(self.envs_updated_callback)
+
+        self.environment_controller = EnvironmentController()
         
         #initialize roi controller
-        self.roi_controller = self.plotController.roi_controller
+        self.roi_controller = self.plotController.roi_controller 
+        #self.roi_controller .rois_widget.lock_rois_btn.toggled. connect( self.lock_rois_btn_callback)
+        self.roi_controller.roi_updated_signal.connect (self.roi_updated_signal_callback)
         
         # initialize phase controller
         self.phase_controller = PhaseController(self.widget.pg, self.mca, 
                                             self.plotController, self.roi_controller, 
                                             self.working_directories)
+        # roiPrefs handles options for automatic ROI adding from the phases module                                   
+        self.roiPrefs = RoiPreferences(self.phase_controller)
+    
         # initialize overlay controller: not done yet
         self.overlay_controller = OverlayController( self, self.plotController, self.widget)
         #initialize xrf controller
         self.fluorescence_controller = xrfWidget(self.widget.pg, self.plotController, self.roi_controller, self.mca)
         self.fluorescence_controller.xrf_selection_updated_signal.connect(self.xrf_updated)
 
-   
+        self.lattice_refinement_controller = LatticeRefinementController(self.mca,self.widget.pg,self.plotController,self)
+
+        
 
         #initialize hklGen controller
         #self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
@@ -351,10 +434,17 @@ class hpmcaController(QObject):
 
     
 
-    def openDetector(self):
-        # initialize epics mca
-        detector = self.defaults_options.detector
-        text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text=detector)
+    def openDetector(self, *args, **kwargs):
+        text = ''
+        ok = False
+        if 'detector' in kwargs:
+            text = kwargs['detector']
+            if len(text):
+                ok = True
+        else:
+            # initialize epics mca
+            detector = self.defaults_options.detector
+            text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text=detector)
         
         if ok:
             mcaTemp = self.mca 
@@ -372,6 +462,8 @@ class hpmcaController(QObject):
                     elif acquiring == 0:
                         self.mca.acqOff()
                     self.update_titlebar()
+                    self.widget.live_view_btn.setEnabled(True)
+                    self.widget.live_view_btn.setChecked(True)
                     self.defaults_options.detector = text
                     try:
                         mcaUtil.save_defaults_settings(self.defaults_options)
@@ -396,14 +488,42 @@ class hpmcaController(QObject):
         self.widget.setWindowTitle(name + u'hpMCA')
 
     def data_updated(self):
-        self.plotController.update_plot()  
+        
+        self.plotController.update_plot_data() 
+        self.plotController.roi_controller.data_updated()  #this will in turn trigger updateViews() 
+        environment = self.mca.environment
+        self.environment_controller.set_environment(environment)
         self.update_titlebar()
         elapsed = self.mca.get_elapsed()[0]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
         self.widget.lblRealTime.setText("%0.2f" %(elapsed.real_time))
+        dx_type = self.mca.dx_type
+        if self.dx_type != dx_type:
+            self.set_dx_type(dx_type)
+            
+
+    def set_dx_type(self, dx_type):
+        self.dx_type = dx_type
+        self.setHorzScaleBtnsEnabled(self.dx_type)
+        if dx_type == 'edx':
+            self.widget.radioE.setChecked(True)
+            self.phase_controller.phase_widget.set_edx()
+            self.widget.actionManualWavelength.setEnabled(False)
+            self.widget.actionManualTth.setEnabled(True)
+            self.widget.actionCalibrate_energy.setEnabled(True)
+            self.widget.actionCalibrate_2theta.setEnabled(True)
+            #old_tth = self.phase_controller .phase_widget.tth_lbl.text()
+        if dx_type == 'adx':
+            self.widget.radiotth.setChecked(True)
+            self.phase_controller.phase_widget.set_adx()
+            self.widget.actionManualWavelength.setEnabled(True)
+            self.widget.actionManualTth.setEnabled(False)
+            self.widget.actionCalibrate_energy.setEnabled(False)
+            self.widget.actionCalibrate_2theta.setEnabled(False)
+            self.phase_controller.phase_widget.wavelength_lbl.setValue(self.mca.calibration[0].wavelength)
 
     def envs_updated_callback(self, envs):
-        #print(envs)
+        
         pass
 
     def xrf_updated(self,text):
@@ -413,6 +533,23 @@ class hpmcaController(QObject):
     
     ########################################################################################
     ########################################################################################
+
+    def file_view_btn_callback(self, *args):
+        if self.fileMCAholder != None:
+        
+            self.set_file_mca(self.fileMCAholder)
+            self.refresh_controllers_mca()
+            self.data_updated()
+
+        #pass
+    def live_view_btn_callback(self, *args):
+        detector = self.defaults_options.detector
+        if len(detector):
+            self.openDetector(detector=detector)
+            self.refresh_controllers_mca()
+            self.data_updated()
+        #pass
+        
 
     def overlay_module(self):
         if self.mca != None:
@@ -430,7 +567,8 @@ class hpmcaController(QObject):
     def calibrate_tth_module(self):
         if self.mca != None:
             phase=self.working_directories.phase
-            self.ctth = mcaCalibrate2theta(self.mca, jcpds_directory=phase)
+            data_label = self.plotController.get_data_label()
+            self.ctth = mcaCalibrate2theta(self.mca, jcpds_directory=phase, data_label=data_label)
             if self.ctth.nrois < 1:
                 mcaUtil.displayErrorMessage( 'calroi')
                 self.ctth.destroy()
@@ -444,13 +582,58 @@ class hpmcaController(QObject):
     def roi_module(self):
         if self.mca !=None:
             self.roi_controller.show_view()
+
+    '''def lock_rois_btn_callback(self, locked):
+        if locked:
+            rois = copy.deepcopy(self.mca.get_rois()[0])
+            
+        else:
+            rois = []
+        self.file_save_controller.persistent_rois = rois'''
             
     def fluorescence_module(self):
         if self.mca !=None:
             self.fluorescence_controller.show()
 
-    def pressure_module(self):
-        self.roi_controller.pressure()
+    def roi_updated_signal_callback(self, *args, **kwargs):
+        if self.lattice_refinement_controller.active and self.mca !=None:
+            
+            rois = self.mca.get_rois()[0]
+            phases = self.phase_controller.get_phases()
+            
+            self.lattice_refinement_controller.set_jcpds_directory(self.phase_controller.directories.phase)
+            self.lattice_refinement_controller.set_mca(self.mca)
+            self.lattice_refinement_controller.set_rois_phases(rois,phases)
+            autoprocess = self.lattice_refinement_controller.widget.auto_fit.isChecked()
+            if autoprocess:
+                self.lattice_refinement_controller.update_phases()
+
+
+    def lattice_refinement_module(self):
+        if self.mca !=None:
+            rois = self.mca.get_rois()[0]
+            phases = self.phase_controller.get_phases()
+            
+            self.lattice_refinement_controller.set_jcpds_directory(self.phase_controller.directories.phase)
+            self.lattice_refinement_controller.set_mca(self.mca)
+            self.lattice_refinement_controller.set_rois_phases(rois,phases)
+            self.lattice_refinement_controller.show_view()
+
+    def environment_module(self):
+        if self.mca !=None:
+            environment = self.mca.environment
+            self.environment_controller.set_environment(environment)
+            self.environment_controller.show_view()
+
+    def multi_spectra_module(self):
+        self.multiple_datasets_controller.show_view()
+
+    def file_changed_signal_callback(self, fname):
+       
+        self.file_save_controller.openFile(filename=fname)
+
+    def multispectral_channel_changed_callback(self, channel):
+        self.plotController.mouseCursor_non_signalling(channel)
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()
@@ -459,41 +642,6 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def roi_action(self, action):
-        if self.mca != None:
-            if action == 'add':
-                if self.plotController.is_cursor_in_range():
-                    #self.add_roi_btn()
-                    mode = self.widget.btnROIadd.text()
-                    #self.plotController.roi_construct(mode)
-                    widths = {'E': 0.7, 'q': 0.1, 'Channel':20, 'd': 0.1}
-                    if mode == 'Add':
-                        self.widget.btnROIadd.setText("Set")
-                        if self.unit in widths:
-                            width = widths[self.unit]
-                        else:
-                            width = 2
-                        self.plotController.roi_construct(mode,width=width)
-                    else:
-                        self.widget.btnROIadd.setText("Add")
-                        reg = self.plotController.roi_construct(mode)
-                        if reg is not None:
-                            self.roi_controller.addROIbyChannel(reg[0],reg[1])
-                else:
-                    self.widget.btnROIadd.setChecked(False)
-            elif action == 'delete':
-                self.roi_controller.remove_btn_click_callback()
-            elif action == 'clear':
-                self.roi_controller.clear_rois()
-            elif action == 'next':
-                self.roi_controller.navigate_btn_click_callback('next')
-            elif action == 'prev':
-                self.roi_controller.navigate_btn_click_callback('prev')
-            else: 
-                pass
-        else:
-            if action == 'add':
-                self.widget.btnROIadd.setChecked(False)
 
     def roi_selection_updated(self, text):
         self.widget.lineROI.setText(text)
@@ -524,7 +672,18 @@ class hpmcaController(QObject):
                 horzScale = 'Channel'
             elif self.widget.radiod.isChecked() == True:
                 horzScale = 'd'
+            elif self.widget.radiotth.isChecked() == True:
+                horzScale = '2 theta'
             self.set_unit(horzScale)
+
+    def setHorzScaleBtnsEnabled(self, preset = 'edx'):
+        scales = ['Channel']
+        if preset == 'edx':
+            scales =['E','q','d','Channel']   
+        elif preset == 'adx':
+            scales =['2 theta','q','d','Channel']   
+        self.widget.set_scales_enabled_states(scales)
+        
 
     def set_unit(self,unit):
             self.unit = unit
@@ -567,17 +726,34 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def mouseMoved(self, text):
+    def mouseMoved(self, input):
+        text =self.format_cursor_label(input)
         self.widget.indexLabel.setText(text)
+        
 
-    def mouseCursor(self, text):
+    def mouseCursor(self, input):
+        text =self.format_cursor_label(input)
         self.widget.cursorLabel.setText(text)
+        self.multiple_datasets_controller.set_channel_cursor(input)
+
+    def format_cursor_label(self, input):
+        if len(input):
+            hName = input['hName']
+            hValue= input['hValue']
+            hUnit = input['hUnit']
+            vName = input['vName']
+            vValue= input['vValue']
+            text = "%s = %0.3f%s, %sI(%s) = %.1f" \
+                               % (hName,hValue,hUnit," ",vName,vValue)
+        else:
+            text = ''
+        return text
 
     ########################################################################################
     ########################################################################################    
 
     def setStyle(self, Style):
-        #print('style:  ' + str(Style))
+        
         if Style==1:
             WStyle = 'plastique'
             file = open(os.path.join(self.style_path, "stylesheet.qss"))

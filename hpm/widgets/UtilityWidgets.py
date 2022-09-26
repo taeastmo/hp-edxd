@@ -332,6 +332,13 @@ def open_file_dialog(parent_widget, caption, directory=None, filter=None):
         return str(filename[0])
     return str(filename)
 
+def open_folder_dialog(parent_widget, caption, directory=None ):
+    folder = QtWidgets.QFileDialog.getExistingDirectory(parent_widget, caption=caption,
+                                                     directory=directory)
+    if isinstance(folder, tuple):  # PyQt5 returns a tuple...
+        return str(folder[0])
+    return str(folder)
+
 
 def open_files_dialog(parent_widget, caption, directory=None, filter=None):
     filenames = QtWidgets.QFileDialog.getOpenFileNames(parent_widget, caption=caption,

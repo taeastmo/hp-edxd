@@ -100,11 +100,11 @@ class OverlayController(object):
     def showWidget(self):
         self.overlay_widget.raise_widget()
         self.active = True
-        #print(self.active)
+       
 
     def widget_closed(self):
         self.active = False
-        #print(self.active)
+    
 
     def connect_click_function(self, emitter, function):
         emitter.clicked.connect(function)
@@ -123,7 +123,7 @@ class OverlayController(object):
 
         if filenames is None:
             filenames = open_files_dialog(self.overlay_widget, "Load Overlay(s).",
-                                      self.model.working_directories.savedata)  
+                                      self.model.working_directories.readdata)  
 
         
         if len(filenames):
@@ -132,7 +132,7 @@ class OverlayController(object):
             for filename in filenames:
                 filename = str(filename)
                 self.overlay_model.add_overlay_file(filename,x_scale,log_mode)
-            self.model.working_directories.savedata = os.path.dirname(str(filenames[0]))
+            self.model.working_directories.readdata = os.path.dirname(str(filenames[0]))
 
     def overlay_added(self):
         """

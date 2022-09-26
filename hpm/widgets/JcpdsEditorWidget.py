@@ -699,7 +699,7 @@ class TextDoubleDelegate(NoRectDelegate):
         return self.editor
 
 class ReflectionTableModel(QtCore.QAbstractTableModel):
-    reflection_edited = QtCore.Signal(int, int, str)  # row, column, value
+    reflection_edited = QtCore.pyqtSignal(int, int, str)  # row, column, value
 
     def __init__(self, reflections=None, wavelength=None):
         super(ReflectionTableModel, self).__init__()
