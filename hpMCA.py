@@ -22,4 +22,6 @@ main()
 # TODO try smooth_bruckner for baseline subtraction, save bg subtracted file
 # TODO multi detector display, optional stacked pltwidgets for each detector
 # TODO add ROI width options for the xrd module   
-
+# TODO Track pressure, update ROI's after lattice refinement
+# TODO output lattice refinement results as table
+# TODO bug: hangs when opening lattice refinement and the jspds folder is not initialized

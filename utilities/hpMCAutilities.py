@@ -124,24 +124,26 @@ class Preferences():
 def readconfig(config_file):
    
    config_dict = {}
-   try:
-      with open(config_file,'r') as f:
-         config_dict = json.loads(f.read(),)
-         f.close()
-         
-   except:
+   if len(config_file):
+      if os.path.isfile(config_file):
+         try:
+            with open(config_file,'r') as f:
+               config_dict = json.loads(f.read(),)
+               f.close()
+               
+         except:
 
-      pass
+            pass
 
-   # support for legacy config files from aEDXD 1.3 (uses single quote style)
-   if config_dict == {}:
-      
-      try:
-         with open(config_file,'r') as f:
-            config_dict = ast.literal_eval(f.read())
-            f.close()
-      except:
-         pass
+         # support for legacy config files from aEDXD 1.3 (uses single quote style)
+         if config_dict == {}:
+            
+            try:
+               with open(config_file,'r') as f:
+                  config_dict = ast.literal_eval(f.read())
+                  f.close()
+            except:
+               pass
    
    return config_dict 
 
@@ -253,15 +255,17 @@ class mcaFilePreferences(QtWidgets.QDialog):
 def restore(file, obj):
 
    attributes  = [key for key, value in obj.__dict__.items() if not key.startswith("__")]
-
-   try:
-      with open(file) as f:
-         openned_file = json.load(f)
-      ok = True
-      
-   except:
-      ok = False
-      #displayErrorMessage( 'opt_read') 
+   ok = False
+   if len(file):
+      if os.path. isfile(file):
+         try:
+            with open(file) as f:
+               openned_file = json.load(f)
+            ok = True
+            
+         except:
+            ok = False
+            #displayErrorMessage( 'opt_read') 
 
 
    

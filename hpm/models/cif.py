@@ -19,10 +19,7 @@ from __future__ import division, unicode_literals
 
 import os
 import itertools
-try:
-    from urllib import pathname2url
-except ImportError:
-    from urllib.request import pathname2url
+from urllib.request import pathname2url
 
 from math import degrees
 
