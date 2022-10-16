@@ -71,6 +71,7 @@ class RoiModel():
                     if r == fr:
                         new = False
                 if new:
+                    self._delete_if_in_list(r, R)
                     R.append(r)
                     label = r.label.split(' ')[0]
                     if not label in self.roi_sets:
@@ -88,8 +89,21 @@ class RoiModel():
     def set_rois(self, rois):
         self.__init__()
         self.add_rois(rois)
+
+    def _delete_if_in_list(self, roi, roi_list):
+        # deletes rois with the same label unless the label is ''
+        label = roi.label
+        if label != '':
+            current_rois = roi_list
+            current_labels = {}
+            if len(current_rois):
+                for i, c_roi in enumerate(current_rois):
+                    current_labels[c_roi.label] = i
+            if label in current_labels:
+                del roi_list[ current_labels[label]]
         
     def _add_roi(self, roi):
+        self._delete_if_in_list(roi, self.rois)
         self.rois.append(roi)
         label = roi.label.split(' ')[0]
         if not label in self.roi_sets:

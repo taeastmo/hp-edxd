@@ -128,6 +128,24 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.phase_file_label.setText(fname_label)
         self.populate_rois()
 
+    def clear_rois(self, *args, **kwargs):
+        """
+        Deletes all rois from the GUI
+        """
+        
+        while self.roi_tw.rowCount() > 0:
+            self.roi_removed(self.roi_tw.rowCount()-1)
+        
+        self.roi_show_cbs = []
+        self.name_items = []
+        self.index_items = []
+        
+        
+        
+
+    def roi_removed(self, ind):
+        self.del_roi(ind)
+
     def set_jcpds_directory(self, jcpds_directory):
         self.jcpds_directory = jcpds_directory
 

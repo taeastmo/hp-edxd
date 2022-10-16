@@ -39,9 +39,9 @@ class latticeRefinement():
         self.DelD = []
         self.volume = -1
         self.symmetry = ''
-        self.refinement_output = dict()
-        self.lattice = dict()
-        self.esd_lattice = dict()
+        self.refinement_output = {}
+        self.lattice = {}
+        self.esd_lattice = {}
 
     def clear(self):
         self.__init__()

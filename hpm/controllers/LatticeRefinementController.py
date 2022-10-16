@@ -120,24 +120,18 @@ class LatticeRefinementController(QObject):
         """
         Deletes all rois from the GUI
         """
-        self.blockSignals(True)
-        while self.widget.roi_tw.rowCount() > 0:
-            self.roi_removed(self.widget.roi_tw.rowCount()-1)
         self.lattice_model.clear()
+        self.widget.clear_rois()
+        self.widget.phases_lbl.setText('')
+        
         self.ddiff =[]
         self.roi = []
-        self.widget.roi_show_cbs = []
-        self.widget.name_items = []
-        self.widget.index_items = []
-        self.blockSignals(False)
-        self.widget.phases_lbl.setText('')
-        #self.update_rois()
-
+        
+     
     def update_rois(self):
         pass
 
-    def roi_removed(self, ind):
-        self.widget.del_roi(ind)
+    
  
 
     def menu_plot_refinement(self):

@@ -270,8 +270,11 @@ class RoiController(QObject):
     def add_rois_to_mca(self, rois, detector=0):
         # rois: list of McaRoi objects
         # adding rois to mca should happen only throgh one place
+
+        
         if type(rois) == list:
             for r in rois:
+        
                 self.mca.compute_roi(r, 0)
                 self.roi_model.add_roi(r)
         else:
