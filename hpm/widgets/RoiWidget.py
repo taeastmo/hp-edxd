@@ -207,11 +207,12 @@ class roiTableWidget(ListTableWidget):
         self.selectRow(ind)
         
     def get_selected_roi_row(self):
+        row = -1
         selected = self.selectionModel().selectedRows()
-        try:
+        if len(selected):
             row = selected[0].row()
-        except IndexError:
-            row = -1
+        
+        
         return row
 
     def del_roi(self, ind, silent=False):

@@ -223,6 +223,9 @@ class PhaseController(object):
             
         if len(filenames):
             self.directories.phase = os.path.dirname(str(filenames[0]))
+            mcaUtil.save_folder_settings(self.directories )
+            
+
             progress_dialog = QtWidgets.QProgressDialog("Loading multiple phases.", "Abort Loading", 0, len(filenames),
                                                         None)
             progress_dialog.setWindowModality(QtCore.Qt.WindowModal)

@@ -24,4 +24,4 @@ main()
 # TODO add ROI width options for the xrd module   
 # TODO Track pressure, update ROI's after lattice refinement
 # TODO output lattice refinement results as table
-# TODO bug: hangs when opening lattice refinement and the jspds folder is not initialized
+# TODO refine multiple phases

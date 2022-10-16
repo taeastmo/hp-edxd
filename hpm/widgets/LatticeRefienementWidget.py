@@ -125,7 +125,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
             temp = label.split()
             if len(temp) >= 2:
                 file = temp[0]
-                item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
+                item = jcpds.find_fname(self.jcpds_directory, file+'.jcpds')
                 if item is not None:
                     fname_label = 'Phase: ' + file
         self.phase_file_label.setText(fname_label)

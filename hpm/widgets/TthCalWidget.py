@@ -110,7 +110,7 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
             if len(temp) >= 2:
                 file = temp[0]
                 self.phase_name = file
-                item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
+                item = jcpds.find_fname(self.jcpds_directory,  file+'.jcpds')
                 if item is not None:
                     self.fname_label = 'Using phase file: ' + item['full_file']
                     self.phase_found = True
