@@ -71,18 +71,7 @@ class LatticeRefinementController(QObject):
         if type(self.two_theta) == type(float()):
             self.widget.two_theta.setText(str(round(self.two_theta,5)))
 
-    '''def update_unit (self, unit):
-        self.unit_ = self.plotController.units[unit]
-        self.unit = unit
-        if unit == '2 theta':
-            unit = u'2θ'
-        self.widget.set_tw_header_unit(unit,self.unit_)
-        #self.update_rois(use_only=True)
-        if self.fitPlots is not None:
-            if self.plotFitOpen:
-                cur_ind = self.rois_widget.get_selected_roi_row()
-                if cur_ind >= 0 :
-                    self.updateFitPlot(cur_ind)'''
+
 
     def set_jcpds_directory(self, directory):
         self.widget.jcpds_directory  = directory
@@ -175,9 +164,9 @@ class LatticeRefinementController(QObject):
                         roi_groups[l]=[r]
                     else:
                         roi_groups[l].append(r)
-            lbl= ''
             
-
+            
+            lattice_out = []
             for p in roi_groups:
                 if p !='':
                     curr_phase = None
@@ -210,29 +199,12 @@ class LatticeRefinementController(QObject):
                         symmetry = curr_phase.params['symmetry']
                         self.lattice_model.set_symmetry(symmetry.lower())
                         self.lattice_model.refine()
-                        v = self.lattice_model.get_volume()
-                        l = self.lattice_model.get_lattice()
-                        DCalc = self.lattice_model.refinement_output['Dcalc']
-                        v0 = curr_phase.params['v0']
-                        v_over_v0 = v/v0
-                        v0_v = 1/v_over_v0
-                        curr_phase.compute_pressure(volume = v)
-                        P = curr_phase.params['pressure']
-                        T = curr_phase.params['temperature']
-                     
-                        
-                        for line in l:
-                            parameter = line.replace('alpha', f'\N{GREEK SMALL LETTER ALPHA}') \
-                                                .replace('beta', f'\N{GREEK SMALL LETTER BETA}') \
-                                                    .replace('gamma', f'\N{GREEK SMALL LETTER GAMMA}')
-                            lbl += parameter + " = " + '%.4f'%(round(l[line],4)) + '\n'
+                        volume_out = self.lattice_model.get_volume()
+                        lattice_out = self.lattice_model.get_lattice()
 
-                        lbl += 'V = ' + '%.3f'%(v) + '\n'
-                        lbl += f'\nV/V\N{SUBSCRIPT ZERO} = '+ '%.3f'%(v_over_v0)
-                        lbl += '\nP = '+ '%.2f'%(round(P,2))+ ' GPa '
-                        lbl += '\nT = '+ '%.2f'%(T) + ' K'
-                        lbl += '\n\n'
-                        
+                        self.update_output(p, lattice_out,  volume_out)
+
+                        DCalc = self.lattice_model.refinement_output['Dcalc']
 
                         self.ddiff = []
                         self.dobs = []
@@ -253,4 +225,32 @@ class LatticeRefinementController(QObject):
                         break
                         
      
-            self.widget.phases_lbl.setText(lbl)
+            
+
+    def update_output(self,phase, lattice, V):
+        curr_phase = self.phases[phase]
+        v0 = curr_phase.params['v0']
+        v_over_v0 = V/v0
+        v0_v = 1/v_over_v0
+        curr_phase.compute_pressure(volume = V)
+        P = curr_phase.params['pressure']
+        T = curr_phase.params['temperature']
+        lbl= ''
+
+        if not len(lattice):
+            lbl += 'Phase '+ phase +' not recognized. \nAdd corresponding phase \nto Phase control.'
+
+        else:
+            for line in lattice:
+                parameter = line.replace('alpha', f'\N{GREEK SMALL LETTER ALPHA}') \
+                                    .replace('beta', f'\N{GREEK SMALL LETTER BETA}') \
+                                        .replace('gamma', f'\N{GREEK SMALL LETTER GAMMA}')
+                lbl += parameter + " = " + '%.4f'%(round(lattice[line],4)) + '\n'
+
+            lbl += 'V = ' + '%.3f'%(V) + '\n'
+            lbl += f'\nV/V\N{SUBSCRIPT ZERO} = '+ '%.3f'%(v_over_v0)
+            lbl += '\nP = '+ '%.2f'%(round(P,2))+ ' GPa '
+            lbl += '\nT = '+ '%.2f'%(T) + ' K'
+            lbl += '\n\n'
+
+        self.widget.phases_lbl.setText(lbl)

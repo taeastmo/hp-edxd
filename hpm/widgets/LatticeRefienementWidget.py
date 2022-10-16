@@ -97,10 +97,13 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self._layout.addLayout(self._body_layout)
 
 
+        self._horizontal_layout = QtWidgets.QHBoxLayout()
+        self.init_reflections_list_view()
+        self.init_output_view()
+
+
         
-        self.init_roi_view()
-        self.verticalLayout_4.addWidget(self.phases_lbl)
-        self._body_layout.addLayout(self.verticalLayout_4)
+        self._body_layout.addLayout(self._horizontal_layout)
         self.setLayout(self._layout)
         self.style_widgets()
 
@@ -150,9 +153,9 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.jcpds_directory = jcpds_directory
 
     
-
-    def init_roi_view(self):
-        self.initUI()
+    def init_output_view(self):
+        self._horizontal_layout.addWidget(self.phases_lbl)
+   
 
     def populate_rois(self):
         nrois = self.nrois
@@ -223,14 +226,14 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
             self.select_roi(current_rows)
             self.roi_tw.blockSignals(False)
 
-    def initUI(self):
+    def init_reflections_list_view(self):
 
         self.roi_show_cbs = []
         self.name_items = []
         self.index_items = []
     
         #### display column headings    
-        self.verticalLayout_4 = QtWidgets.QHBoxLayout()
+        
     
         self.roi_tw = ListTableWidget(columns=6)
         self.roi_tw.setMinimumWidth(400)
@@ -245,7 +248,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.header = copy.deepcopy(self.default_header)
         self.roi_tw.setHorizontalHeaderLabels(self.header)
         self.roi_tw.setItemDelegate(NoRectDelegate())
-        self.verticalLayout_4.addWidget(self.roi_tw)
+        self._horizontal_layout.addWidget(self.roi_tw)
 
     '''def set_tw_header_unit(self, unit, unit_=''):
         if unit_ !='':
