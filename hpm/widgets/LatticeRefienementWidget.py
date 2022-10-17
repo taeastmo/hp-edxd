@@ -21,7 +21,7 @@
 from functools import partial
 import numpy as Numeric
 from PyQt5 import QtWidgets, QtCore
-import hpm.models.jcpds as jcpds
+
 import copy
 import functools
 import math
@@ -34,15 +34,15 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
     show_cb_state_changed = QtCore.pyqtSignal(int, int)
     name_item_changed = QtCore.pyqtSignal(int, str)
 
-    def __init__(self, jcpds_directory=''):
+    def __init__(self,):
         super().__init__()
         self.setWindowTitle("Lattice refinement")
         self.setMinimumWidth(600)
         self.roi = []
-        self.jcpds_directory = jcpds_directory
+        
         self._layout = QtWidgets.QVBoxLayout()  
         self.button_widget = QtWidgets.QWidget(self)
-        self.button_widget.setObjectName('rois_control_button_widget')
+        self.button_widget.setObjectName('reflections_control_button_widget')
         self._button_layout = QtWidgets.QHBoxLayout(self.button_widget)
         self._button_layout.setContentsMargins(0, 0, 0, 0)
         self._button_layout.setSpacing(6)
@@ -69,28 +69,24 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(t)
         self.two_theta = t = QtWidgets.QLabel(self.button_widget)
 
-        '''self._tth_lbl = QtWidgets.QLabel(u'2θ:')
-        self._tth_unit_lbl = QtWidgets.QLabel('deg')
-        self.tth_lbl = DoubleSpinBoxAlignRight()
-        self.tth_step = DoubleMultiplySpinBoxAlignRight()
-        self.get_tth_btn = QtWidgets.QPushButton('Get')
-
-        self._wavelength_lbl = QtWidgets.QLabel(f'\N{GREEK SMALL LETTER LAMDA}:')
-        self._wavelength_unit_lbl = QtWidgets.QLabel(f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
-        self.wavelength_lbl = DoubleSpinBoxAlignRight()
-        self.wavelength_step = DoubleMultiplySpinBoxAlignRight()
-        self.get_wavelength_btn = QtWidgets.QPushButton('Get')
-
-
-        self.edx_widgets= [self._tth_lbl, self._tth_unit_lbl, self.tth_lbl,self.tth_step,self.get_tth_btn]
-        self.adx_widgets= [self._wavelength_lbl, self._wavelength_unit_lbl, self.wavelength_lbl,self.wavelength_step,self.get_wavelength_btn]
-        '''
+       
 
         self._button_layout.addWidget(t)
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
-        self.phase_file_label = QtWidgets.QLabel()
-        self._layout.addWidget(self.phase_file_label)
+
+
+        _phase_selection_layout = QtWidgets.QHBoxLayout()
+        self.phase_file_label = QtWidgets.QLabel("Phase")
+        _phase_selection_layout.addWidget(self.phase_file_label)
+        self.phases_cbx = QtWidgets.QComboBox()
+        self.phases_cbx.setMaximumWidth(200)
+        self.phases_cbx.setMinimumWidth(200)
+        _phase_selection_layout.addWidget(self.phases_cbx)
+        _phase_selection_layout.addSpacerItem(HorizontalSpacerItem())
+        self._layout.addLayout(_phase_selection_layout)
+
+
         self.phases_lbl=QtWidgets.QTextEdit('')
         self.phases_lbl.setAcceptRichText(True)
         self._body_layout = QtWidgets.QHBoxLayout()
@@ -115,25 +111,15 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         fwhm_item.setText('%.4f' % ddiff)
         self.roi_tw.blockSignals(False)
 
-    def set_rois(self, rois):
-        self.roi = rois
-        self.nrois = len(self.roi)
-        fname_label = 'Phase file not found. Please close this \nwindow and load the corresponding phase file (.jcpds) first.'
-        if len(self.roi):
-            roi = self.roi[0]
-            label = roi.label
-            temp = label.split()
-            if len(temp) >= 2:
-                file = temp[0]
-                item = jcpds.find_fname(self.jcpds_directory, file+'.jcpds')
-                if item is not None:
-                    fname_label = 'Phase: ' + file
-        self.phase_file_label.setText(fname_label)
-        self.populate_rois()
+    def set_reflections(self, reflections):
+        self.roi = reflections
+        self.nreflections = len(self.roi)
+        
+        self.populate_reflections()
 
-    def clear_rois(self, *args, **kwargs):
+    def clear_reflections(self, *args, **kwargs):
         """
-        Deletes all rois from the GUI
+        Deletes all reflections from the GUI
         """
         
         while self.roi_tw.rowCount() > 0:
@@ -143,24 +129,21 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self.name_items = []
         self.index_items = []
         
-        
-        
 
     def roi_removed(self, ind):
         self.del_roi(ind)
 
-    def set_jcpds_directory(self, jcpds_directory):
-        self.jcpds_directory = jcpds_directory
+
 
     
     def init_output_view(self):
         self._horizontal_layout.addWidget(self.phases_lbl)
    
 
-    def populate_rois(self):
-        nrois = self.nrois
-        #### display rois parameters
-        for i in range(nrois):
+    def populate_reflections(self):
+        nreflections = self.nreflections
+        #### display reflections parameters
+        for i in range(nreflections):
             row=i+1
             use = self.roi[i].use==1
             label = self.roi[i].label.split(' ')[-1]
@@ -291,6 +274,12 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         except IndexError:
             row = -1
         return row
+
+    def get_use(self):
+        use = []
+        for cb in self.roi_show_cbs:
+            use.append(cb.isChecked())
+        return use
 
     def style_widgets(self):
         self.setStyleSheet("""
