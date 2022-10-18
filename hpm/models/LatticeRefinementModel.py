@@ -31,7 +31,27 @@ from hpm.models.cif import CifConverter
 from utilities.HelperModule import calculate_color
 from hpm.models.pressure.LatticeRefinement import latticeRefinement
 
+class RefinedLattice():
+    def __init__(self, phase_name):
+        self.lattice_model = latticeRefinement()
+        self.reflections = {}
+        self.use = []
+        self.phase_name = phase_name
+        self.phase = None
+        
+        self.ddiff = []
+        self.dobs = []
+        self.dcalc = []
+        self.P = 0
+        self.V = 0
+        self.refined_lattice = {}
 
+    def get_reflections(self):
+        reflections = []
+        for rlr in self.reflections:
+            reflections.append(self.reflections [rlr])
+
+        return reflections
 
 class LatticeRefinementModel(QtCore.QObject):
     phase_added = QtCore.pyqtSignal()
@@ -46,44 +66,53 @@ class LatticeRefinementModel(QtCore.QObject):
 
     def __init__(self):
         super().__init__()
-        self.reflection_groups = {}
-        self.use_groups = {}
-        self.phases= {}
+       
+    
         self.active = False
-        self.reflections = []
-        self.output = {}
 
-        self.ddiff = {}
-        self.dobs = {}
-        self.dcalc = {}
-        self.P = {}
-        self.V = {}
-        self.refined_lattice = {}
+        self.refined_lattice_models = {}
        
     def set_reflections(self, reflections):
         self.reflections = reflections
         self.update_phases()
 
     def set_phases(self, phases):
-        self.phases = phases
+        for phase in phases:
+            if not phase in self.refined_lattice_models:
+                self.refined_lattice_models[phase ] = RefinedLattice(phase)
+            
+            self.refined_lattice_models[phase].phase = phases[phase]
+        
 
     def update_phases(self):
         reflections = self.reflections
       
         if len(reflections)>0:
-            self.reflection_groups = {}     # separate reflections into groups based on name 
-           
+            
+            phases = []
             for r in reflections:
                 l = r.label.split(' ')[0]
                 if len(l)>1:
-                    if not l in self.reflection_groups.keys():
-                        self.reflection_groups[l]=[r]
+                    if not l in phases:
+                        phases.append(l)
 
-                        
-                    else:
-                        self.reflection_groups[l].append(r)
+            for p in phases:
+
+                if p in self.refined_lattice_models:
+                    self.refined_lattice_models[p].reflections = {}
+                else:
+                    self.refined_lattice_models[p] = RefinedLattice(l)
+                
+            for r in reflections:
+                l = r.label.split(' ')[0]
+                if len(l)>1:
+                    reflections = self.refined_lattice_models[l].reflections
+                    label = r.label
+                    reflections[label] = r
+
+
     def get_phases(self):
-        return list(self.reflection_groups.keys())
+        return list(self.refined_lattice_models.keys())
                     
     def clear(self):
         self.__init__()
@@ -91,19 +120,17 @@ class LatticeRefinementModel(QtCore.QObject):
     def refine_phase(self, p):
         lattice_out = []
 
+        refined_lattice_p = self.refined_lattice_models[p]
         
-        if p in self.reflection_groups and p in self.phases:
-        
+        if p in self.refined_lattice_models and refined_lattice_p.phase != None:
+            
             if p !='':
-                curr_phase = None
-                
-                if p in self.phases.keys():
-                    curr_phase = self.phases[p]
+                curr_phase = refined_lattice_p.phase
           
                 DHKL = []
-                phase = self.reflection_groups[p]
-                use = self.use_groups[p]
-                for i, r in enumerate(phase):
+                reflections = refined_lattice_p.get_reflections()
+                use = refined_lattice_p.use
+                for i, r in enumerate(reflections):
                     u = use[i] 
                     if u:
                         d = r.d_spacing
@@ -115,32 +142,32 @@ class LatticeRefinementModel(QtCore.QObject):
                         l = int(hkl[2])
                         dhkl = [d,h,k,l]
                         DHKL.append(dhkl)
-                if len(dhkl)>0:
-                    self.lattice_model = latticeRefinement()
-                    self.lattice_model.set_dhkl(DHKL)
+                if len(DHKL)>0:
+                    lattice_model = refined_lattice_p.lattice_model
+                    lattice_model.set_dhkl(DHKL)
                     symmetry = curr_phase.params['symmetry']
-                    self.lattice_model.set_symmetry(symmetry.lower())
-                    self.lattice_model.refine()
-                    volume_out = self.lattice_model.get_volume()
-                    lattice_out = self.lattice_model.get_lattice()
+                    lattice_model.set_symmetry(symmetry.lower())
+                    lattice_model.refine()
+                    volume_out = lattice_model.get_volume()
+                    lattice_out = lattice_model.get_lattice()
                     
-                    self.P[p] = p
-                    self.V[p] = volume_out
-                    self.refined_lattice[p] = lattice_out
+                    refined_lattice_p.P = p
+                    refined_lattice_p.V = volume_out
+                    refined_lattice_p.refined_lattice = lattice_out
                     
-                    DCalc = self.lattice_model.refinement_output['Dcalc']
+                    DCalc = lattice_model.refinement_output['Dcalc']
 
-                    self.ddiff[p] = []
-                    self.dobs[p] = []
-                    self.dcalc[p] = []
+                    refined_lattice_p.ddiff = []
+                    refined_lattice_p.dobs = []
+                    refined_lattice_p.dcalc = []
 
                     for i, dcalc in enumerate(DCalc):
                         d = dcalc 
                         dobs = DHKL[i][0]
                         ddiff = dobs - d
-                        self.ddiff[p].append(ddiff)
-                        self.dobs[p].append(dobs)
-                        self.dcalc[p].append(d)
+                        refined_lattice_p.ddiff.append(ddiff)
+                        refined_lattice_p.dobs.append(dobs)
+                        refined_lattice_p.dcalc.append(d)
 
                       
                         

@@ -603,7 +603,7 @@ class hpmcaController(QObject):
             
             self.lattice_refinement_controller.set_jcpds_directory(self.working_directories.phase)
             self.lattice_refinement_controller.set_mca(self.mca)
-            self.lattice_refinement_controller.set_reflections_phases(rois,phases)
+            self.lattice_refinement_controller.set_reflections_and_phases(rois,phases)
             autoprocess = self.lattice_refinement_controller.widget.auto_fit.isChecked()
             if autoprocess:
                 self.lattice_refinement_controller.update_phases()
@@ -616,7 +616,7 @@ class hpmcaController(QObject):
             
             self.lattice_refinement_controller.set_jcpds_directory(self.working_directories.phase)
             self.lattice_refinement_controller.set_mca(self.mca)
-            self.lattice_refinement_controller.set_reflections_phases(rois,phases)
+            self.lattice_refinement_controller.set_reflections_and_phases(rois,phases)
             self.lattice_refinement_controller.show_view()
 
     def environment_module(self):

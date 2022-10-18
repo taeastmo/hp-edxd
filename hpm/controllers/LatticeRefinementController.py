@@ -98,7 +98,7 @@ class LatticeRefinementController(QObject):
         phase = self.widget.phases_cbx.itemText(selected_ind)
         if phase != self.selected_phase:
             self.selected_phase = phase
-            reflections = self.model.reflection_groups[phase]
+            reflections = self.model.refined_lattice_models[phase].reflections 
             self.widget.clear_reflections()
             self.widget.set_reflections(reflections)
         
@@ -125,22 +125,24 @@ class LatticeRefinementController(QObject):
     def update_phases(self):
         self.model.update_phases()
         selected_phase = self.selected_phase
+        refined_lattice= self.model.refined_lattice_models[selected_phase]
         use = self.widget.get_use()
-        self.model.use_groups[selected_phase] = use
-        if selected_phase in self.model.phases:
+        refined_lattice.use = use
+        if self.model.refined_lattice_models[selected_phase].phase != None:
             self.model.refine_phase(selected_phase)
 
-            DCalc = self.model.dcalc[selected_phase]
-            for i, dcalc in enumerate(DCalc):
-               
-                ddiff = self.model.ddiff[selected_phase][i]
-                self.widget.update_roi(i,round(dcalc, 4),round(ddiff,4))
+            DCalc = refined_lattice.dcalc
+            if len(DCalc):
+                for i, dcalc in enumerate(DCalc):
+                
+                    ddiff = refined_lattice.ddiff[i]
+                    self.widget.update_roi(i,round(dcalc, 4),round(ddiff,4))
 
-            p = self.model.P[selected_phase]
-            lattice_out = self.model.refined_lattice[selected_phase]
-            volume_out = self.model.V[selected_phase]
+                p = refined_lattice.P
+                lattice_out = refined_lattice.refined_lattice
+                volume_out = refined_lattice.V
 
-            self.update_output(p, lattice_out,  volume_out)
+                self.update_output(p, lattice_out,  volume_out)
         else:
             fname_label = 'Phase file not found. Please close this \nwindow and load the corresponding phase file (.jcpds) first.'
             self.widget.phases_lbl.setText(fname_label)
@@ -165,10 +167,11 @@ class LatticeRefinementController(QObject):
     def menu_plot_refinement(self):
         """ Private method """
         
-        if self.selected_phase in self.model.ddiff:
-            E_diff = self.model.ddiff[self.selected_phase]
+        if self.selected_phase in self.model.refined_lattice_models:
+            refined_lattice_p = self.model.refined_lattice_models[self.selected_phase]
+            E_diff = refined_lattice_p.ddiff
             if len (E_diff):
-                energy_use = self.model.dobs[self.selected_phase]
+                energy_use = refined_lattice_p.dobs
                 E_diff_use = E_diff
             
                 
@@ -180,7 +183,7 @@ class LatticeRefinementController(QObject):
                 pltError.setLabel('bottom', 'd '+f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
 
 
-    def set_reflections_phases(self, reflections, phases):
+    def set_reflections_and_phases(self, reflections, phases):
         self.clear_reflections()
         self.widget.phases_lbl.setText('')
 
@@ -203,7 +206,7 @@ class LatticeRefinementController(QObject):
         
         
         if len(self.selected_phase):
-            show_reflections= self.model.reflection_groups[self.selected_phase]
+            show_reflections= self.model.refined_lattice_models[self.selected_phase].get_reflections()
             self.widget.set_reflections(show_reflections)
 
    
@@ -211,7 +214,8 @@ class LatticeRefinementController(QObject):
             
 
     def update_output(self,phase, lattice, V):
-        curr_phase = self.model.phases[phase]
+        
+        curr_phase = self.model.refined_lattice_models[phase].phase
         v0 = curr_phase.params['v0']
         v_over_v0 = V/v0
         v0_v = 1/v_over_v0

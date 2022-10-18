@@ -71,7 +71,9 @@ class RoiModel():
                     if r == fr:
                         new = False
                 if new:
-                    self._delete_if_in_list(r, R)
+                    self._delete_if_in_list(r, self.rois)
+                    self._delete_if_in_list(r, self.file_rois)
+                    self._delete_if_in_list(r, self.detector_rois)
                     R.append(r)
                     label = r.label.split(' ')[0]
                     if not label in self.roi_sets:
@@ -103,6 +105,8 @@ class RoiModel():
                 del roi_list[ current_labels[label]]
         
     def _add_roi(self, roi):
+        self._delete_if_in_list(roi, self.file_rois)
+        self._delete_if_in_list(roi, self.detector_rois)
         self._delete_if_in_list(roi, self.rois)
         self.rois.append(roi)
         label = roi.label.split(' ')[0]
