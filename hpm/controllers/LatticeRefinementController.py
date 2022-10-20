@@ -98,7 +98,7 @@ class LatticeRefinementController(QObject):
         phase = self.widget.phases_cbx.itemText(selected_ind)
         if phase != self.selected_phase:
             self.selected_phase = phase
-            reflections = self.model.refined_lattice_models[phase].reflections 
+            reflections = self.model.refined_lattice_models[phase].get_reflections()
             self.widget.clear_reflections()
             self.widget.set_reflections(reflections)
         
