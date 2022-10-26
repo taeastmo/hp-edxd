@@ -58,6 +58,9 @@ class MultipleDatasetsController(QObject):
         self.widget.file_list_view.currentRowChanged.connect(self.file_list_selection_changed_callback)
         self.widget.file_filter_refresh_btn.clicked.connect(self.file_filter_refresh_btn_callback)
 
+        self.widget.prev_btn.clicked.connect(partial(self.key_sig_callback, 'left'))
+        self.widget.next_btn.clicked.connect(partial(self.key_sig_callback, 'right'))
+
     def set_channel_cursor(self, cursor):
         if len(cursor):
             E = cursor['channel']
@@ -167,8 +170,12 @@ class MultipleDatasetsController(QObject):
                 row += 1
             if sig == 'left' or sig == 'down':
                 row -= 1
-            if row >= 0 and row < len(self.multi_spectra_model.r['files_loaded']):
-                self.widget.file_list_view.setCurrentRow(row)
+            self.adjust_row(row)
+
+    def adjust_row(self, row):
+
+        if row >= 0 and row < len(self.multi_spectra_model.r['files_loaded']):
+            self.widget.file_list_view.setCurrentRow(row)
 
     def show_view(self):
         self.active = True

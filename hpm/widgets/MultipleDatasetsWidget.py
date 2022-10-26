@@ -85,10 +85,19 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_view_tabs.setObjectName("file_view_tabs")
         self.make_img_plot()
         self.plot_widget = QtWidgets.QWidget()
-        self._plot_widget_layout = QtWidgets.QHBoxLayout(self.plot_widget)
+        self._plot_widget_layout = QtWidgets.QVBoxLayout(self.plot_widget)
         self._plot_widget_layout.setContentsMargins(0,0,0,0)
 
         self._plot_widget_layout.addWidget( self.win)
+
+        self.navigation_buttons = QtWidgets.QWidget()
+        self._nav_layout = QtWidgets.QHBoxLayout(self.navigation_buttons)
+        self._nav_layout.setContentsMargins(0,0,0,0)
+        self.prev_btn = QtWidgets.QPushButton('< Previous')
+        self.next_btn = QtWidgets.QPushButton('Next >')
+        self._nav_layout.addWidget(self.prev_btn)
+        self._nav_layout.addWidget(self.next_btn)
+        self._plot_widget_layout.addWidget(self.navigation_buttons)
         
         self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
         self.file_list_view = QtWidgets.QListWidget()
