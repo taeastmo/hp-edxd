@@ -18,6 +18,7 @@
 
 # Based on code from Dioptas - GUI program for fast processing of 2D X-ray diffraction data
 
+from enum import auto
 import os
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
@@ -135,6 +136,7 @@ class PhaseController(object):
         self.phase_widget.tth_lbl.valueChanged.connect(self.tth_changed)
         self.phase_widget.tth_step.editingFinished.connect(self.update_tth_step)
         self.connect_click_function(self.phase_widget.get_tth_btn, self.get_tth_btn_callcack)
+        self.phase_widget.auto_2theta_btn.clicked.connect(self.auto_tth_btn_callback)
 
         # wavelength
         self.phase_widget.wavelength_lbl.valueChanged.connect(self.wavelength_changed)
@@ -156,6 +158,8 @@ class PhaseController(object):
         self.phase_model.phase_added.connect(self.phase_added)
         self.phase_model.phase_removed.connect(self.phase_removed)
         self.phase_model.phase_changed.connect(self.phase_changed)
+
+    
 
     def get_phases(self):
         phases = {}
@@ -498,6 +502,11 @@ class PhaseController(object):
         tth = self.getTth()
         self.phase_widget.tth_lbl.setValue(tth)
 
+    def auto_tth_btn_callback(self):
+        checked = self.phase_widget.auto_2theta_btn.isChecked()
+        if checked:
+            self.get_tth_btn_callcack()
+
     def get_wavelength_btn_callcack(self):
         wavelength = self.getWavelength()
         self.phase_widget.wavelength_lbl.setValue(wavelength)
@@ -509,3 +518,9 @@ class PhaseController(object):
     def getWavelength(self):
         wavelength = self.pattern.get_calibration()[0].wavelength
         return wavelength
+
+    def pattern_updated(self):
+        auto_checked = self.phase_widget.auto_2theta_btn.isChecked()
+        if auto_checked:
+            self.get_tth_btn_callcack()
+

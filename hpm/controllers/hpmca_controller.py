@@ -500,6 +500,7 @@ class hpmcaController(QObject):
         dx_type = self.mca.dx_type
         if self.dx_type != dx_type:
             self.set_dx_type(dx_type)
+        self.phase_controller.pattern_updated()
             
 
     def set_dx_type(self, dx_type):
