@@ -25,3 +25,5 @@ main()
 # TODO Track pressure, update ROI's after lattice refinement
 # TODO output lattice refinement results as table
 # TODO refine multiple phases
+
+# TODO toggle autoloading ROIs from file

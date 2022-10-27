@@ -78,17 +78,18 @@ def main():
 
     # autoload a file, using for debugging
     pattern = os.path.join(resources_path,'20181010-Au-wire-50um-15deg.hpmca')
-    jcpds = os.path.join(resources_path,'au.jcpds')
+    jcpds1 = os.path.join(resources_path,'au.jcpds')
+    jcpds2 = os.path.join(resources_path,'mgo.jcpds')
 
     #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
-    controller.file_save_controller.openFile(filename=pattern)
-    #controller.multiple_datasets_controller.show_view()
+    #controller.file_save_controller.openFile(filename=pattern)
+    controller.multiple_datasets_controller.show_view()
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
-    #controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/hrubiak/Desktop/Guoyin/Cell2-HT')
+    controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/hrubiak/Desktop/dt/Guoyin/Cell2-HT/5000psi-800C')
     
-    controller.phase_controller.add_btn_click_callback(filenames=[jcpds])
+    controller.phase_controller.add_btn_click_callback(filenames=[jcpds1, jcpds2])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
