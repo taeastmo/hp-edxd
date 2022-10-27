@@ -27,3 +27,4 @@ main()
 # TODO refine multiple phases
 
 # TODO toggle autoloading ROIs from file
+# TODO cif from ICSD
