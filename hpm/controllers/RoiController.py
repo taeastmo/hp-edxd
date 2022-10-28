@@ -246,6 +246,14 @@ class RoiController(QObject):
 
     def data_updated(self):
 
+        mca_type = self.mcaController.Foreground
+        if mca_type != None:
+            if mca_type == 'file':
+                roi_model = self.roi_model_file
+            elif mca_type == 'detector':
+                roi_model = self.roi_model_detector
+            self.roi_model = roi_model
+
         file_rois = self.mca.get_file_rois()[0]
         det_rois = self.mca.get_det_rois()[0]
         rois = self.mca.get_rois()[0]
