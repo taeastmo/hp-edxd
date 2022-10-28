@@ -28,5 +28,3 @@ main()
 
 # TODO toggle autoloading ROIs from file
 # TODO cif from ICSD
-
-# TODO separate detecror ROIs
