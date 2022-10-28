@@ -250,7 +250,7 @@ class RoiController(QObject):
         if mca_type != None:
             if mca_type == 'file':
                 roi_model = self.roi_model_file
-            elif mca_type == 'detector':
+            elif mca_type == 'epics':
                 roi_model = self.roi_model_detector
             self.roi_model = roi_model
 
@@ -273,16 +273,18 @@ class RoiController(QObject):
         for r in rois_for_use:
             self.mca.compute_roi(r, 0)
 
+        
         # check if rois already in mca, no update if all rois are already in mca
-        for_det = []
+        for_mca = []
         for r in rois_for_use:
-            not_in_det = True
+            not_in_mca = True
             for r_d in rois:
                 if r == r_d:
-                    not_in_det = False
-            if not_in_det:
-                for_det.append(r)
-        if len(for_det):
+                    not_in_mca = False
+            if not_in_mca:
+                for_mca.append(r)
+        
+        if len(for_mca):
             self.set_mca_rois(rois_for_use)
         
         self.update_rois()

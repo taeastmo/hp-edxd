@@ -338,6 +338,7 @@ class hpmcaController(QObject):
         if self.Foreground == 'file':
             self.fileMCAholder = self.mca
         self.mca = mca
+        self.Foreground = 'epics'
         [live_val, real_val] = self.epicsPresets
         epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
         epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
@@ -373,6 +374,7 @@ class hpmcaController(QObject):
                     self.widget.dead_time_indicator.disconnect()
                 self.blockSignals(False)
             self.mca = mca
+            self.Foreground = 'file'
         
             
 
@@ -549,7 +551,7 @@ class hpmcaController(QObject):
         if len(detector):
             self.openDetector(detector=detector)
             self.refresh_controllers_mca()
-            self.data_updated()
+            #self.data_updated()
         #pass
         
 

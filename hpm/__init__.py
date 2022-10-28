@@ -24,7 +24,6 @@ __version__ = "0.6.9"
 
 import os
 
-
 import PyQt5
 import pyqtgraph as pg
 from PyQt5 import QtCore
@@ -33,6 +32,9 @@ from PyQt5 import QtWidgets
 
 import platform
 
+import pathlib
+
+desktop = pathlib.Path.home() / 'Desktop'
 
 
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
@@ -80,6 +82,7 @@ def main():
     pattern = os.path.join(resources_path,'20181010-Au-wire-50um-15deg.hpmca')
     jcpds1 = os.path.join(resources_path,'au.jcpds')
     jcpds2 = os.path.join(resources_path,'mgo.jcpds')
+    multi_spectra =  os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C')
 
     #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
@@ -87,9 +90,9 @@ def main():
     #controller.file_save_controller.openFile(filename=pattern)
     controller.multiple_datasets_controller.show_view()
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
-    controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/ross/Desktop/dt/Guoyin/Cell2-HT/5000psi-800C')
+    controller.multiple_datasets_controller.add_btn_click_callback(folder=multi_spectra)
     
-    controller.phase_controller.add_btn_click_callback(filenames=[jcpds1, jcpds2])
+    controller.phase_controller.add_btn_click_callback(filenames=[jcpds2])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
