@@ -45,6 +45,8 @@ class RoiController(QObject):
         self.mcaController = mainController
         self.roi = []
         self.roi_model = RoiModel()
+        self.roi_model_detector = RoiModel()
+        self.roi_model_file = RoiModel()
         self.rois_widget = RoiWidget()
         self.plot_fit_window = plotFitWindow()
         
@@ -231,6 +233,16 @@ class RoiController(QObject):
     ####################################################################################
     # roi-related interaction with mca model
     ####################################################################################
+
+    def get_roi_model(self):
+        mca_type = self.mcaController.Foreground
+        roi_model = None
+        if mca_type != None:
+            if mca_type =='file':
+                roi_model = self.roi_model_file
+            elif mca_type == 'detector':
+                roi_model = self.roi_model_detector
+        return roi_model
 
     def data_updated(self):
 

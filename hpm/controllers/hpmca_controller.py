@@ -490,6 +490,13 @@ class hpmcaController(QObject):
     def data_updated(self):
         
         self.plotController.update_plot_data() 
+        mca_type = self.Foreground
+        if mca_type != None:
+            if mca_type == 'file':
+                roi_model = self.plotController.roi_controller.roi_model_file
+            elif mca_type == 'detector':
+                roi_model = self.plotController.roi_controller.roi_model_detector
+            self.plotController.roi_controller.roi_model = roi_model
         self.plotController.roi_controller.data_updated()  #this will in turn trigger updateViews() 
         environment = self.mca.environment
         self.environment_controller.set_environment(environment)

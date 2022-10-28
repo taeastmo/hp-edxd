@@ -87,7 +87,7 @@ def main():
     #controller.file_save_controller.openFile(filename=pattern)
     controller.multiple_datasets_controller.show_view()
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
-    controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/hrubiak/Desktop/dt/Guoyin/Cell2-HT/5000psi-800C')
+    controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/ross/Desktop/dt/Guoyin/Cell2-HT/5000psi-800C')
     
     controller.phase_controller.add_btn_click_callback(filenames=[jcpds1, jcpds2])
 

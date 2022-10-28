@@ -162,9 +162,4 @@ class RoiModel():
         
         self.roi_sets =  self.get_sets()
 
-class RoiSet():
-    def __init__(self):
-
-        self.roi_set = []
-
 
