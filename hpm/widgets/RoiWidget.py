@@ -48,16 +48,17 @@ class RoiWidget(QtWidgets.QWidget):
         self.show_fit_btn = FlatButton('Show fit')
         self.save_peaks_btn = FlatButton('Save List')
         
-        self.lock_rois_btn = FlatButton('Lock ROIs')
+        self.lock_rois_btn = FlatButton('Lock')
         self.lock_rois_btn.setCheckable(True)
         
 
         self._button_layout.addWidget(self.delete_btn)
         self._button_layout.addWidget(self.clear_btn)
+        self._button_layout.addWidget(self.lock_rois_btn)
         self._button_layout.addWidget(self.show_fit_btn)
         self._button_layout.addWidget(self.save_peaks_btn)
-        self._button_layout.addWidget(self.save_peaks_btn)
-        self._button_layout.addWidget(self.lock_rois_btn)
+        
+        
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
 
         self.button_widget.setLayout(self._button_layout)
