@@ -61,7 +61,9 @@ class PhaseController(object):
         self.a_1 = 0.08 
         self.prefs = {
                             "a_0": 6.0,
-                            "a_1": 0.08
+                            "a_1": 0.08,
+                            'e_min':0,
+                            'e_max':100
                         }
         
         self.roi_controller = roiController
@@ -193,18 +195,35 @@ class PhaseController(object):
         a_0 = self.prefs['a_0']
         a_1 = self.prefs['a_1']
 
+        e_min = self.prefs['e_min']
+        e_max = self.prefs['e_max']
+        nchans = self.pattern.nchans
+        e_range_min = calibration.channel_to_energy(0)
+        e_range_max = calibration.channel_to_energy(nchans-1)
+        # coerse the user-selected e_min and e_max to be withing the allowed range:
+        if e_min <= e_range_min:
+            e_min = e_range_min
+        if e_min >= e_range_max:
+            e_min = e_range_min
+        if e_max <=0:
+            e_max = e_range_max
+        if e_max > e_range_max:
+            e_max = e_range_max
+        if e_max <= e_min:
+            e_max = e_range_max
 
         for reflection in reflections:
             channel = d_to_channel(reflection.d,tth = tth, wavelength=wavelength)
-            #E = calibration.channel_to_energy(channel)
-            E = 30
-            lbl = str(name + " " + reflection.get_hkl())
+            E = calibration.channel_to_energy(channel)
+            #E = 30
+            if E >= e_min and E<= e_max:
+                lbl = str(name + " " + reflection.get_hkl())
 
-            hw = round(a_0 + E * a_1)
-            
+                hw = round(a_0 + E * a_1)
+                
 
-            rois.append({'channel':channel,'halfwidth':hw, 'label':lbl, \
-                           'name':name, 'hkl':reflection.get_hkl_list()})
+                rois.append({'channel':channel,'halfwidth':hw, 'label':lbl, \
+                            'name':name, 'hkl':reflection.get_hkl_list()})
         return rois, phase, filename
 
     

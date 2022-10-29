@@ -165,6 +165,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 #update progress bar only every 10 files to save time
                 progress_dialog.setValue(d)
                 QtWidgets.QApplication.processEvents()
+            
             try:
                 fp = open(file, 'r')
             except:

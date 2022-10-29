@@ -101,6 +101,14 @@ class MultipleDatasetsController(QObject):
         self.load_data(filenames, progress_dialog=progress_dialog)
         
     def load_data(self, paths, progress_dialog):
+        # remove '.' files from paths
+        clean_pahts = []
+        for file in paths:
+            
+            first_char = os.path.split(file)[-1][0]
+            if first_char != '.':
+                clean_pahts.append(file)
+        paths = clean_pahts
         firstfile = paths[0]
         if firstfile.endswith('hpmca'):
             self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)

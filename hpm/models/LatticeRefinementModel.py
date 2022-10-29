@@ -73,7 +73,11 @@ class LatticeRefinementModel(QtCore.QObject):
         self.refined_lattice_models = {}
        
     def set_reflections(self, reflections):
-        self.reflections = reflections
+        
+        self.reflections = []
+        for r in reflections:
+            if r.fit_ok:
+                self.reflections.append(r)
         self.update_phases()
 
     def set_phases(self, phases):

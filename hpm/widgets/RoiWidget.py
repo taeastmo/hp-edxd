@@ -47,14 +47,17 @@ class RoiWidget(QtWidgets.QWidget):
         self.clear_btn = FlatButton('Clear')
         self.show_fit_btn = FlatButton('Show fit')
         self.save_peaks_btn = FlatButton('Save List')
-        #self.lock_rois_btn = FlatButton('Lock ROIs')
-        #self.lock_rois_btn.setCheckable(True)
+        
+        self.lock_rois_btn = FlatButton('Lock ROIs')
+        self.lock_rois_btn.setCheckable(True)
+        
 
         self._button_layout.addWidget(self.delete_btn)
         self._button_layout.addWidget(self.clear_btn)
         self._button_layout.addWidget(self.show_fit_btn)
         self._button_layout.addWidget(self.save_peaks_btn)
-        #self._button_layout.addWidget(self.lock_rois_btn)
+        self._button_layout.addWidget(self.save_peaks_btn)
+        self._button_layout.addWidget(self.lock_rois_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
 
         self.button_widget.setLayout(self._button_layout)
@@ -128,6 +131,7 @@ class roiTableWidget(ListTableWidget):
         self.default_header = ['#', 'Use', 'Name','Center', 'Counts', 'fwhm']
         super().__init__(len(self.default_header))
         self.roi_show_cbs = []
+        self.centroid_items = []
         self.name_items = []
         self.index_items = []
         header_view = QtWidgets.QHeaderView(QtCore.Qt.Horizontal, self)
@@ -145,7 +149,7 @@ class roiTableWidget(ListTableWidget):
         self.setItemDelegate(NoRectDelegate())
         self.itemChanged.connect(self.roi_name_item_changed)
 
-    def add_roi(self, use, name, centroid,fwhm, ind, counts, silent=False):
+    def add_roi(self, use, name, centroid,fwhm, ind, counts,  fit_ok, silent=False):
         self.blockSignals(True)
         current_rows = self.rowCount()
         self.setRowCount(current_rows + 1)
@@ -173,10 +177,17 @@ class roiTableWidget(ListTableWidget):
         self.setItem(current_rows, 2, name_item)
         self.name_items.append(name_item)
 
-        centroid_item = QtWidgets.QTableWidgetItem(centroid)
-        centroid_item.setFlags(centroid_item.flags() & ~QtCore.Qt.ItemIsEditable)
-        centroid_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
-        self.setItem(current_rows, 3, centroid_item)
+        #centroid_item = QtWidgets.QTableWidgetItem(centroid)
+        centroid_item = QtWidgets.QLabel(centroid)
+        #centroid_item.setFlags(centroid_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        centroid_item.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        if fit_ok:
+            ssheet = "color: #00ff00; background-color: transparent"
+        else:
+            ssheet = "color: #ff0000; background-color: transparent"
+        centroid_item.setStyleSheet(ssheet)
+        self.setCellWidget(current_rows, 3, centroid_item)
+        self.centroid_items.append(centroid_item)
 
         counts_item = QtWidgets.QTableWidgetItem(counts)
         counts_item.setFlags(counts_item.flags() & ~QtCore.Qt.ItemIsEditable)
@@ -221,6 +232,7 @@ class roiTableWidget(ListTableWidget):
         if not silent:
             self.blockSignals(False)
         del self.roi_show_cbs[ind]
+        del self.centroid_items[ind]
         del self.name_items[ind]
         del self.index_items[ind]
         #del self.roi_color_btns[ind]
@@ -236,7 +248,7 @@ class roiTableWidget(ListTableWidget):
         name_item.setText(name)
         self.blockSignals(False)
 
-    def update_roi(self, ind, use, name, centroid,fwhm,counts):
+    def update_roi(self, ind, use, name, centroid,fwhm,counts, fit_ok):
         
         if ind >= 0 and ind < len(self.roi_show_cbs):
             self.blockSignals(True)
@@ -247,8 +259,13 @@ class roiTableWidget(ListTableWidget):
             show_cb.setChecked(use)
             name_item = self.item(ind, 2)
             name_item.setText(name)
-            centroid_item = self.item(ind, 3)
+            centroid_item = self.centroid_items[ind]
             centroid_item.setText(centroid)
+            if fit_ok:
+                ssheet = "color: #00ff00; background-color: transparent"
+            else:
+                ssheet = "color: #ff0000; background-color: transparent"
+            centroid_item.setStyleSheet(ssheet)
             counts_item = self.item(ind, 4)
             counts_item.setText(counts)
             fwhm_item = self.item(ind, 5)

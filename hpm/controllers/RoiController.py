@@ -204,14 +204,14 @@ class RoiController(QObject):
             for r in roi:
                 index = roi.index(r)
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
-                self.update_roi_by_ind(index, r.use, r.label, '%.3f'%(centroid), '%.3f'%(fwhm), '%d'%(counts))
+                self.update_roi_by_ind(index, r.use, r.label, '%.3f'%(centroid), '%.3f'%(fwhm), '%d'%(counts), r.fit_ok)
         else:
             while self.rois_widget.roi_tw.rowCount() > 0:
                 self.rois_widget.roi_tw.del_roi(self.rois_widget.roi_tw.rowCount()-1,silent=True)
             for r in roi:
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
                 self.rois_widget.roi_tw.add_roi(r.use, r.label, 
-                                '%.3f'%(centroid), '%.3f'%(fwhm), roi.index(r),'%d'%(counts),  silent=True)
+                                '%.3f'%(centroid), '%.3f'%(fwhm), roi.index(r),'%d'%(counts), r.fit_ok,  silent=True)
                
        
              
@@ -254,40 +254,54 @@ class RoiController(QObject):
                 roi_model = self.roi_model_detector
             self.roi_model = roi_model
 
-        file_rois = self.mca.get_file_rois()[0]
-        det_rois = self.mca.get_det_rois()[0]
-        rois = self.mca.get_rois()[0]
-        d_rois = []
-        for dr in det_rois:
-            new = True
-            for r in rois:
-                if r == dr:
-                    new = False
-            if new:
-                d_rois.append(dr)
+            rois = self.mca.get_rois()[0]
 
-        
-        self.roi_model.set_file_rois(file_rois)
-        self.roi_model.add_rois(d_rois)
-        rois_for_use = self.roi_model.get_rois_for_use()
-        for r in rois_for_use:
-            self.mca.compute_roi(r, 0)
+            if mca_type == 'file':
+                load_from_file = self.rois_widget.lock_rois_btn.isChecked()
+                if not load_from_file:
+                    file_rois = self.mca.get_file_rois()[0]
+                    self.roi_model.set_file_rois(file_rois)
 
-        
-        # check if rois already in mca, no update if all rois are already in mca
-        for_mca = []
-        for r in rois_for_use:
-            not_in_mca = True
-            for r_d in rois:
-                if r == r_d:
-                    not_in_mca = False
-            if not_in_mca:
-                for_mca.append(r)
-        
-        if len(for_mca):
-            self.set_mca_rois(rois_for_use)
-        
-        self.update_rois()
+            elif mca_type == 'epics':    
+                det_rois = self.mca.get_det_rois()[0]
+                d_rois = []
+                for dr in det_rois:
+                    new = True
+                    for r in rois:
+                        if r == dr:
+                            new = False
+                    if new:
+                        d_rois.append(dr)
+                self.roi_model.add_rois(d_rois)
+            
+            
+
+            rois_for_use = self.roi_model.get_rois_for_use()
+            for r in rois_for_use:
+                self.mca.compute_roi(r, 0)
+
+            
+            # check if rois already in mca, no update if all rois are already in mca
+            for_mca = []
+            for r in rois_for_use:
+                not_in_mca = True
+                for r_d in rois:
+                    equal = False
+                    if mca_type == 'file':
+                        equal = r.compare_counts(r_d)
+                    if mca_type == 'epics':
+                        equal = r == r_d
+                    if equal:
+                        not_in_mca = False
+                if not_in_mca:
+                    for_mca.append(r)
+            
+            if len(for_mca):
+                self.set_mca_rois(rois_for_use)
+            
+            self.update_rois()
+
+    
 
     def add_rois_to_mca(self, rois, detector=0):
         # rois: list of McaRoi objects
@@ -454,8 +468,12 @@ class RoiController(QObject):
             rois = self.roi
             if ind >=0 and len(rois)>0 and ind < len(rois):
                 x = self.roi[ind].channels
-                fit = self.roi[ind].yFit
-                x_fit = self.roi[ind].x_yfit
+                if self.roi[ind].fit_ok:
+                    fit = self.roi[ind].yFit
+                    x_fit = self.roi[ind].x_yfit
+                else:
+                    x_fit=[]
+                    fit=[]
                 label = self.roi[ind].label
                 if self.unit == 'E':
                     x_fit = self.calibration.channel_to_energy(x_fit)
@@ -627,8 +645,8 @@ class RoiController(QObject):
             
             self.update_rois()
                 
-    def update_roi_by_ind(self, ind, use, name, centroid, fwhm, counts):
-        self.rois_widget.roi_tw. update_roi(ind, use, name, centroid, fwhm, counts)
+    def update_roi_by_ind(self, ind, use, name, centroid, fwhm, counts, fit_ok):
+        self.rois_widget.roi_tw. update_roi(ind, use, name, centroid, fwhm, counts, fit_ok)
 
     def update_roi_set_by_ind(self, ind, name, use):
         self.rois_widget.roi_sets_tw. update_roi(ind, name, use)

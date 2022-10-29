@@ -1321,7 +1321,9 @@ class McaROI():
         
         self.left = left
         self.right = right
+        self.fit_ok = False
         self.centroid = centroid
+        self.gross_sum = 0
         self.fwhm = fwhm
         self.fwhm_E = fwhm
         self.fwhm_q = fwhm
@@ -1347,11 +1349,22 @@ class McaROI():
             Updated for Python 3 (python 2 used __cmp__ syntax)
         """ 
         return self.left < other.left
+    def compare_counts(self, other):
+        """
+        Equals operator. useful for epics MCA, only update the record in left, right or label changes.
+        """
+        eq = self.left == other.left and  \
+            self.right == other.right and \
+                 self.label == other.label and \
+                    self.gross_sum == other.gross_sum
+        return eq
     def __eq__(self, other):
         """
         Equals operator. useful for epics MCA, only update the record in left, right or label changes.
         """
-        eq = self.left == other.left and  self.right == other.right and  self.label == other.label
+        eq = self.left == other.left and  \
+            self.right == other.right and \
+                 self.label == other.label 
         return eq
 
     def __repr__(self):
@@ -1531,6 +1544,8 @@ class McaCalibration():
     def q_to_2theta(self, q, wavelength):
         two_theta = np.arcsin(q/(4*pi/wavelength))/0.008726646259972 
         return two_theta
+
+    
 
     def channel_to_energy(self, channels):
         """

@@ -90,7 +90,13 @@ def opt_fields(config_file):
                      'label': 'a0'},
                     'a_1': {'val': 0.08,
                      'desc': '',
-                     'label': 'a1'}
+                     'label': 'a1'},
+                    'e_min': {'val': 0,
+                     'desc': '',
+                     'label': 'E min'},
+                    'e_max': {'val':  100,
+                     'desc': '',
+                     'label': 'E max'}
                 }
             }
 
