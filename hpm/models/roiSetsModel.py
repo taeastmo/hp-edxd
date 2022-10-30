@@ -130,6 +130,17 @@ class RoiModel():
         self.display_rois = copy.copy(rois_out)
         self.display_rois.sort()
         return self.display_rois
+
+    def delete_roi_by_name(self, name):
+        if len(name):
+            
+            for i, roi in enumerate(self.display_rois):
+                if roi.label == name:
+                    self.delete_roi(i)
+                    break
+
+        
+            
     
     def delete_roi(self, index):
         """

@@ -58,7 +58,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self.edit_btn = QtWidgets.QPushButton('Edit')
         self.delete_btn = QtWidgets.QPushButton('Delete')
         self.clear_btn = QtWidgets.QPushButton('Clear')
-        self.rois_btn = QtWidgets.QPushButton('Add ROIs')
+        self.rois_btn = QtWidgets.QPushButton('Set ROIs')
         self.save_list_btn = QtWidgets.QPushButton('Save List')
         self.load_list_btn = QtWidgets.QPushButton('Load List')
 

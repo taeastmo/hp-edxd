@@ -577,7 +577,41 @@ class RoiController(QObject):
     def addJCPDSReflections(self, reflections, phase):
         self.blockSignals(True)
         rois = []
-        for r in reflections:
+        # when adding reflections for rois that already exist, remove reflections
+        # which the user has deleted previusly. For this we check if the phase already 
+        # is present in the rois. Then only the rois for that phase that in the list
+        # are replaced by the updated specs (channel, start-end), the rest of the reflectons
+        # are ignored.
+        
+
+        # first get the current phases in roi_model
+        phases = self.roi_model.get_sets()
+
+        if phase.name in phases:
+            # only keep the intersection between the old and new rois in 
+            # a given phase
+            current_roi_labels_for_phase = []
+            new_rois_labels_for_phase = []
+            for r in reflections:
+                new_rois_labels_for_phase.append(reflections[r]['label'])
+
+            current_rois = self.roi_model.get_rois_for_use()
+            for c_roi in current_rois:
+                if phase.name in c_roi.label:
+                    current_roi_labels_for_phase.append(c_roi.label)
+        
+            # remove current rois if not in new reflections
+            for c_roi in current_roi_labels_for_phase:
+                if not c_roi in new_rois_labels_for_phase:
+                    self.roi_model.delete_roi_by_name(c_roi)
+
+            # then remove new reflections if not in current rois
+            for n_roi in new_rois_labels_for_phase:
+                if not n_roi in current_roi_labels_for_phase:
+                    del reflections[n_roi]
+
+        for name in reflections:
+            r = reflections[name]
             rois.append(self.make_roi_by_channel(r['channel'],r['halfwidth'], \
                                                  r['label'],r['name'],r['hkl']))
         rois = self.validate_rois(rois)

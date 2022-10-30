@@ -189,7 +189,7 @@ class PhaseController(object):
         filename = files[index]
         name = phase.name
         reflections = phase.get_reflections()
-        rois = []
+        rois = {}
 
         
         a_0 = self.prefs['a_0']
@@ -222,8 +222,8 @@ class PhaseController(object):
                 hw = round(a_0 + E * a_1)
                 
 
-                rois.append({'channel':channel,'halfwidth':hw, 'label':lbl, \
-                            'name':name, 'hkl':reflection.get_hkl_list()})
+                rois[lbl]={'channel':channel,'halfwidth':hw, 'label':lbl, \
+                            'name':name, 'hkl':reflection.get_hkl_list()}
         return rois, phase, filename
 
     

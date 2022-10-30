@@ -88,7 +88,7 @@ def main():
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
     #controller.file_save_controller.openFile(filename=pattern)
-    controller.multiple_datasets_controller.show_view()
+    #controller.multiple_datasets_controller.show_view()
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
     controller.multiple_datasets_controller.add_btn_click_callback(folder=multi_spectra)
     
