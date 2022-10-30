@@ -99,8 +99,8 @@ class LatticeRefinementController(QObject):
         if phase != self.selected_phase:
             self.selected_phase = phase
             reflections = self.model.refined_lattice_models[phase].get_reflections()
-            self.widget.clear_reflections()
-            self.widget.set_reflections(reflections)
+            self.widget.roi_tw.clear_reflections()
+            self.widget.roi_tw. set_reflections(reflections)
         
             self.widget.phases_lbl.setText('')
        
@@ -126,7 +126,7 @@ class LatticeRefinementController(QObject):
         self.model.update_phases()
         selected_phase = self.selected_phase
         refined_lattice= self.model.refined_lattice_models[selected_phase]
-        use = self.widget.get_use()
+        use = self.widget.roi_tw. get_use()
         refined_lattice.use = use
         if self.model.refined_lattice_models[selected_phase].phase != None:
             self.model.refine_phase(selected_phase)
@@ -136,7 +136,7 @@ class LatticeRefinementController(QObject):
                 for i, dcalc in enumerate(DCalc):
                 
                     ddiff = refined_lattice.ddiff[i]
-                    self.widget.update_roi(i,round(dcalc, 4),round(ddiff,4))
+                    self.widget.roi_tw.update_roi(i,round(dcalc, 4),round(ddiff,4))
 
                 p = refined_lattice.P
                 lattice_out = refined_lattice.refined_lattice
@@ -144,8 +144,8 @@ class LatticeRefinementController(QObject):
 
                 self.update_output(p, lattice_out,  volume_out)
         else:
-            fname_label = 'Phase file not found. Please close this \nwindow and load the corresponding phase file (.jcpds) first.'
-            self.widget.phases_lbl.setText(fname_label)
+            
+            self.widget.parameter_widget.clear()
         
 
     def clear_reflections(self, *args, **kwargs):
@@ -153,7 +153,7 @@ class LatticeRefinementController(QObject):
         Deletes all reflections from the GUI and model
         """
         self.model.clear()
-        self.widget.clear_reflections()
+        self.widget.roi_tw.clear_reflections()
         self.widget.phases_lbl.setText('')
         
         self.ddiff =[]
@@ -207,37 +207,15 @@ class LatticeRefinementController(QObject):
         
         if len(self.selected_phase):
             show_reflections= self.model.refined_lattice_models[self.selected_phase].get_reflections()
-            self.widget.set_reflections(show_reflections)
+            self.widget.roi_tw.set_reflections(show_reflections)
 
    
     
             
 
     def update_output(self,phase, lattice, V):
-        
         curr_phase = self.model.refined_lattice_models[phase].phase
-        v0 = curr_phase.params['v0']
-        v_over_v0 = V/v0
-        v0_v = 1/v_over_v0
-        curr_phase.compute_pressure(volume = V)
-        P = curr_phase.params['pressure']
-        T = curr_phase.params['temperature']
-        lbl= ''
-
-        if not len(lattice):
-            lbl += 'Phase '+ phase +' not recognized. \nAdd corresponding phase \nto Phase control.'
-
-        else:
-            for line in lattice:
-                parameter = line.replace('alpha', f'\N{GREEK SMALL LETTER ALPHA}') \
-                                    .replace('beta', f'\N{GREEK SMALL LETTER BETA}') \
-                                        .replace('gamma', f'\N{GREEK SMALL LETTER GAMMA}')
-                lbl += parameter + " = " + '%.4f'%(round(lattice[line],4)) + '\n'
-
-            lbl += 'V = ' + '%.3f'%(V) + '\n'
-            lbl += f'\nV/V\N{SUBSCRIPT ZERO} = '+ '%.3f'%(v_over_v0)
-            lbl += '\nP = '+ '%.2f'%(round(P,2))+ ' GPa '
-            lbl += '\nT = '+ '%.2f'%(T) + ' K'
-            lbl += '\n\n'
-
-        self.widget.phases_lbl.setText(lbl)
+        self.widget.parameter_widget.update_output(curr_phase, lattice, V)
+        
+       
+       
