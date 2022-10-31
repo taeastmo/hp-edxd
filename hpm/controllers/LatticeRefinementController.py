@@ -35,7 +35,7 @@ import pyqtgraph as pg
 
 class LatticeRefinementController(QObject):
 
-   
+    refined_pressure_updated = pyqtSignal(float)
     
 
     def __init__(self, mcaModel, plotWidget, plotController, mainController):
@@ -48,6 +48,7 @@ class LatticeRefinementController(QObject):
         self.mcaController = mainController
         
         self.model = LatticeRefinementModel()
+        self.P = 0
 
         detector = 0
         self.ddiff =[]
@@ -74,7 +75,7 @@ class LatticeRefinementController(QObject):
         self.calibration = self.mca.get_calibration()[0]
         self.two_theta =  self.calibration.two_theta
         if type(self.two_theta) == type(float()):
-            self.widget.two_theta.setText(str(round(self.two_theta,5)))
+            self.widget.two_theta.setText(str(round(self.two_theta,5))+f'\N{DEGREE SIGN}')
 
 
 
@@ -100,6 +101,7 @@ class LatticeRefinementController(QObject):
             self.selected_phase = phase
             reflections = self.model.refined_lattice_models[phase].get_reflections()
             self.widget.roi_tw.clear_reflections()
+            self.widget.model_lbl.setText('')
             self.widget.roi_tw. set_reflections(reflections)
         
             self.widget.phases_lbl.setText('')
@@ -140,9 +142,10 @@ class LatticeRefinementController(QObject):
 
                 p = refined_lattice.P
                 lattice_out = refined_lattice.refined_lattice
+                lattice_esd_out = refined_lattice.refined_lattice_esd
                 volume_out = refined_lattice.V
 
-                self.update_output(p, lattice_out,  volume_out)
+                self.update_output(selected_phase, refined_lattice)
         else:
             
             self.widget.parameter_widget.clear()
@@ -213,9 +216,37 @@ class LatticeRefinementController(QObject):
     
             
 
-    def update_output(self,phase, lattice, V):
-        curr_phase = self.model.refined_lattice_models[phase].phase
-        self.widget.parameter_widget.update_output(curr_phase, lattice, V)
+    def update_output(self,phase, refined_lattice):
         
+        lattice = refined_lattice.refined_lattice
+        lattice_esd = refined_lattice.refined_lattice_esd
+        V = refined_lattice.V
+        V_esd = refined_lattice.V_esd
+
+        
+        curr_phase = self.model.refined_lattice_models[phase].phase
+        v0 = curr_phase.params['v0']
+        v_over_v0 = V/v0
+        v_over_v0_esd = V_esd/v0
+
+        # calculate P esd using a local derivative method
+        curr_phase.compute_pressure(volume = V)
+        symmetry = curr_phase.params['symmetry']
+        P = curr_phase.params['pressure']
+        curr_phase.compute_pressure(volume = V-V_esd/2)
+        P_min = curr_phase.params['pressure']
+        curr_phase.compute_pressure(volume = V+V_esd/2)
+        P_max = curr_phase.params['pressure']
+        P_esd = abs(P_max - P_min)
+
+        T = curr_phase.params['temperature']
+        self.widget.model_lbl.setText('Symmetry: '+ symmetry)
+        self.widget.parameter_widget.update_output(lattice,lattice_esd, P,V,T, v_over_v0, P_esd, V_esd, v_over_v0_esd)
+        
+        self.P = P
+
+        autosend = self.widget.auto_pressure_btn.isChecked()
+        if autosend:
+            self.refined_pressure_updated.emit(P)
        
        

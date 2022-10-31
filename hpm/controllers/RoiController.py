@@ -762,10 +762,10 @@ class RoiController(QObject):
             log_mode = self.plotController.get_log_mode_y()
             if log_mode:
                 baseline = baseline*1.2
-                intensities = intensities *3
+                intensities = intensities * 1.9
             else:
                 baseline=baseline+y_max*0.015
-                intensities=intensities+y_max*0.1
+                intensities=intensities+y_max*0.07
             positions = roi_position
             if intensities <= 1:
                 intensities = 1

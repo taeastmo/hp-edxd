@@ -91,9 +91,12 @@ class latticeRefinement():
     def get_lattice(self):
         return self.lattice
 
+    def get_lattice_esd(self):
+        return self.esd_lattice
+
     def get_volume(self):
-        self.volume = cell_volume(self.lattice)
-        return self.volume
+        self.volume, self.volume_esd = cell_volume(self.lattice, self.esd_lattice)
+        return self.volume, self.volume_esd 
 
 
 def isometric(reflections):
@@ -131,7 +134,8 @@ def isometric(reflections):
     stdev_q = std(DelQ)
     ave_del_d = average(DelD)
     esd = sqrt(1/(sum_hkl))*stdev_q
-    esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd)))+0.005,0))
+    #esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd)))+0.005,0))
+    esd_a = abs(a-1/sqrt(aStar2+esd))
     return {'a':a, 'esd_a':esd_a, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def hexagonal(reflections):
@@ -197,8 +201,10 @@ def hexagonal(reflections):
     ave_del_d = average(DelD)
     esd_astar2 =stdev_q*sqrt(x_matrix_inv[0][0])
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[1][1])
-    esd_a = int(round(1000*(abs(a-2/sqrt(3*(aStar2+esd_astar2))+0.005)),0))
-    esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
+    #esd_a = int(round(1000*(abs(a-2/sqrt(3*(aStar2+esd_astar2))))+0.005,0))
+    #esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)))+0.005,0))
+    esd_a = abs(a-2/sqrt(3*(aStar2+esd_astar2)))
+    esd_c = abs(c-1/sqrt(cStar2+esd_cstar2))
     return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def tetragonal(reflections):
@@ -264,8 +270,10 @@ def tetragonal(reflections):
     ave_del_d = average(DelD)
     esd_astar2 =stdev_q*sqrt(x_matrix_inv[0][0])
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[1][1])
-    esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)+0.005)),0))
-    esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
+    #esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)))+0.005,0))
+    #esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)))+0.005,0))
+    esd_a = abs(a-1/sqrt(aStar2+esd_astar2))
+    esd_c = abs(c-1/sqrt(cStar2+esd_cstar2))
     return {'a':a, 'c':c, 'esd_a':esd_a, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def orthorhombic(reflections):
@@ -352,9 +360,12 @@ def orthorhombic(reflections):
     esd_astar2 =stdev_q*sqrt(x_matrix_inv[0][0])
     esd_bstar2 =stdev_q*sqrt(x_matrix_inv[1][1])
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[2][2])
-    esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)+0.005)),0))
-    esd_b = int(round(1000*(abs(b-1/sqrt(bStar2+esd_bstar2)+0.005)),0))
-    esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)+0.005)),0))
+    #esd_a = int(round(1000*(abs(a-1/sqrt(aStar2+esd_astar2)))+0.005,0))
+    #esd_b = int(round(1000*(abs(b-1/sqrt(bStar2+esd_bstar2)))+0.005,0))
+    #esd_c = int(round(1000*(abs(c-1/sqrt(cStar2+esd_cstar2)))+0.005,0))
+    esd_a = abs(a-1/sqrt(aStar2+esd_astar2))
+    esd_b = abs(b-1/sqrt(bStar2+esd_bstar2))
+    esd_c = abs(c-1/sqrt(cStar2+esd_cstar2))
     return {'a':a, 'b':b, 'c':c, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def monoclinic(reflections):
@@ -472,14 +483,19 @@ def monoclinic(reflections):
     esd_cstar2 =stdev_q*sqrt(x_matrix_inv[2][2])
     esd_Bstar = stdev_q*sqrt(x_matrix_inv[3][3])
     
-    esd_a = int(round(1000*abs(0.5*(aStar2)**(-3/2)*esd_astar2/(sin(beta*pi/180))),0))
-    esd_b = int(round(1000*abs(0.5*(bStar2)**(-3/2)*esd_bstar2),0))
-    esd_c = int(round(1000*abs(0.5*(cStar2)**(-3/2)*esd_cstar2/(sin(beta*pi/180))),0))
-    esd_beta = int(round(1000*((1/(2*(1/d_100)*(1/d_001))*180/pi)/sqrt(1-(((pStar/(2*(1/d_100)*(1/d_001)))*2)**180/pi)))*esd_Bstar+0.5,0))
+    #esd_a = int(round(1000*abs(0.5*(aStar2)**(-3/2)*esd_astar2/(sin(beta*pi/180))),0))
+    #esd_b = int(round(1000*abs(0.5*(bStar2)**(-3/2)*esd_bstar2),0))
+    #esd_c = int(round(1000*abs(0.5*(cStar2)**(-3/2)*esd_cstar2/(sin(beta*pi/180))),0))
+    #esd_beta = int(round(1000*((1/(2*(1/d_100)*(1/d_001))*180/pi)/sqrt(1-(((pStar/(2*(1/d_100)*(1/d_001)))*2)**180/pi)))*esd_Bstar+0.5,0))
+    esd_a = abs(0.5*(aStar2)**(-3/2)*esd_astar2/(sin(beta*pi/180)))
+    esd_b = abs(0.5*(bStar2)**(-3/2)*esd_bstar2)
+    esd_c = abs(0.5*(cStar2)**(-3/2)*esd_cstar2/(sin(beta*pi/180)))
+    esd_beta = ((1/(2*(1/d_100)*(1/d_001))*180/pi)/sqrt(1-(((pStar/(2*(1/d_100)*(1/d_001)))*2)**180/pi)))*esd_Bstar
+    
     return {'a':a, 'b':b, 'c':c, 'beta':beta, 'esd_a':esd_a, 'esd_b':esd_b, 'esd_c':esd_c, 'esd_beta':esd_beta, 'ave_del_d':ave_del_d, 'stdev_q':stdev_q,'Dcalc':DCalc}
 
 def triclinic(reflections):
-    pass
+    return {}
 
 def dict_to_lattice(dictionary:'dict', symmetry:'str'='') :
         lattice = dict()
@@ -537,20 +553,33 @@ def dict_to_lattice(dictionary:'dict', symmetry:'str'='') :
         else:
             return None
 
-def cell_volume(lattice):
+def cell_volume(lattice, esd_lattice):
         a = lattice['a']
         b = lattice['b']
         c = lattice['c']
         alpha = lattice['alpha']
         beta = lattice['beta']
         gamma = lattice['gamma']
+
+        a_esd = esd_lattice['a']
+        b_esd = esd_lattice['b']
+        c_esd = esd_lattice['c']
+        alpha_esd = esd_lattice['alpha']
+        beta_esd = esd_lattice['beta']
+        gamma_esd = esd_lattice['gamma']
+
+        
+
         V = a*b*c* (1- cos(alpha*pi/180)**2 - \
                         cos(beta*pi/180)**2 - \
                         cos(gamma*pi/180)**2+ \
                         2*(cos(alpha*pi/180)* \
                         cos(beta*pi/180)* \
                         cos(gamma*pi/180)))**(1/2)
-        return V
+
+        volume_esd = sqrt( (a_esd/a)**2 +(b_esd/b)**2 +(c_esd/c)**2) * V
+
+        return V, volume_esd
 
 
 

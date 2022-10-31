@@ -48,43 +48,55 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self._button_layout.setSpacing(6)
         self.do_fit = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
         t.setText("Refine Lattice")
-        t.setFixedWidth(110)
+        t.setFixedWidth(100)
         self._button_layout.addWidget(t)
         self.auto_fit = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
         t.setText("Auto process")
         t.setCheckable(True)
-        t.setFixedWidth(110)
+        t.setFixedWidth(100)
         self._button_layout.addWidget(t)
         self.plot_cal = t = QtWidgets.QPushButton(self.button_widget, default=False, autoDefault=False)
         t.setText(f'Plot \N{GREEK CAPITAL LETTER DELTA} d')
-        t.setFixedWidth(110)
+        t.setFixedWidth(100)
         self._button_layout.addWidget(t)
 
 
 
         self.lbltwo_theta = t = QtWidgets.QLabel(self.button_widget)
         t.setText(f'2\N{GREEK SMALL LETTER THETA}:')
-        t.setFixedWidth(70)
+        t.setFixedWidth(30)
         t.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self._button_layout.addWidget(t)
         self.two_theta = t = QtWidgets.QLabel(self.button_widget)
-
-       
-
         self._button_layout.addWidget(t)
-        self.button_widget.setLayout(self._button_layout)
+
+        self._button_layout.addSpacerItem(HorizontalSpacerItem())
+
+        self.update_pressure_btn = t = QtWidgets.QPushButton('Send Pressure')
+        t.setFixedWidth(100)
+        self._button_layout.addWidget(t)
+
+        self.auto_pressure_btn = t = QtWidgets.QPushButton('Auto Send')
+        t.setFixedWidth(100)
+        t.setCheckable(True)
+        self._button_layout.addWidget(t)
+        t = 0
+        
+        
         self._layout.addWidget(self.button_widget)
 
 
-        _phase_selection_layout = QtWidgets.QHBoxLayout()
+        self._phase_selection_layout = QtWidgets.QHBoxLayout()
         self.phase_file_label = QtWidgets.QLabel("Phase")
-        _phase_selection_layout.addWidget(self.phase_file_label)
+        self._phase_selection_layout.addWidget(self.phase_file_label)
         self.phases_cbx = QtWidgets.QComboBox()
         self.phases_cbx.setMaximumWidth(200)
         self.phases_cbx.setMinimumWidth(200)
-        _phase_selection_layout.addWidget(self.phases_cbx)
-        _phase_selection_layout.addSpacerItem(HorizontalSpacerItem())
-        self._layout.addLayout(_phase_selection_layout)
+        self._phase_selection_layout.addWidget(self.phases_cbx)
+        self.model_lbl = QtWidgets.QLabel('')
+        self._phase_selection_layout.addWidget(self.model_lbl)
+        self._phase_selection_layout.addSpacerItem(HorizontalSpacerItem())
+        self._layout.addLayout(self._phase_selection_layout)
 
 
         self.phases_lbl=QtWidgets.QTextEdit('')
@@ -101,7 +113,15 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         #self.param_tw = latticeOutputTableWidget()
         #self._horizontal_layout.addWidget(self.phases_lbl)
         self.parameter_widget = paramOutWidget()
-        self._horizontal_layout.addWidget(self.parameter_widget)
+        self.right_widget = QtWidgets.QWidget()
+        self._right_widget_layout = QtWidgets.QVBoxLayout(self.right_widget)
+        
+        self._right_widget_layout.addWidget(self.model_lbl)
+        self._right_widget_layout.addWidget(self.parameter_widget)
+        self._right_widget_layout.setContentsMargins(10,0,10,0)
+        self._right_widget_layout.addSpacerItem(VerticalSpacerItem())
+
+        self._horizontal_layout.addWidget(self.right_widget)
 
         
         self._body_layout.addLayout(self._horizontal_layout)
@@ -131,28 +151,31 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
 class paramValue(QtWidgets.QLabel):
     def __init__(self, text=''):
         super().__init__(text)
-        self.setMinimumWidth(75)
-        self.setMaximumWidth(75)
+        self.setMinimumWidth(60)
+        self.setMaximumWidth(60)
         
 
 class paramOutWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self._parameter_layout = QtWidgets.QGridLayout(self)
-        self._parameter_layout.setContentsMargins(10,0,10,0)
-        self._parameter_layout.setSpacing(2)
+        self.setStyleSheet('background: #101010')
+        self._parameter_layout.setContentsMargins(0,0,0,0)
+        self._parameter_layout.setSpacing(1)
         
-        self.rows = [[f'a (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','a_out','a_delta_out'],
-                [f'b (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','b_out','b_delta_out'],
-                [f'c (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','c_out','c_delta_out'],
-                [f'\N{GREEK SMALL LETTER ALPHA}\N{DEGREE SIGN}','alpha_out','alpha_delta_out'] ,
-                [f'\N{GREEK SMALL LETTER BETA}\N{DEGREE SIGN}','beta_out','beta_delta_out'] ,
-                [f'\N{GREEK SMALL LETTER GAMMA}\N{DEGREE SIGN}','gamma_out','gamma_delta_out'],
-                [f'V (\N{LATIN CAPITAL LETTER A WITH RING ABOVE}\N{SUPERSCRIPT THREE})','v_out','v_delta_out'] ,
-                [f'V/V\N{SUBSCRIPT ZERO}','v_v0_out','v_v0_delta_out'],
-                ['P (GPa)','p_out','p_delta_out'],
-                ['T (K)','t_out','t_delta_out']
-                ]
+        self.rows =[
+                    ['','value', 'esd'],
+                    [f' a (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','a_out','a_delta_out'],
+                    [f' b (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','b_out','b_delta_out'],
+                    [f' c (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','c_out','c_delta_out'],
+                    [f' \N{GREEK SMALL LETTER ALPHA} (\N{DEGREE SIGN})','alpha_out','alpha_delta_out'] ,
+                    [f' \N{GREEK SMALL LETTER BETA} (\N{DEGREE SIGN})','beta_out','beta_delta_out'] ,
+                    [f' \N{GREEK SMALL LETTER GAMMA} (\N{DEGREE SIGN})','gamma_out','gamma_delta_out'],
+                    [f' V (\N{LATIN CAPITAL LETTER A WITH RING ABOVE}\N{SUPERSCRIPT THREE})','v_out','v_delta_out'] ,
+                    [f' V/V\N{SUBSCRIPT ZERO}','v_v0_out','v_v0_delta_out'],
+                    [' P (GPa)','p_out','p_delta_out'],
+                    [' T (K)','t_out','t_delta_out']
+                   ]
         
         #### display parameters 
         for i in range(len(self.rows)):
@@ -163,27 +186,30 @@ class paramOutWidget(QtWidgets.QWidget):
             self._parameter_layout.addWidget(label, i, 0)
             self._parameter_layout.addWidget(getattr(self,self.rows[i][1]), i, 1)
             self._parameter_layout.addWidget(getattr(self,self.rows[i][2]), i, 2)
+        getattr(self,self.rows[0][1]).setText(' Value')
+        getattr(self,self.rows[0][2]).setText(' esd')
 
-    def update_output(self,curr_phase, lattice, V):
+    def update_output(self,  lattice,lattice_esd, P,V,T, v_over_v0, P_esd, V_esd, v_over_v0_esd):
         
-        v0 = curr_phase.params['v0']
-        v_over_v0 = V/v0
         
-        curr_phase.compute_pressure(volume = V)
-        P = curr_phase.params['pressure']
-        T = curr_phase.params['temperature']
         
         if len(lattice):
-            row = 0
+            
+            row = 1
             for i, line in enumerate( lattice):
-                text = '%.4f'%(round(lattice[line],4)) 
-                getattr(self, self.rows[i][1]).setText(text)
+                text = ' %.4f'%(round(lattice[line],4)) 
+                text_esd = ' %.4f'%(round(lattice_esd[line],4))
+                getattr(self, self.rows[i+1][1]).setText(text)
+                getattr(self, self.rows[i+1][2]).setText(text_esd)
                 row = row +1
                 
-            pvt =  ['%.3f'%(V),'%.3f'%(v_over_v0),'%.2f'%(round(P,2)),'%.2f'%(T) ]
+            pvt =  [' %.3f'%(V),' %.4f'%(v_over_v0),' %.2f'%(round(P,2)),' %.2f'%(T) ]
+            pvt_esd = [' %.3f'%(V_esd),' %.4f'%(v_over_v0_esd),' %.2f'%(round(P_esd,2)),' ']
             for i, line in enumerate( pvt):
                 text = line
+                text_esd = pvt_esd[i]
                 getattr(self, self.rows[i+row][1]).setText(text)
+                getattr(self, self.rows[i+row][2]).setText(text_esd)
 
     def clear(self):
         for i, row in enumerate( self.rows):

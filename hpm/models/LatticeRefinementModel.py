@@ -44,7 +44,9 @@ class RefinedLattice():
         self.dcalc = []
         self.P = 0
         self.V = 0
+        self.V_esd = 0
         self.refined_lattice = {}
+        self.refined_lattice_esd = {}
 
     def get_reflections(self):
         reflections = []
@@ -152,12 +154,15 @@ class LatticeRefinementModel(QtCore.QObject):
                     symmetry = curr_phase.params['symmetry']
                     lattice_model.set_symmetry(symmetry.lower())
                     lattice_model.refine()
-                    volume_out = lattice_model.get_volume()
+                    volume_out, volume_esd_out = lattice_model.get_volume()
                     lattice_out = lattice_model.get_lattice()
+                    lattice_esd_out = lattice_model.get_lattice_esd()
                     
                     refined_lattice_p.P = p
                     refined_lattice_p.V = volume_out
+                    refined_lattice_p.V_esd = volume_esd_out
                     refined_lattice_p.refined_lattice = lattice_out
+                    refined_lattice_p.refined_lattice_esd = lattice_esd_out
                     
                     DCalc = lattice_model.refinement_output['Dcalc']
 

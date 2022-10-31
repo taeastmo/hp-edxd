@@ -415,8 +415,8 @@ class hpmcaController(QObject):
         self.fluorescence_controller.xrf_selection_updated_signal.connect(self.xrf_updated)
 
         self.lattice_refinement_controller = LatticeRefinementController(self.mca,self.widget.pg,self.plotController,self)
-
-        
+        self.lattice_refinement_controller.widget.update_pressure_btn.clicked.connect(self.update_pressure_btn_callback)
+        self.lattice_refinement_controller.refined_pressure_updated.connect(self.refined_pressure_updated_callback)
 
         #initialize hklGen controller
         #self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
@@ -622,6 +622,15 @@ class hpmcaController(QObject):
             self.lattice_refinement_controller.set_mca(self.mca)
             self.lattice_refinement_controller.set_reflections_and_phases(rois,phases)
             self.lattice_refinement_controller.show_view()
+
+    def update_pressure_btn_callback(self):
+        pressure = round(self.lattice_refinement_controller.P,2)
+        self.refined_pressure_updated_callback(pressure)
+
+    def refined_pressure_updated_callback(self, pressure):
+        current_pressure = round(self.phase_controller.phase_widget.pressure_sb.value(),2)
+        if abs(pressure - current_pressure) > 0.25:
+            self.phase_controller.phase_widget.pressure_sb.setValue(pressure)
 
     def environment_module(self):
         if self.mca !=None:
