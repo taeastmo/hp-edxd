@@ -229,21 +229,30 @@ class LatticeRefinementController(QObject):
         v_over_v0 = V/v0
         v_over_v0_esd = V_esd/v0
 
-        # calculate P esd using a local derivative method
-        curr_phase.compute_pressure(volume = V)
         symmetry = curr_phase.params['symmetry']
-        P = curr_phase.params['pressure']
-        curr_phase.compute_pressure(volume = V-V_esd/2)
-        P_min = curr_phase.params['pressure']
-        curr_phase.compute_pressure(volume = V+V_esd/2)
-        P_max = curr_phase.params['pressure']
-        P_esd = abs(P_max - P_min)
+        if v_over_v0 > 0.3 and v_over_v0 < 2:
 
+            # calculate P esd using a local derivative method
+            curr_phase.compute_pressure(volume = V)
+            
+            P = curr_phase.params['pressure']
+            curr_phase.compute_pressure(volume = V-V_esd/2)
+            P_min = curr_phase.params['pressure']
+            curr_phase.compute_pressure(volume = V+V_esd/2)
+            P_max = curr_phase.params['pressure']
+            P_esd = abs(P_max - P_min)
+            
+        else:
+            P = np.nan
+            P_esd = np.nan
+            
+
+        self.P = P
         T = curr_phase.params['temperature']
         self.widget.model_lbl.setText('Symmetry: '+ symmetry)
         self.widget.parameter_widget.update_output(lattice,lattice_esd, P,V,T, v_over_v0, P_esd, V_esd, v_over_v0_esd)
         
-        self.P = P
+        
 
         autosend = self.widget.auto_pressure_btn.isChecked()
         if autosend:

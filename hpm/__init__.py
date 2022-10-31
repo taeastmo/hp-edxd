@@ -18,7 +18,7 @@
 
 
 
-__version__ = "0.6.9"
+__version__ = "0.7.0"
 
 
 
@@ -87,12 +87,12 @@ def main():
     #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
-    #controller.file_save_controller.openFile(filename=pattern)
+    controller.file_save_controller.openFile(filename=pattern)
     #controller.multiple_datasets_controller.show_view()
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
-    controller.multiple_datasets_controller.add_btn_click_callback(folder=multi_spectra)
+    #controller.multiple_datasets_controller.add_btn_click_callback(folder=multi_spectra)
     
-    controller.phase_controller.add_btn_click_callback(filenames=[jcpds2])
+    controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])

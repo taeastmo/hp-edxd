@@ -21,6 +21,8 @@
 from functools import partial
 import numpy as Numeric
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication
 
 import copy
 import functools
@@ -112,7 +114,8 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         
         #self.param_tw = latticeOutputTableWidget()
         #self._horizontal_layout.addWidget(self.phases_lbl)
-        self.parameter_widget = paramOutWidget()
+        self.parameter_widget = parametersTableWidget()
+        self.parameter_widget.setMinimumHeight(207)
         self.right_widget = QtWidgets.QWidget()
         self._right_widget_layout = QtWidgets.QVBoxLayout(self.right_widget)
         
@@ -373,4 +376,143 @@ class reflectionsTableWidget(ListTableWidget):
         for cb in self.roi_show_cbs:
             use.append(cb.isChecked())
         return use
+
+
+class parametersTableWidget(QtWidgets.QTableWidget):
+    show_cb_state_changed = QtCore.pyqtSignal(int, int)
+    name_item_changed = QtCore.pyqtSignal(int, str)
+    def __init__(self):
+        super().__init__()
+        self.setColumnCount(3)
+        self.name_items = []
+        self.value_items = []
+        self.esd_items = []
+        self.nparameters = 0
+        #### display column headings    
+        self.verticalHeader().setVisible(False)
+
+        self.setMinimumWidth(170)
+        header_view = QtWidgets.QHeaderView(QtCore.Qt.Horizontal, self)
+        self.setHorizontalHeader(header_view)
+        header_view.setResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        
+        header_view.setResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        header_view.setResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        self.default_header = ['Parameter','Value','esd']
+        self.header = copy.deepcopy(self.default_header)
+        self.setHorizontalHeaderLabels(self.header)
+        #self.setItemDelegate(NoRectDelegate())
+        self.populate_parameters()
+
+    def keyPressEvent(self, event):
+        
+        super().keyPressEvent(event)
+        if event.key() == Qt.Key_C and (event.modifiers() & Qt.ControlModifier):
+            copied_cells = sorted(self.selectedIndexes())
+
+            copy_text = ''
+            max_column = copied_cells[-1].column()
+            for c in copied_cells:
+                copy_text += self.item(c.row(), c.column()).text()
+                if c.column() == max_column:
+                    copy_text += '\n'
+                else:
+                    copy_text += '\t'
+                    
+            QApplication.clipboard().setText(copy_text)
+        
+
+
+    def populate_parameters(self):
+        self.rows =[
+                    [f' a (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','a_out','a_delta_out'],
+                    [f' b (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','b_out','b_delta_out'],
+                    [f' c (\N{LATIN CAPITAL LETTER A WITH RING ABOVE})','c_out','c_delta_out'],
+                    [f' \N{GREEK SMALL LETTER ALPHA} (\N{DEGREE SIGN})','alpha_out','alpha_delta_out'] ,
+                    [f' \N{GREEK SMALL LETTER BETA} (\N{DEGREE SIGN})','beta_out','beta_delta_out'] ,
+                    [f' \N{GREEK SMALL LETTER GAMMA} (\N{DEGREE SIGN})','gamma_out','gamma_delta_out'],
+                    [f' V (\N{LATIN CAPITAL LETTER A WITH RING ABOVE}\N{SUPERSCRIPT THREE})','v_out','v_delta_out'] ,
+                    [f' V/V\N{SUBSCRIPT ZERO}','v_v0_out','v_v0_delta_out'],
+                    [' P (GPa)','p_out','p_delta_out'],
+                    [' T (K)','t_out','t_delta_out']
+                   ]
+        #### display parameters parameters
+        for row in self.rows:
+            
+            
+            label = row[0]
+            val = ''
+            esd = ''
+            
+            self.add_param(label, val, esd)
+
+    def update_output(self,  lattice,lattice_esd, P,V,T, v_over_v0, P_esd, V_esd, v_over_v0_esd):
+        
+        if len(lattice):
+            
+            row = 0
+            for i, line in enumerate( lattice):
+                text = ' %.4f'%(round(lattice[line],4)) 
+                text_esd = ' %.4f'%(round(lattice_esd[line],4))
+                self.update_param(i, text, text_esd)
+                
+                row = row +1
+                
+            pvt =  [' %.3f'%(V),' %.4f'%(v_over_v0),' %.2f'%(round(P,2)),' %.2f'%(T) ]
+            pvt_esd = [' %.3f'%(V_esd),' %.4f'%(v_over_v0_esd),' %.2f'%(round(P_esd,2)),' ']
+            for i, line in enumerate( pvt):
+                text = line
+                text_esd = pvt_esd[i]
+                self.update_param(i+row, text, text_esd)
+            
+
+
+    def update_param(self, ind, val, esd):
+        self.blockSignals(True)
+        val_item = self.item(ind, 1)
+        val_item.setText(val)
+        esd_item = self.item(ind, 2)
+        esd_item.setText(esd)
+        self.blockSignals(False)
+
+    
+
+    def add_param(self, label, val, esd, silent=False):
+
+        self.blockSignals(True)
+        current_rows = self.rowCount()
+        self.setRowCount(current_rows + 1)
+
+        
+
+        name_item = QtWidgets.QTableWidgetItem(label)
+        name_item.setText(label)
+        name_item.setFlags(name_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        name_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.setItem(current_rows, 0, name_item)
+        self.name_items.append(name_item)
+
+        val_item = QtWidgets.QTableWidgetItem(val)
+        val_item.setFlags(val_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        val_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.setItem(current_rows, 1, val_item)
+
+        esd_item = QtWidgets.QTableWidgetItem(esd)
+        esd_item.setFlags(esd_item.flags() & ~QtCore.Qt.ItemIsEditable)
+        esd_item.setTextAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
+        self.setItem(current_rows, 2, esd_item)
+
+        
+        self.setRowHeight(current_rows, 19)
+        
+        if not silent:
+            self.select_param(current_rows)
+            self.blockSignals(False)
+
+    
+
+
+    def select_param(self, ind):
+        self.selectRow(ind)
+
 
