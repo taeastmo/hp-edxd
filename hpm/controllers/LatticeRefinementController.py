@@ -101,10 +101,9 @@ class LatticeRefinementController(QObject):
             self.selected_phase = phase
             reflections = self.model.refined_lattice_models[phase].get_reflections()
             self.widget.roi_tw.clear_reflections()
-            self.widget.model_lbl.setText('')
+            self.output_clear()
             self.widget.roi_tw. set_reflections(reflections)
-        
-            self.widget.phases_lbl.setText('')
+         
        
     def pressure(self):
         self.show_view()
@@ -148,8 +147,11 @@ class LatticeRefinementController(QObject):
                 self.update_output(selected_phase, refined_lattice)
         else:
             
-            self.widget.parameter_widget.clear()
-        
+            self.output_clear()
+
+    def output_clear(self):
+        self.widget.model_lbl.setText('')
+        self.widget.parameter_widget.clear()
 
     def clear_reflections(self, *args, **kwargs):
         """
@@ -157,7 +159,7 @@ class LatticeRefinementController(QObject):
         """
         self.model.clear()
         self.widget.roi_tw.clear_reflections()
-        self.widget.phases_lbl.setText('')
+      
         
         self.ddiff =[]
         self.reflection = []
@@ -188,9 +190,7 @@ class LatticeRefinementController(QObject):
 
     def set_reflections_and_phases(self, reflections, phases):
         self.clear_reflections()
-        self.widget.phases_lbl.setText('')
-
-        
+      
 
         self.model.set_reflections( reflections)
         self.model.set_phases( phases)

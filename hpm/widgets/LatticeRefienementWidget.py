@@ -101,8 +101,7 @@ class LatticeRefinementWidget(QtWidgets.QWidget):
         self._layout.addLayout(self._phase_selection_layout)
 
 
-        self.phases_lbl=QtWidgets.QTextEdit('')
-        self.phases_lbl.setAcceptRichText(True)
+        
         self._body_layout = QtWidgets.QHBoxLayout()
         self._layout.addLayout(self._body_layout)
 
