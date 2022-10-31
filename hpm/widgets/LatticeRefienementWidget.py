@@ -446,6 +446,10 @@ class parametersTableWidget(QtWidgets.QTableWidget):
             
             self.add_param(label, val, esd)
 
+    def clear(self):
+        for i in range (len (self.rows)):
+            self.update_param(i, '', '')
+
     def update_output(self,  lattice,lattice_esd, P,V,T, v_over_v0, P_esd, V_esd, v_over_v0_esd):
         
         if len(lattice):
