@@ -629,7 +629,7 @@ class hpmcaController(QObject):
 
     def refined_pressure_updated_callback(self, pressure):
         current_pressure = round(self.phase_controller.phase_widget.pressure_sb.value(),2)
-        if abs(pressure - current_pressure) > 0.25:
+        if abs(pressure - current_pressure) > 0.09:
             self.phase_controller.phase_widget.pressure_sb.setValue(pressure)
 
     def environment_module(self):
