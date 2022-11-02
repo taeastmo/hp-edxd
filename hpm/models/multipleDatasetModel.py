@@ -14,6 +14,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from fileinput import filelineno
 import numpy as np
 from PyQt5 import QtCore, QtWidgets
 from pyqtgraph.functions import pseudoScatter
@@ -46,8 +47,6 @@ class MultipleSpectraModel(QtCore.QObject):  #
         return False
 
     def find_chi_file_nelements(self, file):
-        fp = open(file, 'r')
-            
 
 
         file_text = open(file, "r")
@@ -66,7 +65,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 if file_line.startswith("#"):
                     comment_rows +=1
                 else:
-                    if first_data_line == 0 :
+                    if first_data_line == 0 :      
                         if  file_line.split()[0].isdigit():
                             first_data_line = line_n
             line_n +=1
@@ -121,7 +120,105 @@ class MultipleSpectraModel(QtCore.QObject):  #
         r['start_times'] = times
         r['data'] = self.data
 
+    def read_mca_header(self, file):
+      
+        file_text = open(file, "r")
+
+        a = True
+        comment_rows = 0
+        first_data_line = 0
+        line_n = 0
+        nelem = [0,0]
+        while a:
+            file_line = file_text.readline().strip()
+            
+            if not file_line:
+                #print("End Of File")
+                a = False
+            else:
+                if file_line.startswith("#"):
+                    par, val = self.parse_mca_header_line(file_line)
+                    if par == 'rows':
+                        nelem[0] = int(val)
+                    elif par == 'columns':
+                        nelem[1] = int(val)
+                    comment_rows +=1
+                else:
+                    a = False
+        first_data_line = comment_rows
+        return nelem, first_data_line
+
+    def parse_mca_header_line(self, line):
+        tokens = line.split(':')
+        par = tokens[0].strip()[1:]
+        val = tokens[1].strip()
+        return par, val
         
+    def read_mca_ascii_file_2d(self, paths, *args, **kwargs):
+        """
+        Reads a single multispectral mca file from the Ge strip detector.
+          The file format is a tagged ASCII format.
+        The file contains the information about the number of rows and columns in the header.
+        
+
+        Inputs:
+            paths:
+                List, containing the name of the disk file to read. Still expects a 
+                list as an imput even though it will only read the first file
+                
+        Outputs:
+            Returns a dictionary of the following type
+                'files_loaded':     mca file name # this is used when loading  a sequence of files
+                'start_times' :     n.a. # this is used when loading multiple files, 
+                                    in the mca file all spectra are measured simultaneously.
+                'data'        :     mca counts in a form of a 2-D numpy array 
+                                    (dimension 1: spectrum index
+                                     dimension 2: channel index) 
+            
+        Example:
+            m = read_mca_ascii_file_2d(['file.mca'])  
+            
+        """
+
+        nelem, first_data_line = self.read_mca_header(paths[0])
+
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
+
+        #paths = paths [:self.max_spectra]
+        
+        self.data = np.zeros([nelem[0], nelem[1]])
+        files_loaded = []
+        times = []
+        nchans = self.nchans
+        QtWidgets.QApplication.processEvents()
+        fp = open(paths[0], 'r')
+        for h in range(first_data_line):
+            line = fp.readline()
+
+        for d in range(nelem[0]):
+            if d % 2 == 0:
+                #update progress bar only every 10 files to save time
+                progress_dialog.setValue(d)
+                QtWidgets.QApplication.processEvents()
+           
+            line = fp.readline()
+            
+            counts = line.split('  ')[:-2]
+            for chan, count in enumerate(counts):
+                      
+                self.data[d][chan]=int(count)
+            
+            if progress_dialog.wasCanceled():
+                break
+        fp.close()
+        QtWidgets.QApplication.processEvents()
+        r = self.r
+        r['files_loaded'] = files_loaded
+        r['start_times'] = times
+        r['data'] = self.data
 
     def read_ascii_files_2d(self, paths, *args, **kwargs):
         """

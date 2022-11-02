@@ -51,6 +51,7 @@ class MultipleDatasetsController(QObject):
        
         self.widget.widget_closed.connect(self.view_closed)
         self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
+        self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)
         
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
@@ -97,27 +98,27 @@ class MultipleDatasetsController(QObject):
             self.widget.select_file(index)
             self.widget.select_channel(E)
     
-    def initData(self,filenames, progress_dialog):
-        self.load_data(filenames, progress_dialog=progress_dialog)
-        
-    def load_data(self, paths, progress_dialog):
-        # remove '.' files from paths
-        clean_pahts = []
-        for file in paths:
-            
-            first_char = os.path.split(file)[-1][0]
-            if first_char != '.':
-                clean_pahts.append(file)
-        paths = clean_pahts
-        firstfile = paths[0]
-        if firstfile.endswith('hpmca'):
-            self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
-        elif firstfile.endswith('chi') or firstfile.endswith('xy'):
-            self.multi_spectra_model.read_chi_files_2d(paths, progress_dialog=progress_dialog)
+    
         
     def file_filter_refresh_btn_callback(self):
         if self.folder != '':
             self.add_btn_click_callback(folder = self.folder)
+
+    def add_file_btn_click_callback(self,  *args, **kwargs):
+
+        filter = self.widget.file_filter.text().strip()
+        if 'file' in kwargs:
+            file = kwargs['file']
+        else:
+                file = open_file_dialog(None, "Load Multispectral File.",
+                                          None)
+        if file == '':
+            return
+
+        if (file.endswith('mca') ) and filter in file :
+            folder = os.path.split(file)[0]
+            self.load_file_sequence(folder, [file])
+            self.multispectra_loaded()
 
     def add_btn_click_callback(self,  *args, **kwargs):
         """
@@ -136,30 +137,51 @@ class MultipleDatasetsController(QObject):
         paths = []
         files_filtered = []
         if os.path.exists(folder):
-            files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]) 
+            files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
             for f in files:
-                if ("hpmca" in f or 'chi' in f or 'xy' in f) and filter in f:
+                if (f.endswith('hpmca') or f.endswith('chi') or f.endswith('mca') or f.endswith('xy')) and filter in f :
                     file = os.path.join(folder, f) 
                     paths.append(file)  
                     files_filtered.append(f)
         filenames = paths
+        self.load_file_sequence(folder, filenames)
+        self.multispectra_loaded()
 
+    def load_file_sequence(self, folder, filenames):
         if len(filenames):
+            single_file =  len(filenames) == 1 # file sequence or single file containing multiple spectra
+
             self.folder = folder
             self.widget.file_folder.setText(folder)
             #self.directories.phase = os.path.dirname(str(filenames[0]))
-            progress_dialog = QtWidgets.QProgressDialog("Loading multiple spectra.", "Abort Loading", 0, len(filenames),
-                                                        None)
+            progress_dialog = QtWidgets.QProgressDialog("Loading multiple spectra.", "Abort Loading", 0, len(filenames),None)
             progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
             progress_dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
             progress_dialog.show()
             QtWidgets.QApplication.processEvents()
-            self.initData(filenames, progress_dialog)
+            self.load_data(filenames, progress_dialog, single_file)
             progress_dialog.close()
             QtWidgets.QApplication.processEvents()
             
         else:
             self.multi_spectra_model.clear()
+
+        
+    def load_data(self, paths, progress_dialog, single_file):
+        
+        
+        firstfile = paths[0]
+        if firstfile.endswith('hpmca'):
+            self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
+        elif firstfile.endswith('chi') or firstfile.endswith('xy'):
+            self.multi_spectra_model.read_chi_files_2d(paths, progress_dialog=progress_dialog)
+        else:
+            if single_file:
+                if  firstfile.endswith('mca'):
+                    self.multi_spectra_model.read_mca_ascii_file_2d(paths, progress_dialog=progress_dialog, )
+
+
+    def multispectra_loaded(self):
         data = self.multi_spectra_model.r['data']
         self.widget.set_spectral_data(data)
         files_loaded = self.multi_spectra_model.r['files_loaded']

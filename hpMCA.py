@@ -26,5 +26,3 @@ main()
 # TODO output lattice refinement results as table
 # TODO refine multiple phases
 
-
-# TODO cif from ICSD
