@@ -92,7 +92,7 @@ def main():
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
     #controller.multiple_datasets_controller.add_btn_click_callback(folder=multi_spectra)
     
-    controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
+    #controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])

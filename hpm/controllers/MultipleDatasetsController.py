@@ -29,6 +29,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 class MultipleDatasetsController(QObject):
     file_changed_signal = pyqtSignal(str)  
+    element_changed_signal = pyqtSignal(int)
     channel_changed_signal = pyqtSignal(float)  
 
     def __init__(self, file_save_controller):
@@ -80,6 +81,9 @@ class MultipleDatasetsController(QObject):
         file_display = os.path.split(file)[-1]
         self.widget.file_name.setText(file_display)  
 
+    def element_changed(self, element):
+        self.element_changed_signal.emit(int(element))
+
     def fastCursorMove(self, index):
         index = int(index)
         files = self.multi_spectra_model.r['files_loaded']
@@ -90,13 +94,18 @@ class MultipleDatasetsController(QObject):
     def CursorClick(self, index):
         index, E = index[0], index[1]
         files = self.multi_spectra_model.r['files_loaded']
-        if index < len(files) and index >= 0:
-            file = files[index]
-            self.file_changed(file)
+        if len(files) == 1:
+            self. element_changed(index)
             self.channel_changed_signal.emit(E)
-
-            self.widget.select_file(index)
             self.widget.select_channel(E)
+        elif len(files) >1:
+            if index < len(files) and index >= 0:
+                file = files[index]
+                self.file_changed(file)
+                
+
+                self.widget.select_file(index)
+                self.widget.select_channel(E)
     
     
         
