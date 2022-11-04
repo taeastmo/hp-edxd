@@ -115,7 +115,7 @@ class MultipleDatasetsController(QObject):
         if file == '':
             return
 
-        if (file.endswith('mca') ) and filter in file :
+        if (file.endswith('mca')  or file.endswith('hpmca') or file[-3:].isnumeric() ) and filter in file :
             folder = os.path.split(file)[0]
             self.load_file_sequence(folder, [file])
             self.multispectra_loaded()
@@ -150,11 +150,12 @@ class MultipleDatasetsController(QObject):
     def load_file_sequence(self, folder, filenames):
         if len(filenames):
             single_file =  len(filenames) == 1 # file sequence or single file containing multiple spectra
-
+          
             self.folder = folder
             self.widget.file_folder.setText(folder)
             #self.directories.phase = os.path.dirname(str(filenames[0]))
             progress_dialog = QtWidgets.QProgressDialog("Loading multiple spectra.", "Abort Loading", 0, len(filenames),None)
+            
             progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
             progress_dialog.setWindowFlags(QtCore.Qt.FramelessWindowHint)
             progress_dialog.show()
@@ -171,14 +172,26 @@ class MultipleDatasetsController(QObject):
         
         
         firstfile = paths[0]
-        if firstfile.endswith('hpmca'):
-            self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
-        elif firstfile.endswith('chi') or firstfile.endswith('xy'):
-            self.multi_spectra_model.read_chi_files_2d(paths, progress_dialog=progress_dialog)
+        if single_file:
+            if  firstfile.endswith('mca'):
+                self.multi_spectra_model.read_mca_ascii_file_2d(paths, progress_dialog=progress_dialog)
+            elif firstfile.endswith('hpmca'):
+                self.multi_spectra_model.read_ascii_file_multielement_2d(paths, progress_dialog=progress_dialog)
+            else:
+                ext = firstfile[-3:]
+                if ext.isnumeric():
+                    self.multi_spectra_model.read_ascii_file_multielement_2d(paths, progress_dialog=progress_dialog)
+
         else:
-            if single_file:
-                if  firstfile.endswith('mca'):
-                    self.multi_spectra_model.read_mca_ascii_file_2d(paths, progress_dialog=progress_dialog, )
+
+            if firstfile.endswith('hpmca'):
+                self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
+            elif firstfile.endswith('chi') or firstfile.endswith('xy'):
+                self.multi_spectra_model.read_chi_files_2d(paths, progress_dialog=progress_dialog)
+            elif  firstfile.endswith('mca'):
+                print('mca 2d not implemented')
+        
+            
 
 
     def multispectra_loaded(self):

@@ -19,6 +19,8 @@ import numpy as np
 from PyQt5 import QtCore, QtWidgets
 from pyqtgraph.functions import pseudoScatter
 import os
+from . mcareaderGeStrip import *
+from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
 
 class MultipleSpectraModel(QtCore.QObject):  # 
     def __init__(self, *args, **filekw):
@@ -90,8 +92,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.nchans = nchans
         QtWidgets.QApplication.processEvents()
         for d, file in enumerate(paths):
-            if d % 2 == 0:
-                #update progress bar only every 10 files to save time
+            if d % 5 == 0:
+                #update progress bar only every 5 files to save time
                 progress_dialog.setValue(d)
                 QtWidgets.QApplication.processEvents()
         
@@ -120,39 +122,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         r['start_times'] = times
         r['data'] = self.data
 
-    def read_mca_header(self, file):
-      
-        file_text = open(file, "r")
-
-        a = True
-        comment_rows = 0
-        first_data_line = 0
-        line_n = 0
-        nelem = [0,0]
-        while a:
-            file_line = file_text.readline().strip()
-            
-            if not file_line:
-                #print("End Of File")
-                a = False
-            else:
-                if file_line.startswith("#"):
-                    par, val = self.parse_mca_header_line(file_line)
-                    if par == 'rows':
-                        nelem[0] = int(val)
-                    elif par == 'columns':
-                        nelem[1] = int(val)
-                    comment_rows +=1
-                else:
-                    a = False
-        first_data_line = comment_rows
-        return nelem, first_data_line
-
-    def parse_mca_header_line(self, line):
-        tokens = line.split(':')
-        par = tokens[0].strip()[1:]
-        val = tokens[1].strip()
-        return par, val
+ 
         
     def read_mca_ascii_file_2d(self, paths, *args, **kwargs):
         """
@@ -180,7 +150,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
             
         """
 
-        nelem, first_data_line = self.read_mca_header(paths[0])
+        nelem, first_data_line = read_mca_header(paths[0])
 
         if 'progress_dialog' in kwargs:
             progress_dialog = kwargs['progress_dialog']
@@ -188,9 +158,9 @@ class MultipleSpectraModel(QtCore.QObject):  #
             progress_dialog = QtWidgets.QProgressDialog()
 
         #paths = paths [:self.max_spectra]
-        
+        progress_dialog.setMaximum(nelem[0])
         self.data = np.zeros([nelem[0], nelem[1]])
-        files_loaded = []
+        files_loaded = paths
         times = []
         nchans = self.nchans
         QtWidgets.QApplication.processEvents()
@@ -199,8 +169,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
             line = fp.readline()
 
         for d in range(nelem[0]):
-            if d % 2 == 0:
-                #update progress bar only every 10 files to save time
+            if d % 5 == 0:
+                #update progress bar only every 5 files to save time
                 progress_dialog.setValue(d)
                 QtWidgets.QApplication.processEvents()
            
@@ -258,8 +228,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
         nchans = self.nchans
         QtWidgets.QApplication.processEvents()
         for d, file in enumerate(paths):
-            if d % 2 == 0:
-                #update progress bar only every 10 files to save time
+            if d % 5 == 0:
+                #update progress bar only every 5 files to save time
                 progress_dialog.setValue(d)
                 QtWidgets.QApplication.processEvents()
             
@@ -296,3 +266,167 @@ class MultipleSpectraModel(QtCore.QObject):  #
         r['start_times'] = times
         r['data'] = self.data
         
+
+    def read_ascii_file_multielement_2d(self, paths, *args, **kwargs):
+        """
+        Reads a disk file.  The file format is a tagged ASCII format.
+        The file contains the information from the Mca object which it makes sense
+        to store permanently, but does not contain all of the internal state
+        information for the Mca.  This procedure reads files written with
+        write_ascii_file().
+
+        Inputs:
+            file:
+                The name of the disk file to read.
+                
+        Outputs:
+            Returns a dictionary of the following type:
+            'n_detectors': int,
+            'calibration': [McaCalibration()],
+            'elapsed':     [McaElapsed()],
+            'rois':        [[McaROI()]]
+            'data':        [Numeric.array]
+            'environment': [[McaEnvironment()]]
+            
+        Example:
+            m = read_ascii_file('mca.001')
+            m['elapsed'][0].real_time
+
+        Modification by RH Dec. 30 2021
+        Version 3.1A
+        Added a distionction between EDX and ADX files.
+        For ADX files a WAVELENGTH field is written rather than TWO_THETA.
+        For ADX data is written as float, for EDX the as int.
+        """
+
+        file = paths[0]
+     
+        
+        
+        try:
+            fp = open(file, 'r')
+        except:
+            return 
+        line = ''
+        start_time = ''
+        max_rois = 0
+        self.data = []
+        
+        environment = []
+        n_detectors = 1  # Assume single element data
+        elapsed = [McaElapsed()]
+        calibration = [McaCalibration()]
+        rois = [[]]
+        dx_type = ''
+        try:
+            
+            while(1):
+                line = fp.readline()
+                if (line == ''): break
+                pos = line.find(' ')
+                if (pos == -1): pos = len(line)
+                tag = line[0:pos]
+                value = line[pos:].strip()
+                values = value.split()
+                if (tag == 'VERSION:'):
+                    pass
+                elif (tag == 'DATE:'):  
+                    start_time = value
+                elif (tag == 'ELEMENTS:'):
+                    n_detectors  = int(value)
+                    for det in range(1, n_detectors):
+                        elapsed.append(McaElapsed())
+                        calibration.append(McaCalibration())
+                        rois.append([])
+                elif (tag == 'CHANNELS:'):
+                    nchans = int(value)
+                elif (tag == 'ROIS:'):
+                    nrois = []
+                    for d in range(n_detectors):
+                        nrois.append(int(values[d]))
+                    max_rois = max(nrois)
+                    for d in range(n_detectors):
+                        for r in range(nrois[d]):
+                            rois[d].append(McaROI())
+                elif (tag == 'REAL_TIME:'):
+                    for d in range(n_detectors):
+                        elapsed[d].start_time = start_time
+                        elapsed[d].real_time = float(values[d])
+                elif (tag == 'LIVE_TIME:'):  
+                    for d in range(n_detectors):
+                        elapsed[d].live_time = float(values[d])
+                elif (tag == 'CAL_OFFSET:'):
+                    for d in range(n_detectors):
+                        calibration[d].offset = float(values[d])
+                elif (tag == 'CAL_SLOPE:'):
+                    for d in range(n_detectors):
+                        calibration[d].slope = float(values[d])
+                elif (tag == 'CAL_QUAD:'):  
+                    for d in range(n_detectors):
+                        calibration[d].quad = float(values[d])
+                elif (tag == 'TWO_THETA:'):
+                    for d in range(n_detectors):
+                        calibration[d].two_theta = float(values[d])
+                        calibration[d].set_dx_type('edx')
+                        calibration[d].units = 'keV'
+                    data_type = int
+                    dx_type = 'edx'
+                elif (tag == 'WAVELENGTH:'):
+                    for d in range(n_detectors):
+                        calibration[d].wavelength = float(values[d])
+                        calibration[d].set_dx_type('adx')
+                        calibration[d].units = 'degrees'
+                    data_type = float
+                    dx_type = 'adx'
+                elif (tag == 'ENVIRONMENT:'):
+                    env = McaEnvironment()
+                    p1 = value.find('=')
+                    env.name = value[0:p1]
+                    p2 = value[p1+2:].find('"')
+                    env.value = value[p1+2: p1+2+p2]
+                    env.description = value[p1+2+p2+3:-1]
+                    environment.append(env)
+                elif (tag == 'DATA:'):
+                    
+                    self.data = []
+                    for d in range(n_detectors):
+                        self.data.append(np.zeros(nchans,  dtype=data_type))
+                    for chan in range(nchans):
+                        line = fp.readline()
+                        counts = line.split()
+                        for d in range(n_detectors):
+                            self.data[d][chan]=data_type(counts[d])
+                    
+                else:
+                    for i in range(max_rois):
+                        roi = 'ROI_'+str(i)+'_'
+                        if (tag == roi+'LEFT:'):
+                            for d in range(n_detectors):
+                                if (i < nrois[d]):
+                                    rois[d][i].left = int(values[d])
+                                break
+                        elif (tag == roi+'RIGHT:'):
+                            for d in range(n_detectors):
+                                if (i < nrois[d]):
+                                    rois[d][i].right = int(values[d])
+                                break
+                        elif (tag == roi+'LABEL:'):
+                            labels = value.split('&')
+                            for d in range(n_detectors):
+                                if (i < nrois[d]):
+                                    rois[d][i].label = labels[d].strip()
+                                break
+                        else:
+                            pass
+            
+        except:
+            pass
+            
+        fp.close()
+        
+        # Built dictionary to return
+        r = self.r
+        r['files_loaded'] = paths
+        r['start_times'] = []
+        r['data'] = self.data
+            

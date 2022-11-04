@@ -14,6 +14,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from ast import Return
+import imp
 import re
 import pyqtgraph as pg
 import numpy as np
@@ -30,6 +32,7 @@ from hpm.widgets.UtilityWidgets import xyPatternParametersDialog
 import os
 import utilities.CARSMath as CARSMath
 from utilities.filt import spectra_baseline
+from .mcareaderGeStrip import *
 
 from epics import caput, caget, PV
 
@@ -810,11 +813,107 @@ class McaPresets():
 class mcaFileIO():
     def __init__(self):
         pass
+
+
         
     def read_mca_file (self, file, tth=15):  #amptek type file
 
         mcafile = McaReader(file)
         elapsed = McaElapsed()
+        r = {}
+        loaded = False
+        mca_type = -1
+        test_0 = self.test_read_mca_file_type0(file)
+        if test_0:
+            mca_type = 0
+        else:
+            test_1 = self.test_read_mca_file_type1(file)
+            if test_1:
+                mca_type = 1
+        
+        if mca_type == 0:
+            [r, loaded] = self.read_mca_file_type0(file, tth)
+        elif mca_type == 1:
+            [r, loaded] = self.read_mca_file_type1(file, tth)
+            
+        return [r, loaded]
+
+        
+
+    def test_read_mca_file_type1(self, file):
+        nelem, first_data_line = read_mca_header(file)
+        type1 = len(nelem)>0
+        return type1
+
+    def read_mca_file_type1(self, path, tth, element =0):
+        """
+        Reads a single multispectral mca file from the Ge strip detector.
+          The file format is a tagged ASCII format.
+        The file contains the information about the number of rows and columns in the header.
+        
+        Inputs:
+            paths:
+                List, containing the name of the disk file to read. Still expects a 
+                list as an imput even though it will only read the first file
+        Outputs:
+            Returns a dictionary of the following type
+                'files_loaded':     mca file name # this is used when loading  a sequence of files
+                'start_times' :     n.a. # this is used when loading multiple files, 
+                                    in the mca file all spectra are measured simultaneously.
+                'data'        :     mca counts in a form of a 2-D numpy array 
+                                    (dimension 1: spectrum index
+                                     dimension 2: channel index) 
+        Example:
+            m = read_mca_ascii_file_2d(['file.mca'])  
+            
+        """
+        elapsed = McaElapsed()
+        r = {}
+        loaded = False
+        calibration = McaCalibration(dx_type='edx')
+
+        nelem, first_data_line = read_mca_header(path)
+        data = np.zeros(nelem[1])
+       
+     
+        fp = open(path, 'r')
+        for h in range(first_data_line):
+            line = fp.readline()
+        for d in [0]:
+            line = fp.readline()
+            counts = line.split('  ')[:-2]
+            for chan, count in enumerate(counts):
+                data[chan]=int(count)
+
+        fp.close()
+       
+        calibration.two_theta= tth
+        
+        r['n_detectors'] = 1
+        r['calibration'] = [calibration]
+        r['elapsed'] = [elapsed]
+        r['rois'] = [[]]
+        r['data'] = [data]
+        r['environment'] = []
+        r['dx_type'] = 'edx'
+        loaded = True
+        return [r, loaded]
+        
+    def test_read_mca_file_type0(self, file):
+        mcafile = McaReader(file)
+        
+        ans = mcafile.get_live_time()
+        type_0 = ans != None
+        return type_0
+
+    def read_mca_file_type0 (self, file, tth=15):  #amptek type file
+
+        mcafile = McaReader(file)
+        elapsed = McaElapsed()
+        r = {}
+        loaded = False
+        
+
         elapsed.live_time = mcafile.get_live_time()
         elapsed.real_time = mcafile.get_real_time()
         elapsed.start_time = mcafile.get_start_time()
@@ -834,7 +933,7 @@ class mcaFileIO():
         basefile=os.path.basename(file)
         #tth = xyPatternParametersDialog.showDialog(basefile,'tth',15)
         calibration.two_theta= tth
-        r = {}
+        
         r['n_detectors'] = 1
         r['calibration'] = [calibration]
         r['elapsed'] = [elapsed]
@@ -842,9 +941,11 @@ class mcaFileIO():
         r['data'] = [data]
         r['environment'] = []
         r['dx_type'] = 'edx'
-        return [r, True]
+        loaded = True
+        return [r, loaded]
         #mcafile.plot()
 
+ 
 
     def read_ascii_file(self, file):
         """
