@@ -177,10 +177,10 @@ class RoiController(QObject):
         
     
 
-    def update_rois(self, use_only=False):
+    def update_rois(self, element, use_only=False):
 
         if not use_only:
-            self.roi = self.get_rois_for_use()
+            self.roi = self.roi_model. get_rois_for_use()
 
         unit =self.plotController.get_unit()
         if self.unit !=unit:
@@ -244,7 +244,7 @@ class RoiController(QObject):
                 roi_model = self.roi_model_detector
         return roi_model
 
-    def data_updated(self):
+    def data_updated(self, element):
 
         mca_type = self.mcaController.Foreground
         if mca_type != None:
@@ -254,16 +254,17 @@ class RoiController(QObject):
                 roi_model = self.roi_model_detector
             self.roi_model = roi_model
 
-            rois = self.mca.get_rois()[0]
+            rois_all = self.mca.get_rois()
+            rois = rois_all[element]
 
             if mca_type == 'file':
                 load_from_file = self.rois_widget.lock_rois_btn.isChecked()
                 if not load_from_file:
-                    file_rois = self.mca.get_file_rois()[0]
+                    file_rois = self.mca.get_file_rois()[element]
                     self.roi_model.set_file_rois(file_rois)
 
             elif mca_type == 'epics':    
-                det_rois = self.mca.get_det_rois()[0]
+                det_rois = self.mca.get_det_rois()[element]
                 d_rois = []
                 for dr in det_rois:
                     new = True
@@ -278,7 +279,7 @@ class RoiController(QObject):
 
             rois_for_use = self.roi_model.get_rois_for_use()
             for r in rois_for_use:
-                self.mca.compute_roi(r, 0)
+                self.mca.compute_roi(r, element)
 
             
             # check if rois already in mca, no update if all rois are already in mca
@@ -299,7 +300,7 @@ class RoiController(QObject):
             if len(for_mca):
                 self.set_mca_rois(rois_for_use)
             
-            self.update_rois()
+            self.update_rois(element)
 
     
 
@@ -331,8 +332,8 @@ class RoiController(QObject):
         self.mca.clear_rois(source='controller')
         self.roi_model.clear_rois()
 
-    def get_rois_for_use(self):
-        rois = self.mca.get_rois()[0]
+    def get_rois_for_use(self, element):
+        rois = self.mca.get_rois()[element]
         return rois
 
     def set_mca_rois(self, rois):

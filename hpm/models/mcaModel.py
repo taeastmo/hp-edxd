@@ -260,13 +260,13 @@ class MCA():  #
             mca.set_rois([r1,r2], energy=1)
         """
         if source == 'file':
-            self.rois_from_file = [[]]
+            self.rois_from_file[detector] = []
             set_rois = self.rois_from_file
         elif source == 'controller':
-            self.rois = [[]]
+            self.rois[detector]  = []
             set_rois = self.rois
         elif source == 'detector':
-            self.rois_from_det = [[]]
+            self.rois_from_det[detector]  = []
             set_rois = self.rois_from_det
         
         for roi in rois:
@@ -671,12 +671,16 @@ class MCA():  #
             self.data = r['data']
             self.nchans = len(r['data'][0])
             self.n_detectors=len(self.data)
+            self.rois_from_file = [[]]*self.n_detectors
+            self.rois = [[]]*self.n_detectors
             self.elapsed = r['elapsed']
             if persistent_rois == []:
-                rois = r['rois'][0]
+                rois = r['rois']
             else:
-                rois = persistent_rois
-            self.set_rois(rois, detector=0) 
+                rois = [persistent_rois]*16
+            
+            for i , roi in enumerate(rois):
+                self.set_rois(roi, detector=i) 
             self.environment = r['environment']
             self.name = os.path.split(file)[-1]
             self.dx_type = r['dx_type']
@@ -1079,18 +1083,18 @@ class mcaFileIO():
                             for d in range(n_detectors):
                                 if (i < nrois[d]):
                                     rois[d][i].left = int(values[d])
-                                break
+                                #break
                         elif (tag == roi+'RIGHT:'):
                             for d in range(n_detectors):
                                 if (i < nrois[d]):
                                     rois[d][i].right = int(values[d])
-                                break
+                                #break
                         elif (tag == roi+'LABEL:'):
                             labels = value.split('&')
                             for d in range(n_detectors):
                                 if (i < nrois[d]):
                                     rois[d][i].label = labels[d].strip()
-                                break
+                                #break
                         else:
                            
                             pass

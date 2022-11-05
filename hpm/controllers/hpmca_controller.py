@@ -494,7 +494,7 @@ class hpmcaController(QObject):
         element = self.element # for multielement detectors, careful, not implemented everywhere yet
         self.plotController.update_plot_data(element) 
         
-        self.plotController.roi_controller.data_updated()  #this will in turn trigger updateViews() 
+        self.plotController.roi_controller.data_updated(element)  #this will in turn trigger updateViews() 
         environment = self.mca.environment
         self.environment_controller.set_environment(environment)
         self.update_titlebar()
