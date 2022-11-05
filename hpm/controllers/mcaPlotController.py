@@ -71,17 +71,17 @@ class plotController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def update_plot_data(self):
+    def update_plot_data(self, element=0):
         
         m = self.mca
         baseline_state = self.mca.baseline_state
         if baseline_state:
-            self.data = m.get_data()[0] -m.get_baseline()[0]
+            self.data = m.get_data()[element] -m.get_baseline()[element]
         else:
 
-            self.data =  m.get_data()[0]
-        self.calibration = m.get_calibration()[0]
-        self.elapsed = m.get_elapsed()[0]
+            self.data =  m.get_data()[element]
+        self.calibration = m.get_calibration()[element]
+        self.elapsed = m.get_elapsed()[element]
         self.name = m.get_name()
         #self.roi_controller.update_rois()  #this will in turn trigger updateViews()
         self.envs = m.get_environment()

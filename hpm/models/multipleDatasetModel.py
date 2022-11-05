@@ -122,7 +122,10 @@ class MultipleSpectraModel(QtCore.QObject):  #
         r['start_times'] = times
         r['data'] = self.data
 
- 
+    def test_read_mca_file_type1(self, file):
+        nelem, first_data_line = read_mca_header(file)
+        type1 = len(nelem)>0
+        return type1
         
     def read_mca_ascii_file_2d(self, paths, *args, **kwargs):
         """
@@ -149,46 +152,49 @@ class MultipleSpectraModel(QtCore.QObject):  #
             m = read_mca_ascii_file_2d(['file.mca'])  
             
         """
+        file = paths[0]
+        correct_type = self.test_read_mca_file_type1(file)
+        if correct_type:
 
-        nelem, first_data_line = read_mca_header(paths[0])
+            nelem, first_data_line = read_mca_header(paths[0])
 
-        if 'progress_dialog' in kwargs:
-            progress_dialog = kwargs['progress_dialog']
-        else:
-            progress_dialog = QtWidgets.QProgressDialog()
+            if 'progress_dialog' in kwargs:
+                progress_dialog = kwargs['progress_dialog']
+            else:
+                progress_dialog = QtWidgets.QProgressDialog()
 
-        #paths = paths [:self.max_spectra]
-        progress_dialog.setMaximum(nelem[0])
-        self.data = np.zeros([nelem[0], nelem[1]])
-        files_loaded = paths
-        times = []
-        nchans = self.nchans
-        QtWidgets.QApplication.processEvents()
-        fp = open(paths[0], 'r')
-        for h in range(first_data_line):
-            line = fp.readline()
+            #paths = paths [:self.max_spectra]
+            progress_dialog.setMaximum(nelem[0])
+            self.data = np.zeros([nelem[0], nelem[1]])
+            files_loaded = paths
+            times = []
+            nchans = self.nchans
+            QtWidgets.QApplication.processEvents()
+            fp = open(paths[0], 'r')
+            for h in range(first_data_line):
+                line = fp.readline()
 
-        for d in range(nelem[0]):
-            if d % 5 == 0:
-                #update progress bar only every 5 files to save time
-                progress_dialog.setValue(d)
-                QtWidgets.QApplication.processEvents()
-           
-            line = fp.readline()
+            for d in range(nelem[0]):
+                if d % 5 == 0:
+                    #update progress bar only every 5 files to save time
+                    progress_dialog.setValue(d)
+                    QtWidgets.QApplication.processEvents()
             
-            counts = line.split('  ')[:-2]
-            for chan, count in enumerate(counts):
-                      
-                self.data[d][chan]=int(count)
-            
-            if progress_dialog.wasCanceled():
-                break
-        fp.close()
-        QtWidgets.QApplication.processEvents()
-        r = self.r
-        r['files_loaded'] = files_loaded
-        r['start_times'] = times
-        r['data'] = self.data
+                line = fp.readline()
+                
+                counts = line.split('  ')[:-2]
+                for chan, count in enumerate(counts):
+                        
+                    self.data[d][chan]=int(count)
+                
+                if progress_dialog.wasCanceled():
+                    break
+            fp.close()
+            QtWidgets.QApplication.processEvents()
+            r = self.r
+            r['files_loaded'] = files_loaded
+            r['start_times'] = times
+            r['data'] = self.data
 
     def read_ascii_files_2d(self, paths, *args, **kwargs):
         """

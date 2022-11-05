@@ -85,7 +85,7 @@ class hpmcaController(QObject):
         
         # initialize some stuff
         self.mca = None             # mca model
-
+        self.element = 0
      
 
         self.epicsMCAholder = None   # holds a epics based MCA reference 
@@ -114,6 +114,7 @@ class hpmcaController(QObject):
         self.multiple_datasets_controller = MultipleDatasetsController(self.file_save_controller)
         self.multiple_datasets_controller.file_changed_signal.connect(self.file_changed_signal_callback)
         self.multiple_datasets_controller.channel_changed_signal.connect(self.multispectral_channel_changed_callback)
+        self.multiple_datasets_controller.element_changed_signal.connect(self.multispectral_element_changed_callback)
 
         self.make_prefs_menu()  # for mac
 
@@ -490,8 +491,8 @@ class hpmcaController(QObject):
         self.widget.setWindowTitle(name + u'hpMCA')
 
     def data_updated(self):
-        
-        self.plotController.update_plot_data() 
+        element = self.element # for multielement detectors, careful, not implemented everywhere yet
+        self.plotController.update_plot_data(element) 
         
         self.plotController.roi_controller.data_updated()  #this will in turn trigger updateViews() 
         environment = self.mca.environment
@@ -647,6 +648,12 @@ class hpmcaController(QObject):
 
     def multispectral_channel_changed_callback(self, channel):
         self.plotController.mouseCursor_non_signalling(channel)
+
+    
+    def multispectral_element_changed_callback(self, element):
+        self.element = element
+        self.data_updated()
+        #self.plotController.mouseCursor_non_signalling(channel)
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()
