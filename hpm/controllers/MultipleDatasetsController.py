@@ -53,6 +53,7 @@ class MultipleDatasetsController(QObject):
         self.widget.widget_closed.connect(self.view_closed)
         self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
         self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)
+        self.widget.calibration_btn.clicked.connect(self. calibration_btn_callback)
         
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
@@ -112,6 +113,9 @@ class MultipleDatasetsController(QObject):
     def file_filter_refresh_btn_callback(self):
         if self.folder != '':
             self.add_btn_click_callback(folder = self.folder)
+
+    def calibration_btn_callback(self):
+        self.multi_spectra_model.rebin_for_energy()
 
     def add_file_btn_click_callback(self,  *args, **kwargs):
 

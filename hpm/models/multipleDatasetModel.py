@@ -38,7 +38,9 @@ class MultipleSpectraModel(QtCore.QObject):  #
         
         self.r = {'files_loaded':[],
                 'start_times' :[],
-                'data': np.empty((0,0))}
+                'data': np.empty((0,0)),
+                'calibration':[],
+                'elapsed':[]}
 
       
 
@@ -47,6 +49,14 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
     def was_canceled(self):
         return False
+
+
+    def rebin_for_energy(self):
+        calibration = self.r['calibration']
+        for c in calibration:
+            slope = c.slope
+            offset = c.offset
+            print (str(slope) + ' ' + str(offset))
 
     def find_chi_file_nelements(self, file):
 
@@ -230,7 +240,15 @@ class MultipleSpectraModel(QtCore.QObject):  #
         nfiles = len (paths)   
         self.data = np.zeros([nfiles, self.nchans])
         files_loaded = []
+        calibration = [McaCalibration()]
+        elapsed = [McaElapsed()]
+        rois = [[]]
         times = []
+        n_detectors = nfiles
+        for det in range(1, n_detectors):
+            elapsed.append(McaElapsed())
+            calibration.append(McaCalibration())
+            rois.append([])
         nchans = self.nchans
         QtWidgets.QApplication.processEvents()
         for d, file in enumerate(paths):
@@ -253,15 +271,41 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 if (pos == -1): pos = len(line)
                 tag = line[0:pos]
                 value = line[pos:].strip()
-                if (tag == 'DATE:'):  
+                values = value.split()
+                if (tag == 'VERSION:'):
+                    pass
+                elif (tag == 'DATE:'):  
                     start_time = value
                     times.append(start_time)
+                elif (tag == 'REAL_TIME:'):
+                    
+                    elapsed[d].start_time = start_time
+                    elapsed[d].real_time = float(values[0])
+                elif (tag == 'LIVE_TIME:'):  
+                   
+                    elapsed[d].live_time = float(values[0])
+                elif (tag == 'CAL_OFFSET:'):
+                   
+                    calibration[d].offset = float(values[0])
+                elif (tag == 'CAL_SLOPE:'):
+                   
+                    calibration[d].slope = float(values[0])
+                elif (tag == 'CAL_QUAD:'):  
+                   
+                    calibration[d].quad = float(values[0])
+                elif (tag == 'TWO_THETA:'):
+                  
+                    calibration[d].two_theta = float(values[0])
+                    calibration[d].set_dx_type('edx')
+                    calibration[d].units = "keV"
+                
+                    
                 elif (tag == 'DATA:'):
                     for chan in range(nchans):
                         line = fp.readline()
                         counts = line.split()
                         self.data[d][chan]=int(counts[0])
-            files_loaded.append(file)
+            files_loaded.append(os.path.normpath(file))
                 
             fp.close()
             if progress_dialog.wasCanceled():
@@ -271,6 +315,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
         r['files_loaded'] = files_loaded
         r['start_times'] = times
         r['data'] = self.data
+        r['calibration'] = calibration
+        r['elapsed'] = elapsed
         
 
     def read_ascii_file_multielement_2d(self, paths, *args, **kwargs):
@@ -306,7 +352,10 @@ class MultipleSpectraModel(QtCore.QObject):  #
         """
 
         file = paths[0]
-     
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
         
         
         try:
@@ -323,116 +372,123 @@ class MultipleSpectraModel(QtCore.QObject):  #
         elapsed = [McaElapsed()]
         calibration = [McaCalibration()]
         rois = [[]]
+        times = []
         dx_type = ''
-        try:
+        
             
-            while(1):
-                line = fp.readline()
-                if (line == ''): break
-                pos = line.find(' ')
-                if (pos == -1): pos = len(line)
-                tag = line[0:pos]
-                value = line[pos:].strip()
-                values = value.split()
-                if (tag == 'VERSION:'):
-                    pass
-                elif (tag == 'DATE:'):  
-                    start_time = value
-                elif (tag == 'ELEMENTS:'):
-                    n_detectors  = int(value)
-                    for det in range(1, n_detectors):
-                        elapsed.append(McaElapsed())
-                        calibration.append(McaCalibration())
-                        rois.append([])
-                elif (tag == 'CHANNELS:'):
-                    nchans = int(value)
-                elif (tag == 'ROIS:'):
-                    nrois = []
+        while(1):
+            line = fp.readline()
+            if (line == ''): break
+            pos = line.find(' ')
+            if (pos == -1): pos = len(line)
+            tag = line[0:pos]
+            value = line[pos:].strip()
+            values = value.split()
+            if (tag == 'VERSION:'):
+                pass
+            elif (tag == 'DATE:'):  
+                start_time = value
+               
+                times.append(start_time)
+            elif (tag == 'ELEMENTS:'):
+                n_detectors  = int(value)
+                for det in range(1, n_detectors):
+                    elapsed.append(McaElapsed())
+                    calibration.append(McaCalibration())
+                    rois.append([])
+           
+            elif (tag == 'CHANNELS:'):
+                nchans = int(value)
+                progress_dialog.setMaximum(nchans)
+            elif (tag == 'ROIS:'):
+                nrois = []
+                for d in range(n_detectors):
+                    nrois.append(int(values[d]))
+                max_rois = max(nrois)
+                for d in range(n_detectors):
+                    for r in range(nrois[d]):
+                        rois[d].append(McaROI())
+            elif (tag == 'REAL_TIME:'):
+                for d in range(n_detectors):
+                    elapsed[d].start_time = start_time
+                    elapsed[d].real_time = float(values[d])
+            elif (tag == 'LIVE_TIME:'):  
+                for d in range(n_detectors):
+                    elapsed[d].live_time = float(values[d])
+            elif (tag == 'CAL_OFFSET:'):
+                for d in range(n_detectors):
+                    calibration[d].offset = float(values[d])
+            elif (tag == 'CAL_SLOPE:'):
+                for d in range(n_detectors):
+                    calibration[d].slope = float(values[d])
+            elif (tag == 'CAL_QUAD:'):  
+                for d in range(n_detectors):
+                    calibration[d].quad = float(values[d])
+            elif (tag == 'TWO_THETA:'):
+                for d in range(n_detectors):
+                    calibration[d].two_theta = float(values[d])
+                    calibration[d].set_dx_type('edx')
+                    calibration[d].units = 'keV'
+                data_type = int
+                dx_type = 'edx'
+            elif (tag == 'WAVELENGTH:'):
+                for d in range(n_detectors):
+                    calibration[d].wavelength = float(values[d])
+                    calibration[d].set_dx_type('adx')
+                    calibration[d].units = 'degrees'
+                data_type = float
+                dx_type = 'adx'
+            elif (tag == 'ENVIRONMENT:'):
+                env = McaEnvironment()
+                p1 = value.find('=')
+                env.name = value[0:p1]
+                p2 = value[p1+2:].find('"')
+                env.value = value[p1+2: p1+2+p2]
+                env.description = value[p1+2+p2+3:-1]
+                environment.append(env)
+            elif (tag == 'DATA:'):
+                
+                self.data = []
+                for d in range(n_detectors):
+                    self.data.append(np.zeros(nchans,  dtype=data_type))
+                for chan in range(nchans):
+                    if chan % 50 == 0:
+                        #update progress bar only every 5 files to save time
+                        progress_dialog.setValue(d)
+                        QtWidgets.QApplication.processEvents()
+                    line = fp.readline()
+                    counts = line.split()
                     for d in range(n_detectors):
-                        nrois.append(int(values[d]))
-                    max_rois = max(nrois)
-                    for d in range(n_detectors):
-                        for r in range(nrois[d]):
-                            rois[d].append(McaROI())
-                elif (tag == 'REAL_TIME:'):
-                    for d in range(n_detectors):
-                        elapsed[d].start_time = start_time
-                        elapsed[d].real_time = float(values[d])
-                elif (tag == 'LIVE_TIME:'):  
-                    for d in range(n_detectors):
-                        elapsed[d].live_time = float(values[d])
-                elif (tag == 'CAL_OFFSET:'):
-                    for d in range(n_detectors):
-                        calibration[d].offset = float(values[d])
-                elif (tag == 'CAL_SLOPE:'):
-                    for d in range(n_detectors):
-                        calibration[d].slope = float(values[d])
-                elif (tag == 'CAL_QUAD:'):  
-                    for d in range(n_detectors):
-                        calibration[d].quad = float(values[d])
-                elif (tag == 'TWO_THETA:'):
-                    for d in range(n_detectors):
-                        calibration[d].two_theta = float(values[d])
-                        calibration[d].set_dx_type('edx')
-                        calibration[d].units = 'keV'
-                    data_type = int
-                    dx_type = 'edx'
-                elif (tag == 'WAVELENGTH:'):
-                    for d in range(n_detectors):
-                        calibration[d].wavelength = float(values[d])
-                        calibration[d].set_dx_type('adx')
-                        calibration[d].units = 'degrees'
-                    data_type = float
-                    dx_type = 'adx'
-                elif (tag == 'ENVIRONMENT:'):
-                    env = McaEnvironment()
-                    p1 = value.find('=')
-                    env.name = value[0:p1]
-                    p2 = value[p1+2:].find('"')
-                    env.value = value[p1+2: p1+2+p2]
-                    env.description = value[p1+2+p2+3:-1]
-                    environment.append(env)
-                elif (tag == 'DATA:'):
-                    
-                    self.data = []
-                    for d in range(n_detectors):
-                        self.data.append(np.zeros(nchans,  dtype=data_type))
-                    for chan in range(nchans):
-                        line = fp.readline()
-                        counts = line.split()
+                        self.data[d][chan]=data_type(counts[d])
+                
+            else:
+                for i in range(max_rois):
+                    roi = 'ROI_'+str(i)+'_'
+                    if (tag == roi+'LEFT:'):
                         for d in range(n_detectors):
-                            self.data[d][chan]=data_type(counts[d])
-                    
-                else:
-                    for i in range(max_rois):
-                        roi = 'ROI_'+str(i)+'_'
-                        if (tag == roi+'LEFT:'):
-                            for d in range(n_detectors):
-                                if (i < nrois[d]):
-                                    rois[d][i].left = int(values[d])
-                                break
-                        elif (tag == roi+'RIGHT:'):
-                            for d in range(n_detectors):
-                                if (i < nrois[d]):
-                                    rois[d][i].right = int(values[d])
-                                break
-                        elif (tag == roi+'LABEL:'):
-                            labels = value.split('&')
-                            for d in range(n_detectors):
-                                if (i < nrois[d]):
-                                    rois[d][i].label = labels[d].strip()
-                                break
-                        else:
-                            pass
-            
-        except:
-            pass
-            
+                            if (i < nrois[d]):
+                                rois[d][i].left = int(values[d])
+                            break
+                    elif (tag == roi+'RIGHT:'):
+                        for d in range(n_detectors):
+                            if (i < nrois[d]):
+                                rois[d][i].right = int(values[d])
+                            break
+                    elif (tag == roi+'LABEL:'):
+                        labels = value.split('&')
+                        for d in range(n_detectors):
+                            if (i < nrois[d]):
+                                rois[d][i].label = labels[d].strip()
+                            break
+                    else:
+                        pass
         fp.close()
         
         # Built dictionary to return
         r = self.r
         r['files_loaded'] = paths
-        r['start_times'] = []
+        r['start_times'] = times
         r['data'] = self.data
+        r['calibration'] = calibration
+        r['elapsed'] = elapsed
             

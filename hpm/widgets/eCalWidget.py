@@ -93,6 +93,7 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         """
         super(mcaCalibrateEnergy, self).__init__()
         self.input_mca = mca
+        self.det = detector
         #self.input_mca.auto_process_rois = False
         self.roi = copy.deepcopy(mca.get_rois()[detector])
         self.calibration = copy.deepcopy(mca.get_calibration()[detector])   
@@ -452,7 +453,7 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         """ Private method """
         if (button == 'OK') or (button == 'Apply'):
             # Copy calibration and rois to input mca object
-            self.input_mca.set_calibration([self.calibration])
+            self.input_mca.set_calibration(self.calibration, self.det)
             #self.input_mca.set_rois(self.roi)
             pass
 

@@ -94,6 +94,7 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         """
         super().__init__()
         self.input_mca = mca
+        self.detector = detector
         self.roi = copy.deepcopy(mca.get_rois()[detector])
         self.calibration = copy.deepcopy(mca.get_calibration()[detector])   
         #self.data = copy.deepcopy(mca.get_data()[detector])
@@ -400,7 +401,7 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         """ Private method """
         if (button == 'OK') or (button == 'Apply'):
             # Copy calibration and rois to input mca object
-            self.input_mca.set_calibration([self.calibration])
+            self.input_mca.set_calibration(self.calibration, self.detector)
             #self.input_mca.set_rois(self.roi)
             pass
         if (button == 'OK'):

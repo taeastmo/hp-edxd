@@ -230,21 +230,23 @@ class hpmcaController(QObject):
             
     def set_Tth(self):
         mca = self.mca
-        calibration = copy.deepcopy(mca.get_calibration()[0])
+        element = copy.copy(self.element)
+        calibration = copy.deepcopy(mca.get_calibration()[element])
         tth = calibration.two_theta
         val, ok = QInputDialog.getDouble(self.widget, "Manual 2theta setting", "Current 2theta = "+ '%.4f'%(tth)+"\nEnter new 2theta: \n(Note: calibrated 2theta value will be updated)",tth,0,180,4)
         if ok:
             calibration.two_theta = val
-            mca.set_calibration([calibration])
+            mca.set_calibration(calibration, element)
 
     def set_Wavelength(self):
         mca = self.mca
-        calibration = copy.deepcopy(mca.get_calibration()[0])
+        element = copy.copy(self.element)
+        calibration = copy.deepcopy(mca.get_calibration()[element])
         wavelength = calibration.wavelength
         val, ok = QInputDialog.getDouble(self.widget, "Manual wavelength setting", "Current wavelength = "+ '%.4f'%(wavelength)+"\nEnter new wavelength: \n(Note: calibrated wavelength value will be updated)",wavelength,0,180,4)
         if ok:
             calibration.wavelength = val
-            mca.set_calibration([calibration])
+            mca.set_calibration(calibration, element)
             mca.wavelength = val
 
            
@@ -568,7 +570,7 @@ class hpmcaController(QObject):
 
     def calibrate_energy_module(self):
         if self.mca != None:
-            self.ce = mcaCalibrateEnergy(self.mca)
+            self.ce = mcaCalibrateEnergy(self.mca, detector=self.element)
             if self.ce.nrois < 2:
                 mcaUtil.displayErrorMessage( 'calroi')
                 self.ce.destroy()
@@ -579,7 +581,7 @@ class hpmcaController(QObject):
         if self.mca != None:
             phase=self.working_directories.phase
             data_label = self.plotController.get_data_label()
-            self.ctth = mcaCalibrate2theta(self.mca, jcpds_directory=phase, data_label=data_label)
+            self.ctth = mcaCalibrate2theta(self.mca, detector=self.element, jcpds_directory=phase, data_label=data_label)
             if self.ctth.nrois < 1:
                 mcaUtil.displayErrorMessage( 'calroi')
                 self.ctth.destroy()

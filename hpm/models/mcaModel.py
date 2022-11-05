@@ -90,7 +90,7 @@ class MCA():  #
         return self.calibration
 
     ########################################################################
-    def set_calibration(self, calibration):
+    def set_calibration(self, calibration, det = 0):
         """
         Sets the Mca calibration.
         
@@ -98,7 +98,7 @@ class MCA():  #
             calibration:
                 An McaCalibration object
         """
-        self.calibration = calibration
+        self.calibration[det] = calibration
 
     ########################################################################
     def get_presets(self):

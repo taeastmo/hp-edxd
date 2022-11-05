@@ -83,9 +83,9 @@ def main():
     jcpds1 = os.path.normpath(os.path.join(resources_path,'au.jcpds'))
     jcpds2 = os.path.normpath(os.path.join(resources_path,'mgo.jcpds'))
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
-    #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
+    multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
     #multi_element =  os.path.normpath( os.path.join(resources_path,'cd109-co57-10262022-30000sec.mca'))
-    multi_element =  os.path.normpath( os.path.join(resources_path,'2dmca.hpmca'))
+    #multi_element =  os.path.normpath( os.path.join(resources_path,'2dmca.hpmca'))
 
 
 
@@ -93,7 +93,7 @@ def main():
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
     #controller.file_save_controller.openFile(filename=pattern)
-    #controller.multiple_datasets_controller.show_view()
+    controller.multiple_datasets_controller.show_view()
     #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
     controller.multiple_datasets_controller.add_file_btn_click_callback(file=multi_element)
     
