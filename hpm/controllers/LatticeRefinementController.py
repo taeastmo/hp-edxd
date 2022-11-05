@@ -69,10 +69,10 @@ class LatticeRefinementController(QObject):
         
         self.create_signals()
 
-    def set_mca(self, mca):
+    def set_mca(self, mca, element=0):
         self.mca = mca
         self.dataLen = self.mca.nchans
-        self.calibration = self.mca.get_calibration()[0]
+        self.calibration = self.mca.get_calibration()[element]
         self.two_theta =  self.calibration.two_theta
         if type(self.two_theta) == type(float()):
             self.widget.two_theta.setText(str(round(self.two_theta,5))+f'\N{DEGREE SIGN}')

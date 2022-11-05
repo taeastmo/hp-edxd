@@ -288,10 +288,11 @@ class hpmcaController(QObject):
     def refresh_controllers_mca(self):
         self.mca.auto_process_rois = True
         if self.controllers_initialized:
-            self.plotController.set_mca(self.mca)
-            self.phase_controller.set_mca(self.mca)
-            self.roi_controller.set_mca(self.mca)
-            self.fluorescence_controller.set_mca(self.mca)
+            element = self.element
+            self.plotController.set_mca(self.mca, element)
+            self.phase_controller.set_mca(self.mca, element)
+            self.roi_controller.set_mca(self.mca, element)
+            self.fluorescence_controller.set_mca(self.mca, element)
         
     def initFileMCA(self, file):
         mca = None
@@ -492,6 +493,11 @@ class hpmcaController(QObject):
 
     def data_updated(self):
         element = self.element # for multielement detectors, careful, not implemented everywhere yet
+        ndet = self.mca.n_detectors
+        if element >= ndet:
+            element = ndet-1
+            self.element = element
+
         self.plotController.update_plot_data(element) 
         
         self.plotController.roi_controller.data_updated(element)  #this will in turn trigger updateViews() 
@@ -603,11 +609,12 @@ class hpmcaController(QObject):
     def roi_updated_signal_callback(self, *args, **kwargs):
         if self.lattice_refinement_controller.active and self.mca !=None:
             
-            rois = self.mca.get_rois()[0]
+            element = self.element
+            rois = self.mca.get_rois()[element]
             phases = self.phase_controller.get_phases()
             
             self.lattice_refinement_controller.set_jcpds_directory(self.working_directories.phase)
-            self.lattice_refinement_controller.set_mca(self.mca)
+            self.lattice_refinement_controller.set_mca(self.mca, element)
             self.lattice_refinement_controller.set_reflections_and_phases(rois,phases)
             autoprocess = self.lattice_refinement_controller.widget.auto_fit.isChecked()
             if autoprocess:
@@ -616,11 +623,12 @@ class hpmcaController(QObject):
 
     def lattice_refinement_module(self):
         if self.mca !=None:
-            rois = self.mca.get_rois()[0]
+            element = self.element
+            rois = self.mca.get_rois()[element]
             phases = self.phase_controller.get_phases()
             
             self.lattice_refinement_controller.set_jcpds_directory(self.working_directories.phase)
-            self.lattice_refinement_controller.set_mca(self.mca)
+            self.lattice_refinement_controller.set_mca(self.mca, element)
             self.lattice_refinement_controller.set_reflections_and_phases(rois,phases)
             self.lattice_refinement_controller.show_view()
 

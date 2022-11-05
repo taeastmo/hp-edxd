@@ -65,7 +65,7 @@ class plotController(QObject):
         self.pg.plotMouseMoveSignal.connect(self.mouseMoved)         # connect signal to mouse mothion handler 
         self.pg.getViewBox().plotMouseCursorSignal.connect(self.mouseCursor)
         
-    def set_mca(self, mca):
+    def set_mca(self, mca, element=0):
         self.mca = mca
 
     ########################################################################################
@@ -189,7 +189,9 @@ class plotController(QObject):
         self.makeXaxis()
         
         self.update_plot_data()
-        self.roi_controller.data_updated() 
+        
+        element = self.mcaController.element
+        self.roi_controller.data_updated(element) 
 
         self.unitUpdated.emit(self.unit)
         self.update_cursors()

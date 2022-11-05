@@ -822,18 +822,17 @@ class mcaFileIO():
         
     def read_mca_file (self, file, tth=15):  #amptek type file
 
-        mcafile = McaReader(file)
-        elapsed = McaElapsed()
+        
         r = {}
         loaded = False
         mca_type = -1
-        test_0 = self.test_read_mca_file_type0(file)
-        if test_0:
-            mca_type = 0
+        test_1 = self.test_read_mca_file_type1(file)
+        if test_1:
+            mca_type = 1
         else:
-            test_1 = self.test_read_mca_file_type1(file)
-            if test_1:
-                mca_type = 1
+            test_0 = self.test_read_mca_file_type0(file)
+            if test_0:
+                mca_type = 0
         
         if mca_type == 0:
             [r, loaded] = self.read_mca_file_type0(file, tth)
@@ -877,27 +876,27 @@ class mcaFileIO():
         calibration = McaCalibration(dx_type='edx')
 
         nelem, first_data_line = read_mca_header(path)
-        data = np.zeros(nelem[1])
+        data = np.zeros((int(nelem[0]),int(nelem[1])))
        
      
         fp = open(path, 'r')
         for h in range(first_data_line):
             line = fp.readline()
-        for d in [0]:
+        for d in range(nelem[0]):
             line = fp.readline()
             counts = line.split('  ')[:-2]
             for chan, count in enumerate(counts):
-                data[chan]=int(count)
+                data[d][chan]=int(count)
 
         fp.close()
        
         calibration.two_theta= tth
         
-        r['n_detectors'] = 1
-        r['calibration'] = [calibration]
-        r['elapsed'] = [elapsed]
-        r['rois'] = [[]]
-        r['data'] = [data]
+        r['n_detectors'] = nelem[0]
+        r['calibration'] = [calibration]*nelem[0]
+        r['elapsed'] = [elapsed]*nelem[0]
+        r['rois'] = [[]]*nelem[0]
+        r['data'] = data
         r['environment'] = []
         r['dx_type'] = 'edx'
         loaded = True

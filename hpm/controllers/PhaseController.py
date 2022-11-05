@@ -111,7 +111,7 @@ class PhaseController(object):
                 self.prefs[p] = val
                 
 
-    def set_mca(self, mca):
+    def set_mca(self, mca, element=0):
         self.pattern = mca
 
     def show_view(self):
