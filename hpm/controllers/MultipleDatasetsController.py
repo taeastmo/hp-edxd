@@ -124,7 +124,7 @@ class MultipleDatasetsController(QObject):
         if file == '':
             return
 
-        if (file.endswith('mca')  or file.endswith('hpmca') or file[-3:].isnumeric() ) and filter in file :
+        if (file.endswith('.mca')  or file.endswith('.hpmca') or file[-3:].isnumeric() ) and filter in file :
             folder = os.path.split(file)[0]
             self.load_file_sequence(folder, [file])
             self.multispectra_loaded()
@@ -148,7 +148,7 @@ class MultipleDatasetsController(QObject):
         if os.path.exists(folder):
             files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
             for f in files:
-                if (f.endswith('hpmca') or f.endswith('chi') or f.endswith('mca') or f.endswith('xy')) and filter in f :
+                if (f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy')) and filter in f :
                     file = os.path.join(folder, f) 
                     paths.append(file)  
                     files_filtered.append(f)
@@ -182,9 +182,9 @@ class MultipleDatasetsController(QObject):
         
         firstfile = paths[0]
         if single_file:
-            if  firstfile.endswith('mca'):
+            if  firstfile.endswith('.mca'):
                 self.multi_spectra_model.read_mca_ascii_file_2d(paths, progress_dialog=progress_dialog)
-            elif firstfile.endswith('hpmca'):
+            elif firstfile.endswith('.hpmca'):
                 self.multi_spectra_model.read_ascii_file_multielement_2d(paths, progress_dialog=progress_dialog)
             else:
                 ext = firstfile[-3:]
@@ -193,11 +193,11 @@ class MultipleDatasetsController(QObject):
 
         else:
 
-            if firstfile.endswith('hpmca'):
+            if firstfile.endswith('.hpmca'):
                 self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
-            elif firstfile.endswith('chi') or firstfile.endswith('xy'):
+            elif firstfile.endswith('.chi') or firstfile.endswith('.xy'):
                 self.multi_spectra_model.read_chi_files_2d(paths, progress_dialog=progress_dialog)
-            elif  firstfile.endswith('mca'):
+            elif  firstfile.endswith('.mca'):
                 print('mca 2d not implemented')
         
             

@@ -84,7 +84,9 @@ def main():
     jcpds2 = os.path.normpath(os.path.join(resources_path,'mgo.jcpds'))
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
     #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
-    multi_element =  os.path.normpath( os.path.join(resources_path,'cd109-co57-10262022-30000sec.mca'))
+    #multi_element =  os.path.normpath( os.path.join(resources_path,'cd109-co57-10262022-30000sec.mca'))
+    multi_element =  os.path.normpath( os.path.join(resources_path,'2dmca.hpmca'))
+
 
 
     #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
