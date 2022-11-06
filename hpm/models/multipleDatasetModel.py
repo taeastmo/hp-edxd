@@ -18,12 +18,12 @@ from fileinput import filelineno
 import numpy as np
 from scipy import interpolate
 from PyQt5 import QtCore, QtWidgets
-from pyqtgraph.functions import pseudoScatter
+#from pyqtgraph.functions import pseudoScatter
 import os
 import time
 
-from rebinTransform import CAL_OFFSET
-from . mcareaderGeStrip import *
+
+from .mcareaderGeStrip import *
 from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
 from utilities.CARSMath import fit_gaussian
 
