@@ -16,11 +16,16 @@
 
 from fileinput import filelineno
 import numpy as np
+from scipy import interpolate
 from PyQt5 import QtCore, QtWidgets
 from pyqtgraph.functions import pseudoScatter
 import os
+import time
+
+from rebinTransform import CAL_OFFSET
 from . mcareaderGeStrip import *
 from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
+from utilities.CARSMath import fit_gaussian
 
 class MultipleSpectraModel(QtCore.QObject):  # 
     def __init__(self, *args, **filekw):
@@ -52,17 +57,83 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
 
     def rebin_for_energy(self):
-        calibration = self.r['calibration']
-        for c in calibration:
-            slope = c.slope
-            offset = c.offset
-            print (str(slope) + ' ' + str(offset))
+        #calibration = self.r['calibration']
+        data = self.data
+        rows = len(data)
+        now = time.time()
+        bins = np.size(data[0])
+        x = np.arange(bins)
+        half_bins = int(bins/2)
+        max_points_left = np.zeros(rows)
+        max_points_right = np.zeros(rows)
+        fit_range = 10
+        for row in range(rows):
+            max_rough = int( np.argmax(data[row][0:half_bins]))
+            fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
+            fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
+            min_y = np.amin(fit_segment_y)
+            _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y - min_y)
+            max_points_left[row] = controid
+
+            max_rough = int(half_bins + np.argmax(data[row][-half_bins:]))
+            fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
+            fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
+            min_y = np.amin(fit_segment_y)
+            _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
+            max_points_right[row] = controid
+        
+        left = max(max_points_left)
+        right = min(max_points_right)
+      
+        M = np.ones(rows)   # relative slopes
+        B = np.zeros(rows)  # relative y-intercepts
+        
+        for row in range(rows):
+            x1 = left
+            x2 = right
+            y1 = max_points_left[row]
+            y2 = max_points_right[row]
+            M[row] = (y1-y2)/(x1-x2)
+            B[row] = (x1*y2 - x2*y1)/(x1-x2)
+        print (time.time()-now)
+        calibration = {}
+        calibration['slope'] = M
+        calibration['offset'] = B
+        self.calibration = calibration
+        now = time.time()
+        self.calibration_scales = self.create_multialement_alighment_calibration(data, calibration)
+        print (time.time()-now)
+        now = time.time()
+        self.align_multialement_data(data , self.calibration_scales)
+        print (time.time()-now)
+
+    def create_multialement_alighment_calibration(self, data, calibration):
+        rows = len(data)
+        bins = np.size(data[0])
+        x = np.arange(bins)
+        M = calibration['slope']
+        B = calibration['offset']
+        calibration_scales = []
+        for row in range(rows): 
+            xnew = x * M[row] + B[row]
+            calibration_scales.append(xnew)
+        return calibration_scales
+            
+    def align_multialement_data (self,  data, calibration_scales):
+        rows = len(data)
+        bins = np.size(data[0])
+        x = np.arange(bins)
+        for row in range(rows): 
+            xnew = calibration_scales[row]
+            data[row] = self.shift_row(data[row],x, xnew)
+
+    def shift_row(self, row,x, xnew):
+        f = interpolate.interp1d(x, row, assume_sorted=True, bounds_error=False, fill_value=0)
+        row = f(xnew)
+        return row
 
     def find_chi_file_nelements(self, file):
-
-
         file_text = open(file, "r")
-
         a = True
         comment_rows = 0
         first_data_line = 0
@@ -178,7 +249,15 @@ class MultipleSpectraModel(QtCore.QObject):  #
             self.data = np.zeros([nelem[0], nelem[1]])
             files_loaded = paths
             times = []
-            nchans = self.nchans
+            calibration = [McaCalibration()]
+            elapsed = [McaElapsed()]
+            rois = [[]]
+            
+            n_detectors= nelem[0]
+            for det in range(1, n_detectors):
+                elapsed.append(McaElapsed())
+                calibration.append(McaCalibration())
+                rois.append([])
             QtWidgets.QApplication.processEvents()
             fp = open(paths[0], 'r')
             for h in range(first_data_line):
@@ -205,6 +284,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
             r['files_loaded'] = files_loaded
             r['start_times'] = times
             r['data'] = self.data
+            r['calibration'] = calibration
+            r['elapsed'] = elapsed
 
     def read_ascii_files_2d(self, paths, *args, **kwargs):
         """

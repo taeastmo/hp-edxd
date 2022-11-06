@@ -44,6 +44,7 @@ class MultipleDatasetsController(QObject):
         self.selectedENV = 0
         self.selectedENV_persist = 0
         self.envLen = 0
+        self.single_file = False
 
         #self.phases =dict()
         self.create_signals()
@@ -111,11 +112,13 @@ class MultipleDatasetsController(QObject):
     
         
     def file_filter_refresh_btn_callback(self):
-        if self.folder != '':
-            self.add_btn_click_callback(folder = self.folder)
+        if not self.single_file:
+            if self.folder != '':
+                self.add_btn_click_callback(folder = self.folder)
 
     def calibration_btn_callback(self):
         self.multi_spectra_model.rebin_for_energy()
+        self.multispectra_loaded()
 
     def add_file_btn_click_callback(self,  *args, **kwargs):
 
@@ -183,7 +186,7 @@ class MultipleDatasetsController(QObject):
         
     def load_data(self, paths, progress_dialog, single_file):
         
-        
+        self.single_file = single_file
         firstfile = paths[0]
         if single_file:
             if  firstfile.endswith('.mca'):

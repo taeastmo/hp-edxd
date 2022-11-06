@@ -160,6 +160,7 @@ class plotController(QObject):
 
     def set_unit(self, unit='Channel'):
         old_unit = self.unit
+        element = self.mcaController.element
         inverted_x_old = old_unit == 'd'
         inverted_x_new = unit == 'd'
         #x_direction_changed = inverted_x_old != inverted_x_new
@@ -188,9 +189,7 @@ class plotController(QObject):
        
         self.makeXaxis()
         
-        self.update_plot_data()
-        
-        element = self.mcaController.element
+        self.update_plot_data(element)
         self.roi_controller.data_updated(element) 
 
         self.unitUpdated.emit(self.unit)

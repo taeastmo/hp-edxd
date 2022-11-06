@@ -179,11 +179,12 @@ class PhaseController(object):
 
     def get_phase_reflections(self, index):
         # add rois based on selected JCPDS phase
+        element = self.roi_controller.mcaController.element
         phases = self.phase_model.phases
         files = self.phase_model.phase_files
         tth = self.phase_widget.tth_lbl.value()
         wavelength = self.phase_widget.wavelength_lbl.value()
-        calibration = self.pattern.get_calibration()[0]
+        calibration = self.pattern.get_calibration()[element]
         d_to_channel = calibration.d_to_channel
         phase = phases[index]
         filename = files[index]

@@ -389,8 +389,8 @@ class MCA():  #
         roi = self.rois[detector][ind].use = use
             
     
-    def clear_rois(self,source):
-        self.set_rois([],source=source)
+    def clear_rois(self, source, detector):
+        self.set_rois([], detector=detector,source=source)
 
     
 

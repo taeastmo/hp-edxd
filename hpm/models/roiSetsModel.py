@@ -184,23 +184,26 @@ class RoiModel():
         """
         roi = self.display_rois[element][index]
         
-        
-        for r in self.rois[element]:
-            if r == roi:
-                ind = self.rois[element].index(r)
-                self.rois[element].remove(self.rois[element][ind])
-                break
-        for r in self.file_rois[element]:
-            if r == roi:
-                ind = self.file_rois[element].index(r)
-                self.file_rois[element].remove(self.file_rois[element][ind])
-                break
-        for r in self.detector_rois[element]:
-            if r == roi:
-                ind = self.detector_rois[element].index(r)
-                self.detector_rois[element].remove(self.detector_rois[element][ind])
-                break
-        del self.display_rois[element][index]
+        if element in self.rois:
+            for r in self.rois[element]:
+                if r == roi:
+                    ind = self.rois[element].index(r)
+                    self.rois[element].remove(self.rois[element][ind])
+                    break
+        if element in self.file_rois:
+            for r in self.file_rois[element]:
+                if r == roi:
+                    ind = self.file_rois[element].index(r)
+                    self.file_rois[element].remove(self.file_rois[element][ind])
+                    break
+        if element in self.detector_rois:
+            for r in self.detector_rois[element]:
+                if r == roi:
+                    ind = self.detector_rois[element].index(r)
+                    self.detector_rois[element].remove(self.detector_rois[element][ind])
+                    break
+        if element in self.display_rois:        
+            del self.display_rois[element][index]
         
         self.roi_sets[element] =  self.get_sets( element)
 
