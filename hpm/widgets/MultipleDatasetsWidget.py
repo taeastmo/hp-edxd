@@ -56,6 +56,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.calibration_btn = FlatButton('E')
         self.calibration_btn.setMaximumWidth(110)
         self.calibration_btn.setMinimumWidth(110)
+        self.q_btn = FlatButton('q')
+        self.q_btn.setMaximumWidth(110)
+        self.q_btn.setMinimumWidth(110)
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
         self.clear_btn = FlatButton('Clear')
@@ -63,6 +66,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.add_file_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self._button_layout.addWidget(self.calibration_btn)
+        self._button_layout.addWidget(self.q_btn)
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
         self.folder_widget = QtWidgets.QWidget(self)
@@ -154,7 +158,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             data = np.clip(data, .5, np.amax(data))
             data [0,0]= 0.1
             img_data = np.log10( data)
-            self.img.setImage(img_data)
+            self.img.setImage(img_data.T)
         else:
             self.img.clear()
 

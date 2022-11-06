@@ -55,6 +55,7 @@ class MultipleDatasetsController(QObject):
         self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
         self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)
         self.widget.calibration_btn.clicked.connect(self. calibration_btn_callback)
+        self.widget.q_btn.clicked.connect(self. q_btn_callback)
         
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
@@ -119,6 +120,10 @@ class MultipleDatasetsController(QObject):
     def calibration_btn_callback(self):
         self.multi_spectra_model.rebin_for_energy()
         self.multispectra_loaded()
+
+    def q_btn_callback(self):
+        self.multi_spectra_model.rebin_for_q()
+        self.multispectra_loaded()    
 
     def add_file_btn_click_callback(self,  *args, **kwargs):
 
