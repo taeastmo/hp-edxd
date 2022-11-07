@@ -40,6 +40,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.max_spectra = 500
         self.nchans = 4000
         self.data = None
+        self.rebinned_channel_data = None
+        self.q = None
         
         self.r = {'files_loaded':[],
                 'start_times' :[],
@@ -55,27 +57,28 @@ class MultipleSpectraModel(QtCore.QObject):  #
     def was_canceled(self):
         return False
 
-    def rebin_for_q(self):
+    def rebin_scale(self, scale='q'):
         data = self.data
         rows = len(data)
-        now = time.time()
+     
         bins = np.size(data[0])
         x = np.arange(bins)
         calibrations = self.r['calibration']
-        q_scales = []
-        now = time.time()
+        rebinned_scales = []
+       
+        if scale == 'q':
+            for row in range(rows):
+                calibration = calibrations[row]
+                q = calibration.channel_to_q(x)
+                rebinned_scales.append(q)
 
-        for row in range(rows):
-            calibration = calibrations[row]
-            q = calibration.channel_to_q(x)
-            q_scales.append(q)
-        q_scales = np.asarray(q_scales)
-        q_min = np.amin( q_scales)
-        q_max = np.amax(q_scales)
-        q_step = round((q_max-q_min)/bins,3)
-        q_new = [x*q_step+q_min]*rows
-        print (time.time()-now)
-        self.align_multialement_data(data, q_scales,q_new )
+        rebinned_scales = np.asarray(rebinned_scales)
+        rebinned_min = np.amin( rebinned_scales)
+        rebinned_max = np.amax(rebinned_scales)
+        rebinned_step = round((rebinned_max-rebinned_min)/bins,3)
+        rebinned_new = [x*rebinned_step+rebinned_min]*rows
+        
+        self.align_multialement_data(data, self.q, rebinned_scales,rebinned_new )
 
     def rebin_for_energy(self):
         #calibration = self.r['calibration']
@@ -109,7 +112,6 @@ class MultipleSpectraModel(QtCore.QObject):  #
         M = np.ones(rows)   # relative slopes
         B = np.zeros(rows)  # relative y-intercepts
         
-        
         for row in range(rows):
             x1 = left
             x2 = right
@@ -118,22 +120,15 @@ class MultipleSpectraModel(QtCore.QObject):  #
             M[row] = (y1-y2)/(x1-x2)
             B[row] = (x1*y2 - x2*y1)/(x1-x2)
             
-            
-        print (time.time()-now)
         calibration = {}
         calibration['slope'] = M
         calibration['offset'] = B
         self.calibration = calibration
-        now = time.time()
         self.calibration_scales = self.create_multialement_alighment_calibration(data, calibration)
-        print (time.time()-now)
-        now = time.time()
         x =  np.arange(bins)
         new_scales = [x]*rows
-        self.align_multialement_data(data , new_scales, self.calibration_scales )
+        self.align_multialement_data(data , self.rebinned_channel_data, new_scales, self.calibration_scales )
         
-        print (time.time()-now)
-
     def create_multialement_alighment_calibration(self, data, calibration):
         rows = len(data)
         bins = np.size(data[0])
@@ -146,16 +141,15 @@ class MultipleSpectraModel(QtCore.QObject):  #
             calibration_scales.append(xnew)
         return calibration_scales
             
-    def align_multialement_data (self,  data, old_scales, new_scales):
+    def align_multialement_data (self,  data, new_data, old_scales, new_scales):
         rows = len(data)
-        #new_bins =  np.size(new_scales[0])
-        #new_data = np.zeros(rows,new_bins)
+       
         bins = np.size(data[0])
         x = np.arange(bins)
         for row in range(rows): 
             x = old_scales[row]
             xnew = new_scales[row]
-            data[row] = self.shift_row(data[row],x, xnew)
+            new_data[row] = self.shift_row(data[row],x, xnew)
         
 
     def shift_row(self, row,x, xnew):

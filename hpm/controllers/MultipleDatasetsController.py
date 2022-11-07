@@ -15,6 +15,7 @@
 
 
 from functools import partial
+from platform import java_ver
 import pyqtgraph as pg
 import copy
 import numpy as np
@@ -46,6 +47,8 @@ class MultipleDatasetsController(QObject):
         self.envLen = 0
         self.single_file = False
 
+        self.scale = 'channel'
+
         #self.phases =dict()
         self.create_signals()
         
@@ -55,8 +58,8 @@ class MultipleDatasetsController(QObject):
         self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
         self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)
         self.widget.calibration_btn.clicked.connect(self. calibration_btn_callback)
-        self.widget.q_btn.clicked.connect(self. q_btn_callback)
-        
+        self.widget.q_btn.clicked.connect(partial (self.rebin_btn_callback, 'q'))
+
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
         self.widget.plotMouseCursorSignal.connect(self.CursorClick)
@@ -119,11 +122,12 @@ class MultipleDatasetsController(QObject):
 
     def calibration_btn_callback(self):
         self.multi_spectra_model.rebin_for_energy()
-        self.multispectra_loaded()
+        self.update_view()
 
-    def q_btn_callback(self):
-        self.multi_spectra_model.rebin_for_q()
-        self.multispectra_loaded()    
+    def rebin_btn_callback(self, scale):
+
+        self.multi_spectra_model.rebin_scale(scale) 
+        self.update_view(scale)    
 
     def add_file_btn_click_callback(self,  *args, **kwargs):
 
@@ -215,14 +219,27 @@ class MultipleDatasetsController(QObject):
             
 
 
-    def multispectra_loaded(self):
-        data = self.multi_spectra_model.r['data']
-        self.widget.set_spectral_data(data)
+    def multispectra_loaded(self, scale='channel'):
+        data = self.multi_spectra_model.data
+        self.multi_spectra_model.q = np.zeros(np.shape(data))
+        self.multi_spectra_model.rebinned_channel_data = np.zeros(np.shape(data))
+        self.update_view(scale)
         files_loaded = self.multi_spectra_model.r['files_loaded']
         files = []
         for f in files_loaded:
             files.append(os.path.basename(f))
         self.widget.reload_files(files)
+
+    def update_view (self, scale='channel'):
+        if scale == 'channel':
+            view = self.multi_spectra_model.data
+        elif scale == 'channel_rebinned':
+            view = self.multi_spectra_model.rebinned_channel_data
+        elif scale == 'q':
+            view = self.multi_spectra_model.q
+        
+        self.widget.set_spectral_data(view)
+        self.scale = scale
 
     def connect_click_function(self, emitter, function):
         emitter.clicked.connect(function)      
