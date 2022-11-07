@@ -57,7 +57,7 @@ class MultipleDatasetsController(QObject):
         self.widget.widget_closed.connect(self.view_closed)
         self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
         self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)
-        self.widget.calibration_btn.clicked.connect(self. calibration_btn_callback)
+        self.widget.e_btn.clicked.connect(partial (self.rebin_btn_callback, 'E'))
         self.widget.q_btn.clicked.connect(partial (self.rebin_btn_callback, 'q'))
 
         self.widget.key_signal.connect(self.key_sig_callback)
@@ -72,7 +72,8 @@ class MultipleDatasetsController(QObject):
     def set_channel_cursor(self, cursor):
         if len(cursor):
             E = cursor['channel']
-            self.widget.select_channel(E)
+            channel =self.channel_to_scale(E)
+            self.widget.select_channel(channel)
         
 
     def file_list_selection_changed_callback(self, row):
@@ -97,24 +98,54 @@ class MultipleDatasetsController(QObject):
             file = os.path.split(files[index])[-1]
             self.widget.file_name_fast.setText(file)
 
+    def channel_to_scale(self, channel):
+        translate = 0
+        scale = 1
+        if self.scale == 'E':
+            translate = self.multi_spectra_model.E_scale[1]
+            scale = self.multi_spectra_model.E_scale[0]
+        elif self.scale == 'q':
+            translate = self.multi_spectra_model.q_scale[1]
+            scale = self.multi_spectra_model.q_scale[0]
+
+        scale_point = channel * scale + translate
+        return scale_point
+
+    def scale_to_channel(self, scale_point):
+        translate = 0
+        scale = 1
+        if self.scale == 'E':
+            translate = self.multi_spectra_model.E_scale[1]
+            scale = self.multi_spectra_model.E_scale[0]
+        elif self.scale == 'q':
+            translate = self.multi_spectra_model.q_scale[1]
+            scale = self.multi_spectra_model.q_scale[0]
+
+        channel = (scale_point - translate) / scale 
+        return channel
+
     def CursorClick(self, index):
         index, E = index[0], index[1]
+
+ 
+        channel =self.scale_to_channel(E)
+
+
         files = self.multi_spectra_model.r['files_loaded']
+        
         if len(files) == 1:
             self. element_changed(index)
-            self.channel_changed_signal.emit(E)
+            self.channel_changed_signal.emit(channel)
             self.widget.select_channel(E)
         elif len(files) >1:
             if index < len(files) and index >= 0:
                 file = files[index]
                 self.file_changed(file)
-                
-
                 self.widget.select_file(index)
+                self.channel_changed_signal.emit(channel)
                 self.widget.select_channel(E)
     
     
-        
     def file_filter_refresh_btn_callback(self):
         if not self.single_file:
             if self.folder != '':
@@ -126,9 +157,12 @@ class MultipleDatasetsController(QObject):
 
     def rebin_btn_callback(self, scale):
 
+        self.scale = scale
         self.multi_spectra_model.rebin_scale(scale) 
         self.update_view(scale)    
 
+    
+    
     def add_file_btn_click_callback(self,  *args, **kwargs):
 
         filter = self.widget.file_filter.text().strip()
@@ -231,14 +265,23 @@ class MultipleDatasetsController(QObject):
         self.widget.reload_files(files)
 
     def update_view (self, scale='channel'):
+        r = [1,0]
         if scale == 'channel':
             view = self.multi_spectra_model.data
+            
         elif scale == 'channel_rebinned':
             view = self.multi_spectra_model.rebinned_channel_data
+
         elif scale == 'q':
             view = self.multi_spectra_model.q
+            r = self.multi_spectra_model.q_scale
+        elif scale == 'E':
+            view = self.multi_spectra_model.data
+            r = self.multi_spectra_model.E_scale
         
         self.widget.set_spectral_data(view)
+
+        self.widget.set_image_scale(scale, r)
         self.scale = scale
 
     def connect_click_function(self, emitter, function):

@@ -42,6 +42,10 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.data = None
         self.rebinned_channel_data = None
         self.q = None
+
+        self.current_scale = {'label': 'channel', 'range': [1,0]}
+        self.q_scale = [1 , 0]
+        self.E_scale = [1 , 0]
         
         self.r = {'files_loaded':[],
                 'start_times' :[],
@@ -72,10 +76,21 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 q = calibration.channel_to_q(x)
                 rebinned_scales.append(q)
 
+        elif scale == 'E':
+            for row in range(rows):
+                calibration = calibrations[row]
+                q = calibration.channel_to_energy(x)
+                rebinned_scales.append(q)
+
         rebinned_scales = np.asarray(rebinned_scales)
         rebinned_min = np.amin( rebinned_scales)
         rebinned_max = np.amax(rebinned_scales)
+     
         rebinned_step = round((rebinned_max-rebinned_min)/bins,3)
+        if scale == 'q':
+            self.q_scale = [rebinned_step, rebinned_min]
+        elif scale == 'E':
+            self.E_scale = [rebinned_step, rebinned_min]
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         
         self.align_multialement_data(data, self.q, rebinned_scales,rebinned_new )

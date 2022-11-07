@@ -53,9 +53,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.add_file_btn = FlatButton('Open file')
         self.add_file_btn.setMaximumWidth(90)
         self.add_file_btn.setMinimumWidth(90)
-        self.calibration_btn = FlatButton('E')
-        self.calibration_btn.setMaximumWidth(90)
-        self.calibration_btn.setMinimumWidth(90)
+        self.e_btn = FlatButton('E')
+        self.e_btn.setMaximumWidth(90)
+        self.e_btn.setMinimumWidth(90)
         self.q_btn = FlatButton('q')
         self.q_btn.setMaximumWidth(90)
         self.q_btn.setMinimumWidth(90)
@@ -66,7 +66,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.add_btn)
         self._button_layout.addWidget(self.add_file_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
-        self._button_layout.addWidget(self.calibration_btn)
+        self._button_layout.addWidget(self.e_btn)
         self._button_layout.addWidget(self.q_btn)
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
@@ -133,6 +133,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.index_items = []
         self.resize(500,633)
 
+        self.current_scale = {'label': 'channel', 'scale': [1,0]}
+
     def get_selected_row(self):
         selected  = self.file_list_view.selectionModel().selectedRows()
         if len(selected):
@@ -169,17 +171,35 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_list_view.blockSignals(False)
 
     def select_spectrum(self, index):
-        self.set_cursor_pos(index, None)
+        self.set_cursor_pos(None, index)
 
     def select_channel(self, E):
         self.set_cursor_pos(None, E)
+
+    def set_image_scale(self, label, scale):
+        
+        current_label = self.current_scale['label']
+        current_translate = self.current_scale['scale'][1]
+        current_scale = self.current_scale['scale'][0]
+        if label != current_label:
+            inverse_translate = -1*current_translate
+            inverse_scale =  1/current_scale
+            self.img.translate(inverse_translate, 0)
+            self.img.scale(inverse_scale, 1)
+
+            self.img.scale(scale[0], 1)
+            self.img.translate(scale[1], 0)
+            self. current_scale['label'] = label
+            self.current_scale['scale'] = scale
+            
+            self.p1.setLabel(axis='bottom', text=label)
       
     def make_img_plot(self):
         ## Create window with GraphicsView widget
         self.win = pg.GraphicsLayoutWidget(parent=self)
         self.p1 = self.win.addPlot()
-        self.p1.setLabel(axis='left', text='Channel')
-        self.p1.setLabel(axis='bottom', text='File index')
+        self.p1.setLabel(axis='left', text='Spectrum index')
+        self.p1.setLabel(axis='bottom', text='Channel')
 
         #self.plot = pg.PlotItem(self.win)
         self.view = self.p1.getViewBox()
@@ -196,19 +216,19 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.win.addItem(self.hist)
         
 
-        self.vLine = pg.InfiniteLine(movable=False, pen=pg.mkPen(color=(200, 200, 200), width=2 , style=QtCore.Qt.DashLine))
-        self.hLine = pg.InfiniteLine(movable=False, angle = 0, pen=pg.mkPen(color=(0, 255, 0), width=2 , style=QtCore.Qt.DashLine))
-        self.vLineFast = pg.InfiniteLine(movable=False,pen=pg.mkPen({'color': '606060', 'width': 1, 'style':QtCore.Qt.DashLine}))
+        self.vLine = pg.InfiniteLine(movable=False, pen=pg.mkPen(color=(0, 255, 0), width=2 , style=QtCore.Qt.DashLine))
+        self.hLine = pg.InfiniteLine(movable=False, angle = 0, pen=pg.mkPen(color=(200, 200, 200), width=2 , style=QtCore.Qt.DashLine))
+        self.hLineFast = pg.InfiniteLine(movable=False,angle = 0, pen=pg.mkPen({'color': '606060', 'width': 1, 'style':QtCore.Qt.DashLine}))
         self.proxy = pg.SignalProxy(self.win.scene().sigMouseMoved, rateLimit=20, slot=self.fastCursorMove)
 
         #self.vLine.sigPositionChanged.connect(self.cursor_dragged)
         
-        self.cursors = [self.vLine, self.vLineFast]
+        self.cursors = [self.hLine, self.hLineFast]
         self.cursorPoints = [(np.nan,np.nan),(np.nan,np.nan)]
         
         self.view.addItem(self.vLine, ignoreBounds=True)
         self.view.addItem(self.hLine, ignoreBounds=True)
-        self.view.addItem(self.vLineFast, ignoreBounds=True)
+        self.view.addItem(self.hLineFast, ignoreBounds=True)
         self.view.mouseClickEvent = self.customMouseClickEvent
 
 
@@ -216,9 +236,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
         if self.view.sceneBoundingRect().contains(pos):
             mousePoint = self.view.mapSceneToView(pos)
-            index = mousePoint.x()
+            index = mousePoint.y()
             if index >= 0:
-                self.vLineFast.setPos(index)
+                self.hLineFast.setPos(index)
                 self.plotMouseMoveSignal.emit(index)
 
     def customMouseClickEvent(self, ev):
@@ -227,31 +247,34 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         elif ev.button() == QtCore.Qt.LeftButton: 
             pos = ev.pos()  ## using signal proxy turns original arguments into a tuple
             mousePoint = self.view.mapToView(pos)
-            index= int(mousePoint.x())
-            E = mousePoint.y()
+            index= int(mousePoint.y())
+            scale_point = mousePoint.x()
+            
             if index >=0 :
-                self.set_cursor_pos(int(index), E)
-                self.plotMouseCursorSignal.emit([index, E])  
+                self.set_cursor_pos(int(index), scale_point)
+                self.plotMouseCursorSignal.emit([index, scale_point])  
         ev.accept()
 
     def set_cursorFast_pos(self, index, E):
-        self.vLine.blockSignals(True)
-        self.vLine.setPos(int(index)+0.5)
+        self.hLine.blockSignals(True)
+        
+        self.hLine.setPos(int(index)+0.5)
         self.cursorPoints[1] = (index,E)
-        self.vLineFast.blockSignals(False)
+        self.hLineFast.blockSignals(False)
 
 
     def set_cursor_pos(self, index = None, E=None):
         if E != None:
-            self.hLine.blockSignals(True)
-            self.hLine.setPos(E)
-            self.hLine.blockSignals(False)
-            self.cursorPoints[0] = (self.cursorPoints[0][0],E)
-        if index != None:
             self.vLine.blockSignals(True)
-            self.vLine.setPos(int(index)+0.5)
-            self.cursorPoints[0] = (index,self.cursorPoints[0][1])
+            
+            self.vLine.setPos(E)
+            self.cursorPoints[0] = (self.cursorPoints[0][1],E)
             self.vLine.blockSignals(False)
+        if index != None:
+            self.hLine.blockSignals(True)
+            self.hLine.setPos(int(index)+0.5)
+            self.cursorPoints[0] = (index,self.cursorPoints[0][0])
+            self.hLine.blockSignals(False)
         
     def keyPressEvent(self, e):
         sig = None
