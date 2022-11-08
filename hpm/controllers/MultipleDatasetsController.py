@@ -59,8 +59,9 @@ class MultipleDatasetsController(QObject):
         self.widget.widget_closed.connect(self.view_closed)
         self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
         self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)
-        self.widget.e_btn.clicked.connect(partial (self.rebin_btn_callback, 'E'))
-        self.widget.q_btn.clicked.connect(partial (self.rebin_btn_callback, 'q'))
+        self.widget.radioE.clicked.connect(partial (self.rebin_btn_callback, 'E'))
+        self.widget.radioq.clicked.connect(partial (self.rebin_btn_callback, 'q'))
+        self.widget.radioChannel.clicked.connect(partial (self.rebin_btn_callback, 'Channel'))
 
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
@@ -103,7 +104,7 @@ class MultipleDatasetsController(QObject):
             file = os.path.split(files[index])[-1]
             self.widget.file_name_fast.setText(file)
 
-    def channel_to_scale(self, channel):
+    '''def channel_to_scale(self, channel):
         translate = 0
         scale = 1
         if self.scale == 'E':
@@ -114,7 +115,7 @@ class MultipleDatasetsController(QObject):
             scale = self.multi_spectra_model.q_scale[0]
 
         scale_point = channel * scale + translate
-        return scale_point
+        return scale_point'''
 
 
     def CursorClick(self, index):
@@ -157,7 +158,8 @@ class MultipleDatasetsController(QObject):
         
         if len(self.multi_spectra_model.data):
             self.scale = scale
-            self.multi_spectra_model.rebin_scale(scale) 
+            if scale == 'q' or scale == 'E':
+                self.multi_spectra_model.rebin_scale(scale) 
             self.update_view(scale)    
 
     
@@ -254,7 +256,7 @@ class MultipleDatasetsController(QObject):
             
 
 
-    def multispectra_loaded(self, scale='channel'):
+    def multispectra_loaded(self, scale='Channel'):
         data = self.multi_spectra_model.data
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = np.zeros(np.shape(data))
@@ -265,9 +267,9 @@ class MultipleDatasetsController(QObject):
             files.append(os.path.basename(f))
         self.widget.reload_files(files)
 
-    def update_view (self, scale='channel'):
+    def update_view (self, scale='Channel'):
         r = [1,0]
-        if scale == 'channel':
+        if scale == 'Channel':
             view = self.multi_spectra_model.data
             
         elif scale == 'channel_rebinned':

@@ -104,6 +104,48 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
         self._plot_widget_layout.addWidget( self.win)
 
+        self.HorizontalScaleWidget = QtWidgets.QWidget()
+        self.HorizontalScaleLayout = QtWidgets.QHBoxLayout(self.HorizontalScaleWidget)
+        self.HorizontalScaleLayout.setSpacing(0)
+        self.HorizontalScaleLayout.setContentsMargins(0,0,0,0)
+        self.HorizontalScale_btn_group = QtWidgets.QButtonGroup()
+        self.radioE = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+
+        self.radioE.setObjectName("radioE")
+        self.HorizontalScaleLayout.addWidget(self.radioE)
+        self.radioq = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        self.radioq.setObjectName("radioq")
+        self.HorizontalScaleLayout.addWidget(self.radioq)
+        
+        self.radiod = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        self.radiod.setObjectName("radiod")
+        self.HorizontalScaleLayout.addWidget(self.radiod)
+        self.radiotth = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        self.radiotth.setObjectName("radiotth")
+        self.HorizontalScaleLayout.addWidget(self.radiotth)
+        self.radioChannel = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        self.radioChannel.setObjectName("radioChannel")
+        self.HorizontalScaleLayout.addWidget(self.radioChannel)
+        self.HorizontalScaleLayout.addSpacerItem(HorizontalSpacerItem())
+        self.radioE.setCheckable(True)
+        self.radioq.setCheckable(True)
+        self.radioChannel.setCheckable(True)
+        self.radiod.setCheckable(True)
+        self.radiotth.setCheckable(True)
+        self.radioE.setText("E")
+        self.radioq.setText("q")
+        self.radioChannel.setText("Channel")
+        self.radiod.setText("d")
+        self.radiotth.setText(f'2\N{GREEK SMALL LETTER THETA}')
+        
+        self.HorizontalScale_btn_group.addButton(self.radioE)
+        self.HorizontalScale_btn_group.addButton(self.radioq)
+        self.HorizontalScale_btn_group.addButton(self.radioChannel)
+        self.HorizontalScale_btn_group.addButton(self.radiod)
+        self.HorizontalScale_btn_group.addButton(self.radiotth)
+        self.radioChannel.setChecked(True)
+        self._plot_widget_layout.addWidget(self.HorizontalScaleWidget)
+
         self.navigation_buttons = QtWidgets.QWidget()
         self._nav_layout = QtWidgets.QHBoxLayout(self.navigation_buttons)
         self._nav_layout.setContentsMargins(0,0,0,0)
@@ -132,6 +174,24 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.pv_items = []
         self.index_items = []
         self.resize(500,633)
+
+        self.HorizontalScaleWidget.setStyleSheet("""
+            QPushButton{
+                
+                border-radius: 0px;
+            }
+            #radioE {
+
+                border-top-left-radius:5px;
+                border-bottom-left-radius:5px;
+            }
+            #radioChannel {
+
+                border-top-right-radius:5px;
+                border-bottom-right-radius:5px;
+            }
+       
+	    """)
 
         self.current_scale = {'label': 'channel', 'scale': [1,0]}
 
