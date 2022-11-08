@@ -24,7 +24,7 @@ import numpy as np
 import pyqtgraph as pg
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-
+from hpm.widgets.PltWidget import plotWindow
 
 class MultiSpectraWidget(QtWidgets.QWidget):
 
@@ -53,21 +53,19 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.add_file_btn = FlatButton('Open file')
         self.add_file_btn.setMaximumWidth(90)
         self.add_file_btn.setMinimumWidth(90)
-        self.e_btn = FlatButton('E')
-        self.e_btn.setMaximumWidth(90)
-        self.e_btn.setMinimumWidth(90)
-        self.q_btn = FlatButton('q')
-        self.q_btn.setMaximumWidth(90)
-        self.q_btn.setMinimumWidth(90)
-      
+       
+        self.sum_btn = FlatButton('Sum')
+        self.sum_btn.setMaximumWidth(90)
+        self.sum_btn.setMinimumWidth(90)
+
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
         self.clear_btn = FlatButton('Clear')
         self._button_layout.addWidget(self.add_btn)
         self._button_layout.addWidget(self.add_file_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
-        self._button_layout.addWidget(self.e_btn)
-        self._button_layout.addWidget(self.q_btn)
+        self._button_layout.addWidget(self.sum_btn)
+ 
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
         self.folder_widget = QtWidgets.QWidget(self)
@@ -156,9 +154,17 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._plot_widget_layout.addWidget(self.navigation_buttons)
         
         self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
+
         self.file_list_view = QtWidgets.QListWidget()
         self.file_view_tabs.addTab(self.file_list_view, 'Files')
+        
+
+        self.line_plot_widget = plotWindow('Plot', 'Counts','Channel')
+        self.line_plot_widget.add_line_plot()
+        self.file_view_tabs.addTab(self.line_plot_widget, 'Plot')
+
         self._body_layout.addWidget(self.file_view_tabs)
+
         self._layout.addLayout(self._body_layout)
         self.file_name = QtWidgets.QLabel('')
         self.file_name_fast = QtWidgets.QLabel('')
@@ -194,6 +200,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 	    """)
 
         self.current_scale = {'label': 'channel', 'scale': [1,0]}
+
+    def plot_data(self, x=[],y=[]):
+        self.line_plot_widget.plots[0].setData(x,y)
 
     def get_selected_row(self):
         selected  = self.file_list_view.selectionModel().selectedRows()
@@ -231,7 +240,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_list_view.blockSignals(False)
 
     def select_spectrum(self, index):
-        self.set_cursor_pos(None, index)
+        self.set_cursor_pos(index, None)
 
     def select_value(self, val):
         self.set_cursor_pos(None, val)
@@ -290,6 +299,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.view.addItem(self.hLine, ignoreBounds=True)
         self.view.addItem(self.hLineFast, ignoreBounds=True)
         self.view.mouseClickEvent = self.customMouseClickEvent
+
 
 
     def fastCursorMove(self, evt):

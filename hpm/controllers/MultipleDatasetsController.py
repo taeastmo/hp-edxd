@@ -47,7 +47,7 @@ class MultipleDatasetsController(QObject):
         self.envLen = 0
         self.single_file = False
 
-        self.scale = 'channel'
+        self.scale = 'Channel'
         self.file = ''
         self.row = 0
 
@@ -62,6 +62,8 @@ class MultipleDatasetsController(QObject):
         self.widget.radioE.clicked.connect(partial (self.rebin_btn_callback, 'E'))
         self.widget.radioq.clicked.connect(partial (self.rebin_btn_callback, 'q'))
         self.widget.radioChannel.clicked.connect(partial (self.rebin_btn_callback, 'Channel'))
+
+        self.widget.sum_btn.clicked.connect(self.sum_data)
 
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
@@ -162,6 +164,22 @@ class MultipleDatasetsController(QObject):
                 self.multi_spectra_model.rebin_scale(scale) 
             self.update_view(scale)    
 
+
+    def sum_data(self):
+        
+        
+        if self.scale == 'E':
+            data = self.multi_spectra_model.E
+            scale = self.multi_spectra_model.E_scale
+        elif self.scale == 'q':
+            data = self.multi_spectra_model.q
+            scale = self.multi_spectra_model.q_scale
+        elif self.scale == 'Channel':
+            data = self.multi_spectra_model.data
+            scale = [1,0]
+        out = self.multi_spectra_model.flaten_data(data)
+        x = np.arange(len(out)) * scale[0] + scale[1]
+        self.widget.plot_data(x, out)
     
     
     def add_file_btn_click_callback(self,  *args, **kwargs):
@@ -259,6 +277,7 @@ class MultipleDatasetsController(QObject):
     def multispectra_loaded(self, scale='Channel'):
         data = self.multi_spectra_model.data
         self.multi_spectra_model.q = np.zeros(np.shape(data))
+        self.multi_spectra_model.E = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = np.zeros(np.shape(data))
         self.update_view(scale)
         files_loaded = self.multi_spectra_model.r['files_loaded']

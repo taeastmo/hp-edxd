@@ -62,6 +62,13 @@ class MultipleSpectraModel(QtCore.QObject):  #
     def was_canceled(self):
         return False
 
+    def flaten_data(self, data):
+
+        
+        out = np.sum(data, axis=0)
+        return out
+        
+
     def rebin_scale(self, scale='q'):
         data = self.data
         rows = len(data)
@@ -89,12 +96,15 @@ class MultipleSpectraModel(QtCore.QObject):  #
      
         rebinned_step = (rebinned_max-rebinned_min)/bins
         if scale == 'q':
+            
+            new_data = self.q
             self.q_scale = [rebinned_step, rebinned_min]
         elif scale == 'E':
+            new_data = self.E
             self.E_scale = [rebinned_step, rebinned_min]
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         
-        self.align_multialement_data(data, self.q, rebinned_scales,rebinned_new )
+        self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
 
     def rebin_for_energy(self):
         #calibration = self.r['calibration']
@@ -159,7 +169,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
             
     def align_multialement_data (self,  data, new_data, old_scales, new_scales):
         rows = len(data)
-       
+        
         bins = np.size(data[0])
         x = np.arange(bins)
         for row in range(rows): 
