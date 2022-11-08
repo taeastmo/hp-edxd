@@ -57,6 +57,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.sum_btn = FlatButton('Sum')
         self.sum_btn.setMaximumWidth(90)
         self.sum_btn.setMinimumWidth(90)
+        self.tth_btn = FlatButton('Sum')
+        self.tth_btn.setMaximumWidth(90)
+        self.tth_btn.setMinimumWidth(90)
 
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
@@ -65,6 +68,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.add_file_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self._button_layout.addWidget(self.sum_btn)
+        self._button_layout.addWidget(self.tth_btn)
  
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
@@ -199,7 +203,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
        
 	    """)
 
-        self.current_scale = {'label': 'channel', 'scale': [1,0]}
+        self.current_scale = {'label': 'Channel', 'scale': [1,0]}
+        self.current_row_scale = {'label': 'Index', 'scale': [1,0]}
 
     def plot_data(self, x=[],y=[]):
         self.line_plot_widget.plots[0].setData(x,y)
@@ -250,18 +255,41 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         current_label = self.current_scale['label']
         current_translate = self.current_scale['scale'][1]
         current_scale = self.current_scale['scale'][0]
+
         if label != current_label:
             inverse_translate = -1*current_translate
             inverse_scale =  1/current_scale
+           
             self.img.translate(inverse_translate, 0)
             self.img.scale(inverse_scale, 1)
 
             self.img.scale(scale[0], 1)
             self.img.translate(scale[1], 0)
-            self. current_scale['label'] = label
+            self.current_scale['label'] = label
             self.current_scale['scale'] = scale
             
             self.p1.setLabel(axis='bottom', text=label)
+
+
+    def set_image_row_scale(self, row_label, row_scale):
+        
+        current_row_label = self.current_scale['label']
+        current_row_translate = self.current_row_scale['scale'][1]
+        current_row_scale = self.current_row_scale['scale'][0]
+
+        if row_label != current_row_label:
+            inverse_row_translate = -1*current_row_translate
+            inverse_row_scale =  1/current_row_scale
+            self.img.translate(0, inverse_row_translate)
+            self.img.scale(1, inverse_row_scale)
+    
+            self.img.scale(1, row_scale[0])
+            self.img.translate(0, row_scale[1])
+
+            self.current_row_scale['label'] = row_label
+            self.current_row_scale['scale'] = row_scale
+            
+            self.p1.setLabel(axis='left', text=row_label)
       
     def make_img_plot(self):
         ## Create window with GraphicsView widget

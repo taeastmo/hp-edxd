@@ -15,7 +15,7 @@
 
 
 from functools import partial
-from platform import java_ver
+#from platform import java_ver
 import pyqtgraph as pg
 import copy
 import numpy as np
@@ -48,6 +48,7 @@ class MultipleDatasetsController(QObject):
         self.single_file = False
 
         self.scale = 'Channel'
+        self.row_scale = 'Index'
         self.file = ''
         self.row = 0
 
@@ -64,6 +65,7 @@ class MultipleDatasetsController(QObject):
         self.widget.radioChannel.clicked.connect(partial (self.rebin_btn_callback, 'Channel'))
 
         self.widget.sum_btn.clicked.connect(self.sum_data)
+        self.widget.tth_btn.clicked.connect(partial(self.set_row_scale, 'tth'))
 
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
@@ -286,8 +288,21 @@ class MultipleDatasetsController(QObject):
             files.append(os.path.basename(f))
         self.widget.reload_files(files)
 
+    def set_row_scale(self, label='Index'):
+        d = [1,0]
+        row_scale = 'Spectrum index'
+
+        if label == 'tth':
+            row_scale=f'2\N{GREEK SMALL LETTER THETA}'
+            d = self.multi_spectra_model.tth_scale
+
+        self.widget.set_image_row_scale(row_scale, d)
+        self.row_scale = row_scale
+
     def update_view (self, scale='Channel'):
         r = [1,0]
+        
+        
         if scale == 'Channel':
             view = self.multi_spectra_model.data
             
