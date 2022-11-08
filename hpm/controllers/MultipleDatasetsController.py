@@ -48,6 +48,8 @@ class MultipleDatasetsController(QObject):
         self.single_file = False
 
         self.scale = 'channel'
+        self.file = ''
+        self.row = 0
 
         #self.phases =dict()
         self.create_signals()
@@ -71,15 +73,18 @@ class MultipleDatasetsController(QObject):
 
     def set_channel_cursor(self, cursor):
         if len(cursor):
-            E = cursor['channel']
-            channel =self.channel_to_scale(E)
-            self.widget.select_channel(channel)
+            channel = cursor['channel']
+            converter = self.multi_spectra_model.r['calibration'][self.row].channel_to_scale
+
+            val = converter(channel,self.scale)
+            self.widget.select_value(val)
         
 
     def file_list_selection_changed_callback(self, row):
         files = self.multi_spectra_model.r['files_loaded']
         if len(files):
             file = files[row]
+            self.row = row
             self.file_changed(file)
             self.widget.select_spectrum(row)
 
@@ -111,39 +116,31 @@ class MultipleDatasetsController(QObject):
         scale_point = channel * scale + translate
         return scale_point
 
-    def scale_to_channel(self, scale_point):
-        translate = 0
-        scale = 1
-        if self.scale == 'E':
-            translate = self.multi_spectra_model.E_scale[1]
-            scale = self.multi_spectra_model.E_scale[0]
-        elif self.scale == 'q':
-            translate = self.multi_spectra_model.q_scale[1]
-            scale = self.multi_spectra_model.q_scale[0]
-
-        channel = (scale_point - translate) / scale 
-        return channel
 
     def CursorClick(self, index):
-        index, E = index[0], index[1]
-
- 
-        channel =self.scale_to_channel(E)
-
-
+        index, pos = index[0], index[1]
+        
+        
         files = self.multi_spectra_model.r['files_loaded']
         
         if len(files) == 1:
+            
             self. element_changed(index)
-            self.channel_changed_signal.emit(channel)
-            self.widget.select_channel(E)
+
+            
         elif len(files) >1:
             if index < len(files) and index >= 0:
+                self.widget.select_file(index)
                 file = files[index]
                 self.file_changed(file)
-                self.widget.select_file(index)
-                self.channel_changed_signal.emit(channel)
-                self.widget.select_channel(E)
+
+        if index < len(files) and index >= 0:
+            self.row = index
+            self.widget.select_value(pos)
+            converter = self.multi_spectra_model.r['calibration'][index].scale_to_channel
+            channel = converter(pos,self.scale)
+            self.channel_changed_signal.emit(channel)
+                
     
     
     def file_filter_refresh_btn_callback(self):

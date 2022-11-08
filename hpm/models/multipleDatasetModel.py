@@ -80,14 +80,14 @@ class MultipleSpectraModel(QtCore.QObject):  #
         elif scale == 'E':
             for row in range(rows):
                 calibration = calibrations[row]
-                q = calibration.channel_to_energy(x)
-                rebinned_scales.append(q)
+                e = calibration.channel_to_energy(x)
+                rebinned_scales.append(e)
 
         rebinned_scales = np.asarray(rebinned_scales)
         rebinned_min = np.amin( rebinned_scales)
         rebinned_max = np.amax(rebinned_scales)
      
-        rebinned_step = round((rebinned_max-rebinned_min)/bins,3)
+        rebinned_step = (rebinned_max-rebinned_min)/bins
         if scale == 'q':
             self.q_scale = [rebinned_step, rebinned_min]
         elif scale == 'E':

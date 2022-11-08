@@ -173,8 +173,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
     def select_spectrum(self, index):
         self.set_cursor_pos(None, index)
 
-    def select_channel(self, E):
-        self.set_cursor_pos(None, E)
+    def select_value(self, val):
+        self.set_cursor_pos(None, val)
 
     def set_image_scale(self, label, scale):
         

@@ -1770,7 +1770,7 @@ class McaCalibration():
             c = self.offset - energy
             # There are 2 roots.  I think we always want the "+" root?
             channel = (-b + np.sqrt(b**2 - 4.*a*c))/(2.*a)
-        channel = np.around(channel)
+        channel = np.round(channel)
         if (clip != 0): 
             nchans = len(self.data)
             channel = np.clip(channel, 0, nchans-1)

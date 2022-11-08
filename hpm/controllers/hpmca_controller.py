@@ -653,10 +653,11 @@ class hpmcaController(QObject):
         self.multiple_datasets_controller.show_view()
 
     def file_changed_signal_callback(self, fname):
-       
-        self.file_save_controller.openFile(filename=fname)
+        if self.file_save_controller.McaFileName != fname:
+            self.file_save_controller.openFile(filename=fname)
 
     def multispectral_channel_changed_callback(self, channel):
+        
         self.plotController.mouseCursor_non_signalling(channel)
 
     
