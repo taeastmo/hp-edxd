@@ -1721,6 +1721,7 @@ class McaCalibration():
         return d
 
     def channel_to_q(self,channels):
+        q = channels
         if "E" in self.available_scales:
             e = self.channel_to_energy(channels)   
             q = 6.28318530718 /(6.199 / e / sin(self.two_theta*0.008726646259972))

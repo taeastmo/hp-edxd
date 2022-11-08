@@ -39,9 +39,10 @@ class MultipleSpectraModel(QtCore.QObject):  #
         
         self.max_spectra = 500
         self.nchans = 4000
-        self.data = None
-        self.rebinned_channel_data = None
-        self.q = None
+        self.data = []
+        self.rebinned_channel_data = []
+        self.E = []
+        self.q = []
 
         self.current_scale = {'label': 'channel', 'range': [1,0]}
         self.q_scale = [1 , 0]

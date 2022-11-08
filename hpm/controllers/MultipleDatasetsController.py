@@ -152,14 +152,16 @@ class MultipleDatasetsController(QObject):
                 self.add_btn_click_callback(folder = self.folder)
 
     def calibration_btn_callback(self):
-        self.multi_spectra_model.rebin_for_energy()
-        self.update_view()
+        if len(self.multi_spectra_model.data):
+            self.multi_spectra_model.rebin_for_energy()
+            self.update_view()
 
     def rebin_btn_callback(self, scale):
-
-        self.scale = scale
-        self.multi_spectra_model.rebin_scale(scale) 
-        self.update_view(scale)    
+        
+        if len(self.multi_spectra_model.data):
+            self.scale = scale
+            self.multi_spectra_model.rebin_scale(scale) 
+            self.update_view(scale)    
 
     
     
@@ -198,13 +200,15 @@ class MultipleDatasetsController(QObject):
         if os.path.exists(folder):
             files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
             for f in files:
-                if (f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy')) and filter in f :
+                if (f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy') or f[-3:].isnumeric()) and filter in f :
                     file = os.path.join(folder, f) 
                     paths.append(file)  
                     files_filtered.append(f)
-        filenames = paths
-        self.load_file_sequence(folder, filenames)
-        self.multispectra_loaded()
+            filenames = paths
+            self.load_file_sequence(folder, filenames)
+            data = self.multi_spectra_model.data
+           
+            self.multispectra_loaded()
 
     def load_file_sequence(self, folder, filenames):
         if len(filenames):
@@ -234,7 +238,7 @@ class MultipleDatasetsController(QObject):
         if single_file:
             if  firstfile.endswith('.mca'):
                 self.multi_spectra_model.read_mca_ascii_file_2d(paths, progress_dialog=progress_dialog)
-            elif firstfile.endswith('.hpmca'):
+            elif firstfile.endswith('.hpmca') :
                 self.multi_spectra_model.read_ascii_file_multielement_2d(paths, progress_dialog=progress_dialog)
             else:
                 ext = firstfile[-3:]
@@ -243,7 +247,7 @@ class MultipleDatasetsController(QObject):
 
         else:
 
-            if firstfile.endswith('.hpmca'):
+            if firstfile.endswith('.hpmca')or firstfile[-3:].isnumeric():
                 self.multi_spectra_model.read_ascii_files_2d(paths, progress_dialog=progress_dialog)
             elif firstfile.endswith('.chi') or firstfile.endswith('.xy'):
                 self.multi_spectra_model.read_chi_files_2d(paths, progress_dialog=progress_dialog)
