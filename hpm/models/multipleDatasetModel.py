@@ -85,7 +85,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         
 
     def rebin_scale(self, scale='q'):
-        data = self.rebinned_channel_data
+        data = self.data
         rows = len(data)
         tth = np.zeros(rows)
         bins = np.size(self.data[0])
