@@ -84,7 +84,6 @@ class MultipleDatasetsController(QObject):
         if len(cursor):
            
             channel = cursor['channel']
-            converter = self.multi_spectra_model.r['calibration'][self.row].channel_to_scale
             pos = channel
             if self.scale == 'q' or self.scale == 'E':
                 converter = self.multi_spectra_model.r['calibration'][self.row].channel_to_scale
