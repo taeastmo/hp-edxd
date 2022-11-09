@@ -27,6 +27,7 @@ from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_
 from hpm.widgets.MultipleDatasetsWidget import MultiSpectraWidget
 from hpm.models.multipleDatasetModel import MultipleSpectraModel
 from PyQt5.QtCore import pyqtSignal, QObject
+import natsort
 
 class MultipleDatasetsController(QObject):
     file_changed_signal = pyqtSignal(str)  
@@ -63,8 +64,9 @@ class MultipleDatasetsController(QObject):
         self.widget.radioE.clicked.connect(partial (self.rebin_btn_callback, 'E'))
         self.widget.radioq.clicked.connect(partial (self.rebin_btn_callback, 'q'))
         self.widget.radioChannel.clicked.connect(partial (self.rebin_btn_callback, 'Channel'))
+        self.widget.radioAligned.clicked.connect(partial (self.rebin_btn_callback, 'Aligned'))
 
-
+        self.widget.align_btn.clicked.connect(self.align_btn_callback)
         self.widget.sum_btn.clicked.connect(self.sum_data)
         self.widget.ebg_btn.clicked.connect(self.ebg_data)
         self.widget.tth_btn.clicked.connect(partial(self.set_row_scale, 'tth'))
@@ -80,11 +82,18 @@ class MultipleDatasetsController(QObject):
 
     def set_channel_cursor(self, cursor):
         if len(cursor):
+           
             channel = cursor['channel']
             converter = self.multi_spectra_model.r['calibration'][self.row].channel_to_scale
-
-            val = converter(channel,self.scale)
-            self.widget.select_value(val)
+            pos = channel
+            if self.scale == 'q' or self.scale == 'E':
+                converter = self.multi_spectra_model.r['calibration'][self.row].channel_to_scale
+                pos = converter(channel,self.scale)
+            elif self.scale == 'Aligned':
+                scale = self.multi_spectra_model.calibration['slope'][self.row]
+                translate = self.multi_spectra_model.calibration['offset'][self.row]
+                pos = (channel - translate )/scale 
+            self.widget.select_value(pos)
         
 
     def file_list_selection_changed_callback(self, row):
@@ -110,68 +119,117 @@ class MultipleDatasetsController(QObject):
             file = os.path.split(files[index])[-1]
             self.widget.file_name_fast.setText(file)
 
-    '''def channel_to_scale(self, channel):
-        translate = 0
-        scale = 1
-        if self.scale == 'E':
-            translate = self.multi_spectra_model.E_scale[1]
-            scale = self.multi_spectra_model.E_scale[0]
-        elif self.scale == 'q':
-            translate = self.multi_spectra_model.q_scale[1]
-            scale = self.multi_spectra_model.q_scale[0]
+    def key_sig_callback(self, sig):
+        if self.widget.file_view_tabs.currentIndex() == 0:
+            row = self.row
+            if sig == 'right' or sig == 'up':
+                row += 1
+            if sig == 'left' or sig == 'down':
+                row -= 1
+            self.adjust_row(row)
 
-        scale_point = channel * scale + translate
-        return scale_point'''
-
+    def adjust_row(self, row):
+        files = self.multi_spectra_model.r['files_loaded']
+        index = row
+        if len(files) == 1:
+            self.widget.select_spectrum(index)
+            self. element_changed(index)
+            self.row = index
+           
+        elif len(files) >1:
+            if index < len(files) and index >= 0:
+                self.widget.select_file(index)
+                self.widget.select_spectrum(index)
+                file = files[index]
+                self.file_changed(file)
+                self.row = index
 
     def CursorClick(self, index):
         index, pos = int(index[0]), index[1]
-        
-        
         files = self.multi_spectra_model.r['files_loaded']
-        
         if len(files) == 1:
-            
             self. element_changed(index)
-
+            self.row = index
+            self.widget.select_value(pos)
+            self.set_channel(index, pos)
             
         elif len(files) >1:
             if index < len(files) and index >= 0:
                 self.widget.select_file(index)
+                self.widget.select_spectrum(index)
                 file = files[index]
                 self.file_changed(file)
+                self.row = index
+                self.widget.select_value(pos)
+                self.set_channel(index, pos)
 
-        if index < len(files) and index >= 0:
-            self.row = index
-            self.widget.select_value(pos)
+    def set_channel(self, index, pos):
+        channel = pos
+        if self.scale == 'q' or self.scale == 'E':
             converter = self.multi_spectra_model.r['calibration'][index].scale_to_channel
             channel = converter(pos,self.scale)
-            self.channel_changed_signal.emit(channel)
-                
-    
+        elif self.scale == 'Aligned':
+            scale = self.multi_spectra_model.calibration['slope'][self.row]
+            translate = self.multi_spectra_model.calibration['offset'][self.row]
+            channel = pos * scale + translate
+        
+        self.channel_changed_signal.emit(channel)
+
+    def aligner(self):
+        pass
     
     def file_filter_refresh_btn_callback(self):
         if not self.single_file:
             if self.folder != '':
                 self.add_btn_click_callback(folder = self.folder)
 
-    def calibration_btn_callback(self):
+    def align_btn_callback(self):
         if len(self.multi_spectra_model.data):
             self.multi_spectra_model.rebin_for_energy()
-            self.update_view()
+            scale = "Aligned"
+            self.update_view(scale)
 
     def rebin_btn_callback(self, scale):
-        
         if len(self.multi_spectra_model.data):
             self.scale = scale
             if scale == 'q' or scale == 'E':
                 self.multi_spectra_model.rebin_scale(scale) 
             self.update_view(scale)    
 
+    def set_row_scale(self, label='Index'):
+        d = [1,0]
+        row_scale = 'Spectrum index'
+
+        if label == 'tth':
+            row_scale=f'2\N{GREEK SMALL LETTER THETA}'
+            d = self.multi_spectra_model.tth_scale
+
+        self.widget.set_image_row_scale(row_scale, d)
+        self.row_scale = row_scale
+
+    def update_view (self, scale='Channel'):
+        r = [1,0]
+        if scale == 'Channel':
+            view = self.multi_spectra_model.data
+            self.widget.radioChannel.setChecked(True)
+        elif scale == 'q':
+            view = self.multi_spectra_model.q
+            r = self.multi_spectra_model.q_scale
+            self.widget.radioq.setChecked(True)
+        elif scale == 'E':
+            view = self.multi_spectra_model.E
+            r = self.multi_spectra_model.E_scale
+            self.widget.radioE.setChecked(True)
+        elif scale == 'Aligned':
+            view = self.multi_spectra_model.rebinned_channel_data
+            self.widget.radioAligned.setChecked(True)
+            #r = self.multi_spectra_model.E_scale
+
+        self.widget.set_spectral_data(view)
+        self.widget.set_image_scale(scale, r)
+        self.scale = scale
 
     def sum_data(self):
-        
-        
         if self.scale == 'E':
             data = self.multi_spectra_model.E
             scale = self.multi_spectra_model.E_scale
@@ -181,23 +239,22 @@ class MultipleDatasetsController(QObject):
         elif self.scale == 'Channel':
             data = self.multi_spectra_model.data
             scale = [1,0]
+        elif self.scale == 'Aligned':
+            data = self.multi_spectra_model.rebinned_channel_data
+            scale = [1,0]
         out = self.multi_spectra_model.flaten_data(data)
         if self.scale == 'E':
-            self.multi_spectra_model.E_bg = out
+            self.multi_spectra_model.E_average = out
         x = np.arange(len(out)) * scale[0] + scale[1]
         self.widget.plot_data(x, out)
 
-    
     def ebg_data(self):
-        
-        
         if self.scale == 'E':
-            if len(self.multi_spectra_model.E_bg):
+            if len(self.multi_spectra_model.E_average):
                 m = self.multi_spectra_model
                 for i in range(np.shape(m.E)[0]):
-                    m.E_normalized[i] = m.E[i] - m.E_bg
+                    m.E_normalized[i] = m.E[i] - m.E_average
                 self. update_view('E')
-              
     
     def add_file_btn_click_callback(self,  *args, **kwargs):
 
@@ -232,7 +289,7 @@ class MultipleDatasetsController(QObject):
         paths = []
         files_filtered = []
         if os.path.exists(folder):
-            files = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
+            files = natsort.natsorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
             for f in files:
                 if (f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy') or f[-3:].isnumeric()) and filter in f :
                     file = os.path.join(folder, f) 
@@ -295,63 +352,16 @@ class MultipleDatasetsController(QObject):
         data = self.multi_spectra_model.data
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.E = np.zeros(np.shape(data))
-        self.multi_spectra_model.rebinned_channel_data = np.zeros(np.shape(data))
+        self.multi_spectra_model.rebinned_channel_data = copy.deepcopy(data)
         self.update_view(scale)
         files_loaded = self.multi_spectra_model.r['files_loaded']
         files = []
         for f in files_loaded:
             files.append(os.path.basename(f))
         self.widget.reload_files(files)
-
-    def set_row_scale(self, label='Index'):
-        d = [1,0]
-        row_scale = 'Spectrum index'
-
-        if label == 'tth':
-            row_scale=f'2\N{GREEK SMALL LETTER THETA}'
-            d = self.multi_spectra_model.tth_scale
-
-        self.widget.set_image_row_scale(row_scale, d)
-        self.row_scale = row_scale
-
-    def update_view (self, scale='Channel'):
-        r = [1,0]
-        
-        
-        if scale == 'Channel':
-            view = self.multi_spectra_model.data
-            
-        elif scale == 'channel_rebinned':
-            view = self.multi_spectra_model.rebinned_channel_data
-
-        elif scale == 'q':
-            view = self.multi_spectra_model.q
-            r = self.multi_spectra_model.q_scale
-        elif scale == 'E':
-            view = self.multi_spectra_model.E_normalized
-            r = self.multi_spectra_model.E_scale
-        
-        self.widget.set_spectral_data(view)
-
-        self.widget.set_image_scale(scale, r)
-        self.scale = scale
-
-    def connect_click_function(self, emitter, function):
-        emitter.clicked.connect(function)      
+   
   
-    def key_sig_callback(self, sig):
-        if self.widget.file_view_tabs.currentIndex() == 0:
-            row = self.widget.get_selected_row()
-            if sig == 'right' or sig == 'up':
-                row += 1
-            if sig == 'left' or sig == 'down':
-                row -= 1
-            self.adjust_row(row)
-
-    def adjust_row(self, row):
-
-        if row >= 0 and row < len(self.multi_spectra_model.r['files_loaded']):
-            self.widget.file_list_view.setCurrentRow(row)
+    
 
     def show_view(self):
         self.active = True

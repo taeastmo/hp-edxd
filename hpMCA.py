@@ -25,5 +25,3 @@ main()
 
 # TODO output lattice refinement results as table
 # TODO multi detector display, optional stacked pltwidgets for each detector
-
-

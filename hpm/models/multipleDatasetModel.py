@@ -39,15 +39,21 @@ class MultipleSpectraModel(QtCore.QObject):  #
         
         self.max_spectra = 500
         self.nchans = 4000
+
         self.data = []
         self.data_mask = []
         
+        self.calibration = {}
+        self.channel_calibration_scales = []
+
         self.rebinned_channel_data = []
         self.rebinned_channel_data_mask = []
+
         self.E = []
         self.E_mask = []
         self.E_normalized = []
         self.E_average = []
+
         self.q = []
         self.q_mask = []
         self.q_average = []
@@ -79,31 +85,26 @@ class MultipleSpectraModel(QtCore.QObject):  #
         
 
     def rebin_scale(self, scale='q'):
-        
-        rows = len(self.data)
+        data = self.rebinned_channel_data
+        rows = len(data)
         tth = np.zeros(rows)
-     
         bins = np.size(self.data[0])
         x = np.arange(bins)
         calibrations = self.r['calibration']
         rebinned_scales = []
-       
+    
         if scale == 'q':
-            data = self.E_normalized
             for row in range(rows):
                 calibration = calibrations[row]
                 q = calibration.channel_to_q(x)
                 tth[row]= calibration.two_theta
                 rebinned_scales.append(q)
-
         elif scale == 'E':
-            data = self.data
             for row in range(rows):
                 calibration = calibrations[row]
                 e = calibration.channel_to_energy(x)
                 tth[row]= calibration.two_theta
                 rebinned_scales.append(e)
-
         tth_min = np.amin(tth)
         tth_max = np.amax(tth)
         tth_step = (tth_max-tth_min)/rows
@@ -115,7 +116,6 @@ class MultipleSpectraModel(QtCore.QObject):  #
      
         rebinned_step = (rebinned_max-rebinned_min)/bins
         if scale == 'q':
-            
             new_data = self.q
             self.q_scale = [rebinned_step, rebinned_min]
         elif scale == 'E':
@@ -123,57 +123,60 @@ class MultipleSpectraModel(QtCore.QObject):  #
             self.E_scale = [rebinned_step, rebinned_min]
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
-        if scale == 'E':
-            self.E_normalized = copy.deepcopy(self.E)
+        
 
     def rebin_for_energy(self):
         #calibration = self.r['calibration']
         data = self.data
-        rows = len(data)
-        now = time.time()
         bins = np.size(data[0])
-        x = np.arange(bins)
-        half_bins = int(bins/2)
-        max_points_left = np.zeros(rows)
-        max_points_right = np.zeros(rows)
-        fit_range = 10
-        for row in range(rows):
-            max_rough = int( np.argmax(data[row][0:half_bins]))
-            fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
-            fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
-            min_y = np.amin(fit_segment_y)
-            _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y - min_y)
-            max_points_left[row] = controid
-
-            max_rough = int(half_bins + np.argmax(data[row][-half_bins:]))
-            fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
-            fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
-            min_y = np.amin(fit_segment_y)
-            _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
-            max_points_right[row] = controid
-        
-        left = max(max_points_left)
-        right = min(max_points_right)
-      
-        M = np.ones(rows)   # relative slopes
-        B = np.zeros(rows)  # relative y-intercepts
-        
-        for row in range(rows):
-            x1 = left
-            x2 = right
-            y1 = max_points_left[row]
-            y2 = max_points_right[row]
-            M[row] = (y1-y2)/(x1-x2)
-            B[row] = (x1*y2 - x2*y1)/(x1-x2)
-            
-        calibration = {}
-        calibration['slope'] = M
-        calibration['offset'] = B
-        self.calibration = calibration
-        self.calibration_scales = self.create_multialement_alighment_calibration(data, calibration)
         x =  np.arange(bins)
+        rows = len(data)
         new_scales = [x]*rows
-        self.align_multialement_data(data , self.rebinned_channel_data, new_scales, self.calibration_scales )
+        if not len(self.channel_calibration_scales):
+            
+            now = time.time()
+            
+            half_bins = int(bins/2)
+            max_points_left = np.zeros(rows)
+            max_points_right = np.zeros(rows)
+            fit_range = 10
+            for row in range(rows):
+                max_rough = int( np.argmax(data[row][0:half_bins]))
+                fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
+                fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
+                min_y = np.amin(fit_segment_y)
+                _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y - min_y)
+                max_points_left[row] = controid
+
+                max_rough = int(half_bins + np.argmax(data[row][-half_bins:]))
+                fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
+                fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
+                min_y = np.amin(fit_segment_y)
+                _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
+                max_points_right[row] = controid
+            
+            left = max(max_points_left)
+            right = min(max_points_right)
+        
+            M = np.ones(rows)   # relative slopes
+            B = np.zeros(rows)  # relative y-intercepts
+            
+            for row in range(rows):
+                x1 = left
+                x2 = right
+                y1 = max_points_left[row]
+                y2 = max_points_right[row]
+                M[row] = (y1-y2)/(x1-x2)
+                B[row] = (x1*y2 - x2*y1)/(x1-x2)
+                
+            calibration = {}
+            calibration['slope'] = M
+            calibration['offset'] = B
+            self.calibration = calibration
+
+            self.channel_calibration_scales = self.create_multialement_alighment_calibration(data, calibration)
+       
+        self.align_multialement_data(data , self.rebinned_channel_data, new_scales, self.channel_calibration_scales )
         
     def create_multialement_alighment_calibration(self, data, calibration):
         rows = len(data)

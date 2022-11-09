@@ -54,10 +54,13 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.add_file_btn.setMaximumWidth(90)
         self.add_file_btn.setMinimumWidth(90)
        
-        self.sum_btn = FlatButton('Sum')
+        self.align_btn = FlatButton('Align')
+        self.align_btn.setMaximumWidth(90)
+        self.align_btn.setMinimumWidth(90)
+        self.sum_btn = FlatButton('Flatten')
         self.sum_btn.setMaximumWidth(90)
         self.sum_btn.setMinimumWidth(90)
-        self.ebg_btn = FlatButton('E BG')
+        self.ebg_btn = FlatButton('Save DC')
         self.ebg_btn.setMaximumWidth(90)
         self.ebg_btn.setMinimumWidth(90)
         self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
@@ -70,6 +73,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.add_btn)
         self._button_layout.addWidget(self.add_file_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
+        self._button_layout.addWidget(self.align_btn)
         self._button_layout.addWidget(self.sum_btn)
         self._button_layout.addWidget(self.ebg_btn)
         self._button_layout.addWidget(self.tth_btn)
@@ -116,39 +120,35 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.HorizontalScaleLayout.setContentsMargins(0,0,0,0)
         self.HorizontalScale_btn_group = QtWidgets.QButtonGroup()
         self.radioE = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-
         self.radioE.setObjectName("radioE")
         self.HorizontalScaleLayout.addWidget(self.radioE)
         self.radioq = QtWidgets.QPushButton(self.HorizontalScaleWidget)
         self.radioq.setObjectName("radioq")
         self.HorizontalScaleLayout.addWidget(self.radioq)
-        
-        #self.radiod = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        #self.radiod.setObjectName("radiod")
-        #self.HorizontalScaleLayout.addWidget(self.radiod)
-        #self.radiotth = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        #self.radiotth.setObjectName("radiotth")
-        #self.HorizontalScaleLayout.addWidget(self.radiotth)
         self.radioChannel = QtWidgets.QPushButton(self.HorizontalScaleWidget)
         self.radioChannel.setObjectName("radioChannel")
         self.HorizontalScaleLayout.addWidget(self.radioChannel)
+        self.radioAligned = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        self.radioAligned.setObjectName("radioAligned")
+        self.HorizontalScaleLayout.addWidget(self.radioAligned)
+
         self.HorizontalScaleLayout.addSpacerItem(HorizontalSpacerItem())
+
         self.radioE.setCheckable(True)
         self.radioq.setCheckable(True)
         self.radioChannel.setCheckable(True)
-        #self.radiod.setCheckable(True)
-        #self.radiotth.setCheckable(True)
+        self.radioAligned.setCheckable(True)
+
         self.radioE.setText("E")
         self.radioq.setText("q")
         self.radioChannel.setText("Channel")
-        #self.radiod.setText("d")
-        #self.radiotth.setText(f'2\N{GREEK SMALL LETTER THETA}')
-        
+        self.radioAligned.setText("Aligned")
+
         self.HorizontalScale_btn_group.addButton(self.radioE)
         self.HorizontalScale_btn_group.addButton(self.radioq)
         self.HorizontalScale_btn_group.addButton(self.radioChannel)
-        #self.HorizontalScale_btn_group.addButton(self.radiod)
-        #self.HorizontalScale_btn_group.addButton(self.radiotth)
+        self.HorizontalScale_btn_group.addButton(self.radioAligned)
+
         self.radioChannel.setChecked(True)
         self._plot_widget_layout.addWidget(self.HorizontalScaleWidget)
 
@@ -199,7 +199,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
                 border-top-left-radius:5px;
                 border-bottom-left-radius:5px;
             }
-            #radioChannel {
+            #radioAligned {
 
                 border-top-right-radius:5px;
                 border-bottom-right-radius:5px;
@@ -236,9 +236,15 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
     def set_spectral_data(self, data):
         if len(data):
-            data = np.clip(data, .5, np.amax(data))
-            data [0,0]= 0.1
-            img_data = np.log10( data)
+            data_positive = np.clip(data, .1, np.amax(data))
+            data_negative = np.clip(-1* data, 0.1 , np.amax(data))
+            
+            img_data_positive = np.log10( data_positive)
+            img_data_negative = -1 * np.log10( data_negative)
+            '''img_data_positive[img_data_positive<.5] = 0
+            img_data_negative[img_data_negative<.5] = 0'''
+            img_data = img_data_positive + img_data_negative
+            
             self.img.setImage(img_data.T)
         else:
             self.img.clear()
