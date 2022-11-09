@@ -57,7 +57,10 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.sum_btn = FlatButton('Sum')
         self.sum_btn.setMaximumWidth(90)
         self.sum_btn.setMinimumWidth(90)
-        self.tth_btn = FlatButton('Sum')
+        self.ebg_btn = FlatButton('E BG')
+        self.ebg_btn.setMaximumWidth(90)
+        self.ebg_btn.setMinimumWidth(90)
+        self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
         self.tth_btn.setMaximumWidth(90)
         self.tth_btn.setMinimumWidth(90)
 
@@ -68,6 +71,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.add_file_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self._button_layout.addWidget(self.sum_btn)
+        self._button_layout.addWidget(self.ebg_btn)
         self._button_layout.addWidget(self.tth_btn)
  
         self.button_widget.setLayout(self._button_layout)
@@ -119,12 +123,12 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.radioq.setObjectName("radioq")
         self.HorizontalScaleLayout.addWidget(self.radioq)
         
-        self.radiod = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        self.radiod.setObjectName("radiod")
-        self.HorizontalScaleLayout.addWidget(self.radiod)
-        self.radiotth = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        self.radiotth.setObjectName("radiotth")
-        self.HorizontalScaleLayout.addWidget(self.radiotth)
+        #self.radiod = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        #self.radiod.setObjectName("radiod")
+        #self.HorizontalScaleLayout.addWidget(self.radiod)
+        #self.radiotth = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        #self.radiotth.setObjectName("radiotth")
+        #self.HorizontalScaleLayout.addWidget(self.radiotth)
         self.radioChannel = QtWidgets.QPushButton(self.HorizontalScaleWidget)
         self.radioChannel.setObjectName("radioChannel")
         self.HorizontalScaleLayout.addWidget(self.radioChannel)
@@ -132,19 +136,19 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.radioE.setCheckable(True)
         self.radioq.setCheckable(True)
         self.radioChannel.setCheckable(True)
-        self.radiod.setCheckable(True)
-        self.radiotth.setCheckable(True)
+        #self.radiod.setCheckable(True)
+        #self.radiotth.setCheckable(True)
         self.radioE.setText("E")
         self.radioq.setText("q")
         self.radioChannel.setText("Channel")
-        self.radiod.setText("d")
-        self.radiotth.setText(f'2\N{GREEK SMALL LETTER THETA}')
+        #self.radiod.setText("d")
+        #self.radiotth.setText(f'2\N{GREEK SMALL LETTER THETA}')
         
         self.HorizontalScale_btn_group.addButton(self.radioE)
         self.HorizontalScale_btn_group.addButton(self.radioq)
         self.HorizontalScale_btn_group.addButton(self.radioChannel)
-        self.HorizontalScale_btn_group.addButton(self.radiod)
-        self.HorizontalScale_btn_group.addButton(self.radiotth)
+        #self.HorizontalScale_btn_group.addButton(self.radiod)
+        #self.HorizontalScale_btn_group.addButton(self.radiotth)
         self.radioChannel.setChecked(True)
         self._plot_widget_layout.addWidget(self.HorizontalScaleWidget)
 
@@ -259,12 +263,12 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         if label != current_label:
             inverse_translate = -1*current_translate
             inverse_scale =  1/current_scale
-           
-            self.img.translate(inverse_translate, 0)
             self.img.scale(inverse_scale, 1)
-
-            self.img.scale(scale[0], 1)
+            self.img.translate(inverse_translate, 0)
+            
             self.img.translate(scale[1], 0)
+            self.img.scale(scale[0], 1)
+            
             self.current_scale['label'] = label
             self.current_scale['scale'] = scale
             
@@ -280,11 +284,12 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         if row_label != current_row_label:
             inverse_row_translate = -1*current_row_translate
             inverse_row_scale =  1/current_row_scale
-            self.img.translate(0, inverse_row_translate)
+            
             self.img.scale(1, inverse_row_scale)
-    
-            self.img.scale(1, row_scale[0])
+            self.img.translate(0, inverse_row_translate)
+            
             self.img.translate(0, row_scale[1])
+            self.img.scale(1, row_scale[0])
 
             self.current_row_scale['label'] = row_label
             self.current_row_scale['scale'] = row_scale
@@ -345,12 +350,15 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         elif ev.button() == QtCore.Qt.LeftButton: 
             pos = ev.pos()  ## using signal proxy turns original arguments into a tuple
             mousePoint = self.view.mapToView(pos)
-            index= int(mousePoint.y())
+            index= mousePoint.y()
+            y_scale = self.current_row_scale['scale']
+            index_scaled = (index - y_scale[1])/ y_scale[0]
+
             scale_point = mousePoint.x()
             
             if index >=0 :
-                self.set_cursor_pos(int(index), scale_point)
-                self.plotMouseCursorSignal.emit([index, scale_point])  
+                self.set_cursor_pos(index_scaled, scale_point)
+                self.plotMouseCursorSignal.emit([index_scaled, scale_point])  
         ev.accept()
 
     def set_cursorFast_pos(self, index, E):
@@ -369,9 +377,11 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             self.cursorPoints[0] = (self.cursorPoints[0][1],E)
             self.vLine.blockSignals(False)
         if index != None:
+            y_scale = self.current_row_scale['scale']
+            index_scaled = (int(index)+0.5) * y_scale[0] + y_scale[1]
             self.hLine.blockSignals(True)
-            self.hLine.setPos(int(index)+0.5)
-            self.cursorPoints[0] = (index,self.cursorPoints[0][0])
+            self.hLine.setPos(index_scaled)
+            self.cursorPoints[0] = (index_scaled,self.cursorPoints[0][0])
             self.hLine.blockSignals(False)
         
     def keyPressEvent(self, e):

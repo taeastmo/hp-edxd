@@ -64,7 +64,9 @@ class MultipleDatasetsController(QObject):
         self.widget.radioq.clicked.connect(partial (self.rebin_btn_callback, 'q'))
         self.widget.radioChannel.clicked.connect(partial (self.rebin_btn_callback, 'Channel'))
 
+
         self.widget.sum_btn.clicked.connect(self.sum_data)
+        self.widget.ebg_btn.clicked.connect(self.ebg_data)
         self.widget.tth_btn.clicked.connect(partial(self.set_row_scale, 'tth'))
 
         self.widget.key_signal.connect(self.key_sig_callback)
@@ -123,7 +125,7 @@ class MultipleDatasetsController(QObject):
 
 
     def CursorClick(self, index):
-        index, pos = index[0], index[1]
+        index, pos = int(index[0]), index[1]
         
         
         files = self.multi_spectra_model.r['files_loaded']
@@ -180,9 +182,22 @@ class MultipleDatasetsController(QObject):
             data = self.multi_spectra_model.data
             scale = [1,0]
         out = self.multi_spectra_model.flaten_data(data)
+        if self.scale == 'E':
+            self.multi_spectra_model.E_bg = out
         x = np.arange(len(out)) * scale[0] + scale[1]
         self.widget.plot_data(x, out)
+
     
+    def ebg_data(self):
+        
+        
+        if self.scale == 'E':
+            if len(self.multi_spectra_model.E_bg):
+                m = self.multi_spectra_model
+                for i in range(np.shape(m.E)[0]):
+                    m.E_normalized[i] = m.E[i] - m.E_bg
+                self. update_view('E')
+              
     
     def add_file_btn_click_callback(self,  *args, **kwargs):
 
@@ -313,7 +328,7 @@ class MultipleDatasetsController(QObject):
             view = self.multi_spectra_model.q
             r = self.multi_spectra_model.q_scale
         elif scale == 'E':
-            view = self.multi_spectra_model.data
+            view = self.multi_spectra_model.E_normalized
             r = self.multi_spectra_model.E_scale
         
         self.widget.set_spectral_data(view)

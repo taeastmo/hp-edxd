@@ -21,7 +21,7 @@ from PyQt5 import QtCore, QtWidgets
 #from pyqtgraph.functions import pseudoScatter
 import os
 import time
-
+import copy
 
 from .mcareaderGeStrip import *
 from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
@@ -40,9 +40,17 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.max_spectra = 500
         self.nchans = 4000
         self.data = []
+        self.data_mask = []
+        
         self.rebinned_channel_data = []
+        self.rebinned_channel_data_mask = []
         self.E = []
+        self.E_mask = []
+        self.E_normalized = []
+        self.E_average = []
         self.q = []
+        self.q_mask = []
+        self.q_average = []
 
         self.current_scale = {'label': 'channel', 'range': [1,0]}
         self.q_scale = [1 , 0]
@@ -66,21 +74,22 @@ class MultipleSpectraModel(QtCore.QObject):  #
     def flaten_data(self, data):
 
         
-        out = np.sum(data, axis=0)
+        out = np.sum(data, axis=0)/ np.shape(data)[0]
         return out
         
 
     def rebin_scale(self, scale='q'):
-        data = self.data
-        rows = len(data)
+        
+        rows = len(self.data)
         tth = np.zeros(rows)
      
-        bins = np.size(data[0])
+        bins = np.size(self.data[0])
         x = np.arange(bins)
         calibrations = self.r['calibration']
         rebinned_scales = []
        
         if scale == 'q':
+            data = self.E_normalized
             for row in range(rows):
                 calibration = calibrations[row]
                 q = calibration.channel_to_q(x)
@@ -88,6 +97,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 rebinned_scales.append(q)
 
         elif scale == 'E':
+            data = self.data
             for row in range(rows):
                 calibration = calibrations[row]
                 e = calibration.channel_to_energy(x)
@@ -112,8 +122,9 @@ class MultipleSpectraModel(QtCore.QObject):  #
             new_data = self.E
             self.E_scale = [rebinned_step, rebinned_min]
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
-        
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
+        if scale == 'E':
+            self.E_normalized = copy.deepcopy(self.E)
 
     def rebin_for_energy(self):
         #calibration = self.r['calibration']
