@@ -39,9 +39,7 @@ from .. import epics_sync
 
 class FileSaveController(object):
     """
-    IntegrationPhaseController handles all the interaction between the phase controls in the IntegrationView and the
-    PhaseData object. It needs the PatternData object to properly handle the rescaling of the phase intensities in
-    the pattern plot and it needs the calibration data to have access to the currently used wavelength.
+    FileSaveController handles file reading and saving
     """
 
     def __init__(self, hpmcaController, **kwargs):
@@ -54,8 +52,6 @@ class FileSaveController(object):
         record_name_file = defaults_options.file_record
         self.record_name_file = record_name_file 
 
-        self.persistent_rois = []
-        
         if epics_sync:
             if record_name_file != None:
                 self.pvs_file ={'FullFileName_RBV': None}
@@ -124,6 +120,7 @@ class FileSaveController(object):
         ui.file_dragged_in_signal.connect(self.file_dragged_in_signal)
         ui.actionExport_pattern.triggered.connect(self.export_pattern)
         ui.actionOpen_file.triggered.connect(self.openFile)
+        ui.actionOpen_folder.triggered.connect(self.openFolder)
         ui.actionPreferences.triggered.connect(self.preferences_module)
         ui.folder_browse_btn.clicked.connect(self.folder_browse_btn_callback)
 
@@ -337,7 +334,7 @@ class FileSaveController(object):
 
     def openFile(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
-        persistent_rois = self.persistent_rois
+     
         if filename is None:
             filename = open_file_dialog(self.widget, "Open spectrum file.",
                                     self.mca_controller.working_directories .readdata)
@@ -347,11 +344,38 @@ class FileSaveController(object):
                     success = self.mca_controller.initMCA('file',filename) == 0
                 else:
                 
-                    [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0, persistent_rois=persistent_rois)
+                    [filename, success] = self.mca_controller.mca.read_file(file=filename, netcdf=0, detector=0)
                    
                 if success:
                     self.McaFileName = filename
                     self.update_readDataDir (os.path.dirname(str(filename)) )#working directory xrd files
+                    
+                    # best to initialize controllers only once per session
+                    if not self.mca_controller.controllers_initialized:  
+                        self.mca_controller.initControllers()
+                    self.mca_controller.data_updated()
+                else:
+                    mcaUtil.displayErrorMessage( 'fr')
+            else:
+                mcaUtil.displayErrorMessage( 'fr')
+
+    def openFolder(self, *args, **kwargs):
+        foldername = kwargs.get('foldername', None)
+     
+        if foldername is None:
+            foldername = open_folder_dialog(self.widget, "Open folder.",
+                                    self.mca_controller.working_directories .readdata)
+        if foldername != '' and foldername is not None:
+            if os.path.isdir(foldername):
+                if self.mca_controller.Foreground != 'file':
+                    success = self.mca_controller.initMCA('file',foldername) == 0
+                else:
+                
+                    [foldername, success] = self.mca_controller.mca.read_files(folder=foldername, netcdf=0, detector=0)
+                   
+                if success:
+                    self.McaFileName = foldername
+                    self.update_readDataDir (os.path.dirname(str(foldername)) ) #working directory xrd files
                     
                     # best to initialize controllers only once per session
                     if not self.mca_controller.controllers_initialized:  

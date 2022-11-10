@@ -23,6 +23,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from epics.clibs import *  # makes sure dlls are included in the exe
 
 from hpm.models.mcaModel import MCA
+from hpm.models.calcMCA import multiFileMCA
 from hpm.models.epicsMCA import epicsMCA
 
 
@@ -305,9 +306,13 @@ class hpmcaController(QObject):
             if self.fileMCAholder != None:
                 mca = self.fileMCAholder
         if mca == None:
-            mca = MCA()
+            mca = multiFileMCA()
         mca.auto_process_rois = True
-        [fileout, success] = mca.read_file(file=file, netcdf=0, detector=0)
+
+        if os.path.isfile(file):
+            [fileout, success] = mca.read_file(file=file, netcdf=0, detector=0)
+        elif os.path.isdir(file) :
+            [fileout, success] = mca.read_files(folder=file)
         if not success:
             return 1
         self.set_file_mca(mca)
@@ -596,14 +601,7 @@ class hpmcaController(QObject):
         if self.mca !=None:
             self.roi_controller.show_view()
 
-    '''def lock_rois_btn_callback(self, locked):
-        if locked:
-            rois = copy.deepcopy(self.mca.get_rois()[0])
-            
-        else:
-            rois = []
-        self.file_save_controller.persistent_rois = rois'''
-            
+
     def fluorescence_module(self):
         if self.mca !=None:
             self.fluorescence_controller.show()

@@ -41,7 +41,7 @@ class MultipleDatasetsController(QObject):
         
         self.multi_spectra_model = MultipleSpectraModel()
         self.widget = MultiSpectraWidget()
-        self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget)
+        self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 
 
         self.folder = ''
         self.active = False

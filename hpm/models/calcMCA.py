@@ -6,12 +6,15 @@ import utilities.hpMCAutilities as hpUtil
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMessageBox
 from hpm.models.mcaModel import *
+from PyQt5 import QtCore, QtWidgets
 
-from hpm.models.multipleDatasetModel import MultipleSpectraModel
+from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
 
-class multiMCA(MCA):
+import natsort
+
+class multiFileMCA(MCA):
     """
-    Creates a new calcMCA. calcMCA acts like a regular multi-detector MCA, but can be
+    Creates a new multiFileMCA. multiFileMCA acts like a regular multi-detector MCA, but can be
         created either by reading a single multi-detector mca file, or by 
         reading multiple single-detector mca files.
 
@@ -44,21 +47,366 @@ class multiMCA(MCA):
         
         super().__init__()
         
-        record_name = kwargs['record_name']
-        file_options  = kwargs['file_options']
-        environment_file  = kwargs['environment_file']
-        dead_time_indicator  = kwargs['dead_time_indicator']
+  
+        self.name = ''
 
-        self.name = record_name
-        
-        self.last_saved=''
-        self.file_settings = file_options
+        self.files_loaded = []
         self.verbose = False
-        
         self.mcaRead = None
-        self.record_name = record_name
         
         self.max_rois = 24           
+        self.max_spectra = 500
         self.initOK = False             
 
-        self.multi_spectra_model = MultipleSpectraModel()
+    ########################################################################
+    
+    
+    def read_files(self, folder, *args, **kwargs):
+        """
+        Reads multiple disk files into a single multi-detector MCA object.  
+        The netcdf input is depricated and is not used.
+        If the data file has multiple detectors then the detector keyword can be
+        used to specify which detector data to return.
+
+        Inputs:
+            file:
+                The name of the disk file to read.
+                
+        Keywords:
+            netcdf:(deprecated, not used, always input as 0)
+                Set this flag to read files written in netCDF format, otherwise
+                the routine assumes that the file is in ASCII format.
+                See the documentation for Mca.write_ascii_file and
+                Mca.write_netcdf_file for information on the formats.
+
+            detector:
+                Specifies which detector to read if the file has multiple detectors.
+           
+                
+        Example:
+            mca = Mca()
+            mca.read_file('mca.001')
+        """
+        success = False
+
+        if folder == '':
+            return
+        paths = []
+        files_filtered = []
+       
+        if os.path.exists(folder):
+            files = natsort.natsorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
+            for f in files:
+                if f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy') or f[-3:].isnumeric() :
+                    file = os.path.join(folder, f) 
+                    paths.append(file)  
+                    files_filtered.append(f)
+            filenames = paths
+
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
+            
+
+        if len(filenames):
+            if len(filenames) > 15:
+                progress_dialog.setMaximum(len(filenames))
+                progress_dialog.show()
+            firstfile = filenames[0]
+            if firstfile.endswith('.hpmca')or firstfile[-3:].isnumeric():
+                [r, success] =self.read_ascii_files_2d(filenames, progress_dialog=progress_dialog)
+            elif firstfile.endswith('.chi') or firstfile.endswith('.xy'):
+                [r, success] = self.read_chi_files_2d(filenames, progress_dialog=progress_dialog)
+                wavelength = r['calibration'][0].wavelength
+                self.wavelength = wavelength
+            elif  firstfile.endswith('.mca'):
+                print('mca 2d not implemented')
+
+            progress_dialog.close()
+        
+        if success == True:
+            self.file_name=folder
+            self.calibration = r['calibration']
+            self.data = r['data']
+            self.nchans = len(r['data'][0])
+            self.n_detectors=r['n_detectors']
+            self.rois_from_file = r['rois']
+            self.rois = r['rois']
+            self.elapsed = r['elapsed']
+            
+            self.environment = r['environment']
+            self.name = os.path.split(folder)[-1]
+            self.dx_type = r['dx_type']
+    
+        return([paths,success])
+
+        
+    def read_ascii_files_2d(self, paths, *args, **kwargs):      
+        """
+        Reads multiple disk files.  The file format is a tagged ASCII format.
+        The file contains the information from the Mca object which it makes sense
+        to store permanently, but does not contain all of the internal state
+        information for the Mca.  This procedure reads files written with
+        write_ascii_file().
+        This mehtod can be several times faster than reading individual mca files.
+
+        Inputs:
+            paths:
+                The names of the disk files to read.
+                
+        Outputs:
+            Returns a dictionary of the following type
+                'files_loaded':     files_loaded
+                'start_times' :     start_times
+                'data'        :     mca counts in a form of a 2-D numpy array 
+                                    (dimension 1: file index
+                                     dimension 2: channel index) 
+            
+        Example:
+            m = read_ascii_files_2d(['mca.hpmca'])
+            
+        """
+        success = False
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
+
+        paths = paths [:self.max_spectra]
+        nfiles = len (paths)   
+        data = np.zeros([nfiles, self.nchans])
+        files_loaded = []
+        environment = []
+        calibration = [McaCalibration()]
+        elapsed = [McaElapsed()]
+        rois = [[]]
+        max_rois = 12
+        times = []
+        n_detectors = nfiles
+        for det in range(1, n_detectors):
+            elapsed.append(McaElapsed())
+            calibration.append(McaCalibration())
+            rois.append([])
+        nchans = self.nchans
+        QtWidgets.QApplication.processEvents()
+        for d, file in enumerate(paths):
+            if d % 5 == 0:
+                #update progress bar only every 5 files to save time
+                progress_dialog.setValue(d)
+                QtWidgets.QApplication.processEvents()
+            try:
+                fp = open(file, 'r')
+            except:
+                continue
+            line = ''
+            while(1):
+                line = fp.readline()
+                if (line == ''): break
+                pos = line.find(' ')
+                if (pos == -1): pos = len(line)
+                tag = line[0:pos]
+                value = line[pos:].strip()
+                values = value.split()
+                if (tag == 'VERSION:'):
+                    pass
+                elif (tag == 'ELEMENTS:'):
+                    pass
+                elif (tag == 'DATE:'):  
+                    start_time = value
+                    times.append(start_time)
+                elif (tag == 'CHANNELS:'):
+                    nchans = int(value)
+                elif (tag == 'ROIS:'):
+                    nrois = int(values[0])
+                    
+                    for r in range(nrois):
+                        rois[d].append(McaROI())
+                elif (tag == 'REAL_TIME:'):
+                    elapsed[d].start_time = start_time
+                    elapsed[d].real_time = float(values[0])
+                elif (tag == 'LIVE_TIME:'):  
+                    elapsed[d].live_time = float(values[0])
+                elif (tag == 'CAL_OFFSET:'):
+                    calibration[d].offset = float(values[0])
+                elif (tag == 'CAL_SLOPE:'):
+                    calibration[d].slope = float(values[0])
+                elif (tag == 'CAL_QUAD:'):  
+                    calibration[d].quad = float(values[0])
+                elif (tag == 'TWO_THETA:'):
+                    calibration[d].two_theta = float(values[0])
+                    calibration[d].set_dx_type('edx')
+                    calibration[d].units = "keV"
+                    data_type = int
+                    dx_type = 'edx'
+                elif (tag == 'WAVELENGTH:'):
+                    calibration[d].wavelength = float(values[d])
+                    calibration[d].set_dx_type('adx')
+                    calibration[d].units = 'degrees'
+                    data_type = float
+                    dx_type = 'adx'
+                elif (tag == 'ENVIRONMENT:'):
+                    env = McaEnvironment()
+                    p1 = value.find('=')
+                    env.name = value[0:p1]
+                    p2 = value[p1+2:].find('"')
+                    env.value = value[p1+2: p1+2+p2]
+                    env.description = value[p1+2+p2+3:-1]
+                    environment.append(env)
+                elif (tag == 'DATA:'):
+                    for chan in range(nchans):
+                        line = fp.readline()
+                        counts = line.split()
+                        data[d][chan]=data_type(counts[0])
+                else:
+                    for i in range(max_rois):
+                        roi = 'ROI_'+str(i)+'_'
+                        if (tag == roi+'LEFT:'):
+                            if (i < nrois):
+                                rois[d][i].left = int(values[0])
+                                #break
+                        elif (tag == roi+'RIGHT:'):
+                            if (i < nrois):
+                                rois[d][i].right = int(values[0])
+                                #break
+                        elif (tag == roi+'LABEL:'):
+                            labels = value.split('&')
+                            if (i < nrois):
+                                rois[d][i].label = labels[0].strip()
+
+            files_loaded.append(os.path.normpath(file))
+                
+            fp.close()
+            if progress_dialog.wasCanceled():
+                break
+        QtWidgets.QApplication.processEvents()
+       
+        # Built dictionary to return
+        r = {}
+        r['n_detectors'] = n_detectors
+        r['calibration'] = calibration
+        r['elapsed'] = elapsed
+        r['rois'] = rois
+        r['data'] = data
+        r['environment'] = environment
+        r['dx_type'] = dx_type
+
+        self.files_loaded = files_loaded
+        success = True
+        return [r, success]
+
+    def read_chi_files_2d(self, paths, *args, **kwargs):
+        #fit2d or dioptas chi type file
+
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
+
+        if 'wavelength' in kwargs:
+            wavelength = kwargs['wavelength']
+        else:
+            wavelength = None
+
+        if wavelength == None:
+            basefile=os.path.basename(paths[0])
+            wavelength = xyPatternParametersDialog.showDialog(basefile,'wavelength',.4)
+
+
+        paths = paths [:self.max_spectra]
+        nfiles = len (paths)   
+
+        nchans = self.find_chi_file_nelements(paths[0])
+        data = np.zeros([nfiles, nchans])
+        n_detectors = nfiles
+        files_loaded = []
+        times = []
+        self.nchans = nchans
+        QtWidgets.QApplication.processEvents()
+        for d, file in enumerate(paths):
+            if d % 5 == 0:
+                #update progress bar only every 5 files to save time
+                progress_dialog.setValue(d)
+                QtWidgets.QApplication.processEvents()
+        
+            file_text = open(file, "r")
+
+            a = True
+            row = 0
+            while a:
+                file_line = file_text.readline()
+                if not file_line.startswith ('#'):
+                    columns = file_line.split()
+                    if len(columns):
+                        data[d][row]=float(columns[1])
+                    row +=1
+                if row >= nchans-1:
+                    a = False
+            files_loaded.append(file)
+            file_text.close()
+          
+            
+            if progress_dialog.wasCanceled():
+                break
+        QtWidgets.QApplication.processEvents()
+        # Built dictionary to return
+
+        calibration = []
+        elapsed = []
+        rois = []
+        environment = []
+        skiprows = 4
+        file1 = np.loadtxt(paths[0], skiprows=skiprows)
+        x = file1.T[0]
+        coeffs = self.compute_tth_calibration_coefficients(x)
+        for n in range(n_detectors):
+            calibration.append([McaCalibration(offset=coeffs[0],
+                                               slope=coeffs[1],
+                                               quad=0, 
+                                               two_theta= np.mean(x),
+                                               units='degrees',
+                                               wavelength=wavelength)])
+            elapsed.append(McaElapsed())
+            rois.append([])
+        r = {}
+        r['n_detectors'] = n_detectors
+        r['calibration'] = calibration
+        r['elapsed'] = elapsed
+        r['rois'] = rois
+        r['data'] = data
+        r['environment'] = environment
+        r['dx_type'] = 'adx'
+
+        self.files_loaded = files_loaded
+        success = True
+        return [r, success]
+
+    def find_chi_file_nelements(self, file):
+        file_text = open(file, "r")
+        a = True
+        comment_rows = 0
+        first_data_line = 0
+        line_n = 0
+        while a:
+            file_line = file_text.readline()
+            
+            if not file_line:
+                #print("End Of File")
+                a = False
+            else:
+                if file_line.startswith("#"):
+                    comment_rows +=1
+                else:
+                    if first_data_line == 0 :      
+                        if  file_line.split()[0].isdigit():
+                            first_data_line = line_n
+            line_n +=1
+        nelem = line_n - first_data_line
+        return nelem
+
+    def compute_tth_calibration_coefficients(self, tth):
+        chan = np.linspace(0,len(tth)-1,len(tth))[::50]
+        tth = tth[::50]
+        weights = np.ones(len(tth)) 
+        coeffs = CARSMath.polyfitw(chan, tth, weights, 1)
+        return coeffs
