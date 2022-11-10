@@ -332,6 +332,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         #self.vLine.sigPositionChanged.connect(self.cursor_dragged)
         
         self.cursors = [self.hLine, self.hLineFast]
+        # self.cursorPoints = [(cursor.index, cursor.channel),(fast.index, fast.channel)]
         self.cursorPoints = [(np.nan,np.nan),(np.nan,np.nan)]
         
         self.view.addItem(self.vLine, ignoreBounds=True)
@@ -380,14 +381,14 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             self.vLine.blockSignals(True)
             
             self.vLine.setPos(E)
-            self.cursorPoints[0] = (self.cursorPoints[0][1],E)
+            self.cursorPoints[0] = (self.cursorPoints[0][0],E)
             self.vLine.blockSignals(False)
         if index != None:
             y_scale = self.current_row_scale['scale']
             index_scaled = (int(index)+0.5) * y_scale[0] + y_scale[1]
             self.hLine.blockSignals(True)
             self.hLine.setPos(index_scaled)
-            self.cursorPoints[0] = (index_scaled,self.cursorPoints[0][0])
+            self.cursorPoints[0] = (index_scaled,self.cursorPoints[0][1])
             self.hLine.blockSignals(False)
         
     def keyPressEvent(self, e):
