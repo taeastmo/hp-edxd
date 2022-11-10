@@ -125,9 +125,10 @@ class MultipleDatasetsController(QObject):
                 row += 1
             if sig == 'left' or sig == 'down':
                 row -= 1
-            self.adjust_row(row)
+            pos = self.widget.cursorPoints[0][0]
+            self.CursorClick([row, pos])
 
-    def adjust_row(self, row):
+    '''def adjust_row(self, row):
         files = self.multi_spectra_model.r['files_loaded']
         index = row
         if len(files) == 1:
@@ -141,12 +142,13 @@ class MultipleDatasetsController(QObject):
                 self.widget.select_spectrum(index)
                 file = files[index]
                 self.file_changed(file)
-                self.row = index
+                self.row = index'''
 
     def CursorClick(self, index):
         index, pos = int(index[0]), index[1]
         files = self.multi_spectra_model.r['files_loaded']
         if len(files) == 1:
+            self.widget.select_spectrum(index)
             self. element_changed(index)
             self.row = index
             self.widget.select_value(pos)
