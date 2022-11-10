@@ -301,7 +301,8 @@ class PltWidget(pg.PlotWidget):
                 self.colors[p] = color
                 if p == 'plot_background_color':
                     self.setBackground(color)
-                    self.parent_widget.setStyleSheet( 'background-color: '+ color+';')
+                    if self.parent_widget != None:
+                        self.parent_widget.setStyleSheet( 'background-color: '+ color+';')
                     #toolbar_widgets are widgets containing or surrounding the plot
                     #this sets their backgorund to match the plot
                     for widget in self.toolbar_widgets:
@@ -382,7 +383,7 @@ class PltWidget(pg.PlotWidget):
         self.setLabel('bottom', xLabel) 
 
 
-    def plotData(self, xAxis,data,roiHorz,roiData, xLabel, dataLabel=''):
+    def plotData(self, xAxis,data,roiHorz=[],roiData=[], xLabel='', dataLabel=''):
         
         self.xAxis = xAxis
         if self.plotForeground == None:

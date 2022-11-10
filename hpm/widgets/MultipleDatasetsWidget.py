@@ -24,7 +24,7 @@ import numpy as np
 import pyqtgraph as pg
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
-from hpm.widgets.PltWidget import plotWindow
+from hpm.widgets.PltWidget import PltWidget
 
 class MultiSpectraWidget(QtWidgets.QWidget):
 
@@ -167,8 +167,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_view_tabs.addTab(self.file_list_view, 'Files')
         
 
-        self.line_plot_widget = plotWindow('Plot', 'Counts','Channel')
-        self.line_plot_widget.add_line_plot()
+        self.line_plot_widget = PltWidget()
+       
         self.file_view_tabs.addTab(self.line_plot_widget, 'Plot')
 
         self._body_layout.addWidget(self.file_view_tabs)
@@ -211,7 +211,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.current_row_scale = {'label': 'Index', 'scale': [1,0]}
 
     def plot_data(self, x=[],y=[]):
-        self.line_plot_widget.plots[0].setData(x,y)
+        self.line_plot_widget.plotData(x, y)
 
     def get_selected_row(self):
         selected  = self.file_list_view.selectionModel().selectedRows()

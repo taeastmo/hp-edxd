@@ -28,6 +28,7 @@ from hpm.widgets.MultipleDatasetsWidget import MultiSpectraWidget
 from hpm.models.multipleDatasetModel import MultipleSpectraModel
 from PyQt5.QtCore import pyqtSignal, QObject
 import natsort
+from hpm.controllers.DisplayPrefsController import DisplayPreferences
 
 class MultipleDatasetsController(QObject):
     file_changed_signal = pyqtSignal(str)  
@@ -40,6 +41,7 @@ class MultipleDatasetsController(QObject):
         
         self.multi_spectra_model = MultipleSpectraModel()
         self.widget = MultiSpectraWidget()
+        self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget)
 
         self.folder = ''
         self.active = False

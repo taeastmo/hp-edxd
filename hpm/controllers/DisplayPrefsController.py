@@ -36,7 +36,7 @@ class DisplayPreferences(Preferences):
 
         self.config_file = os.path.join(home_path,'hpMCA_color_settings.json')
 
-        prefs, colors = opt_fields(self.config_file)
+        prefs, colors = self.opt_fields(self.config_file)
         
 
         self.widget = DisplayPreferencesWidget(prefs, 
@@ -65,7 +65,7 @@ class DisplayPreferences(Preferences):
 
     def apply_callback(self, params):
         self.set_config(params)
-        save_config(params, self.config_file)
+        self.save_config(params, self.config_file)
 
 
     # the update method gets called automatically by the parent class
@@ -83,48 +83,48 @@ class DisplayPreferences(Preferences):
 
     
         
-def save_config(params, filename):
-    options_out = json_compatible_dict(params)
-    try:
-        with open(filename, 'w') as outfile:
-            json.dump(options_out, outfile,sort_keys=True, indent=4)
-            outfile.close()
-    except:
-        pass
+    def save_config(self, params, filename):
+        options_out = json_compatible_dict(params)
+        try:
+            with open(filename, 'w') as outfile:
+                json.dump(options_out, outfile,sort_keys=True, indent=4)
+                outfile.close()
+        except:
+            pass
 
 
-def opt_fields(config_file):
+    def opt_fields(self, config_file):
 
-    
+        
 
-    colors = readconfig(config_file)
+        colors = readconfig(config_file)
 
-    opts = {'display':
-                   {'plot_background_color':
-                    {'val': (255, 255, 255),
-                     'desc': '',
-                     'label': 'Background'},
-                    'data_color':
-                        {'val': '#2F2F2F',
-                            'desc': '',
-                            'label': 'Plot foreground'},
-                    'rois_color':
-                        {'val': (0, 180, 255),
-                            'desc': '',
-                            'label': "ROIs highlight"},
-                    'roi_cursor_color':
-                        {'val': (255, 0, 0),
-                            'desc': '',
-                            'label': 'Selected ROI cursor'}
+        opts = {'display':
+                    {'plot_background_color':
+                        {'val': (255, 255, 255),
+                        'desc': '',
+                        'label': 'Background'},
+                        'data_color':
+                            {'val': '#2F2F2F',
+                                'desc': '',
+                                'label': 'Plot foreground'},
+                        'rois_color':
+                            {'val': (0, 180, 255),
+                                'desc': '',
+                                'label': "ROIs highlight"},
+                        'roi_cursor_color':
+                            {'val': (255, 0, 0),
+                                'desc': '',
+                                'label': 'Selected ROI cursor'}
 
+                        }
                     }
-                   }
 
 
-    prefs = opts['display']
-    
-    for c in colors:
-        if c in prefs:
-            prefs[c]['val']= colors[c]
-    return prefs, colors
-    
+        prefs = opts['display']
+        
+        for c in colors:
+            if c in prefs:
+                prefs[c]['val']= colors[c]
+        return prefs, colors
+        
