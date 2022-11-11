@@ -10,6 +10,11 @@ pyepics 3.4.0<br>
 burnman 0.9.0<br>
 PyCifRW 4.4.1 <br>
 
+> export PYEPICS_LIBCA=/usr/local/epics/base-7.0.4/lib/linux-x86_64/libca.so
+To find out which CA library will be used by pyepics, use:
+>>> import epics
+>>> epics.ca.find_libca()
+
 ### Executables
 
 Executable versions for Windows, Mac OS (all 64bit) can be downloaded from:
