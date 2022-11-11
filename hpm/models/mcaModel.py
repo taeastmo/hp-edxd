@@ -14,23 +14,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from ast import Return
-import imp
-import re
-import pyqtgraph as pg
+
 import numpy as np
-from numpy.core.records import array
-from pyqtgraph.graphicsItems.PlotDataItem import dataType
-from scipy import interpolate
-from math import sqrt, sin, pi
+
+
 import utilities.centroid as centroid
 import copy
 import json
 import time
-from hpm.models.mcareader import McaReader
-from hpm.widgets.UtilityWidgets import xyPatternParametersDialog
+
 import os
-import utilities.CARSMath as CARSMath
+
 from utilities.filt import spectra_baseline
 from .mcaComponents import *
 from .mcaIO import *
@@ -208,31 +202,34 @@ class MCA():  #
         ## should always be ready for the user 
         #start_time = time.time()
         
-
+        available_scales = self.calibration[detector].available_scales
         [roi, fwhm_chan] = centroid.computeCentroid(self.data[detector], roi, 1)
         roi.fwhm = fwhm_chan
-        roi.fwhm_E = (self.calibration[detector].channel_to_energy(roi.centroid + 
-                                        fwhm_chan/2.) - 
-                            self.calibration[detector].channel_to_energy(roi.centroid - 
-                                        fwhm_chan/2.))
-        roi.fwhm_q = (self.calibration[detector].channel_to_q(roi.centroid + 
-                                        fwhm_chan/2.) - 
-                            self.calibration[detector].channel_to_q(roi.centroid - 
-                                        fwhm_chan/2.))
-        roi.fwhm_d = (self.calibration[detector].channel_to_d(roi.centroid + 
-                                        fwhm_chan/2.) - 
-                            self.calibration[detector].channel_to_d(roi.centroid - 
-                                        fwhm_chan/2.))      
-        roi.fwhm_tth = (self.calibration[detector].channel_to_tth(roi.centroid + 
-                                        fwhm_chan/2.) - 
-                            self.calibration[detector].channel_to_tth(roi.centroid - 
-                                        fwhm_chan/2.))                             
-
-        roi.energy = self.calibration[detector].channel_to_energy(roi.centroid)
-        roi.two_theta = self.calibration[detector].channel_to_tth(roi.centroid)
-        roi.q = self.calibration[detector].channel_to_q(roi.centroid)
-        roi.d_spacing = self.calibration[detector].channel_to_d(roi.centroid)
-
+        if 'E' in available_scales:
+            roi.fwhm_E = (self.calibration[detector].channel_to_energy(roi.centroid + 
+                                            fwhm_chan/2.) - 
+                                self.calibration[detector].channel_to_energy(roi.centroid - 
+                                            fwhm_chan/2.))
+            roi.energy = self.calibration[detector].channel_to_energy(roi.centroid)
+        if 'q' in available_scales:
+            roi.fwhm_q = (self.calibration[detector].channel_to_q(roi.centroid + 
+                                            fwhm_chan/2.) - 
+                                self.calibration[detector].channel_to_q(roi.centroid - 
+                                            fwhm_chan/2.))
+            roi.q = self.calibration[detector].channel_to_q(roi.centroid)
+        if 'd' in available_scales:                                    
+            roi.fwhm_d = (self.calibration[detector].channel_to_d(roi.centroid + 
+                                            fwhm_chan/2.) - 
+                                self.calibration[detector].channel_to_d(roi.centroid - 
+                                            fwhm_chan/2.))      
+            roi.d_spacing = self.calibration[detector].channel_to_d(roi.centroid)
+        if '2 theta' in available_scales:                                
+            roi.fwhm_tth = (self.calibration[detector].channel_to_tth(roi.centroid + 
+                                            fwhm_chan/2.) - 
+                                self.calibration[detector].channel_to_tth(roi.centroid - 
+                                            fwhm_chan/2.))                             
+            roi.two_theta = self.calibration[detector].channel_to_tth(roi.centroid)
+        
 
     ########################################################################
     def set_rois(self, rois, energy=0, detector=0, source='file'):

@@ -507,6 +507,7 @@ class hpmcaController(QObject):
 
         self.plotController.update_plot_data(element) 
         
+        
         self.plotController.roi_controller.data_updated(element)  #this will in turn trigger updateViews() 
         environment = self.mca.environment
         self.environment_controller.set_environment(environment)
@@ -575,12 +576,17 @@ class hpmcaController(QObject):
 
     def calibrate_energy_module(self):
         if self.mca != None:
-            self.ce = mcaCalibrateEnergy(self.mca, detector=self.element)
+            self.ce = mcaCalibrateEnergy(self.mca, detector=self.element, command=self.calibrate_energy_module_callback)
             if self.ce.nrois < 2:
                 mcaUtil.displayErrorMessage( 'calroi')
                 self.ce.destroy()
             else:
                 self.ce.raise_widget()
+    def calibrate_energy_module_callback(self, exit_status):
+        # mcaCalibrateEnergy returns 1 if calibration updates
+        # if not updated
+        if exit_status:
+            self.data_updated()
     
     def calibrate_tth_module(self):
         if self.mca != None:

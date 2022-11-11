@@ -1,5 +1,5 @@
 import numpy as np
-#import utilities.CARSMath as CARSMath
+
 from math import sqrt, sin, pi
 
 
@@ -222,12 +222,21 @@ class McaCalibration():
                 "d",
                 '2 theta'] 
         self.dx_type = dx_type
+        self.available_scales = [scales[2]]
         if dx_type == 'edx':
+            self.available_scales.append(scales[0])
             
-            self.available_scales = scales[0:-1]
+            if self.two_theta != None:
+                self.available_scales.append(scales[1])
+                self.available_scales.append(scales[3])
+            #self.available_scales = scales[0:-1]
         if dx_type == 'adx':
-            
-            self.available_scales = scales[1:]
+            self.available_scales.append(scales[4])
+            if self.wavelength != None:
+                self.available_scales.append(scales[1])
+                self.available_scales.append(scales[3])
+         
+        print(self.available_scales)
 
  
 
@@ -271,7 +280,7 @@ class McaCalibration():
                     channel = self.energy_to_channel(e)
                 elif "2 theta" in self.available_scales:
                    
-                    two_theta = self. q_to_2theta(q)
+                    two_theta = self. q_to_2theta(q, self.wavelength)
                     channel = self.energy_to_channel(two_theta)
 
 

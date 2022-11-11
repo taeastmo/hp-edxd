@@ -2,7 +2,10 @@ import numpy as np
 import utilities.CARSMath as CARSMath
 from math import sqrt, sin, pi
 from hpm.models.mcareaderGeStrip import *
+from hpm.widgets.UtilityWidgets import xyPatternParametersDialog
+from hpm.models.mcareader import McaReader
 
+import os
 
 ########################################################################
 class mcaFileIO():

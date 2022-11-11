@@ -80,7 +80,11 @@ class plotController(QObject):
         else:
 
             self.data =  m.get_data()[element]
-        self.calibration = m.get_calibration()[element]
+        
+        calibration = m.get_calibration()[element]
+        if self.calibration != calibration:
+            self.calibration = calibration
+            
         self.elapsed = m.get_elapsed()[element]
         self.name = m.get_name()
         #self.roi_controller.update_rois()  #this will in turn trigger updateViews()

@@ -24,4 +24,4 @@ main()
 # TODO add ROI width options for the xrd module   
 
 # TODO output lattice refinement results as table
-# TODO multi detector display, optional stacked pltwidgets for each detector
+# TODO multi detector display

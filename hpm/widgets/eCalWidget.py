@@ -451,16 +451,10 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
 
     def menu_ok_cancel(self, button):
         """ Private method """
-        if (button == 'OK') or (button == 'Apply'):
-            # Copy calibration and rois to input mca object
+        if button == 'OK':
+            self.calibration.set_dx_type('edx')
             self.input_mca.set_calibration(self.calibration, self.det)
-            #self.input_mca.set_rois(self.roi)
-            pass
-
-        if (button == 'OK'):
-            exit_status=1
-        elif (button == 'Apply'):
-            return
+            exit_status = 1
         else:
             exit_status = 0
         if (self.exit_command): self.exit_command(exit_status)

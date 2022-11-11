@@ -346,7 +346,7 @@ class multiFileMCA(MCA):
                     row +=1
                 if row >= nchans-1:
                     a = False
-            files_loaded.append(file)
+            files_loaded.append(os.path.normpath(file))
             file_text.close()
           
             
@@ -364,12 +364,14 @@ class multiFileMCA(MCA):
         x = file1.T[0]
         coeffs = self.compute_tth_calibration_coefficients(x)
         for n in range(n_detectors):
-            calibration.append([McaCalibration(offset=coeffs[0],
+            cal = McaCalibration(offset=coeffs[0],
                                                slope=coeffs[1],
                                                quad=0, 
                                                two_theta= np.mean(x),
                                                units='degrees',
-                                               wavelength=wavelength)])
+                                               wavelength=wavelength)
+            cal.set_dx_type('adx')
+            calibration.append(cal)
             elapsed.append(McaElapsed())
             rois.append([])
         r = {}
@@ -379,6 +381,7 @@ class multiFileMCA(MCA):
         r['rois'] = rois
         r['data'] = data
         r['environment'] = environment
+        r['wavelength'] = wavelength
         r['dx_type'] = 'adx'
 
         self.files_loaded = files_loaded
