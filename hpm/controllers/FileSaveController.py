@@ -353,6 +353,8 @@ class FileSaveController(object):
                     # best to initialize controllers only once per session
                     if not self.mca_controller.controllers_initialized:  
                         self.mca_controller.initControllers()
+
+                    self.mca_controller.multiple_datasets_controller.set_mca(self.mca_controller.mca)
                     self.mca_controller.data_updated()
                 else:
                     mcaUtil.displayErrorMessage( 'fr')

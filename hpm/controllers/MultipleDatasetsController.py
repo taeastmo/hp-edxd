@@ -55,6 +55,8 @@ class MultipleDatasetsController(QObject):
         self.file = ''
         self.row = 0
 
+        self.mca = None
+
         #self.phases =dict()
         self.create_signals()
         
@@ -82,6 +84,11 @@ class MultipleDatasetsController(QObject):
         self.widget.prev_btn.clicked.connect(partial(self.key_sig_callback, 'left'))
         self.widget.next_btn.clicked.connect(partial(self.key_sig_callback, 'right'))
 
+    def set_mca(self, mca, element=0):
+        self.multi_spectra_model.set_mca(mca)
+        
+        self.multispectra_loaded()
+    
     def set_channel_cursor(self, cursor):
         if len(cursor):
            

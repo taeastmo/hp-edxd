@@ -36,6 +36,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         Example:
             m = MultipleSpectraModel()
         """
+        self.mca = None
         
         self.max_spectra = 500
         self.nchans = 4000
@@ -73,6 +74,11 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
     def clear(self):
         self.__init__()
+
+    def set_mca(self, mca, element=0):
+        self.mca = mca
+
+        self.data = np.asarray(mca.get_data())
 
     def was_canceled(self):
         return False

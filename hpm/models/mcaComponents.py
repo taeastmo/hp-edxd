@@ -1,6 +1,41 @@
 import numpy as np
-import utilities.CARSMath as CARSMath
+#import utilities.CARSMath as CARSMath
 from math import sqrt, sin, pi
+
+
+
+########################################################################
+
+class McaPresets():
+    """
+    The preset time and counts for an Mca.
+    
+    Fields:
+        .live_time       # Preset live time in seconds
+        .real_time       # Preset real time in seconds
+        .read_time       # Time that the Mca was last read in seconds
+        .total_counts    # Preset total counts between the preset
+                        #    start and stop channels
+        .start_channel   # Start channel for preset counts
+        .end_channel     # End channel for preset counts
+        .dwell           # Dwell time per channel for MCS devices
+        .channel_advance # Channel advance source for MCS hardware:
+                        #    0=internal, 1=external
+        .prescale        # Prescaling setting for MCS hardware
+    """
+    def __init__(self):
+        self.live_time = 0.
+        self.real_time = 0.
+        self.total_counts = 0.
+        self.start_channel = 0
+        self.end_channel = 0
+        self.dwell = 0.
+        self.channel_advance = 0
+        self.prescale = 0
+
+    
+
+########################################################################
 
 class McaROI():
     """
