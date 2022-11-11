@@ -236,7 +236,7 @@ class McaCalibration():
                 self.available_scales.append(scales[1])
                 self.available_scales.append(scales[3])
          
-        print(self.available_scales)
+        
 
  
 
