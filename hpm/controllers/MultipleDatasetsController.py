@@ -135,7 +135,8 @@ class MultipleDatasetsController(QObject):
             if sig == 'left' or sig == 'down':
                 row -= 1
             pos = self.widget.cursorPoints[0][1]
-            self.CursorClick([row, pos])
+            if not np.isnan(pos):
+                self.CursorClick([row, pos])
 
     '''def adjust_row(self, row):
         files = self.multi_spectra_model.r['files_loaded']

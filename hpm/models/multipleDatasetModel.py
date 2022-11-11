@@ -76,6 +76,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.__init__()
 
     def set_mca(self, mca, element=0):
+        self.clear()
         self.mca = mca
 
         self.data = np.asarray(mca.get_data())
@@ -86,7 +87,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
     def flaten_data(self, data):
 
         
-        out = np.sum(data, axis=0)/ np.shape(data)[0]
+        out = np.sum(data, axis=0)#/ np.shape(data)[0]
         return out
         
 
@@ -148,6 +149,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
             fit_range = 10
             for row in range(rows):
                 max_rough = int( np.argmax(data[row][0:half_bins]))
+                if max_rough == 0:
+                    continue
                 fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
                 fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
                 min_y = np.amin(fit_segment_y)
@@ -161,13 +164,17 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
                 max_points_right[row] = controid
             
-            left = max(max_points_left)
-            right = min(max_points_right)
+            max_points_left_ =  max_points_left[max_points_left != 0]
+            max_points_right_ = max_points_right[max_points_right != 0]
+            left = max(max_points_left_)
+            right = min(max_points_right_)
         
             M = np.ones(rows)   # relative slopes
             B = np.zeros(rows)  # relative y-intercepts
             
             for row in range(rows):
+                if max_points_left[row] == 0:
+                    continue
                 x1 = left
                 x2 = right
                 y1 = max_points_left[row]
