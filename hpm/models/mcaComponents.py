@@ -190,7 +190,7 @@ class McaCalibration():
         self.slope = slope
         self.quad = quad
         self.dx_type = ''
-        self.available_scales = []
+        self.available_scales = ['Channel']
 
         if 'units' in kwargs:
             units = kwargs['units']

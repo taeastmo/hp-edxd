@@ -276,9 +276,9 @@ class mcaFileIO():
 
 
             coeffs = self.compute_tth_calibration_coefficients(x)
-            if wavelength == None:
+            '''if wavelength == None:
 
-                wavelength = xyPatternParametersDialog.showDialog(basefile,'wavelength',.4)
+                wavelength = xyPatternParametersDialog.showDialog(basefile,'wavelength',.4)'''
 
             r = {}
             r['n_detectors'] = 1

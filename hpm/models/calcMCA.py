@@ -312,10 +312,10 @@ class multiFileMCA(MCA):
         else:
             wavelength = None
 
-        if wavelength == None:
+        '''if wavelength == None:
             basefile=os.path.basename(paths[0])
             wavelength = xyPatternParametersDialog.showDialog(basefile,'wavelength',.4)
-
+        '''
 
         paths = paths [:self.max_spectra]
         nfiles = len (paths)   

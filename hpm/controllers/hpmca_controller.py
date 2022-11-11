@@ -102,11 +102,12 @@ class hpmcaController(QObject):
         self.lattice_refinement_controller = None
         self.controllers_initialized = False
 
-        self.unit = 'E' #default units
+        self.unit = 'Channel' #default units
         self.dx_type = 'exd'
+        self.available_scales = []
        
 
-        self.setHorzScaleBtnsEnabled(self.dx_type)
+        #self.setHorzScaleBtnsEnabled(self.dx_type)
 
         self.title_name = ''
 
@@ -229,26 +230,7 @@ class hpmcaController(QObject):
         if sig == 'shift_release' :
             self.zoomPan(0)  
             
-    def set_Tth(self):
-        mca = self.mca
-        element = copy.copy(self.element)
-        calibration = copy.deepcopy(mca.get_calibration()[element])
-        tth = calibration.two_theta
-        val, ok = QInputDialog.getDouble(self.widget, "Manual 2theta setting", "Current 2theta = "+ '%.4f'%(tth)+"\nEnter new 2theta: \n(Note: calibrated 2theta value will be updated)",tth,0,180,4)
-        if ok:
-            calibration.two_theta = val
-            mca.set_calibration(calibration, element)
-
-    def set_Wavelength(self):
-        mca = self.mca
-        element = copy.copy(self.element)
-        calibration = copy.deepcopy(mca.get_calibration()[element])
-        wavelength = calibration.wavelength
-        val, ok = QInputDialog.getDouble(self.widget, "Manual wavelength setting", "Current wavelength = "+ '%.4f'%(wavelength)+"\nEnter new wavelength: \n(Note: calibrated wavelength value will be updated)",wavelength,0,180,4)
-        if ok:
-            calibration.wavelength = val
-            mca.set_calibration(calibration, element)
-            mca.wavelength = val
+    
 
            
 
@@ -512,34 +494,48 @@ class hpmcaController(QObject):
         environment = self.mca.environment
         self.environment_controller.set_environment(environment)
         self.update_titlebar()
-        elapsed = self.mca.get_elapsed()[0]
+        elapsed = self.mca.get_elapsed()[element]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
         self.widget.lblRealTime.setText("%0.2f" %(elapsed.real_time))
         dx_type = self.mca.dx_type
         if self.dx_type != dx_type:
             self.set_dx_type(dx_type)
+        available_scales = self.mca.get_calibration()[element].available_scales
+        if available_scales != self.available_scales:
+            self.available_scales = available_scales
+            self.setHorzScaleBtnsEnabled()
         self.phase_controller.pattern_updated()
             
 
     def set_dx_type(self, dx_type):
         self.dx_type = dx_type
-        self.setHorzScaleBtnsEnabled(self.dx_type)
+        element = self.element
+        available_scales = self.mca.get_calibration()[element].available_scales
         if dx_type == 'edx':
-            self.widget.radioE.setChecked(True)
+            if 'E' in available_scales:
+                self.widget.set_unit_btn('E')
+            else:
+                self.widget.set_unit_btn('Channel')
             self.phase_controller.phase_widget.set_edx()
             self.widget.actionManualWavelength.setEnabled(False)
             self.widget.actionManualTth.setEnabled(True)
             self.widget.actionCalibrate_energy.setEnabled(True)
             self.widget.actionCalibrate_2theta.setEnabled(True)
             #old_tth = self.phase_controller .phase_widget.tth_lbl.text()
-        if dx_type == 'adx':
-            self.widget.radiotth.setChecked(True)
+        elif dx_type == 'adx':
+            if '2 theta' in available_scales:
+                self.widget.set_unit_btn('2 theta')
+            else:
+                self.widget.set_unit_btn('Channel')
+            
             self.phase_controller.phase_widget.set_adx()
             self.widget.actionManualWavelength.setEnabled(True)
             self.widget.actionManualTth.setEnabled(False)
             self.widget.actionCalibrate_energy.setEnabled(False)
             self.widget.actionCalibrate_2theta.setEnabled(False)
-            self.phase_controller.phase_widget.wavelength_lbl.setValue(self.mca.calibration[0].wavelength)
+            wavelength = self.mca.calibration[0].wavelength
+            if wavelength != None:
+                self.phase_controller.phase_widget.wavelength_lbl.setValue(wavelength)
 
     def envs_updated_callback(self, envs):
         
@@ -592,12 +588,48 @@ class hpmcaController(QObject):
         if self.mca != None:
             phase=self.working_directories.phase
             data_label = self.plotController.get_data_label()
-            self.ctth = mcaCalibrate2theta(self.mca, detector=self.element, jcpds_directory=phase, data_label=data_label)
+            self.ctth = mcaCalibrate2theta(self.mca, detector=self.element, jcpds_directory=phase, data_label=data_label, command=self.calibrate_tth_module_callback)
             if self.ctth.nrois < 1:
                 mcaUtil.displayErrorMessage( 'calroi')
                 self.ctth.destroy()
             else:
                 self.ctth.raise_widget()
+    def calibrate_tth_module_callback(self, exit_status):
+        # mcaCalibrateEnergy returns 1 if calibration updates
+        # if not updated
+        if exit_status:
+            self.data_updated()
+
+    def set_Tth(self):
+        mca = self.mca
+        element = copy.copy(self.element)
+        calibration = copy.deepcopy(mca.get_calibration()[element])
+        tth = calibration.two_theta
+        if tth != None:
+            val, ok = QInputDialog.getDouble(self.widget, f"Manual 2\N{GREEK SMALL LETTER THETA} setting", "Current 2\N{GREEK SMALL LETTER THETA} = "+ '%.4f'%(tth)+"\nEnter new 2\N{GREEK SMALL LETTER THETA}: \n(Note: calibrated 2theta value will be updated)",tth,0,180,4)
+        else:
+            val, ok = QInputDialog.getDouble(self.widget, f"Manual 2\N{GREEK SMALL LETTER THETA} setting", "2\N{GREEK SMALL LETTER THETA} theta: \n(Note: calibrated 2\N{GREEK SMALL LETTER THETA} value will be updated)",15,0,180,4)
+        if ok:
+            calibration.two_theta = val
+            calibration.set_dx_type('edx')
+            mca.set_calibration(calibration, element)
+            self.data_updated()
+
+    def set_Wavelength(self):
+        mca = self.mca
+        element = copy.copy(self.element)
+        calibration = copy.deepcopy(mca.get_calibration()[element])
+        wavelength = calibration.wavelength
+        if wavelength != None:
+            val, ok = QInputDialog.getDouble(self.widget, "Manual wavelength setting", "Current wavelength = "+ '%.4f'%(wavelength)+"\nEnter new wavelength: \n(Note: calibrated wavelength value will be updated)",wavelength,0,180,4)
+        else:
+            val, ok = QInputDialog.getDouble(self.widget, "Manual wavelength setting", "Enter new wavelength: \n(Note: calibrated wavelength value will be updated)",0.4,0,180,4)
+        if ok:
+            calibration.wavelength = val
+            calibration.set_dx_type('adx')
+            mca.set_calibration(calibration, element)
+            mca.wavelength = val
+            self.data_updated()
     
     def jcpds_module(self):
         if self.mca !=None:
@@ -699,24 +731,16 @@ class hpmcaController(QObject):
 
     def HorzScaleRadioToggle(self,b):
         if b.isChecked() == True:
-            if self.widget.radioE.isChecked() == True:
-                horzScale = 'E'
-            elif self.widget.radioq.isChecked() == True:
-                horzScale = 'q'
-            elif self.widget.radioChannel.isChecked() == True:
-                horzScale = 'Channel'
-            elif self.widget.radiod.isChecked() == True:
-                horzScale = 'd'
-            elif self.widget.radiotth.isChecked() == True:
-                horzScale = '2 theta'
+            horzScale = self.widget.get_selected_unit()
+           
             self.set_unit(horzScale)
 
-    def setHorzScaleBtnsEnabled(self, preset = 'edx'):
-        scales = ['Channel']
-        if preset == 'edx':
-            scales =['E','q','d','Channel']   
-        elif preset == 'adx':
-            scales =['2 theta','q','d','Channel']   
+    def setHorzScaleBtnsEnabled(self):
+        scales = self.available_scales
+        horzScale = self.widget.get_selected_unit()
+        if not horzScale in scales:
+            self.widget.set_unit_btn('Channel')
+            self.unit = 'Channel'
         self.widget.set_scales_enabled_states(scales)
         
 

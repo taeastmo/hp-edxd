@@ -401,6 +401,7 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         """ Private method """
         if (button == 'OK') or (button == 'Apply'):
             # Copy calibration and rois to input mca object
+            self.calibration.set_dx_type('adx')
             self.input_mca.set_calibration(self.calibration, self.detector)
             #self.input_mca.set_rois(self.roi)
             pass

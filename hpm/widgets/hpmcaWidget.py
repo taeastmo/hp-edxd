@@ -46,6 +46,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
                             'd':self.radiod,
                             'Channel':self.radioChannel,
                             '2 theta':self.radiotth}
+        
         self.add_menu_items()
         self.setAcceptDrops(True)
 
@@ -171,6 +172,24 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
     def set_scales_enabled_states(self, enabled=['E','q','d','Channel']):
         for btn in self.scales_btns:
             self.scales_btns[btn].setEnabled(btn in enabled)
+
+    def get_selected_unit(self):
+        horzScale = 'Channel'
+        if self.radioE.isChecked() == True:
+            horzScale = 'E'
+        elif self.radioq.isChecked() == True:
+            horzScale = 'q'
+        
+        elif self.radiod.isChecked() == True:
+            horzScale = 'd'
+        elif self.radiotth.isChecked() == True:
+            horzScale = '2 theta'
+        return horzScale
+
+    def set_unit_btn(self, unit):
+        if unit in self.scales_btns:
+            btn = self.scales_btns[unit]
+            btn.setChecked(True)
 
     ########################################################################################
     ########################################################################################

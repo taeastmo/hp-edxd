@@ -90,6 +90,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self.tth_lbl = DoubleSpinBoxAlignRight()
         self.tth_step = DoubleMultiplySpinBoxAlignRight()
         self.get_tth_btn = QtWidgets.QPushButton('Get')
+        self.auto_2theta_btn = QtWidgets.QPushButton('Auto')
 
         self._wavelength_lbl = QtWidgets.QLabel(f'\N{GREEK SMALL LETTER LAMDA}:')
         self._wavelength_unit_lbl = QtWidgets.QLabel(f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
@@ -98,7 +99,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self.get_wavelength_btn = QtWidgets.QPushButton('Get')
 
 
-        self.edx_widgets= [self._tth_lbl, self._tth_unit_lbl, self.tth_lbl,self.tth_step,self.get_tth_btn]
+        self.edx_widgets= [self._tth_lbl, self._tth_unit_lbl, self.tth_lbl,self.tth_step,self.get_tth_btn, self.auto_2theta_btn]
         self.adx_widgets= [self._wavelength_lbl, self._wavelength_unit_lbl, self.wavelength_lbl,self.wavelength_step,self.get_wavelength_btn]
 
         self._parameter_layout.addWidget(QtWidgets.QLabel('Parameter'), 0, 1)
@@ -130,7 +131,7 @@ class PhaseWidget(QtWidgets.QWidget):
         self._parameter_layout.addWidget(self.wavelength_step, 9, 3)
         self._parameter_layout.addWidget(self.get_wavelength_btn, 9, 4)
 
-        self.auto_2theta_btn = QtWidgets.QPushButton('Auto')
+        
         self.auto_2theta_btn.setCheckable(True)
 
         self._parameter_layout.addWidget(self.auto_2theta_btn, 8, 5)

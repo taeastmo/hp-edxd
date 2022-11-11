@@ -345,7 +345,7 @@ class Ui_hpMCA(object):
         self.HorizontalScale_btn_group.addButton(self.radioChannel)
         self.HorizontalScale_btn_group.addButton(self.radiod)
         self.HorizontalScale_btn_group.addButton(self.radiotth)
-        self.radioE.setChecked(True)
+        self.radioChannel.setChecked(True)
         
 
         self._groupBoxHorizontalScale_layout.addLayout(self.HorizontalScaleLayout)
