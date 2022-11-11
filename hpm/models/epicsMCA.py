@@ -516,7 +516,7 @@ class epicsMCA(MCA):
         calibration.set_dx_type('edx')
         
 
-        super().set_calibration([calibration])
+        super().set_calibration(calibration, 0)
         if self.verbose:
             print("get_calibration --- %s seconds ---" % (time.time() - start_time))
         return self.calibration
