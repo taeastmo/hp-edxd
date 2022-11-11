@@ -63,8 +63,8 @@ class MultipleDatasetsController(QObject):
     def create_signals(self):
        
         self.widget.widget_closed.connect(self.view_closed)
-        self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
-        self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)
+        '''self.widget.add_btn.clicked.connect(self.add_btn_click_callback)
+        self.widget.add_file_btn.clicked.connect(self.add_file_btn_click_callback)'''
         self.widget.radioE.clicked.connect(partial (self.rebin_btn_callback, 'E'))
         self.widget.radioq.clicked.connect(partial (self.rebin_btn_callback, 'q'))
         self.widget.radioChannel.clicked.connect(partial (self.rebin_btn_callback, 'Channel'))
@@ -95,7 +95,7 @@ class MultipleDatasetsController(QObject):
             channel = cursor['channel']
             pos = channel
             if self.scale == 'q' or self.scale == 'E':
-                converter = self.multi_spectra_model.r['calibration'][self.row].channel_to_scale
+                converter = self.multi_spectra_model.mca.get_calibration()[self.row].channel_to_scale
                 pos = converter(channel,self.scale)
             elif self.scale == 'Aligned':
                 scale = self.multi_spectra_model.calibration['slope'][self.row]
@@ -155,15 +155,16 @@ class MultipleDatasetsController(QObject):
 
     def CursorClick(self, index):
         index, pos = int(index[0]), index[1]
-        files = self.multi_spectra_model.r['files_loaded']
-        if len(files) == 1:
+        
+        rows = np.shape(self.multi_spectra_model.data)[0]
+        if index < rows and index >= 0:
             self.widget.select_spectrum(index)
             self. element_changed(index)
             self.row = index
             self.widget.select_value(pos)
             self.set_channel(index, pos)
             
-        elif len(files) >1:
+        '''elif len(files) >1:
             if index < len(files) and index >= 0:
                 self.widget.select_file(index)
                 self.widget.select_spectrum(index)
@@ -171,12 +172,12 @@ class MultipleDatasetsController(QObject):
                 self.file_changed(file)
                 self.row = index
                 self.widget.select_value(pos)
-                self.set_channel(index, pos)
+                self.set_channel(index, pos)'''
 
     def set_channel(self, index, pos):
         channel = pos
         if self.scale == 'q' or self.scale == 'E':
-            converter = self.multi_spectra_model.r['calibration'][index].scale_to_channel
+            converter = self.multi_spectra_model.mca.get_calibration()[index].scale_to_channel
             channel = converter(pos,self.scale)
         elif self.scale == 'Aligned':
             scale = self.multi_spectra_model.calibration['slope'][self.row]

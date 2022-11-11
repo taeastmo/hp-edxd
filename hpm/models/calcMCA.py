@@ -175,7 +175,7 @@ class multiFileMCA(MCA):
 
         paths = paths [:self.max_spectra]
         nfiles = len (paths)   
-        data = np.zeros([nfiles, self.nchans])
+        
         files_loaded = []
         environment = []
         calibration = [McaCalibration()]
@@ -216,7 +216,11 @@ class multiFileMCA(MCA):
                     start_time = value
                     times.append(start_time)
                 elif (tag == 'CHANNELS:'):
-                    nchans = int(value)
+                    if d == 0:
+
+                        nchans = int(value)
+                        self.nchans = nchans
+                        data = np.zeros([nfiles, self.nchans])
                 elif (tag == 'ROIS:'):
                     nrois = int(values[0])
                     

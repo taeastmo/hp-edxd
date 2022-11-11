@@ -47,12 +47,12 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout = QtWidgets.QHBoxLayout()
         self._button_layout.setContentsMargins(0, 0, 0, 0)
         self._button_layout.setSpacing(6)
-        self.add_btn = FlatButton('Open folder')
+        '''self.add_btn = FlatButton('Open folder')
         self.add_btn.setMaximumWidth(90)
         self.add_btn.setMinimumWidth(90)
         self.add_file_btn = FlatButton('Open file')
         self.add_file_btn.setMaximumWidth(90)
-        self.add_file_btn.setMinimumWidth(90)
+        self.add_file_btn.setMinimumWidth(90)'''
        
         self.align_btn = FlatButton('Align')
         self.align_btn.setMaximumWidth(90)
@@ -70,8 +70,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
         self.clear_btn = FlatButton('Clear')
-        self._button_layout.addWidget(self.add_btn)
-        self._button_layout.addWidget(self.add_file_btn)
+        '''self._button_layout.addWidget(self.add_btn)
+        self._button_layout.addWidget(self.add_file_btn)'''
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self._button_layout.addWidget(self.align_btn)
         self._button_layout.addWidget(self.sum_btn)

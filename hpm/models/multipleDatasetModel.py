@@ -96,7 +96,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         tth = np.zeros(rows)
         bins = np.size(self.data[0])
         x = np.arange(bins)
-        calibrations = self.r['calibration']
+        calibrations = self.mca.get_calibration()
         rebinned_scales = []
     
         if scale == 'q':
