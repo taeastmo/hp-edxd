@@ -583,6 +583,7 @@ class hpmcaController(QObject):
         # if not updated
         if exit_status:
             self.data_updated()
+            self.multiple_datasets_controller.set_mca(self.mca)
     
     def calibrate_tth_module(self):
         if self.mca != None:
@@ -599,6 +600,7 @@ class hpmcaController(QObject):
         # if not updated
         if exit_status:
             self.data_updated()
+            self.multiple_datasets_controller.set_mca(self.mca)
 
     def set_Tth(self):
         mca = self.mca
@@ -614,6 +616,7 @@ class hpmcaController(QObject):
             calibration.set_dx_type('edx')
             mca.set_calibration(calibration, element)
             self.data_updated()
+            self.multiple_datasets_controller.set_mca(self.mca)
 
     def set_Wavelength(self):
         mca = self.mca
@@ -630,6 +633,7 @@ class hpmcaController(QObject):
             mca.set_calibration(calibration, element)
             mca.wavelength = val
             self.data_updated()
+            self.multiple_datasets_controller.set_mca(self.mca)
     
     def jcpds_module(self):
         if self.mca !=None:

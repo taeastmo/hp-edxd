@@ -92,9 +92,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_filter = QtWidgets.QLineEdit('')
         self.file_filter.setFocusPolicy(Qt.ClickFocus)
         self.file_filter.setAlignment(QtCore.Qt.AlignRight)
-        self.file_filter_refresh_btn = QtWidgets.QPushButton("Reload")
+        
         self._filter_layout.addWidget(self.file_filter)
-        self._filter_layout.addWidget(self.file_filter_refresh_btn)
+        
         self.filter_widget.setLayout(self._filter_layout)
         self._layout.addWidget(self.filter_widget)
         self._body_layout = QtWidgets.QHBoxLayout()
@@ -119,6 +119,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.radioq = QtWidgets.QPushButton(self.HorizontalScaleWidget)
         self.radioq.setObjectName("radioq")
         self.HorizontalScaleLayout.addWidget(self.radioq)
+        self.radiotth = QtWidgets.QPushButton(self.HorizontalScaleWidget)
+        self.radiotth.setObjectName("radiotth")
+        self.HorizontalScaleLayout.addWidget(self.radiotth)
         self.radioChannel = QtWidgets.QPushButton(self.HorizontalScaleWidget)
         self.radioChannel.setObjectName("radioChannel")
         self.HorizontalScaleLayout.addWidget(self.radioChannel)
@@ -130,11 +133,13 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
         self.radioE.setCheckable(True)
         self.radioq.setCheckable(True)
+        self.radiotth.setCheckable(True)
         self.radioChannel.setCheckable(True)
         self.radioAligned.setCheckable(True)
 
         self.radioE.setText("E")
         self.radioq.setText("q")
+        self.radiotth.setText(f'2\N{GREEK SMALL LETTER THETA}')
         self.radioChannel.setText("Channel")
         self.radioAligned.setText("Aligned")
 
@@ -203,6 +208,34 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
         self.current_scale = {'label': 'Channel', 'scale': [1,0]}
         self.current_row_scale = {'label': 'Index', 'scale': [1,0]}
+
+        self.scales_btns = {'E':self.radioE,
+                            'q':self.radioq,
+                            'Aligned': self.radioAligned,
+                            'Channel':self.radioChannel,
+                            '2 theta':self.radiotth}
+
+
+    def set_scales_enabled_states(self, enabled=['Channel']):
+        for btn in self.scales_btns:
+            self.scales_btns[btn].setEnabled(btn in enabled)
+
+    def get_selected_unit(self):
+        horzScale = 'Channel'
+        if self.radioE.isChecked() == True:
+            horzScale = 'E'
+        elif self.radioq.isChecked() == True:
+            horzScale = 'q'
+        elif self.radiotth.isChecked() == True:
+            horzScale = '2 theta'
+        elif self.radioAligned.isChecked() == True:
+            horzScale = 'Aligned'
+        return horzScale
+
+    def set_unit_btn(self, unit):
+        if unit in self.scales_btns:
+            btn = self.scales_btns[unit]
+            btn.setChecked(True)
 
     def plot_data(self, x=[],y=[]):
         self.line_plot_widget.plotData(x, y)
