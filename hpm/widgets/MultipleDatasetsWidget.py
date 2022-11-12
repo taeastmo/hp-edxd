@@ -74,7 +74,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
-        self.folder_widget = QtWidgets.QWidget(self)
+        '''self.folder_widget = QtWidgets.QWidget(self)
         self._folder_layout = QtWidgets.QHBoxLayout()
         self._folder_layout.setContentsMargins(0, 0, 0, 0)
         self._folder_layout.setSpacing(6)
@@ -83,8 +83,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_folder.setAlignment(QtCore.Qt.AlignRight)
         self._folder_layout.addWidget(self.file_folder)
         self.folder_widget.setLayout(self._folder_layout)
-        self._layout.addWidget(self.folder_widget)
-        self.filter_widget = QtWidgets.QWidget(self)
+        self._layout.addWidget(self.folder_widget)'''
+        '''self.filter_widget = QtWidgets.QWidget(self)
         self._filter_layout = QtWidgets.QHBoxLayout()
         self._filter_layout.setContentsMargins(0, 0, 0, 0)
         self._filter_layout.setSpacing(6)
@@ -96,7 +96,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._filter_layout.addWidget(self.file_filter)
         
         self.filter_widget.setLayout(self._filter_layout)
-        self._layout.addWidget(self.filter_widget)
+        self._layout.addWidget(self.filter_widget)'''
         self._body_layout = QtWidgets.QHBoxLayout()
         self.file_view_tabs= QtWidgets.QTabWidget(self)
         
