@@ -172,6 +172,12 @@ class MCA():  #
         rois = copy.copy(self.rois)
       
         return rois
+    
+    def get_rois_by_det_index(self, detector=0):
+        """ Returns the Mca ROIS, as a list of McaROI objects """
+        rois = copy.copy(self.rois[detector])
+      
+        return rois
 
     def get_rois_offline(self, energy=0):
         """ Returns the Mca ROIS, as a list of McaROI objects, dont override with epics mca etc """

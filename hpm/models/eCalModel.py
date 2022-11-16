@@ -23,7 +23,7 @@ import numpy as Numeric
 import utilities.CARSMath as CARSMath
 
 
-def fit_energies(self, roi, degree, calibration):
+def fit_energies(roi, degree, calibration):
     """ Private method """
     
     use = []

@@ -131,6 +131,7 @@ class mcaFileIO():
         calibration = [McaCalibration()]
         rois = [[]]
         dx_type = ''
+        data_type = int
         try:
             
             while(1):
@@ -209,7 +210,9 @@ class mcaFileIO():
                         counts = line.split()
                         for d in range(n_detectors):
                             data[d][chan]=data_type(counts[d])
-                    
+                    for d in range(n_detectors):    
+                        if calibration[d].dx_type == '':
+                            calibration[d].set_dx_type('edx')
                 else:
                     for i in range(max_rois):
                         roi = 'ROI_'+str(i)+'_'
@@ -402,7 +405,9 @@ class mcaFileIO():
         fp.write('CAL_SLOPE: '+(eformat % tuple(slope))+'\n')
         fp.write('CAL_QUAD: '+(eformat % tuple(quad))+'\n')
         if c.dx_type == 'edx':
-            fp.write('TWO_THETA: '+(fformat % tuple(two_theta))+'\n')
+            res = any(ele == None for ele in two_theta)
+            if not res:
+                fp.write('TWO_THETA: '+(fformat % tuple(two_theta))+'\n')
             data_format = iformat
         if c.dx_type == 'adx':
             fp.write('WAVELENGTH: '+(fformat % tuple(wavelength))+'\n')

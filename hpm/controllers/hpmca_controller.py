@@ -117,6 +117,7 @@ class hpmcaController(QObject):
         self.multiple_datasets_controller.file_changed_signal.connect(self.file_changed_signal_callback)
         self.multiple_datasets_controller.channel_changed_signal.connect(self.multispectral_channel_changed_callback)
         self.multiple_datasets_controller.element_changed_signal.connect(self.multispectral_element_changed_callback)
+        self.multiple_datasets_controller.add_rois_signal.connect(self.multispectral_add_rois_callback)
 
         self.make_prefs_menu()  # for mac
 
@@ -497,13 +498,15 @@ class hpmcaController(QObject):
         elapsed = self.mca.get_elapsed()[element]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
         self.widget.lblRealTime.setText("%0.2f" %(elapsed.real_time))
-        dx_type = self.mca.dx_type
-        if self.dx_type != dx_type:
-            self.set_dx_type(dx_type)
+        
+        
         available_scales = self.mca.get_calibration()[element].available_scales
         if available_scales != self.available_scales:
             self.available_scales = available_scales
             self.setHorzScaleBtnsEnabled()
+        dx_type = self.mca.get_calibration()[element].dx_type
+        if self.dx_type != dx_type:
+            self.set_dx_type(dx_type)
         self.phase_controller.pattern_updated()
             
 
@@ -705,6 +708,11 @@ class hpmcaController(QObject):
         self.element = element
         self.data_updated()
         #self.plotController.mouseCursor_non_signalling(channel)
+
+    def multispectral_add_rois_callback(self, all_rois):
+        print(len(all_rois))
+        for det, rois in enumerate(all_rois):
+            self.roi_controller.add_rois_to_mca(rois,det)
 
     def hklGen_module(self):
         self.hlkgen_controller.show_view()

@@ -61,6 +61,12 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
         self.tth_btn.setMaximumWidth(90)
         self.tth_btn.setMinimumWidth(90)
+        self.copy_rois_btn = FlatButton('Copy ROIs')
+        self.copy_rois_btn.setMaximumWidth(90)
+        self.copy_rois_btn.setMinimumWidth(90)
+        self.cal_btn = FlatButton('Calibrate')
+        self.cal_btn.setMaximumWidth(90)
+        self.cal_btn.setMinimumWidth(90)
 
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
@@ -71,6 +77,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.addWidget(self.sum_btn)
         self._button_layout.addWidget(self.ebg_btn)
         self._button_layout.addWidget(self.tth_btn)
+        self._button_layout.addWidget(self.copy_rois_btn)
+        self._button_layout.addWidget(self.copy_rois_btn)
+        self._button_layout.addWidget(self.cal_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
@@ -145,6 +154,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
         self.HorizontalScale_btn_group.addButton(self.radioE)
         self.HorizontalScale_btn_group.addButton(self.radioq)
+        self.HorizontalScale_btn_group.addButton(self.radiotth)
         self.HorizontalScale_btn_group.addButton(self.radioChannel)
         self.HorizontalScale_btn_group.addButton(self.radioAligned)
 

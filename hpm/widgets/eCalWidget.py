@@ -93,7 +93,7 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         """
         super(mcaCalibrateEnergy, self).__init__()
         self.input_mca = mca
-        self.model = CalibrateEnergyModel()
+        
         self.det = detector
         #self.input_mca.auto_process_rois = False
         self.roi = copy.deepcopy(mca.get_rois()[detector])

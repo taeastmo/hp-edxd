@@ -369,7 +369,7 @@ class RoiController(QObject):
                     #self.add_roi_btn()
                     mode = widget.btnROIadd.text()
                     #self.plotController.roi_construct(mode)
-                    widths = {'E': 0.7, 'q': 0.1, 'Channel':20, 'd': 0.1}
+                    widths = {'E': 0.7, 'q': 0.1, 'Channel':25, 'd': 0.1}
                     if mode == 'Add':
                         widget.btnROIadd.setText("Set")
                         if self.unit in widths:

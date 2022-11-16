@@ -34,6 +34,7 @@ class MultipleDatasetsController(QObject):
     file_changed_signal = pyqtSignal(str)  
     element_changed_signal = pyqtSignal(int)
     channel_changed_signal = pyqtSignal(float)  
+    add_rois_signal = pyqtSignal(list)
 
     def __init__(self, file_save_controller):
         super().__init__()
@@ -55,8 +56,6 @@ class MultipleDatasetsController(QObject):
         self.file = ''
         self.row = 0
 
-        self.mca = None
-
         #self.phases =dict()
         self.create_signals()
         
@@ -73,6 +72,8 @@ class MultipleDatasetsController(QObject):
         self.widget.sum_btn.clicked.connect(self.sum_data)
         self.widget.ebg_btn.clicked.connect(self.ebg_data)
         self.widget.tth_btn.clicked.connect(partial(self.set_row_scale, 'tth'))
+        self.widget.copy_rois_btn.clicked.connect(self.propagate_rois_to_all_elements)
+        self.widget.cal_btn.clicked.connect(self.calibrate_all_elements)
 
         self.widget.key_signal.connect(self.key_sig_callback)
         self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
@@ -97,12 +98,21 @@ class MultipleDatasetsController(QObject):
                 converter = self.multi_spectra_model.mca.get_calibration()[self.row].channel_to_scale
                 pos = converter(channel,self.scale)
             elif self.scale == 'Aligned':
-                if len(self.multi_spectra_model.calibration):
+                if len(self.multi_spectra_model.calibration_inv):
                     pos = self.multi_spectra_model.channel_to_aligned(channel, self.row)
-                    '''scale = self.multi_spectra_model.calibration['slope'][self.row]
-                    translate = self.multi_spectra_model.calibration['offset'][self.row]
-                    pos = (channel - translate )/scale '''
+              
             self.widget.select_value(pos)
+
+    def propagate_rois_to_all_elements(self):
+        row = self.row
+        rois = self.multi_spectra_model.mca.get_rois_by_det_index(row)
+        all_new_rois = self.multi_spectra_model.make_aligned_rois(row, rois)
+        self.add_rois_signal.emit(all_new_rois)
+
+    def calibrate_all_elements(self):
+        self.multi_spectra_model.calibrate_all_elements()
+        self.setHorzScaleBtnsEnabled()
+        self.multispectra_loaded()
         
 
     def file_list_selection_changed_callback(self, row):
@@ -159,16 +169,8 @@ class MultipleDatasetsController(QObject):
         elif self.scale == 'Aligned':
             if len(self.multi_spectra_model.calibration):
                 channel = self.multi_spectra_model.aligned_to_channel(pos, self.row)
-                '''scale = self.multi_spectra_model.calibration['slope'][self.row]
-                translate = self.multi_spectra_model.calibration['offset'][self.row]
-                channel = pos * scale + translate'''
-        
         self.channel_changed_signal.emit(channel)
 
-    def aligner(self):
-        pass
-    
-    
 
     def align_btn_callback(self):
         if len(self.multi_spectra_model.data):
