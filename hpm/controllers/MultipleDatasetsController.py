@@ -98,9 +98,10 @@ class MultipleDatasetsController(QObject):
                 pos = converter(channel,self.scale)
             elif self.scale == 'Aligned':
                 if len(self.multi_spectra_model.calibration):
-                    scale = self.multi_spectra_model.calibration['slope'][self.row]
+                    pos = self.multi_spectra_model.channel_to_aligned(channel, self.row)
+                    '''scale = self.multi_spectra_model.calibration['slope'][self.row]
                     translate = self.multi_spectra_model.calibration['offset'][self.row]
-                    pos = (channel - translate )/scale 
+                    pos = (channel - translate )/scale '''
             self.widget.select_value(pos)
         
 
@@ -157,9 +158,10 @@ class MultipleDatasetsController(QObject):
             channel = converter(pos,self.scale)
         elif self.scale == 'Aligned':
             if len(self.multi_spectra_model.calibration):
-                scale = self.multi_spectra_model.calibration['slope'][self.row]
+                channel = self.multi_spectra_model.aligned_to_channel(pos, self.row)
+                '''scale = self.multi_spectra_model.calibration['slope'][self.row]
                 translate = self.multi_spectra_model.calibration['offset'][self.row]
-                channel = pos * scale + translate
+                channel = pos * scale + translate'''
         
         self.channel_changed_signal.emit(channel)
 
@@ -170,7 +172,7 @@ class MultipleDatasetsController(QObject):
 
     def align_btn_callback(self):
         if len(self.multi_spectra_model.data):
-            self.multi_spectra_model.rebin_for_energy()
+            self.multi_spectra_model.rebin_for_energy(2)
             self.setHorzScaleBtnsEnabled()
             scale = "Aligned"
             self.update_view(scale)

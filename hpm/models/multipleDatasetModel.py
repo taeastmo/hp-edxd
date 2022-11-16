@@ -26,6 +26,7 @@ import copy
 from .mcareaderGeStrip import *
 from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
 from utilities.CARSMath import fit_gaussian
+from .eCalModel import calc_parabola_vertex
 
 class MultipleSpectraModel(QtCore.QObject):  # 
     def __init__(self, *args, **filekw):
@@ -45,6 +46,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.data_mask = []
         
         self.calibration = {}
+        self.calibration_inv = {}
         self.channel_calibration_scales = []
 
         self.rebinned_channel_data = []
@@ -132,7 +134,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
         
 
-    def rebin_for_energy(self):
+    def rebin_for_energy(self, order = 1):
         #calibration = self.r['calibration']
         data = self.data
         bins = np.size(data[0])
@@ -144,8 +146,11 @@ class MultipleSpectraModel(QtCore.QObject):  #
             now = time.time()
             
             half_bins = int(bins/2)
+            quarter_bins = int(bins/4)
             max_points_left = np.zeros(rows)
             max_points_right = np.zeros(rows)
+            max_points_middle= np.zeros(rows)
+
             fit_range = 10
             for row in range(rows):
                 max_rough = int( np.argmax(data[row][0:half_bins]))
@@ -154,38 +159,69 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
                 fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
                 min_y = np.amin(fit_segment_y)
-                _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y - min_y)
-                max_points_left[row] = controid
+                _ , centroid,_ = fit_gaussian(fit_segment_x,fit_segment_y - min_y)
+                max_points_left[row] = centroid
 
-                max_rough = int(half_bins + np.argmax(data[row][-half_bins:]))
+                max_rough = int(half_bins + np.argmax(data[row][half_bins:]))
                 fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
                 fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
                 min_y = np.amin(fit_segment_y)
-                _ , controid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
-                max_points_right[row] = controid
+                _ , centroid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
+                max_points_right[row] = centroid
+
+                if order == 2:
+                    max_rough = int(quarter_bins + np.argmax(data[row][quarter_bins:half_bins]))
+                    fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
+                    fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
+                    min_y = np.amin(fit_segment_y)
+                    _ , centroid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
+                    max_points_middle[row] = centroid
             
             max_points_left_ =  max_points_left[max_points_left != 0]
             max_points_right_ = max_points_right[max_points_right != 0]
-            left = max(max_points_left_)
-            right = min(max_points_right_)
+            max_points_middle_ = max_points_middle[max_points_middle != 0]
+            left = np.mean(max_points_left_)
+            right = np.mean(max_points_right_)
+            middle = np.mean(max_points_middle_)
         
-            M = np.ones(rows)   # relative slopes
-            B = np.zeros(rows)  # relative y-intercepts
+            slope = np.ones(rows)   # relative slopes
+            offset = np.zeros(rows)  # relative y-intercepts
+            quad = np.zeros(rows)  # quad coefficient
+
+            slope_inv = np.ones(rows)   # relative slopes
+            offset_inv = np.zeros(rows)  # relative y-intercepts
+            quad_inv = np.zeros(rows)  # quad coefficient
             
             for row in range(rows):
                 if max_points_left[row] == 0:
                     continue
                 x1 = left
                 x2 = right
+                
                 y1 = max_points_left[row]
                 y2 = max_points_right[row]
-                M[row] = (y1-y2)/(x1-x2)
-                B[row] = (x1*y2 - x2*y1)/(x1-x2)
                 
+                if order == 1:
+                    slope[row] = (y1-y2)/(x1-x2)
+                    offset[row] = (x1*y2 - x2*y1)/(x1-x2)
+                    slope_inv[row] = (x1-x2)/(y1-y2)
+                    offset_inv[row] = (y1*x2 - y2*x1)/(y1-y2)
+                elif order == 2:
+                    x3 = middle
+                    y3 = max_points_middle[row]
+                    quad[row],slope[row],offset[row] = calc_parabola_vertex(x1,y1,x2,y2,x3,y3)
+                    quad_inv[row],slope_inv[row],offset_inv[row] = calc_parabola_vertex(y1,x1,y2,x2,y3,x3)
+
             calibration = {}
-            calibration['slope'] = M
-            calibration['offset'] = B
+            calibration['slope'] = slope
+            calibration['offset'] = offset
+            calibration['quad'] = quad
+            calibration_inv = {}
+            calibration_inv['slope'] = slope_inv
+            calibration_inv['offset'] = offset_inv
+            calibration_inv['quad'] = quad_inv
             self.calibration = calibration
+            self.calibration_inv = calibration_inv
 
             self.channel_calibration_scales = self.create_multialement_alighment_calibration(data, calibration)
        
@@ -195,11 +231,14 @@ class MultipleSpectraModel(QtCore.QObject):  #
         rows = len(data)
         bins = np.size(data[0])
         x = np.arange(bins)
-        M = calibration['slope']
-        B = calibration['offset']
+        slope = calibration['slope']
+        offset = calibration['offset']
+        quad = calibration['quad']
         calibration_scales = []
         for row in range(rows): 
-            xnew = x * M[row] + B[row]
+            xnew = x * slope[row] + offset[row]
+            if quad[row] != 0:
+                xnew = xnew + quad[row] * x * x
             calibration_scales.append(xnew)
         return calibration_scales
             
@@ -218,6 +257,24 @@ class MultipleSpectraModel(QtCore.QObject):  #
         f = interpolate.interp1d(x, row, assume_sorted=True, bounds_error=False, fill_value=0)
         row = f(xnew)
         return row
+
+    def aligned_to_channel(self, aligned, row):
+        slope = self.calibration['slope'][row]
+        offset = self.calibration['offset'][row]
+        channel = aligned * slope + offset
+        quad = self.calibration['quad'][row]
+        if quad != 0:
+            channel = channel + quad * aligned * aligned
+        return channel
+
+    def channel_to_aligned(self, channel, row):
+        slope = self.calibration_inv['slope'][row]
+        offset = self.calibration_inv['offset'][row]
+        aligned = channel * slope + offset
+        quad = self.calibration_inv['quad'][row]
+        if quad != 0:
+            aligned = aligned + quad * channel * channel
+        return aligned
 
     def find_chi_file_nelements(self, file):
         file_text = open(file, "r")

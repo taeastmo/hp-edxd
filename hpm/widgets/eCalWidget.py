@@ -42,7 +42,7 @@ import numpy as Numeric
 import hpm.models.Xrf as Xrf
 import utilities.CARSMath as CARSMath
 import functools
-from hpm.models.eCalModel import CalibrateEnergyModel
+from hpm.models.eCalModel import fit_energies
 
 
 class mcaCalibrateEnergy_widgets():
@@ -410,7 +410,7 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         degree = self.fit_type.currentIndex() + 1
         roi = self.roi
         calibration = self.calibration
-        self.model.fit_energies(roi, degree, calibration)
+        fit_energies(roi, degree, calibration)
          
         for i in range(self.nrois):
             # Recompute FWHM

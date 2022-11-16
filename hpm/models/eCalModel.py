@@ -23,40 +23,48 @@ import numpy as Numeric
 import utilities.CARSMath as CARSMath
 
 
-class CalibrateEnergyModel():
+def fit_energies(self, roi, degree, calibration):
+    """ Private method """
     
+    use = []
+    nrois = len(roi)
+    for i in range(nrois):
+        if (roi[i].use): use.append(i)
+    nuse = len(use)
+    if ((degree == 1) and (nuse < 2)):
+        #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
+        message='Must have at least two valid points for linear calibration'
+        print(message)
+        return
+    elif ((degree == 2) and (nuse < 3)):
+        #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
+        message='Must have at least three valid points for quadratic calibration'
+        print(message)
+        return
+    chan=Numeric.zeros(nuse, Numeric.float)
+    energy=Numeric.zeros(nuse, Numeric.float)
+    weights=Numeric.ones(nuse, Numeric.float)
+    for i in range(nuse):
+        chan[i] = roi[use[i]].centroid
+        energy[i] = roi[use[i]].energy
+    coeffs = CARSMath.polyfitw(chan, energy, weights, degree)
+    calibration.offset = coeffs[0]
+    calibration.slope = coeffs[1]
+    if (degree == 2):
+        calibration.quad = coeffs[2]
+    else:
+        calibration.quad = 0.0
+    calibration.set_dx_type('edx')
 
-    def fit_energies(self, roi, degree, calibration):
-        """ Private method """
-        
-        use = []
-        nrois = len(roi)
-        for i in range(nrois):
-            if (roi[i].use): use.append(i)
-        nuse = len(use)
-        if ((degree == 1) and (nuse < 2)):
-            #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
-            message='Must have at least two valid points for linear calibration'
-            print(message)
-            return
-        elif ((degree == 2) and (nuse < 3)):
-            #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
-            message='Must have at least three valid points for quadratic calibration'
-            print(message)
-            return
-        chan=Numeric.zeros(nuse, Numeric.float)
-        energy=Numeric.zeros(nuse, Numeric.float)
-        weights=Numeric.ones(nuse, Numeric.float)
-        for i in range(nuse):
-            chan[i] = roi[use[i]].centroid
-            energy[i] = roi[use[i]].energy
-        coeffs = CARSMath.polyfitw(chan, energy, weights, degree)
-        calibration.offset = coeffs[0]
-        calibration.slope = coeffs[1]
-        if (degree == 2):
-            calibration.quad = coeffs[2]
-        else:
-            calibration.quad = 0.0
-        calibration.set_dx_type('edx')
+def calc_parabola_vertex( x1:float, y1:float, x2:float, y2:float, x3:float, y3:float):
+    '''
+    Adapted and modifed to get the unknowns for defining a parabola:
+    http://stackoverflow.com/questions/717762/how-to-calculate-the-vertex-of-a-parabola-given-three-points
+    '''
 
- 
+    denom = (x1-x2) * (x1-x3) * (x2-x3)
+    A     = (x3 * (y2-y1) + x2 * (y1-y3) + x1 * (y3-y2)) / denom
+    B     = (x3*x3 * (y1-y2) + x2*x2 * (y3-y1) + x1*x1 * (y2-y3)) / denom
+    C     = (x2 * x3 * (x2-x3) * y1+x3 * x1 * (x3-x1) * y2+x1 * x2 * (x1-x2) * y3) / denom
+
+    return A,B,C
