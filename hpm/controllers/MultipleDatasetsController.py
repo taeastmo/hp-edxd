@@ -29,6 +29,7 @@ from hpm.models.multipleDatasetModel import MultipleSpectraModel
 from PyQt5.QtCore import pyqtSignal, QObject
 import natsort
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
+from hpm.models.mcaModel import MCA
 
 class MultipleDatasetsController(QObject):
     file_changed_signal = pyqtSignal(str)  
@@ -103,17 +104,7 @@ class MultipleDatasetsController(QObject):
               
             self.widget.select_value(pos)
 
-    def propagate_rois_to_all_elements(self):
-        row = self.row
-        rois = self.multi_spectra_model.mca.get_rois_by_det_index(row)
-        all_new_rois = self.multi_spectra_model.make_aligned_rois(row, rois)
-        self.add_rois_signal.emit(all_new_rois)
-
-    def calibrate_all_elements(self):
-        self.multi_spectra_model.calibrate_all_elements()
-        self.setHorzScaleBtnsEnabled()
-        self.multispectra_loaded()
-        
+    
 
     def file_list_selection_changed_callback(self, row):
         files = self.multi_spectra_model.r['files_loaded']
@@ -154,9 +145,10 @@ class MultipleDatasetsController(QObject):
         
         rows = np.shape(self.multi_spectra_model.data)[0]
         if index < rows and index >= 0:
+            self.row = index
             self.widget.select_spectrum(index)
             self. element_changed(index)
-            self.row = index
+            
             self.widget.select_value(pos)
             self.set_channel(index, pos)
         
@@ -292,7 +284,24 @@ class MultipleDatasetsController(QObject):
         for f in files_loaded:
             files.append(os.path.basename(f))
         self.widget.reload_files(files)
-   
+
+    def propagate_rois_to_all_elements(self):
+        row = self.row
+        rois = self.multi_spectra_model.mca.get_rois_by_det_index(row)
+        all_new_rois = self.multi_spectra_model.make_aligned_rois(row, rois)
+        self.add_rois_signal.emit(all_new_rois)
+
+    def calibrate_all_elements(self):
+        self.multi_spectra_model.calibrate_all_elements(2)
+        self.setHorzScaleBtnsEnabled()
+        self.multispectra_loaded()
+        
+
+    
+                
+
+        self.setHorzScaleBtnsEnabled()
+        self.multispectra_loaded()
 
     def show_view(self):
         self.active = True

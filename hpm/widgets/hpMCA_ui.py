@@ -805,6 +805,9 @@ class Ui_hpMCA(object):
         self.actionManualWavelength = QtWidgets.QAction(self)
         self.actionManualWavelength.setText("Set wavelength...")
         self.actionManualWavelength.setEnabled(False)
+        self.actionLoadCalibration = QtWidgets.QAction(self)
+        self.actionLoadCalibration.setText("Load calibration...")
+        self.actionLoadCalibration.setEnabled(False)
         
         self.actionJCPDS = QtWidgets.QAction(hpMCA)
         self.actionJCPDS.setEnabled(False)
@@ -861,6 +864,7 @@ class Ui_hpMCA(object):
         self.menuControl.addAction(self.actionCalibrate_2theta)
         self.menuControl.addAction(self.actionManualTth)
         self.menuControl.addAction(self.actionManualWavelength)
+        self.menuControl.addAction(self.actionLoadCalibration)
         self.menuDisplay.addAction(self.actionJCPDS)
         self.menuDisplay.addAction(self.actionFluor)
         self.menuDisplay.addAction(self.actionROIs)

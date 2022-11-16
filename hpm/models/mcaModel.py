@@ -97,6 +97,8 @@ class MCA():  #
         """
         self.calibration[det] = calibration
 
+    
+
     ########################################################################
     def get_presets(self):
         """ Returns the Mca presets, as an McaCPresets object """
@@ -689,6 +691,15 @@ class MCA():  #
             self.dx_type = r['dx_type']
     
         return([file,success])
+
+    def load_calibration(self, filename):
+        res, success = self.fileIO.read_ascii_file_calibration(filename)
+        if success:
+            n_det = res['n_detectors']
+            if n_det == self.n_detectors:
+                calibration = res['calibration']
+                for i, cal in enumerate(calibration):
+                    self.set_calibration(cal, i)
 
     def save_peaks_csv(self,file):
 

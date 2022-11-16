@@ -301,7 +301,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
             all_new_rois.append(new_rois)
         return all_new_rois
 
-    def calibrate_all_elements(self):
+    def calibrate_all_elements(self, order = 1):
         calibration = self.mca.get_calibration()
         all_rois = self.mca.get_rois()
         det0_rois = all_rois[0]
@@ -317,4 +317,4 @@ class MultipleSpectraModel(QtCore.QObject):  #
             rois = all_rois[det]
             for i, roi in enumerate(rois):
                 roi.energy = energies[i]
-            fit_energies(rois, 1,cal)
+            fit_energies(rois, order,cal)

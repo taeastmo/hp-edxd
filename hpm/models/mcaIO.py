@@ -253,6 +253,115 @@ class mcaFileIO():
         except:
             return [None, False]
 
+    def read_ascii_file_calibration(self, file):
+        """
+        Reads calibration from a disk file.  The file format is a tagged ASCII format.
+        The file contains the information from the Mca object which it makes sense
+        to store permanently, but does not contain all of the internal state
+        information for the Mca.  This procedure reads files written with
+        write_ascii_file().
+
+        Inputs:
+            file:
+                The name of the disk file to read.
+                
+        Outputs:
+            Returns a dictionary of the following type:
+            'n_detectors': int,
+            'calibration': [McaCalibration()]]
+            
+        Example:
+            m = read_ascii_file('mca.001')
+            
+
+        Modification by RH Dec. 30 2021
+        Version 3.1A
+        Added a distionction between EDX and ADX files.
+        For ADX files a WAVELENGTH field is written rather than TWO_THETA.
+        For ADX data is written as float, for EDX the as int.
+        """
+        try:
+            fp = open(file, 'r')
+        except:
+            return [None, False]
+        line = ''
+
+        data = None
+        
+        environment = []
+        n_detectors = 1  # Assume single element data
+        elapsed = [McaElapsed()]
+        calibration = [McaCalibration()]
+        rois = [[]]
+        dx_type = ''
+        data_type = int
+        try:
+            
+            while(1):
+                line = fp.readline()
+                if (line == ''): break
+                pos = line.find(' ')
+                if (pos == -1): pos = len(line)
+                tag = line[0:pos]
+                value = line[pos:].strip()
+                values = value.split()
+                if (tag == 'VERSION:'):
+                    pass
+                elif (tag == 'DATE:'):  
+                    start_time = value
+                elif (tag == 'ELEMENTS:'):
+                    n_detectors  = int(value)
+                    for det in range(1, n_detectors):
+                        elapsed.append(McaElapsed())
+                        calibration.append(McaCalibration())
+                        rois.append([])
+                elif (tag == 'CAL_OFFSET:'):
+                    for d in range(n_detectors):
+                        calibration[d].offset = float(values[d])
+                elif (tag == 'CAL_SLOPE:'):
+                    for d in range(n_detectors):
+                        calibration[d].slope = float(values[d])
+                elif (tag == 'CAL_QUAD:'):  
+                    for d in range(n_detectors):
+                        calibration[d].quad = float(values[d])
+                elif (tag == 'TWO_THETA:'):
+                    for d in range(n_detectors):
+                        calibration[d].two_theta = float(values[d])
+                        calibration[d].set_dx_type('edx')
+                        calibration[d].units = 'keV'
+                    dx_type = 'edx'
+                elif (tag == 'WAVELENGTH:'):
+                    for d in range(n_detectors):
+                        calibration[d].wavelength = float(values[d])
+                        calibration[d].set_dx_type('adx')
+                        calibration[d].units = 'degrees'
+                    dx_type = 'adx'
+                elif (tag == 'DATA:'):
+                    
+                    for d in range(n_detectors):    
+                        if calibration[d].dx_type == '':
+                            calibration[d].set_dx_type('edx')
+               
+                else:
+                    pass
+            
+            # Make sure DATA array is defined, else this was not a valid data file
+            #if (data == None): return [None, False]
+            fp.close()
+            # Built dictionary to return
+            r = {}
+            r['n_detectors'] = n_detectors
+            r['calibration'] = calibration
+            r['elapsed'] = elapsed
+            r['rois'] = rois
+            r['data'] = data
+            r['environment'] = environment
+            r['dx_type'] = dx_type
+            
+            return [r, True]
+        except:
+            return [None, False]
+
     def compute_tth_calibration_coefficients(self, tth):
         chan = np.linspace(0,len(tth)-1,len(tth))[::50]
         tth = tth[::50]

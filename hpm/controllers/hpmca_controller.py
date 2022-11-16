@@ -125,11 +125,7 @@ class hpmcaController(QObject):
         
     def create_connections(self):
         ui = self.widget
-        '''ui.btnROIadd.clicked.connect(lambda:self.roi_action('add'))
-        ui.btnROIclear.clicked.connect(lambda:self.roi_action('clear'))
-        ui.btnROIdelete.clicked.connect(lambda:self.roi_action('delete'))
-        ui.btnROIprev.clicked.connect(lambda:self.roi_action('prev'))
-        ui.btnROInext.clicked.connect(lambda:self.roi_action('next'))'''
+      
         ui.btnKLMprev.clicked.connect(lambda:self.xrf_action('prev'))
         ui.btnKLMnext.clicked.connect(lambda:self.xrf_action('next'))
         ui.lineEdit_2.editingFinished.connect(lambda:self.xrf_search(ui.lineEdit_2.text()))
@@ -155,7 +151,6 @@ class hpmcaController(QObject):
                                           ui.PLTM_5  ]
         self.update_elapsed_preset_btn_messages(self.elapsed_time_presets)
         
-
         ui.radioLog.toggled.connect(self.LogScaleSet)
         ui.radioE.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioE))
         ui.radioq.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radioq))
@@ -164,7 +159,6 @@ class hpmcaController(QObject):
         ui.radiotth.toggled.connect(lambda:self.HorzScaleRadioToggle(self.widget.radiotth))
         
         ui.actionExit.triggered.connect(self.widget.close)
-        
         
         ui.actionJCPDS.triggered.connect(self.jcpds_module)
         ui.actionCalibrate_energy.triggered.connect(self.calibrate_energy_module)
@@ -179,6 +173,7 @@ class hpmcaController(QObject):
         ui.actionLatticeRefinement.triggered.connect(self.lattice_refinement_module)
         ui.actionhklGen.triggered.connect(self.hklGen_module)
         ui.actionManualTth.triggered.connect(self.set_Tth)
+        ui.actionLoadCalibration.triggered.connect(self.load_calibration)
         ui.actionManualWavelength.triggered.connect(self.set_Wavelength)
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
         ui.actionRoiPrefs.triggered.connect(self.roi_preferences_module)
@@ -190,9 +185,6 @@ class hpmcaController(QObject):
         ui.file_view_btn.pressed.connect(self.file_view_btn_callback)
         ui.live_view_btn.pressed.connect(self.live_view_btn_callback)
 
-        
-        
-        # file save/read actions moved to self.file_save_controller
 
     def make_prefs_menu(self):
         _platform = platform.system()
@@ -216,9 +208,6 @@ class hpmcaController(QObject):
         self.msg.setStandardButtons(QMessageBox.Ok)
         self.msg.show()
 
-    '''def file_dragged_in_signal(self, f):
-        self.openFile(filename=f)'''
-
     def key_sig_callback(self, sig):
         if sig == 'right' :
             self.roi_controller. roi_action('next')
@@ -230,12 +219,6 @@ class hpmcaController(QObject):
             self.zoomPan(1)
         if sig == 'shift_release' :
             self.zoomPan(0)  
-            
-    
-
-           
-
-
 
     def display_preferences_module(self, *args, **kwargs):
         self.displayPrefs.show()
@@ -637,6 +620,20 @@ class hpmcaController(QObject):
             mca.wavelength = val
             self.data_updated()
             self.multiple_datasets_controller.set_mca(self.mca)
+
+    def load_calibration(self, *args, **kwargs):
+        filename = kwargs.get('filename', None)
+     
+        if filename is None:
+            filename = open_file_dialog(self.widget, "Open calibration file.",
+                                    self.file_save_controller.mca_controller.working_directories.readdata)
+        if filename != '' and filename is not None:
+            if os.path.isfile(filename):
+                if self.mca != None:
+                    self.mca.load_calibration(filename)
+                    self.data_updated()
+                    self.multiple_datasets_controller.set_mca(self.mca)
+
     
     def jcpds_module(self):
         if self.mca !=None:
