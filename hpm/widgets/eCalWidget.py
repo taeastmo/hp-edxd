@@ -34,15 +34,15 @@ Modifications:
             
 """
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 import pyqtgraph as pg
 
 import copy
 import numpy as Numeric
-import math
 import hpm.models.Xrf as Xrf
 import utilities.CARSMath as CARSMath
 import functools
+from hpm.models.eCalModel import CalibrateEnergyModel
 
 
 class mcaCalibrateEnergy_widgets():
@@ -93,6 +93,7 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         """
         super(mcaCalibrateEnergy, self).__init__()
         self.input_mca = mca
+        self.model = CalibrateEnergyModel()
         self.det = detector
         #self.input_mca.auto_process_rois = False
         self.roi = copy.deepcopy(mca.get_rois()[detector])
@@ -404,50 +405,27 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
             self.widgets.energy[roi].setText('%.3f' % energy)
         print('line: ' + line)
 
+
     def menu_do_fit(self):
-        """ Private method """
         degree = self.fit_type.currentIndex() + 1
-        use = []
+        roi = self.roi
+        calibration = self.calibration
+        self.model.fit_energies(roi, degree, calibration)
+         
         for i in range(self.nrois):
-            if (self.roi[i].use): use.append(i)
-        nuse = len(use)
-        if ((degree == 1) and (nuse < 2)):
-            #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
-            message='Must have at least two valid points for linear calibration'
-            print(message)
-            return
-        elif ((degree == 2) and (nuse < 3)):
-            #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
-            message='Must have at least three valid points for quadratic calibration'
-            print(message)
-            return
-        chan=Numeric.zeros(nuse, Numeric.float)
-        energy=Numeric.zeros(nuse, Numeric.float)
-        weights=Numeric.ones(nuse, Numeric.float)
-        for i in range(nuse):
-            chan[i] = self.roi[use[i]].centroid
-            energy[i] = self.roi[use[i]].energy
-        coeffs = CARSMath.polyfitw(chan, energy, weights, degree)
-        self.calibration.offset = coeffs[0]
-        self.cal_offset.setText(str('%.7f'%(self.calibration.offset)))
-        self.calibration.slope = coeffs[1]
-        self.cal_slope.setText(str('%.7f'%(self.calibration.slope)))
-        if (degree == 2):
-            self.calibration.quad = coeffs[2]
-        else:
-            self.calibration.quad = 0.0
-        self.cal_quad.setText(str('%.7f'%(self.calibration.quad)))
-        #self.input_mca.set_calibration([self.calibration])
-        for i in range(self.nrois):
+            # Recompute FWHM
+            roi[i].fwhm = (calibration.channel_to_energy(roi[i].centroid + 
+                                    self.fwhm_chan[i]/2.) - 
+                            calibration.channel_to_energy(roi[i].centroid -
+                                    self.fwhm_chan[i]/2.))
             energy_diff = (self.roi[i].energy -
                             self.calibration.channel_to_energy(self.roi[i].centroid))
             self.widgets.energy_diff[i].setText('%.4f' % energy_diff)
-            # Recompute FWHM
-            self.roi[i].fwhm = (self.calibration.channel_to_energy(self.roi[i].centroid + 
-                                    self.fwhm_chan[i]/2.) - 
-                            self.calibration.channel_to_energy(self.roi[i].centroid -
-                                    self.fwhm_chan[i]/2.))
             self.widgets.fwhm[i].setText('%.3f' % self.roi[i].fwhm)
+
+        self.cal_slope.setText(str('%.7f'%(self.calibration.slope)))
+        self.cal_offset.setText(str('%.7f'%(self.calibration.offset)))
+        self.cal_quad.setText(str('%.7f'%(self.calibration.quad)))
 
     def menu_ok_cancel(self, button):
         """ Private method """

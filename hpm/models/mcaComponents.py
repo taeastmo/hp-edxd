@@ -327,6 +327,8 @@ class McaCalibration():
 
         
         e = self.offset + self.slope * c
+        if self.quad != 0:
+            e = e + self.quad * c * c
         
         return e
 
