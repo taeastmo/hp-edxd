@@ -806,7 +806,7 @@ class Ui_hpMCA(object):
         self.actionManualWavelength.setText("Set wavelength...")
         self.actionManualWavelength.setEnabled(False)
         self.actionLoadCalibration = QtWidgets.QAction(self)
-        self.actionLoadCalibration.setText("Load calibration...")
+        self.actionLoadCalibration.setText("Load energy calibration...")
         self.actionLoadCalibration.setEnabled(False)
         
         self.actionJCPDS = QtWidgets.QAction(hpMCA)

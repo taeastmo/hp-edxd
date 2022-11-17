@@ -371,12 +371,13 @@ class McaCalibration():
     def channel_to_q(self,channels):
         q = channels
         if "E" in self.available_scales:
-            e = self.channel_to_energy(channels)   
-            q = 6.28318530718 /(6.199 / e / sin(self.two_theta*0.008726646259972))
+            if self.two_theta != None:
+                e = self.channel_to_energy(channels)   
+                q = 6.28318530718 /(6.199 / e / sin(self.two_theta*0.008726646259972))
         elif "2 theta" in self.available_scales:
-            two_theta = self.channel_to_energy(channels)
-            
-            q = (4*pi/self.wavelength) * np.sin( two_theta * 0.008726646259972)
+            if self.wavelength != None:
+                two_theta = self.channel_to_energy(channels)
+                q = (4*pi/self.wavelength) * np.sin( two_theta * 0.008726646259972)
         return  q
 
     ########################################################################
