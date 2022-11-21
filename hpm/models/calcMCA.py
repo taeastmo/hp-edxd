@@ -184,13 +184,16 @@ class multiFileMCA(MCA):
         max_rois = 12
         times = []
         n_detectors = nfiles
+        
         for det in range(1, n_detectors):
             elapsed.append(McaElapsed())
             calibration.append(McaCalibration())
             rois.append([])
+        
         nchans = self.nchans
         QtWidgets.QApplication.processEvents()
         for d, file in enumerate(paths):
+            
             if d % 5 == 0:
                 #update progress bar only every 5 files to save time
                 progress_dialog.setValue(d)
@@ -200,6 +203,7 @@ class multiFileMCA(MCA):
             except:
                 continue
             line = ''
+            e = 0
             while(1):
                 line = fp.readline()
                 if (line == ''): break
@@ -250,13 +254,22 @@ class multiFileMCA(MCA):
                     data_type = float
                     dx_type = 'adx'
                 elif (tag == 'ENVIRONMENT:'):
-                    env = McaEnvironment()
+                    if d == 0:
+                        env = McaEnvironment()
+                        p1 = value.find('=')
+                        env.name = value[0:p1]
+                        p2 = value[p1+2:].find('"')
+                        env.value = []
+                        for i in range(n_detectors):
+                            env.value.append('')
+                        env.description = value[p1+2+p2+3:-1]
+                        environment.append(env)
+                    env = environment[e]
                     p1 = value.find('=')
-                    env.name = value[0:p1]
                     p2 = value[p1+2:].find('"')
-                    env.value = value[p1+2: p1+2+p2]
-                    env.description = value[p1+2+p2+3:-1]
-                    environment.append(env)
+                    val= value[p1+2: p1+2+p2]
+                    env.value[d]= val
+                    e = e +1
                 elif (tag == 'DATA:'):
                     for chan in range(nchans):
                         line = fp.readline()
@@ -417,3 +430,6 @@ class multiFileMCA(MCA):
         weights = np.ones(len(tth)) 
         coeffs = CARSMath.polyfitw(chan, tth, weights, 1)
         return coeffs
+
+
+    

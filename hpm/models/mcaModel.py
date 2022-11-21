@@ -72,7 +72,7 @@ class MCA():  #
         self.calibration_processed = McaCalibration()
         self.elapsed = [McaElapsed()]
         self.presets = McaPresets()
-        self.environment = []
+        self.environment = [[]]
 
         self.wavelength = None  # persistent wavelength for axd mode useful when loading files without wavelength, e.g. *.chi
         #if (file != None):
@@ -561,12 +561,24 @@ class MCA():  #
     ########################################################################
 
     ########################################################################
-    def get_environment(self):
+    def get_environment(self, detector = 0):
         """
         Returns a list of McaEnvironment objects that contain the environment
         parameters of the Mca.
         """
-        return self.environment
+        
+        envs = []
+        for env in self.environment:
+            val = env.value
+            if not np.isscalar(val):
+                if len(val)> detector:
+                    val = val[detector]
+                else:
+                    val = ''
+
+            e = McaEnvironment(env.name,val,env.description)
+            envs.append(e)
+        return envs
 
     ########################################################################
     def set_environment(self, environment):

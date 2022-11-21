@@ -475,7 +475,7 @@ class hpmcaController(QObject):
         
         
         self.plotController.roi_controller.data_updated(element)  #this will in turn trigger updateViews() 
-        environment = self.mca.environment
+        environment = self.mca.get_environment(element)
         self.environment_controller.set_environment(environment)
         self.update_titlebar()
         elapsed = self.mca.get_elapsed()[element]
@@ -685,7 +685,7 @@ class hpmcaController(QObject):
 
     def environment_module(self):
         if self.mca !=None:
-            environment = self.mca.environment
+            environment = self.mca.get_environment(self.element)
             self.environment_controller.set_environment(environment)
             self.environment_controller.show_view()
 

@@ -532,11 +532,13 @@ class PhaseController(object):
         self.phase_widget.wavelength_lbl.setValue(wavelength)
         
     def getTth(self):
-        tth = self.pattern.get_calibration()[0].two_theta
+        element = self.roi_controller.mcaController.element
+        tth = self.pattern.get_calibration()[element].two_theta
         return tth
 
     def getWavelength(self):
-        wavelength = self.pattern.get_calibration()[0].wavelength
+        element = self.roi_controller.mcaController.element
+        wavelength = self.pattern.get_calibration()[element].wavelength
         return wavelength
 
     def pattern_updated(self):

@@ -85,7 +85,7 @@ class mcaFileIO():
 
  
 
-    def read_ascii_file(self, file):
+    def read_ascii_file(self, file, *args, **kwargs):
         """
         Reads a disk file.  The file format is a tagged ASCII format.
         The file contains the information from the Mca object which it makes sense
@@ -120,6 +120,12 @@ class mcaFileIO():
             fp = open(file, 'r')
         except:
             return [None, False]
+
+        if 'progress_dialog' in kwargs:
+            progress_dialog = kwargs['progress_dialog']
+        else:
+            progress_dialog = QtWidgets.QProgressDialog()
+
         line = ''
         start_time = ''
         max_rois = 0
@@ -148,12 +154,17 @@ class mcaFileIO():
                     start_time = value
                 elif (tag == 'ELEMENTS:'):
                     n_detectors  = int(value)
+                    
                     for det in range(1, n_detectors):
                         elapsed.append(McaElapsed())
                         calibration.append(McaCalibration())
                         rois.append([])
                 elif (tag == 'CHANNELS:'):
+                    
                     nchans = int(value)
+                    if n_detectors > 15:
+                        progress_dialog.setMaximum(nchans)
+                        progress_dialog.show()
                 elif (tag == 'ROIS:'):
                     nrois = []
                     for d in range(n_detectors):
@@ -206,6 +217,10 @@ class mcaFileIO():
                     for d in range(n_detectors):
                         data.append(np.zeros(nchans,  dtype=data_type))
                     for chan in range(nchans):
+                        if chan % 20 == 0:
+                            #update progress bar only every 5 files to save time
+                            progress_dialog.setValue(chan)
+                            QtWidgets.QApplication.processEvents()
                         line = fp.readline()
                         counts = line.split()
                         for d in range(n_detectors):
@@ -471,15 +486,7 @@ class mcaFileIO():
         eformat = '%e ' * n_det
         iformat = '%d ' * n_det
         sformat = '%s ' * n_det
-        if (n_det == 1):
-            # commented out since attributes are already stored as lists (with future outlook for multiple detectors) - RH
-            """ # For convenience we convert all attributes to lists
-            data = data
-            rois = rois
-            calibration = calibration
-            presets = presets
-            elapsed = elapsed
-            """
+        
         nchans = len(data[0])
         dx_type = calibration[0].dx_type
         version = '3.1A' if dx_type == 'adx'  else '3.1'
