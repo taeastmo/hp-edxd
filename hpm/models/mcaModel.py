@@ -579,6 +579,7 @@ class MCA():  #
             e = McaEnvironment(env.name,val,env.description)
             envs.append(e)
         return envs
+        # testing typing on the new laptop stand
 
     ########################################################################
     def set_environment(self, environment):

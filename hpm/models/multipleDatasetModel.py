@@ -94,6 +94,14 @@ class MultipleSpectraModel(QtCore.QObject):  #
         
         out = np.sum(data, axis=0)#/ np.shape(data)[0]
         return out
+
+    def is2thetaScan(self):
+        '''
+        Returns True if the mca is a 2theta scan, i.e. each element (detector) is collected 
+        at a different 2theta. Otherwise returns False. Essentially checks if 
+        the 2theta for each element is diffetent. 
+        '''
+        pass
         
 
     def rebin_scale(self, scale='q'):
