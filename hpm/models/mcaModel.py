@@ -69,7 +69,8 @@ class MCA():  #
         self.auto_process_rois = True
 
         self.calibration = [McaCalibration()]
-        self.calibration_processed = McaCalibration()
+        self.calibration_persistent = []
+        #self.calibration_processed = McaCalibration()
         self.elapsed = [McaElapsed()]
         self.presets = McaPresets()
         self.environment = [[]]
@@ -688,10 +689,18 @@ class MCA():  #
      
         if success == True:
             self.file_name=file
-            self.calibration = r['calibration']
+            
             self.data = r['data']
             self.nchans = len(r['data'][0])
             self.n_detectors=len(self.data)
+
+            calibration = self.calibration_persistent
+            if len(calibration) == self.n_detectors:
+                for i, cal in enumerate(calibration):
+                    self.set_calibration(cal, i)
+            else:
+                self.calibration = r['calibration']
+
             self.rois_from_file = [[]]*self.n_detectors
             self.rois = [[]]*self.n_detectors
             self.elapsed = r['elapsed']
@@ -711,6 +720,7 @@ class MCA():  #
             n_det = res['n_detectors']
             if n_det == self.n_detectors:
                 calibration = res['calibration']
+                self.calibration_persistent = calibration
                 for i, cal in enumerate(calibration):
                     self.set_calibration(cal, i)
 
