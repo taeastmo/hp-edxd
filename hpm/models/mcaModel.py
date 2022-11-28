@@ -699,6 +699,7 @@ class MCA():  #
                 for i, cal in enumerate(calibration):
                     self.set_calibration(cal, i)
             else:
+                self.clear_persistent_calibration()
                 self.calibration = r['calibration']
 
             self.rois_from_file = [[]]*self.n_detectors
@@ -723,6 +724,10 @@ class MCA():  #
                 self.calibration_persistent = calibration
                 for i, cal in enumerate(calibration):
                     self.set_calibration(cal, i)
+
+    def clear_persistent_calibration(self):
+        
+        self.calibration_persistent = []
 
     def save_peaks_csv(self,file):
 

@@ -127,10 +127,19 @@ class multiFileMCA(MCA):
         
         if success == True:
             self.file_name=folder
-            self.calibration = r['calibration']
+            
             self.data = r['data']
             self.nchans = len(r['data'][0])
             self.n_detectors=r['n_detectors']
+
+            calibration = self.calibration_persistent
+            if len(calibration) == self.n_detectors:
+                for i, cal in enumerate(calibration):
+                    self.set_calibration(cal, i)
+            else:
+                self.clear_persistent_calibration()
+                self.calibration = r['calibration']
+
             self.rois_from_file = r['rois']
             self.rois = r['rois']
             self.elapsed = r['elapsed']
