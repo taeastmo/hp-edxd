@@ -63,7 +63,6 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.tth_btn.setMaximumWidth(90)
         self.tth_btn.setMinimumWidth(90)
         self.transpose_btn = FlatButton(f'Transpose')
-        self.transpose_btn.setEnabled(False)
         self.transpose_btn.setMaximumWidth(90)
         self.transpose_btn.setMinimumWidth(90)
         self.copy_rois_btn = FlatButton('Copy ROIs')

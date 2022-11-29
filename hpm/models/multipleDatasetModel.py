@@ -102,6 +102,25 @@ class MultipleSpectraModel(QtCore.QObject):  #
         the 2theta for each element is diffetent. 
         '''
         pass
+
+    def energy_to_2theta(self):
+        '''
+        transposes the 2D dataset, converts from 2D EDX to 2D ADX
+        '''
+        data_t = np.transpose(self.data)
+        s = np.shape(data_t)
+        n_det = s[0]
+        n_cnan = s[1]
+        cal_t = []
+        cal = McaCalibration()
+        
+        cal.slope = self.tth_scale[0]
+        cal.offset = self.tth_scale[1]
+        cal.set_dx_type('adx')
+        for det in range(n_det):
+            cal_t.append(copy.deepcopy(cal))
+     
+        print(len(cal_t))
         
 
     def rebin_scale(self, scale='q'):
@@ -127,8 +146,9 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 rebinned_scales.append(e)
         tth_min = np.amin(tth)
         tth_max = np.amax(tth)
-        tth_step = (tth_max-tth_min)/rows
-        self.tth_scale = [tth_step, tth_min]
+        if tth_max != tth_min:
+            tth_step = (tth_max-tth_min)/rows
+            self.tth_scale = [tth_step, tth_min]
 
         rebinned_scales = np.asarray(rebinned_scales)
         rebinned_min = np.amin( rebinned_scales)
