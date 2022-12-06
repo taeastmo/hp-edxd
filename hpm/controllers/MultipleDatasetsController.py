@@ -178,6 +178,14 @@ class MultipleDatasetsController(QObject):
 
     def setHorzScaleBtnsEnabled(self):
         
+        scales = self.get_available_scales()
+        horzScale = self.widget.get_selected_unit()
+        if not horzScale in scales:
+            self.widget.set_unit_btn('Channel')
+            self.unit = 'Channel'
+        self.widget.set_scales_enabled_states(scales)
+
+    def get_available_scales(self):
         all_available_scales = []
         available_scales = []
         rows = np.shape(self.multi_spectra_model.data)[0]
@@ -194,11 +202,7 @@ class MultipleDatasetsController(QObject):
             available_scales.append('Aligned')
         
         scales = available_scales
-        horzScale = self.widget.get_selected_unit()
-        if not horzScale in scales:
-            self.widget.set_unit_btn('Channel')
-            self.unit = 'Channel'
-        self.widget.set_scales_enabled_states(scales)
+        return scales
         
 
     def set_unit(self,unit):
@@ -281,6 +285,11 @@ class MultipleDatasetsController(QObject):
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.E = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = copy.deepcopy(data)
+        scales = self.get_available_scales()
+        horzScale = self.widget.get_selected_unit()
+        if horzScale in scales:
+            self.rebin_by_unit(horzScale)
+            scale = horzScale
         self.update_view(scale)
         files_loaded = self.multi_spectra_model.r['files_loaded']
         files = []
