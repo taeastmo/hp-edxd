@@ -27,7 +27,6 @@ import numpy as np
 
 from ..widgets.UtilityWidgets import open_file_dialog, save_file_dialog
 
-# imports for type hinting in PyCharm -- DO NOT DELETE
 from hpm.widgets.MaskWidget import MaskWidget
 from hpm.models.MaskModel import MaskModel
 
@@ -42,7 +41,7 @@ class MaskController(object):
         :type dioptas_model: DioptasModel
         """
         self.widget = widget
-        #self.model = dioptas_model
+       
         self.mask_model = MaskModel()
 
         self.directories = directories
@@ -62,9 +61,6 @@ class MaskController(object):
     def create_signals(self):
         self.widget.img_widget.mouse_left_clicked.connect(self.process_click)
         self.widget.img_widget.mouse_moved.connect(self.show_img_mouse_position)
-
-        #self.model.img_changed.connect(self.update_mask_dimension) 
-        #self.model.configuration_selected.connect(self.update_gui)
 
         self.widget.circle_btn.clicked.connect(self.activate_circle_btn)
         self.widget.rectangle_btn.clicked.connect(self.activate_rectangle_btn)
@@ -378,20 +374,20 @@ class MaskController(object):
     def save_mask_btn_click(self):
         img_filename, _ = os.path.splitext(os.path.basename(self.mask_model.img_filename))
         filename = save_file_dialog(self.widget, "Save mask data",
-                                    os.path.join(self.directories['mask'],
+                                    os.path.join(self.directories.mask,
                                                  img_filename + '.mask'),
                                     filter='Mask (*.mask)')
 
         if filename is not '':
-            self.directories['mask'] = os.path.dirname(filename)
+            self.directories.mask = os.path.dirname(filename)
             self.mask_model.save_mask(filename)
 
     def load_mask_btn_click(self):
         filename = open_file_dialog(self.widget, caption="Load mask data",
-                                    directory=self.directories['mask'], filter='*.mask')
+                                    directory=self.directories.mask, filter='*.mask')
 
         if filename is not '':
-            self.directories['mask'] = os.path.dirname(filename)
+            self.directories.mask = os.path.dirname(filename)
             if self.mask_model.load_mask(filename):
                 self.plot_mask()
             else:
@@ -401,10 +397,10 @@ class MaskController(object):
 
     def add_mask_btn_click(self):
         filename = open_file_dialog(self.widget, caption="Add mask data",
-                                    directory=self.directories['mask'], filter='*.mask')
+                                    directory=self.directories.mask, filter='*.mask')
 
         if filename is not '':
-            self.directories['mask'] = os.path.dirname(filename)
+            self.directories.mask = os.path.dirname(filename)
             if self.mask_model.add_mask(filename):
                 self.plot_mask()
             else:
@@ -457,7 +453,8 @@ class MaskController(object):
 
     def show_img_mouse_position(self, x, y):
         try:
-            if x > 0 and y > 0:
+            s = self.widget.img_widget.img_data.shape
+            if x > 0 and y > 0 and x < s[0] and y < s[1]:
                 str = "x: %8.1f   y: %8.1f   I: %6.f" % (
                     x, y, self.widget.img_widget.img_data.T[int(np.floor(x)), int(np.floor(y))])
             else:

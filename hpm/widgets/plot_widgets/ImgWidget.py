@@ -82,6 +82,7 @@ class ImgWidget2(QtWidgets.QWidget):
 
 
     def plot_image(self, data, auto_level=False):
+        self.img_data = data
         self.img.setImage(data.T)
 
     def customMouseClickEvent(self, ev):

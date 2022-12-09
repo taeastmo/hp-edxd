@@ -417,6 +417,7 @@ class mcaDisplay_file:
       self.readdata      = home
       self.exportdata    = home
       self.last_saved_file = ''
+      self.mask = ''
       
       
 
