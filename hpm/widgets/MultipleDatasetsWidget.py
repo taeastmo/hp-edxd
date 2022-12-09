@@ -25,6 +25,7 @@ import pyqtgraph as pg
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from hpm.widgets.PltWidget import PltWidget
+from hpm.widgets.MaskWidget import MaskWidget
 
 class MultiSpectraWidget(QtWidgets.QWidget):
 
@@ -179,7 +180,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
 
         self.file_list_view = QtWidgets.QListWidget()
-        self.file_view_tabs.addTab(self.file_list_view, 'Files')
+        self.mask_widget = MaskWidget()
+        self.file_view_tabs.addTab(self.mask_widget, 'Mask')
         
 
         self.line_plot_widget = PltWidget()
@@ -289,6 +291,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             img_data = img_data_positive + img_data_negative
             
             self.img.setImage(img_data.T)
+            self.mask_widget.img_widget.plot_image(img_data, auto_level=True)
         else:
             self.img.clear()
 

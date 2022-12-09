@@ -25,11 +25,97 @@ from pyqtgraph import ViewBox
 from pyqtgraph.exporters.ImageExporter import ImageExporter
 import numpy as np
 from skimage.measure import find_contours
-from qtpy import QtCore, QtWidgets, QtGui
-
+from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from .HistogramLUTItem import HistogramLUTItem 
 from utilities.HelperModule import calculate_color
 
+
+class ImgWidget2(QtWidgets.QWidget):
+    mouse_moved = pyqtSignal(float, float)
+    mouse_left_clicked = pyqtSignal(float, float)
+    mouse_left_double_clicked = pyqtSignal(float, float)
+    plotMouseMoveSignal = pyqtSignal(float)  
+    plotMouseCursorSignal = pyqtSignal(list)
+    def __init__(self ):
+        super().__init__()
+
+        self.make_img_plot()
+        self._layout = QtWidgets.QVBoxLayout()  
+        self._layout.addWidget(self.win)
+        self.setLayout(self._layout)
+
+    def make_img_plot(self):
+        ## Create window with GraphicsView widget
+        self.win = pg.GraphicsLayoutWidget(parent=self)
+        self.p1 = self.win.addPlot()
+        self.p1.setLabel(axis='left', text='Spectrum index')
+        self.p1.setLabel(axis='bottom', text='Channel')
+
+        #self.plot = pg.PlotItem(self.win)
+        self.view = self.p1.getViewBox()
+        self.view.setMouseMode(pg.ViewBox.RectMode)
+        self.view.setAspectLocked(False)
+        ## Create image item
+        self.img = pg.ImageItem(border='w')
+
+
+
+        #self.img.setScaledMode()
+        self.view.addItem(self.img)
+
+        #self.make_lr()
+
+        # Contrast/color control
+        self.hist = pg.HistogramLUTItem()
+        self.hist.setImageItem(self.img)
+        self.win.addItem(self.hist)
+       
+        self.view.mouseClickEvent = self.customMouseClickEvent
+
+        self.create_scatter_plot()
+        self.modify_mouse_behavior()
+
+    def create_scatter_plot(self):
+        self.img_scatter_plot_item = pg.ScatterPlotItem(pen=pg.mkPen('w'), brush=pg.mkBrush('r'))
+        self.view.addItem(self.img_scatter_plot_item)
+
+
+    def plot_image(self, data, auto_level=False):
+        self.img.setImage(data.T)
+
+    def customMouseClickEvent(self, ev):
+        if ev.button() == QtCore.Qt.RightButton:
+            self.view.enableAutoRange(enable=1) 
+        elif ev.button() == QtCore.Qt.LeftButton:
+            pos = self.img_view_box.mapFromScene(ev.pos())
+            pos = self.img_scatter_plot_item.mapFromScene(2 * ev.pos() - pos)
+            self.mouse_left_clicked.emit(pos.x(), pos.y())
+        ev.accept()
+
+    def modify_mouse_behavior(self):
+        # different mouse handlers
+        self.img_view_box = self.view
+        #self.img_view_box.setMouseMode(self.img_view_box.RectMode)
+
+        self.win.scene().sigMouseMoved.connect(self.mouseMoved)
+        #self.img_view_box.mouseClickEvent = self.myMouseClickEvent
+        #self.img_view_box.mouseDragEvent = self.myMouseDragEvent
+        self.img_view_box.mouseDoubleClickEvent = self.myMouseDoubleClickEvent
+        #self.img_view_box.wheelEvent = self.myWheelEvent
+    
+    def mouseMoved(self, pos):
+        self.data_img_item = self.img
+        pos = self.data_img_item.mapFromScene(pos)
+        self.mouse_moved.emit(pos.x(), pos.y())
+
+    def myMouseDoubleClickEvent(self, ev):
+        self.img_view_box = self.view
+        if ev.button() == QtCore.Qt.LeftButton:
+            pos = self.img_view_box.mapFromScene(ev.pos())
+            pos = self.img_scatter_plot_item.mapFromScene(2 * ev.pos() - pos)
+            self.mouse_left_double_clicked.emit(pos.x(), pos.y())
+        ev.accept()
 
 class ImgWidget(QtCore.QObject):
     mouse_moved = QtCore.Signal(float, float)
@@ -61,13 +147,7 @@ class ImgWidget(QtCore.QObject):
         self.img_histogram_LUT_vertical = HistogramLUTItem(self.data_img_item, orientation='vertical')
         self.pg_layout.addItem(self.img_histogram_LUT_vertical, 1, 2)
 
-    def create_mouse_click_item(self):
-        self.mouse_click_item = pg.ScatterPlotItem()
-        self.mouse_click_item.setSymbol('+')
-        self.mouse_click_item.setSize(15)
-        self.mouse_click_item.addPoints([1024], [1024])
-        self.mouse_left_clicked.connect(self.set_mouse_click_position)
-        self.activate_mouse_click_item()
+
 
     def set_mouse_click_position(self, x, y):
         self.mouse_click_item.setData([x], [y])
@@ -188,12 +268,9 @@ class ImgWidget(QtCore.QObject):
                 (ev.button() == QtCore.Qt.LeftButton and
                  ev.modifiers() & QtCore.Qt.ControlModifier):
             view_range = np.array(self.img_view_box.viewRange()) * 2
-            if self.img_data is not None:
-                if (view_range[0][1] - view_range[0][0]) > self.img_data.shape[1] and \
-                        (view_range[1][1] - view_range[1][0]) > self.img_data.shape[0]:
-                    self.auto_range()
-                else:
-                    self.img_view_box.scaleBy(2)
+            self.auto_range()
+            '''else:
+                self.img_view_box.scaleBy(2)'''
 
         elif ev.button() == QtCore.Qt.LeftButton:
             pos = self.img_view_box.mapFromScene(ev.pos())
@@ -267,36 +344,15 @@ class ImgWidget(QtCore.QObject):
         self._max_range = True
 
 
-class CalibrationCakeWidget(ImgWidget):
-    def __init__(self, pg_layout, orientation='vertical'):
-        super(CalibrationCakeWidget, self).__init__(pg_layout, orientation)
-        self.img_view_box.setAspectLocked(False)
-        self.create_vertical_line()
-        self.mouse_left_clicked.connect(self.set_vertical_line_pos)
-
-    def create_vertical_line(self):
-        self.vertical_line = pg.InfiniteLine(angle=90, pen=pg.mkPen(color=(0, 255, 0), width=2))
-        self.activate_vertical_line()
-
-    def activate_vertical_line(self):
-        if not self.vertical_line in self.img_view_box.addedItems:
-            self.img_view_box.addItem(self.vertical_line)
-            self.vertical_line.setVisible(True)  # oddly this is needed for the line to be displayed correctly
-
-    def deactivate_vertical_line(self):
-        if self.vertical_line in self.img_view_box.addedItems:
-            self.img_view_box.removeItem(self.vertical_line)
-
-    def set_vertical_line_pos(self, x, y):
-        self.vertical_line.setValue(x)
 
 
-class MaskImgWidget(ImgWidget):
-    def __init__(self, pg_layout, orientation='vertical'):
-        super(MaskImgWidget, self).__init__(pg_layout, orientation)
+class MaskImgWidget(ImgWidget2):
+    def __init__(self):
+        super().__init__()
         self.mask_img_item = pg.ImageItem()
+        self.img_view_box = self.view
         self.img_view_box.addItem(self.mask_img_item)
-        self.img_view_box.setAspectLocked(True)
+        self.img_view_box.setAspectLocked(False)
         self.set_mask_color()
         self.mask_preview_fill_color = QtGui.QColor(255, 0, 0, 150)
 
@@ -349,248 +405,7 @@ class MaskImgWidget(ImgWidget):
         return arc
 
 
-class IntegrationImgWidget(MaskImgWidget):
-    def __init__(self, pg_layout, orientation='vertical'):
-        super(IntegrationImgWidget, self).__init__(pg_layout, orientation)
-        self.create_circle_plot_items()
-        self.create_mouse_click_item()
-        self.create_roi_item()
-        self.img_view_box.setAspectLocked(True)
 
-    def create_circle_plot_items(self):
-        # creates several PlotDataItems as line items, to be filled with the current clicked position
-        # this needs to be several because the lines can be interrupted by the edges of the image, otherwise
-        # they would always create straight line around the image
-        self.circle_plot_items = []
-        self.circle_plot_items.append(pg.PlotDataItem(pen=pg.mkPen(color=(0, 255, 0, 255), width=1.1)))
-        self.circle_plot_items.append(pg.PlotDataItem(pen=pg.mkPen(color=(0, 255, 0, 255), width=1.1)))
-        self.circle_plot_items.append(pg.PlotDataItem(pen=pg.mkPen(color=(0, 255, 0, 255), width=1.1)))
-        self.circle_plot_items.append(pg.PlotDataItem(pen=pg.mkPen(color=(0, 255, 0, 255), width=1.1)))
-        self.circle_plot_items.append(pg.PlotDataItem(pen=pg.mkPen(color=(0, 255, 0, 255), width=1.1)))
-        for plot_item in self.circle_plot_items:
-            self.img_view_box.addItem(plot_item)
-
-    def set_circle_line(self, tth, cur_tth):
-        """
-        sets the circle plot items to a specfic two theta (tth) value
-        :param tth: array of twotheta for the image
-        :param cur_tth: two theta value for the line
-        """
-        tth_ind = find_contours(tth, cur_tth)
-
-        # delete old graphs
-        for plot_item in self.circle_plot_items:
-            plot_item.setData(x=[], y=[])
-
-        for plot_ind, tth in enumerate(tth_ind):
-            x_plot = tth[:, 1] + 0.5
-            y_plot = tth[:, 0] + 0.5
-            self.circle_plot_items[plot_ind].setData(x=x_plot, y=y_plot)
-
-    def activate_circle_scatter(self):
-        for plot_item in self.circle_plot_items:
-            if not plot_item in self.img_view_box.addedItems:
-                self.img_view_box.addItem(plot_item)
-
-    def deactivate_circle_scatter(self):
-        for plot_item in self.circle_plot_items:
-            if plot_item in self.img_view_box.addedItems:
-                self.img_view_box.removeItem(plot_item)
-
-    def create_roi_item(self):
-        self.roi = MyROI([20, 20], [500, 500], pen=pg.mkPen(color=(0, 255, 0), size=2))
-        self.roi.handlePen = QtGui.QPen(QtGui.QColor(0, 255, 0))
-        self.roi.addScaleHandle([1, 1], [0, 0])
-        self.roi.addScaleHandle([0, 1], [1, 0])
-        self.roi.addScaleHandle([1, 0], [0, 1])
-        self.roi.addScaleHandle([0, 0], [1, 1])
-
-        self.roi_shade = RoiShade(self.img_view_box, self.roi)
-
-    def activate_roi(self):
-        if not self.roi in self.img_view_box.addedItems:
-            self.img_view_box.addItem(self.roi)
-            self.roi_shade.activate_rects()
-            self.roi.blockSignals(False)
-
-    def update_roi_shade_limits(self, img_shape):
-        self.roi_shade.img_shape = img_shape
-        self.roi_shade.update_rects()
-
-    def deactivate_roi(self):
-        if self.roi in self.img_view_box.addedItems:
-            self.img_view_box.removeItem(self.roi)
-            self.roi_shade.deactivate_rects()
-            self.roi.blockSignals(True)
-
-
-class IntegrationCakeWidget(CalibrationCakeWidget):
-    def __init__(self, pg_layout, orientation='vertical'):
-        super(IntegrationCakeWidget, self).__init__(pg_layout, orientation)
-        self.img_view_box.setAspectLocked(False)
-        self.create_mouse_click_item()
-        self.add_cake_axes()
-        self.phases = []  # type: list[CakePhasePlot]
-
-    def add_cake_axes(self):
-        self.left_axis_cake = pg.AxisItem('left')
-        self.bottom_axis_cake = pg.AxisItem('bottom')
-        self.bottom_axis_cake.setLabel(u'2θ', u'°')
-        self.left_axis_cake.setLabel(u'Azimuth', u'°')
-
-        self.pg_layout.addItem(self.bottom_axis_cake, 2, 1)
-        self.pg_layout.addItem(self.left_axis_cake, 1, 0)
-
-    def add_cake_phase(self, positions, intensities, color):
-        self.phases.append(CakePhasePlot(self.img_view_box, positions, intensities, color))
-
-    def del_cake_phase(self, ind):
-        self.phases[ind].remove()
-        del self.phases[ind]
-
-    def set_cake_phase_color(self, ind, color):
-        self.phases[ind].update_pen(color)
-
-    def hide_cake_phase(self, ind):
-        self.phases[ind].hide()
-
-    def hide_all_cake_phases(self):
-        for phase in self.phases:
-            phase.hide()
-
-    def show_cake_phase(self, ind):
-        self.phases[ind].show()
-
-    def show_all_visible_cake_phases(self, phase_show_cbs):
-        for ind, phase in enumerate(self.phases):
-            if phase_show_cbs[ind].isChecked():
-                phase.show()
-
-    def update_phase_line_visibilities(self, x_range):
-        for phase in self.phases:
-            phase.update_visibilities(x_range)
-
-    def update_phase_line_visibility(self, ind, x_range):
-        self.phases[ind].update_visibilities(x_range)
-
-    def update_phase_intensities(self, ind, positions, intensities):
-        if len(self.phases):
-            self.phases[ind].update_lines(positions, intensities)
-
-
-class CakePhasePlot(object):
-    def __init__(self, plot_item, positions, intensities, color):
-        self.plot_item = plot_item
-        self.visible = True
-        self.line_items = []  # type: list[pg.InfiniteLine]
-        self.line_visible = []
-        self.pattern_x_range = []
-
-        self.color = color
-        self.line_width = 1
-
-        self.positions = positions
-        self.intensities = intensities
-
-        self._create_items()
-        self.update_pen()
-
-    def _create_items(self):
-        for ind, position in enumerate(self.positions):
-            self.line_items.append(pg.InfiniteLine(pos=position, angle=90))
-            self.line_visible.append(True)
-            self.plot_item.addItem(self.line_items[ind])
-
-    def add_line(self):
-        self.line_items.append(pg.InfiniteLine(angle=90))
-        self.line_visible.append(True)
-        self.plot_item.blockSignals(True)
-        self.plot_item.addItem(self.line_items[-1])
-        self.plot_item.blockSignals(False)
-
-    def delete_line(self, ind=-1):
-        self.plot_item.removeItem(self.line_items[ind])
-        del self.line_items[ind]
-        del self.line_visible[ind]
-
-    def clear_lines(self):
-        for _ in range(len(self.line_items)):
-            self.delete_line()
-
-    def update_lines(self, positions, intensities):
-        """
-        Updates the line positions and intensities (alpha and thickness, using set_color).
-        It also determines which lines are actually visibile in the cake (using update_visibilties).
-        :param positions: line positions
-        :param intensities: line intensities
-        """
-        self.positions = positions
-        self.intensities = intensities
-        self.update_visibilities()
-
-        for ind, intensity in enumerate(intensities):
-            self.line_items[ind].setValue(positions[ind])
-
-        if len(self.intensities):
-            self.update_pen()
-
-    def update_visibilities(self):
-        """
-        Checks the number of lines visible (length of intensities and positions) in comparison to the number of lines
-        from the jcpds (line_items). Then determines only shows the lines actually visible.
-        """
-        self.line_visible[:len(self.intensities)] = [True] * len(self.intensities)
-        self.line_visible[len(self.intensities):] = [False] * (len(self.line_items) - len(self.intensities))
-
-        if self.visible:
-            for ind, line_item in enumerate(self.line_items):
-                if not self.line_visible[ind] and line_item in self.plot_item.scene().items():
-                    self.plot_item.removeItem(line_item)
-                if self.line_visible[ind] and line_item not in self.plot_item.scene().items():
-                    self.plot_item.addItem(line_item)
-
-    def update_pen(self, color=None):
-        """
-        Updates the pen of all lines based on the intensity for each line. The higher the intensity the thicker and the
-        more opaque is the line.
-        :param color: A tuple with (r,g,b), where the values should from 0 to 255. If None, the current object color is
-                      used.
-        :type color: tuple
-        """
-        if color is not None:
-            self.color = color
-
-        if not len(self.intensities):
-            return
-
-        intensities = np.array(self.intensities)
-        line_scaling = intensities / np.max(intensities)
-        line_alphas = (line_scaling * 0.4 + 0.3) * 255
-        line_widths = self.line_width + 3 * line_scaling
-
-        for ind, line_item in enumerate(intensities):
-            color = list(self.color) + [line_alphas[ind]]
-            pen = pg.mkPen(color=color, width=line_widths[ind], style=QtCore.Qt.SolidLine)
-            self.line_items[ind].setPen(pen)
-
-    def hide(self):
-        if self.visible:
-            self.visible = False
-            for ind, line_item in enumerate(self.line_items):
-                if self.line_visible[ind]:
-                    self.plot_item.removeItem(line_item)
-
-    def show(self):
-        if not self.visible:
-            self.visible = True
-            for ind, line_item in enumerate(self.line_items):
-                if self.line_visible[ind]:
-                    self.plot_item.addItem(line_item)
-
-    def remove(self):
-        for ind, item in enumerate(self.line_items):
-            if self.line_visible[ind]:
-                self.plot_item.removeItem(item)
 
 
 mask_pen = QtGui.QPen(QtGui.QColor(255, 255, 255), 0.5)

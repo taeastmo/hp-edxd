@@ -18,10 +18,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from qtpy import QtWidgets
+from PyQt5 import QtWidgets
 from pyqtgraph import GraphicsLayoutWidget
 
-from .plot_widgets import MaskImgWidget 
+from .plot_widgets import MaskImgWidget
 
 from .CustomWidgets import NumberTextField, LabelAlignRight, SpinBoxAlignRight, HorizontalSpacerItem, \
     CheckableFlatButton, FlatButton, VerticalSpacerItem, HorizontalLine
@@ -53,9 +53,9 @@ class MaskWidget(QtWidgets.QWidget):
         self._display_layout = QtWidgets.QVBoxLayout()
         self._display_layout.setContentsMargins(0, 0, 0, 0)
         self.img_layout_widget = GraphicsLayoutWidget()
-        self.img_widget = MaskImgWidget(self.img_layout_widget)
+        self.img_widget = MaskImgWidget()
 
-        self._display_layout.addWidget(self.img_layout_widget)
+        self._display_layout.addWidget(self.img_widget)
 
         self._status_layout = QtWidgets.QHBoxLayout()
         self._status_layout.addSpacerItem(HorizontalSpacerItem())

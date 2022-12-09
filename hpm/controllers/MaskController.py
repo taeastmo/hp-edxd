@@ -21,7 +21,7 @@
 import sys
 import os
 
-from qtpy import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtCore, QtGui
 from math import sqrt
 import numpy as np
 
@@ -34,14 +34,14 @@ from hpm.models.MaskModel import MaskModel
 
 
 class MaskController(object):
-    def __init__(self, directories):
+    def __init__(self, widget:MaskWidget, directories):
         """
         :param widget: Reference to a MaskView object
         :type widget: MaskWidget
         :param dioptas_model: Reference to an DioptasModel object
         :type dioptas_model: DioptasModel
         """
-        self.widget = MaskWidget()
+        self.widget = widget
         #self.model = dioptas_model
         self.mask_model = MaskModel()
 
@@ -61,6 +61,7 @@ class MaskController(object):
 
     def create_signals(self):
         self.widget.img_widget.mouse_left_clicked.connect(self.process_click)
+        self.widget.img_widget.mouse_moved.connect(self.show_img_mouse_position)
 
         #self.model.img_changed.connect(self.update_mask_dimension) 
         #self.model.configuration_selected.connect(self.update_gui)
@@ -88,7 +89,7 @@ class MaskController(object):
         self.widget.transparent_rb.clicked.connect(self.transparent_rb_click)
 
         self.widget.point_size_sb.valueChanged.connect(self.set_point_size)
-        self.widget.img_widget.mouse_moved.connect(self.show_img_mouse_position)
+        
 
         self.widget.keyPressEvent = self.key_press_event
 

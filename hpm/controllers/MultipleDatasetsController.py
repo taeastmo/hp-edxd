@@ -44,6 +44,8 @@ class MultipleDatasetsController(QObject):
         self.directories = directories
         self.multi_spectra_model = MultipleSpectraModel()
         self.widget = MultiSpectraWidget()
+        
+
         self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 
 
         self.folder = ''
@@ -57,7 +59,7 @@ class MultipleDatasetsController(QObject):
         self.row_scale = 'Index'
         self.file = ''
         self.row = 0
-        self.mask_controller = MaskController(directories)
+        self.mask_controller = MaskController(self.widget.mask_widget, directories)
 
         #self.phases =dict()
         self.create_signals()
@@ -254,7 +256,10 @@ class MultipleDatasetsController(QObject):
             #r = self.multi_spectra_model.E_scale
 
         self.widget.set_spectral_data(view)
+        self.mask_controller.mask_model._img_data = view
+        self.mask_controller.update_mask_dimension()
         self.widget.set_image_scale(scale, r)
+        
         self.scale = scale
 
     def sum_data(self):
