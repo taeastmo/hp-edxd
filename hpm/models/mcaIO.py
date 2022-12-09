@@ -486,6 +486,7 @@ class mcaFileIO():
         eformat = '%e ' * n_det
         iformat = '%d ' * n_det
         sformat = '%s ' * n_det
+        data_format =iformat
         
         nchans = len(data[0])
         dx_type = calibration[0].dx_type

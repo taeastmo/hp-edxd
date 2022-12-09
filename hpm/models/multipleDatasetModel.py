@@ -165,7 +165,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
         
 
-    def rebin_for_energy(self, order = 1):
+    def rebin_channels(self, order = 1):
         #calibration = self.r['calibration']
         data = self.data
         bins = np.size(data[0])
@@ -176,15 +176,17 @@ class MultipleSpectraModel(QtCore.QObject):  #
             
             now = time.time()
             
-            half_bins = int(bins/2)
-            quarter_bins = int(bins/4)
+            range_1 = (667,1100)
+            range_2 = (3000,3480)
+            range_3 = (2600,3000)
+
             max_points_left = np.zeros(rows)
             max_points_right = np.zeros(rows)
             max_points_middle= np.zeros(rows)
 
-            fit_range = 10
+            fit_range = 20
             for row in range(rows):
-                max_rough = int( np.argmax(data[row][0:half_bins]))
+                max_rough = int(range_1[0]+ np.argmax(data[row][slice(*range_1)]))
                 if max_rough == 0:
                     continue
                 fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
@@ -193,7 +195,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 _ , centroid,_ = fit_gaussian(fit_segment_x,fit_segment_y - min_y)
                 max_points_left[row] = centroid
 
-                max_rough = int(half_bins + np.argmax(data[row][half_bins:]))
+                max_rough = int(range_2[0] + np.argmax(data[row][slice(*range_2)]))
                 fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
                 fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
                 min_y = np.amin(fit_segment_y)
@@ -201,7 +203,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 max_points_right[row] = centroid
 
                 if order == 2:
-                    max_rough = int(quarter_bins + np.argmax(data[row][quarter_bins:half_bins]))
+                    max_rough = int(range_3[0] + np.argmax(data[row][slice(*range_3)]))
                     fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
                     fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
                     min_y = np.amin(fit_segment_y)

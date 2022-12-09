@@ -85,7 +85,7 @@ def main():
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
     multi_spectra2 =  os.path.normpath( os.path.join(desktop,'dt/20220205-2theta-scan/Au_5sec'))
     #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
-    multi_element =  os.path.normpath( os.path.join(resources_path,'cd109-co57-10262022-30000sec.mca'))
+    multi_element =  os.path.normpath( '/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca')
     #multi_element =  os.path.normpath( os.path.join(resources_path,'20221116_test_010.hpmca'))
 
 

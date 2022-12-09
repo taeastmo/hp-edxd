@@ -166,7 +166,7 @@ class MultipleDatasetsController(QObject):
 
     def align_btn_callback(self):
         if len(self.multi_spectra_model.data):
-            self.multi_spectra_model.rebin_for_energy(2)
+            self.multi_spectra_model.rebin_channels(1)
             self.setHorzScaleBtnsEnabled()
             scale = "Aligned"
             self.update_view(scale)
@@ -304,7 +304,7 @@ class MultipleDatasetsController(QObject):
         self.add_rois_signal.emit(all_new_rois)
 
     def calibrate_all_elements(self):
-        self.multi_spectra_model.calibrate_all_elements(2)
+        self.multi_spectra_model.calibrate_all_elements(1)
         self.setHorzScaleBtnsEnabled()
         self.multispectra_loaded()
         
