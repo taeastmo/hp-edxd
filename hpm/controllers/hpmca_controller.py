@@ -113,7 +113,7 @@ class hpmcaController(QObject):
 
         #initialize file saving controller
         self.file_save_controller = FileSaveController(self, defaults_options=self.defaults_options)
-        self.multiple_datasets_controller = MultipleDatasetsController(self.file_save_controller)
+        self.multiple_datasets_controller = MultipleDatasetsController(self.file_save_controller, self.working_directories)
         self.multiple_datasets_controller.file_changed_signal.connect(self.file_changed_signal_callback)
         self.multiple_datasets_controller.channel_changed_signal.connect(self.multispectral_channel_changed_callback)
         self.multiple_datasets_controller.element_changed_signal.connect(self.multispectral_element_changed_callback)

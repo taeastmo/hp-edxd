@@ -30,6 +30,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 import natsort
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
 from hpm.models.mcaModel import MCA
+from hpm.controllers.MaskController import MaskController
 
 class MultipleDatasetsController(QObject):
     file_changed_signal = pyqtSignal(str)  
@@ -37,10 +38,10 @@ class MultipleDatasetsController(QObject):
     channel_changed_signal = pyqtSignal(float)  
     add_rois_signal = pyqtSignal(list)
 
-    def __init__(self, file_save_controller):
+    def __init__(self, file_save_controller, directories):
         super().__init__()
         self.file_save_controller = file_save_controller
-        
+        self.directories = directories
         self.multi_spectra_model = MultipleSpectraModel()
         self.widget = MultiSpectraWidget()
         self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 
@@ -56,6 +57,7 @@ class MultipleDatasetsController(QObject):
         self.row_scale = 'Index'
         self.file = ''
         self.row = 0
+        self.mask_controller = MaskController(directories)
 
         #self.phases =dict()
         self.create_signals()
@@ -96,6 +98,9 @@ class MultipleDatasetsController(QObject):
             channel = cursor['channel']
             pos = channel
             if self.scale == 'q' or self.scale == 'E':
+                ndet = self.multi_spectra_model.mca.n_detectors
+                if not ndet > self.row:
+                    self.row = 0
                 converter = self.multi_spectra_model.mca.get_calibration()[self.row].channel_to_scale
                 pos = converter(channel,self.scale)
             elif self.scale == 'Aligned':

@@ -364,7 +364,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         #self.img.setScaledMode()
         self.view.addItem(self.img)
 
-        self.make_lr()
+        #self.make_lr()
 
         # Contrast/color control
         self.hist = pg.HistogramLUTItem()
