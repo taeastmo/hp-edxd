@@ -358,8 +358,13 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.view.setAspectLocked(False)
         ## Create image item
         self.img = pg.ImageItem(border='w')
+
+
+
         #self.img.setScaledMode()
         self.view.addItem(self.img)
+
+        self.make_lr()
 
         # Contrast/color control
         self.hist = pg.HistogramLUTItem()
@@ -384,6 +389,19 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.view.mouseClickEvent = self.customMouseClickEvent
 
 
+    def make_lr(self):
+        self.lr1_p = pg.LinearRegionItem()
+        #self.lr1_p.setZValue(-10)
+        self.lr2_p = pg.LinearRegionItem()
+        #self.lr2_p.setZValue(-10)
+
+        self.echo_bounds_p = [self.lr1_p, self.lr2_p]
+        self.view.addItem(self.lr1_p)
+        self.view.addItem(self.lr2_p) 
+        self.lr1_p.setRegion([0, 20])
+        self.lr2_p.setRegion([40, 60])
+
+        
 
     def fastCursorMove(self, evt):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
