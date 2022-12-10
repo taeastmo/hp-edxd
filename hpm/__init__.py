@@ -83,7 +83,7 @@ def main():
     jcpds1 = os.path.normpath(os.path.join(resources_path,'au.jcpds'))
     jcpds2 = os.path.normpath(os.path.join(resources_path,'mgo.jcpds'))
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
-    multi_spectra2 =  os.path.normpath( os.path.join(desktop,'dt/20220205-2theta-scan/sam3_30sec'))
+    multi_spectra2 =  os.path.normpath( os.path.join(desktop,'dt/20221208-SiO2/scan1'))
     #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
     multi_element =  os.path.normpath( '/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca')
     #multi_element =  os.path.normpath( os.path.join(resources_path,'20221116_test_010.hpmca'))

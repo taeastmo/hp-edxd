@@ -49,8 +49,8 @@ class ImgWidget2(QtWidgets.QWidget):
         ## Create window with GraphicsView widget
         self.win = pg.GraphicsLayoutWidget(parent=self)
         self.p1 = self.win.addPlot()
-        self.p1.setLabel(axis='left', text='Spectrum index')
-        self.p1.setLabel(axis='bottom', text='Channel')
+        #self.p1.setLabel(axis='left', text='Spectrum index')
+        #self.p1.setLabel(axis='bottom', text='Channel')
 
         #self.plot = pg.PlotItem(self.win)
         self.view = self.p1.getViewBox()
