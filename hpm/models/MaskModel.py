@@ -51,13 +51,11 @@ class MaskModel(object):
         self._mask_data_E = np.zeros(self.mask_dimension, dtype=bool)
         self._mask_out = np.zeros(self.mask_dimension, dtype=bool)
 
-        self._img_data = np.zeros(self.mask_dimension, dtype=bool)
-
         self.masks['Channel'] = self._mask_data
         self.masks['q'] = self._mask_data_q
         self.masks['E'] = self._mask_data_E
         self.masks['Aligned'] = self._mask_data_aligned
-        self.masks['img'] = self._img_data
+       
 
     def set_dimension(self, mask_dimension):
         if not np.array_equal(mask_dimension, self.mask_dimension):
@@ -243,7 +241,7 @@ class MaskModel(object):
             test.lacosmiciteration(True)
             test.clean()
             _mask_data = self.get_mask()
-            _mask_data = np.logical_or(_mask_data, np.array(test.mask, dtype='bool'))
+            _mask_data[:] = np.logical_or(_mask_data, np.array(test.mask, dtype='bool'))[:]
 
     def set_mode(self, mode):
         """

@@ -90,29 +90,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
-        '''self.folder_widget = QtWidgets.QWidget(self)
-        self._folder_layout = QtWidgets.QHBoxLayout()
-        self._folder_layout.setContentsMargins(0, 0, 0, 0)
-        self._folder_layout.setSpacing(6)
-        self._folder_layout.addWidget(QtWidgets.QLabel('Folder   '))
-        self.file_folder = QtWidgets.QLabel('')
-        self.file_folder.setAlignment(QtCore.Qt.AlignRight)
-        self._folder_layout.addWidget(self.file_folder)
-        self.folder_widget.setLayout(self._folder_layout)
-        self._layout.addWidget(self.folder_widget)'''
-        '''self.filter_widget = QtWidgets.QWidget(self)
-        self._filter_layout = QtWidgets.QHBoxLayout()
-        self._filter_layout.setContentsMargins(0, 0, 0, 0)
-        self._filter_layout.setSpacing(6)
-        self._filter_layout.addWidget(QtWidgets.QLabel('Filter   '))
-        self.file_filter = QtWidgets.QLineEdit('')
-        self.file_filter.setFocusPolicy(Qt.ClickFocus)
-        self.file_filter.setAlignment(QtCore.Qt.AlignRight)
-        
-        self._filter_layout.addWidget(self.file_filter)
-        
-        self.filter_widget.setLayout(self._filter_layout)
-        self._layout.addWidget(self.filter_widget)'''
+       
         self._body_layout = QtWidgets.QHBoxLayout()
         self.file_view_tabs= QtWidgets.QTabWidget(self)
         
@@ -185,6 +163,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         
 
         self.line_plot_widget = PltWidget()
+        self.line_plot_widget.set_log_mode(False,False)
        
         self.file_view_tabs.addTab(self.line_plot_widget, 'Plot')
 

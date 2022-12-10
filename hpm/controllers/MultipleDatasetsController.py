@@ -291,7 +291,7 @@ class MultipleDatasetsController(QObject):
             if len(self.multi_spectra_model.E_average):
                 m = self.multi_spectra_model
                 for i in range(np.shape(m.E)[0]):
-                    m.E_normalized[i] = m.E[i] - m.E_average
+                    m.E[i] = m.E[i] - m.E_average
                 self. update_view('E')
     
 

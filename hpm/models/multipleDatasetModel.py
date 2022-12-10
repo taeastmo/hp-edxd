@@ -95,7 +95,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
     def flaten_data(self, data):
 
         
-        out = np.sum(data, axis=0)#/ np.shape(data)[0]
+        out = np.sum(data, axis=0)/ np.shape(data)[0]
         return out
 
     def is2thetaScan(self):
