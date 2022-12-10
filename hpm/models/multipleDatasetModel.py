@@ -94,8 +94,10 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
     def flaten_data(self, data):
 
-        
-        out = np.sum(data, axis=0)/ np.shape(data)[0]
+        # Compute the average beam profile by averaging all the rows while in energy space. 
+        # Then, convert that average profile to q space then you can use that to 
+        # normalize all of the data rows.
+        out = np.mean(np.ma.array(data, mask=self.mask_model.get_mask()), axis=0 )
         return out
 
     def is2thetaScan(self):
@@ -174,7 +176,9 @@ class MultipleSpectraModel(QtCore.QObject):  #
         
 
     def rebin_channels(self, order = 1):
-        #calibration = self.r['calibration']
+        # This is useful for the germanium strip detector data, 
+        # where the rows have to be aligned before processing
+        
         data = self.data
         bins = np.size(data[0])
         x =  np.arange(bins)
