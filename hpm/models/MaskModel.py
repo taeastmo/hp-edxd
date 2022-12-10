@@ -38,17 +38,22 @@ class MaskModel(object):
         self.mode = True
         self.roi = None
 
-        self._mask_data = np.zeros(self.mask_dimension, dtype=bool)
-        self._mask_data_q = np.zeros(self.mask_dimension, dtype=bool)
-        self._mask_data_E = np.zeros(self.mask_dimension, dtype=bool)
+        self.init_masks()
         
         self._img_data = np.zeros(self.mask_dimension, dtype=bool)
         self._undo_deque = deque(maxlen=50)
         self._redo_deque = deque(maxlen=50)
 
-        self.scale = 'channel'
+        self.scale = 'Channel'
 
         self.img_filename = ''
+    
+    def init_masks(self):
+        self._mask_data = np.zeros(self.mask_dimension, dtype=bool)
+        self._mask_data_aligned = np.zeros(self.mask_dimension, dtype=bool)
+        self._mask_data_q = np.zeros(self.mask_dimension, dtype=bool)
+        self._mask_data_E = np.zeros(self.mask_dimension, dtype=bool)
+        self._mask_out = np.zeros(self.mask_dimension, dtype=bool)
 
     def set_dimension(self, mask_dimension):
         if not np.array_equal(mask_dimension, self.mask_dimension):
@@ -57,63 +62,30 @@ class MaskModel(object):
 
     def reset_dimension(self):
         if self.mask_dimension is not None:
-            self._mask_data = np.zeros(self.mask_dimension, dtype=bool)
-            self._mask_data_q = np.zeros(self.mask_dimension, dtype=bool)
-            self._mask_data_E = np.zeros(self.mask_dimension, dtype=bool)
+            self.init_masks()
             self._undo_deque = deque(maxlen=50)
             self._redo_deque = deque(maxlen=50)
 
-    def set_supersampling(self, factor=None):
-        if factor is None:
-            self.supersampling_factor = 1
-        else:
-            self.supersampling_factor = factor
 
-        if self.supersampling_factor != 1:
-            self._mask_data_supersampled = np.zeros((self._mask_data.shape[0] * factor,
-                                                     self._mask_data.shape[1] * factor))
-            for row in range(factor):
-                for col in range(factor):
-                    self._mask_data_supersampled[row::factor, col::factor] = self._mask_data
-
-    @property
-    def roi_mask(self):
-        if self.roi is not None:
-            roi_mask = np.ones(self.mask_dimension)
-            x1, x2, y1, y2 = self.roi
-            if x1 < 0:
-                x1 = 0
-            if y1 < 0:
-                y1 = 0
-            roi_mask[int(x1):int(x2), int(y1):int(y2)] = 0
-
-            if self.supersampling_factor == None or self.supersampling_factor == 1:
-                return roi_mask
-            else:
-                factor = self.supersampling_factor
-                roi_mask_supersampled = np.zeros((self._mask_data.shape[0] * factor,
-                                                  self._mask_data.shape[1] * factor))
-                for row in range(factor):
-                    for col in range(factor):
-                        roi_mask_supersampled[row::factor, col::factor] = roi_mask
-                return roi_mask_supersampled
-        else:
-            return None
 
     def get_mask(self):
-        if self.supersampling_factor == 1:
-            if self.roi is None:
-                return self._mask_data
-            elif self.roi is not None:
-                return np.logical_or(self._mask_data, self.roi_mask)
-        else:
-            if self.roi is None:
-                return self._mask_data_supersampled
-            else:
-                return np.logical_or(self._mask_data_supersampled, self.roi_mask)
+        scale = self.scale
+        if scale == 'Channel':
+            _mask_data = self._mask_data
+        elif scale == 'q':
+            _mask_data = self._mask_data_q
+        elif scale == 'E':
+            _mask_data = self._mask_data_E
+        elif scale == 'Aligned':
+            _mask_data = self._mask_data_aligned
+
+        return _mask_data
+
 
     def get_img(self):
-        return self._mask_data
+        _mask_data = self.get_mask()
+
+        return _mask_data
 
     def update_deque(self):
         """
@@ -121,6 +93,7 @@ class MaskModel(object):
         to provide an undo/redo feature.
         When performing a new action the old redo steps will be cleared..._
         """
+        
         self._undo_deque.append(np.copy(self._mask_data))
         self._redo_deque.clear()
 
@@ -142,11 +115,13 @@ class MaskModel(object):
 
     def mask_below_threshold(self, img_data, threshold):
         self.update_deque()
-        self._mask_data += (img_data < threshold)
+        _mask_data = self.get_mask()
+        _mask_data += (img_data < threshold)
 
     def mask_above_threshold(self, img_data, threshold):
         self.update_deque()
-        self._mask_data += (img_data > threshold)
+        _mask_data = self.get_mask()
+        _mask_data += (img_data > threshold)
 
     def mask_QGraphicsRectItem(self, QGraphicsRectItem):
         rect = QGraphicsRectItem.rect()
@@ -205,7 +180,8 @@ class MaskModel(object):
             y_ind1 = 0
 
         x_ind1, x_ind2, y_ind1, y_ind2 = int(x_ind1), int(x_ind2), int(y_ind1), int(y_ind2)
-        self._mask_data[x_ind1:x_ind2, y_ind1:y_ind2] = self.mode
+        _mask_data = self.get_mask()
+        _mask_data[x_ind1:x_ind2, y_ind1:y_ind2] = self.mode
 
     def mask_polygon(self, x, y):
         """
@@ -214,8 +190,10 @@ class MaskModel(object):
         the skimage library.
         """
         self.update_deque()
-        rr, cc = skimage.draw.polygon(y, x, self._mask_data.shape)
-        self._mask_data[rr, cc] = self.mode
+        _mask_data = self.get_mask()
+        rr, cc = skimage.draw.polygon(y, x, _mask_data.shape)
+     
+        _mask_data[rr, cc] = self.mode
 
     def mask_ellipse(self, cx, cy, x_radius, y_radius):
         """
@@ -224,31 +202,38 @@ class MaskModel(object):
         the skimage library.
         """
         self.update_deque()
+        _mask_data = self.get_mask()
         rr, cc = skimage.draw.ellipse(
-            cy, cx, y_radius, x_radius, shape=self._mask_data.shape)
-        self._mask_data[rr, cc] = self.mode
+            cy, cx, y_radius, x_radius, shape=_mask_data.shape)
+        _mask_data[rr, cc] = self.mode
 
     def grow(self):
         self.update_deque()
-        self._mask_data[1:, :] = np.logical_or(self._mask_data[1:, :], self._mask_data[:-1, :])
-        self._mask_data[:-1, :] = np.logical_or(self._mask_data[:-1, :], self._mask_data[1:, :])
-        self._mask_data[:, 1:] = np.logical_or(self._mask_data[:, 1:], self._mask_data[:, :-1])
-        self._mask_data[:, :-1] = np.logical_or(self._mask_data[:, :-1], self._mask_data[:, 1:])
+        _mask_data = self.get_mask()
+        _mask_data[1:, :] = np.logical_or(_mask_data[1:, :], _mask_data[:-1, :])
+        _mask_data[:-1, :] = np.logical_or(_mask_data[:-1, :], _mask_data[1:, :])
+        _mask_data[:, 1:] = np.logical_or(_mask_data[:, 1:], _mask_data[:, :-1])
+        _mask_data[:, :-1] = np.logical_or(_mask_data[:, :-1], _mask_data[:, 1:])
 
     def shrink(self):
         self.update_deque()
-        self._mask_data[1:, :] = np.logical_and(self._mask_data[1:, :], self._mask_data[:-1, :])
-        self._mask_data[:-1, :] = np.logical_and(self._mask_data[:-1, :], self._mask_data[1:, :])
-        self._mask_data[:, 1:] = np.logical_and(self._mask_data[:, 1:], self._mask_data[:, :-1])
-        self._mask_data[:, :-1] = np.logical_and(self._mask_data[:, :-1], self._mask_data[:, 1:])
+        _mask_data = self.get_mask()
+        _mask_data[1:, :] = np.logical_and(_mask_data[1:, :], _mask_data[:-1, :])
+        _mask_data[:-1, :] = np.logical_and(_mask_data[:-1, :], _mask_data[1:, :])
+        _mask_data[:, 1:] = np.logical_and(_mask_data[:, 1:], _mask_data[:, :-1])
+        _mask_data[:, :-1] = np.logical_and(_mask_data[:, :-1], _mask_data[:, 1:])
 
     def invert_mask(self):
         self.update_deque()
-        self._mask_data = np.logical_not(self._mask_data)
+        _mask_data = self.get_mask()
+        _mask_data = np.logical_not(_mask_data)
+      
 
     def clear_mask(self):
         self.update_deque()
-        self._mask_data[:, :] = False
+        _mask_data = self.get_mask()
+        _mask_data[:, :] = False
+  
 
     def remove_cosmic(self, img):
         self.update_deque()
@@ -257,7 +242,8 @@ class MaskModel(object):
         for i in range(num):
             test.lacosmiciteration(True)
             test.clean()
-            self._mask_data = np.logical_or(self._mask_data, np.array(test.mask, dtype='bool'))
+            _mask_data = self.get_mask()
+            _mask_data = np.logical_or(_mask_data, np.array(test.mask, dtype='bool'))
 
     def set_mode(self, mode):
         """
@@ -267,7 +253,8 @@ class MaskModel(object):
 
     def set_mask(self, mask_data):
         self.update_deque()
-        self._mask_data = mask_data
+        _mask_data = self.get_mask()
+        _mask_data = mask_data
 
     def save_mask(self, filename):
         im_array = np.int8(self.get_img())
@@ -309,7 +296,8 @@ class MaskModel(object):
 
     def _add_mask(self, mask_data):
         self.update_deque()
-        self._mask_data = np.logical_or(self._mask_data,
+        _mask_data = self.get_mask()
+        _mask_data = np.logical_or(_mask_data,
                                         np.array(mask_data, dtype='bool'))
 
     def find_center_of_circle_from_three_points(self, a, b, c):

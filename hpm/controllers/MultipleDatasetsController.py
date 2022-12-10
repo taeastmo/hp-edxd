@@ -225,6 +225,7 @@ class MultipleDatasetsController(QObject):
             if scale == 'q' or scale == 'E':
                 self.multi_spectra_model.rebin_scale(scale) 
             self.update_view(scale)    
+            self.mask_controller.mask_model.scale = scale
             self.mask_controller.plot_mask()
 
     def set_row_scale(self, label='Index'):

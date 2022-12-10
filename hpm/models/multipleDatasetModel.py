@@ -170,7 +170,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
 
-        self.align_multialement_data(self.mask_model._mask_data, self.mask_model._mask_data, rebinned_scales,rebinned_new ,kind='nearest')
+        self.align_multialement_data(self.mask_model._mask_data, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
         
 
     def rebin_channels(self, order = 1):
