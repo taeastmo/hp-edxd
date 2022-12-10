@@ -39,9 +39,14 @@ class MaskModel(object):
         self.roi = None
 
         self._mask_data = np.zeros(self.mask_dimension, dtype=bool)
+        self._mask_data_q = np.zeros(self.mask_dimension, dtype=bool)
+        self._mask_data_E = np.zeros(self.mask_dimension, dtype=bool)
+        
         self._img_data = np.zeros(self.mask_dimension, dtype=bool)
         self._undo_deque = deque(maxlen=50)
         self._redo_deque = deque(maxlen=50)
+
+        self.scale = 'channel'
 
         self.img_filename = ''
 
@@ -53,6 +58,8 @@ class MaskModel(object):
     def reset_dimension(self):
         if self.mask_dimension is not None:
             self._mask_data = np.zeros(self.mask_dimension, dtype=bool)
+            self._mask_data_q = np.zeros(self.mask_dimension, dtype=bool)
+            self._mask_data_E = np.zeros(self.mask_dimension, dtype=bool)
             self._undo_deque = deque(maxlen=50)
             self._redo_deque = deque(maxlen=50)
 

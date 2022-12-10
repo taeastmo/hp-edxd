@@ -31,8 +31,10 @@ from .eCalModel import calc_parabola_vertex, fit_energies
 from .mcaComponents import McaROI
 import hpm.models.Xrf as Xrf
 
+from hpm.models.MaskModel import MaskModel
+
 class MultipleSpectraModel(QtCore.QObject):  # 
-    def __init__(self, *args, **filekw):
+    def __init__(self, mask_model:MaskModel, *args, **filekw):
         
         """
         Creates new Multiple Spectra object.  
@@ -41,6 +43,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
             m = MultipleSpectraModel()
         """
         self.mca = None
+        self.mask_model = mask_model
         
         self.max_spectra = 500
         self.nchans = 4000
@@ -78,7 +81,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
       
 
     def clear(self):
-        self.__init__()
+        self.__init__(self.mask_model)
 
     def set_mca(self, mca, element=0):
         self.clear()
@@ -157,12 +160,17 @@ class MultipleSpectraModel(QtCore.QObject):  #
         rebinned_step = (rebinned_max-rebinned_min)/bins
         if scale == 'q':
             new_data = self.q
+            
+            new_mask = self.mask_model._mask_data_q
             self.q_scale = [rebinned_step, rebinned_min]
         elif scale == 'E':
             new_data = self.E
+            new_mask = self.mask_model._mask_data_E
             self.E_scale = [rebinned_step, rebinned_min]
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
+
+        self.align_multialement_data(self.mask_model._mask_data, self.mask_model._mask_data, rebinned_scales,rebinned_new ,kind='nearest')
         
 
     def rebin_channels(self, order = 1):
@@ -275,7 +283,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
             calibration_scales.append(xnew)
         return calibration_scales
             
-    def align_multialement_data (self,  data, new_data, old_scales, new_scales):
+    def align_multialement_data (self,  data, new_data, old_scales, new_scales, kind='linear'):
         rows = len(data)
         
         bins = np.size(data[0])
@@ -283,13 +291,15 @@ class MultipleSpectraModel(QtCore.QObject):  #
         for row in range(rows): 
             x = old_scales[row]
             xnew = new_scales[row]
-            new_data[row] = self.shift_row(data[row],x, xnew)
+            new_data[row] = self.shift_row(data[row],x, xnew, kind)
         
 
-    def shift_row(self, row,x, xnew):
-        f = interpolate.interp1d(x, row, assume_sorted=True, bounds_error=False, fill_value=0)
+    def shift_row(self, row,x, xnew, kind='linear'):
+        f = interpolate.interp1d(x, row, assume_sorted=True, bounds_error=False, fill_value=0, kind=kind)
         row = f(xnew)
         return row
+
+
 
     def aligned_to_channel(self, aligned, row):
         slope = self.calibration['slope'][row]

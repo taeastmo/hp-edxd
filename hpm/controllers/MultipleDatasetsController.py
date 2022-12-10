@@ -31,6 +31,7 @@ import natsort
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
 from hpm.models.mcaModel import MCA
 from hpm.controllers.MaskController import MaskController
+from hpm.models.MaskModel import MaskModel
 
 class MultipleDatasetsController(QObject):
     file_changed_signal = pyqtSignal(str)  
@@ -42,7 +43,9 @@ class MultipleDatasetsController(QObject):
         super().__init__()
         self.file_save_controller = file_save_controller
         self.directories = directories
-        self.multi_spectra_model = MultipleSpectraModel()
+        
+        self.mask_model = MaskModel()
+        self.multi_spectra_model = MultipleSpectraModel(self.mask_model)
         self.widget = MultiSpectraWidget()
         
 
@@ -59,7 +62,7 @@ class MultipleDatasetsController(QObject):
         self.row_scale = 'Index'
         self.file = ''
         self.row = 0
-        self.mask_controller = MaskController(self.widget.mask_widget, directories)
+        self.mask_controller = MaskController(self.mask_model, self.widget.mask_widget, directories)
 
         #self.phases =dict()
         self.create_signals()
@@ -222,6 +225,7 @@ class MultipleDatasetsController(QObject):
             if scale == 'q' or scale == 'E':
                 self.multi_spectra_model.rebin_scale(scale) 
             self.update_view(scale)    
+            self.mask_controller.plot_mask()
 
     def set_row_scale(self, label='Index'):
         d = [1,0]

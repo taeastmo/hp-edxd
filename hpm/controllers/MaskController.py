@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from operator import mod
 import sys
 import os
 
@@ -33,7 +34,7 @@ from hpm.models.MaskModel import MaskModel
 
 
 class MaskController(object):
-    def __init__(self, widget:MaskWidget, directories):
+    def __init__(self, mask_model: MaskModel, widget:MaskWidget, directories):
         """
         :param widget: Reference to a MaskView object
         :type widget: MaskWidget
@@ -42,7 +43,7 @@ class MaskController(object):
         """
         self.widget = widget
        
-        self.mask_model = MaskModel()
+        self.mask_model = mask_model
 
         self.directories = directories
 
