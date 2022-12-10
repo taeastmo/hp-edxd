@@ -33,17 +33,13 @@ class MaskModel(object):
     def __init__(self, mask_dimension=(2048, 2048)):
         self.mask_dimension = mask_dimension
         self.supersampling_factor = 1
-        self.reset_dimension()
         self.filename = ''
         self.mode = True
         self.roi = None
-
-        self.init_masks()
+        self.masks = {}
         
-        self._img_data = np.zeros(self.mask_dimension, dtype=bool)
-        self._undo_deque = deque(maxlen=50)
-        self._redo_deque = deque(maxlen=50)
-
+        self.reset_dimension()
+        
         self.scale = 'Channel'
 
         self.img_filename = ''
@@ -54,6 +50,14 @@ class MaskModel(object):
         self._mask_data_q = np.zeros(self.mask_dimension, dtype=bool)
         self._mask_data_E = np.zeros(self.mask_dimension, dtype=bool)
         self._mask_out = np.zeros(self.mask_dimension, dtype=bool)
+
+        self._img_data = np.zeros(self.mask_dimension, dtype=bool)
+
+        self.masks['Channel'] = self._mask_data
+        self.masks['q'] = self._mask_data_q
+        self.masks['E'] = self._mask_data_E
+        self.masks['Aligned'] = self._mask_data_aligned
+        self.masks['img'] = self._img_data
 
     def set_dimension(self, mask_dimension):
         if not np.array_equal(mask_dimension, self.mask_dimension):
@@ -70,15 +74,8 @@ class MaskModel(object):
 
     def get_mask(self):
         scale = self.scale
-        if scale == 'Channel':
-            _mask_data = self._mask_data
-        elif scale == 'q':
-            _mask_data = self._mask_data_q
-        elif scale == 'E':
-            _mask_data = self._mask_data_E
-        elif scale == 'Aligned':
-            _mask_data = self._mask_data_aligned
-
+        _mask_data = self.masks[scale]
+        
         return _mask_data
 
 
@@ -225,14 +222,17 @@ class MaskModel(object):
 
     def invert_mask(self):
         self.update_deque()
-        _mask_data = self.get_mask()
-        _mask_data = np.logical_not(_mask_data)
+        for m in self.masks:
+            _mask_data = self.masks[m]
+            _mask_data[:] = np.logical_not(_mask_data)[:]
       
 
     def clear_mask(self):
         self.update_deque()
-        _mask_data = self.get_mask()
-        _mask_data[:, :] = False
+        for m in self.masks:
+            _mask_data = self.masks[m]
+            _mask_data[:, :] = False
+        
   
 
     def remove_cosmic(self, img):
@@ -254,7 +254,7 @@ class MaskModel(object):
     def set_mask(self, mask_data):
         self.update_deque()
         _mask_data = self.get_mask()
-        _mask_data = mask_data
+        _mask_data[:] = mask_data[:]
 
     def save_mask(self, filename):
         im_array = np.int8(self.get_img())

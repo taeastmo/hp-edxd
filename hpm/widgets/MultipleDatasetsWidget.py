@@ -166,7 +166,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.HorizontalScale_btn_group.addButton(self.radioAligned)
 
         self.radioChannel.setChecked(True)
-        self._plot_widget_layout.addWidget(self.HorizontalScaleWidget)
+        #self._plot_widget_layout.addWidget(self.HorizontalScaleWidget)
 
         self.navigation_buttons = QtWidgets.QWidget()
         self._nav_layout = QtWidgets.QHBoxLayout(self.navigation_buttons)
@@ -189,8 +189,10 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_view_tabs.addTab(self.line_plot_widget, 'Plot')
 
         self._body_layout.addWidget(self.file_view_tabs)
+        
 
         self._layout.addLayout(self._body_layout)
+        self._layout.addWidget(self.HorizontalScaleWidget)
         self.file_name = QtWidgets.QLabel('')
         self.file_name_fast = QtWidgets.QLabel('')
         self.file_name_fast.setObjectName("file_name_fast")
