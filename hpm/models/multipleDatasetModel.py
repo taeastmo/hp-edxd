@@ -49,22 +49,23 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.nchans = 4000
 
         self.data = []
-        self.data_mask = []
+        self.data_average = []
+
+        self.scratch = []
+        self.scratch_average = []
         
         self.calibration = {}
         self.calibration_inv = {}
+
         self.channel_calibration_scales = []
 
         self.rebinned_channel_data = []
-        self.rebinned_channel_data_mask = []
+        self.rebinned_channel_average = []
 
         self.E = []
-        self.E_mask = []
-        self.E_normalized = []
         self.E_average = []
 
         self.q = []
-        self.q_mask = []
         self.q_average = []
 
         self.current_scale = {'label': 'channel', 'range': [1,0]}

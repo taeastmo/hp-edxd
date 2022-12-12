@@ -26,6 +26,7 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from hpm.widgets.PltWidget import PltWidget
 from hpm.widgets.MaskWidget import MaskWidget
+from hpm.widgets.plot_widgets import ImgWidget2
 
 class MultiSpectraWidget(QtWidgets.QWidget):
 
@@ -160,7 +161,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_list_view = QtWidgets.QListWidget()
         self.mask_widget = MaskWidget()
         self.file_view_tabs.addTab(self.mask_widget, 'Mask')
-        
+
+        self.scratch_widget = ImgWidget2()
+        self.file_view_tabs.addTab(self.scratch_widget, 'Scratch')
 
         self.line_plot_widget = PltWidget()
         self.line_plot_widget.set_log_mode(False,False)

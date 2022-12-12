@@ -281,24 +281,31 @@ class MultipleDatasetsController(QObject):
             data = self.multi_spectra_model.rebinned_channel_data
             scale = [1,0]
         out = self.multi_spectra_model.flaten_data(data)
-        if self.scale == 'E':
-            self.multi_spectra_model.E_average = out
+        self.multi_spectra_model.scratch_average = out
         x = np.arange(len(out)) * scale[0] + scale[1]
         self.widget.plot_data(x, out)
 
     def ebg_data(self):
         if self.scale == 'E':
-            if len(self.multi_spectra_model.E_average):
+            if len(self.multi_spectra_model.scratch_average):
                 m = self.multi_spectra_model
                 for i in range(np.shape(m.E)[0]):
-                    m.data[i] = m.E[i] / m.E_average
+                    m.scratch[i] = m.E[i] / m.scratch_average
                 self. update_view('E')
+        if self.scale == 'q':
+            if len(self.multi_spectra_model.scratch_average):
+                m = self.multi_spectra_model
+                for i in range(np.shape(m.q)[0]):
+                    m.scratch[i] = m.q[i] / m.scratch_average
+                self. update_view('q')
     
+        self.widget.scratch_widget.plot_image(m.scratch)
 
     def multispectra_loaded(self, scale='Channel'):
         data = self.multi_spectra_model.data
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.E = np.zeros(np.shape(data))
+        self.multi_spectra_model.scratch = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = copy.deepcopy(data)
         scales = self.get_available_scales()
         horzScale = self.widget.get_selected_unit()
