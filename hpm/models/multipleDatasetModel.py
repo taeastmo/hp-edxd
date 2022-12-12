@@ -53,6 +53,12 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
         self.scratch = []
         self.scratch_average = []
+
+        self.scratch_E = []
+        self.scratch_E_average = []
+
+        self.scratch_q = []
+        self.scratch_q_average = []
         
         self.calibration = {}
         self.calibration_inv = {}
@@ -93,13 +99,13 @@ class MultipleSpectraModel(QtCore.QObject):  #
     def was_canceled(self):
         return False
 
-    def flaten_data(self, data):
+    def flaten_data(self, data, mask):
 
         # Compute the average beam profile by averaging all the rows while in energy space. 
         # Then, convert that average profile to q space then you can use that to 
         # normalize all of the data rows.
         # do a weighted average because the high energy / low energy bins will be more noisy 
-        out = np.mean(np.ma.array(data, mask=self.mask_model.get_mask()), axis=0 )
+        out = np.mean(np.ma.array(data, mask=mask), axis=0 )
         return out
 
     def is2thetaScan(self):
@@ -128,10 +134,9 @@ class MultipleSpectraModel(QtCore.QObject):  #
             cal_t.append(copy.deepcopy(cal))
      
         print(len(cal_t))
-        
 
-    def rebin_scale(self, scale='q'):
-        data = self.data
+    def _rebin_scale(self, data, new_data, mask, new_mask, scale, new_scale):
+        
         rows = len(data)
         tth = np.zeros(rows)
         bins = np.size(self.data[0])
@@ -139,13 +144,13 @@ class MultipleSpectraModel(QtCore.QObject):  #
         calibrations = self.mca.get_calibration()
         rebinned_scales = []
     
-        if scale == 'q':
+        if new_scale == 'q':
             for row in range(rows):
                 calibration = calibrations[row]
                 q = calibration.channel_to_q(x)
                 tth[row]= calibration.two_theta
                 rebinned_scales.append(q)
-        elif scale == 'E':
+        elif new_scale == 'E':
             for row in range(rows):
                 calibration = calibrations[row]
                 e = calibration.channel_to_energy(x)
@@ -162,20 +167,43 @@ class MultipleSpectraModel(QtCore.QObject):  #
         rebinned_max = np.amax(rebinned_scales)
      
         rebinned_step = (rebinned_max-rebinned_min)/bins
-        if scale == 'q':
-            new_data = self.q
-            
-            new_mask = self.mask_model._mask_data_q
+        if new_scale == 'q':
             self.q_scale = [rebinned_step, rebinned_min]
-        elif scale == 'E':
-            new_data = self.E
-            new_mask = self.mask_model._mask_data_E
+        elif new_scale == 'E':
             self.E_scale = [rebinned_step, rebinned_min]
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
 
-        self.align_multialement_data(self.mask_model._mask_data, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
+        self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
         
+    def rebin_scratch(self, scale, new_scale):
+        
+        if new_scale == 'q':
+            data = self.scratch_E
+            new_data = self.scratch_q
+            mask = self.mask_model._mask_data_E
+            new_mask = self.mask_model._mask_data_q
+       
+        elif new_scale == 'E':
+            data = self.scratch_q
+            new_data = self.scratch_E
+            mask = self.mask_model._mask_data_q
+            new_mask = self.mask_model._mask_data_E
+            
+        self._rebin_scale(data, new_data, mask, new_mask, scale, new_scale)
+
+    def rebin_scale(self, new_scale='q'):
+        data = self.data
+        mask = self.mask_model._mask_data
+        if new_scale == 'q':
+            new_data = self.q
+            new_mask = self.mask_model._mask_data_q
+       
+        elif new_scale == 'E':
+            new_data = self.E
+            new_mask = self.mask_model._mask_data_E
+            
+        self._rebin_scale(data, new_data, mask, new_mask, 'Channel', new_scale)
 
     def rebin_channels(self, order = 1):
         # This is useful for the germanium strip detector data, 

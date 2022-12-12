@@ -84,6 +84,7 @@ def main():
     jcpds2 = os.path.normpath(os.path.join(resources_path,'mgo.jcpds'))
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
     multi_spectra2 =  os.path.normpath( os.path.join(desktop,'dt/20221208-SiO2/scan1'))
+    mask_path =  os.path.normpath( os.path.join(resources_path,'my.mask'))
     #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
     multi_element =  os.path.normpath( '/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca')
     #multi_element =  os.path.normpath( os.path.join(resources_path,'20221116_test_010.hpmca'))
@@ -92,6 +93,7 @@ def main():
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
     controller.file_save_controller.openFolder(foldername=multi_spectra2)
+    controller.multiple_datasets_controller.mask_controller.load_mask_btn_click(filename = mask_path)
     #controller.multiple_datasets_controller.show_view()
     
     #controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])

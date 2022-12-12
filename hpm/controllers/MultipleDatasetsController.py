@@ -78,6 +78,7 @@ class MultipleDatasetsController(QObject):
 
         self.widget.align_btn.clicked.connect(self.align_btn_callback)
         self.widget.sum_btn.clicked.connect(self.sum_data)
+        self.widget.sum_scratch_btn.clicked.connect(self.sum_scratch_callback)
         self.widget.ebg_btn.clicked.connect(self.ebg_data)
         self.widget.transpose_btn.clicked.connect(self.transpose_E_2theta)
         self.widget.copy_rois_btn.clicked.connect(self.propagate_rois_to_all_elements)
@@ -224,6 +225,7 @@ class MultipleDatasetsController(QObject):
         if len(self.multi_spectra_model.data):
             if scale == 'q' or scale == 'E':
                 self.multi_spectra_model.rebin_scale(scale) 
+                self.multi_spectra_model.rebin_scratch('Channel', scale)
             self.update_view(scale)    
             self.mask_controller.mask_model.scale = scale
             self.mask_controller.plot_mask()
@@ -244,16 +246,20 @@ class MultipleDatasetsController(QObject):
 
     def update_view (self, scale='Channel'):
         r = [1,0]
+        scratch_view = []
         if scale == 'Channel':
             view = self.multi_spectra_model.data
+            
             self.widget.radioChannel.setChecked(True)
         elif scale == 'q':
             view = self.multi_spectra_model.q
             r = self.multi_spectra_model.q_scale
+            scratch_view = self.multi_spectra_model.scratch_q
             self.widget.radioq.setChecked(True)
         elif scale == 'E':
             view = self.multi_spectra_model.E
             r = self.multi_spectra_model.E_scale
+            scratch_view = self.multi_spectra_model.scratch_E
             self.widget.radioE.setChecked(True)
         elif scale == 'Aligned':
             view = self.multi_spectra_model.rebinned_channel_data
@@ -261,6 +267,8 @@ class MultipleDatasetsController(QObject):
             #r = self.multi_spectra_model.E_scale
 
         self.widget.set_spectral_data(view)
+        if len(scratch_view):
+            self.widget.scratch_widget.plot_image(scratch_view)
         self.mask_controller.mask_model._img_data = view
         self.mask_controller.update_mask_dimension()
         self.widget.set_image_scale(scale, r)
@@ -268,6 +276,7 @@ class MultipleDatasetsController(QObject):
         self.scale = scale
 
     def sum_data(self):
+
         if self.scale == 'E':
             data = self.multi_spectra_model.E
             scale = self.multi_spectra_model.E_scale
@@ -280,32 +289,56 @@ class MultipleDatasetsController(QObject):
         elif self.scale == 'Aligned':
             data = self.multi_spectra_model.rebinned_channel_data
             scale = [1,0]
-        out = self.multi_spectra_model.flaten_data(data)
-        self.multi_spectra_model.scratch_average = out
+        mask = self.mask_model.get_mask()
+        out = self.multi_spectra_model.flaten_data(data, mask)
+        self.multi_spectra_model.scratch_E_average = out
         x = np.arange(len(out)) * scale[0] + scale[1]
         self.widget.plot_data(x, out)
 
+    def sum_scratch_callback(self):
+
+        if self.scale == 'E':
+            data = self.multi_spectra_model.scratch_E
+            scale = self.multi_spectra_model.E_scale
+        elif self.scale == 'q':
+            data = self.multi_spectra_model.scratch_q
+            scale = self.multi_spectra_model.q_scale
+        elif self.scale == 'Channel':
+            data = self.multi_spectra_model.data
+            scale = [1,0]
+        elif self.scale == 'Aligned':
+            data = self.multi_spectra_model.rebinned_channel_data
+            scale = [1,0]
+        mask = self.mask_model.get_mask()
+        out = self.multi_spectra_model.flaten_data(data, mask)
+        self.multi_spectra_model.scratch_q_average = out
+        x = np.arange(len(out)) * scale[0] + scale[1]
+        self.widget.plot_data(x, out)
+    
+
     def ebg_data(self):
         if self.scale == 'E':
-            if len(self.multi_spectra_model.scratch_average):
+            if len(self.multi_spectra_model.scratch_E_average):
                 m = self.multi_spectra_model
                 for i in range(np.shape(m.E)[0]):
-                    m.scratch[i] = m.E[i] / m.scratch_average
-                self. update_view('E')
+                    m.scratch_E[i] = m.E[i] / m.scratch_E_average
+                #self. update_view('E')
+                self.widget.scratch_widget.plot_image(m.scratch_E)
         if self.scale == 'q':
-            if len(self.multi_spectra_model.scratch_average):
+            if len(self.multi_spectra_model.scratch_q_average):
                 m = self.multi_spectra_model
                 for i in range(np.shape(m.q)[0]):
-                    m.scratch[i] = m.q[i] / m.scratch_average
-                self. update_view('q')
+                    m.scratch_q[i] = m.q[i] / m.scratch_q_average
+                #self. update_view('q')
     
-        self.widget.scratch_widget.plot_image(m.scratch)
+                self.widget.scratch_widget.plot_image(m.scratch_q)
 
     def multispectra_loaded(self, scale='Channel'):
         data = self.multi_spectra_model.data
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.E = np.zeros(np.shape(data))
-        self.multi_spectra_model.scratch = np.zeros(np.shape(data))
+        self.multi_spectra_model.scratch_E = np.zeros(np.shape(data))
+        self.multi_spectra_model.scratch_q = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = copy.deepcopy(data)
         scales = self.get_available_scales()
         horzScale = self.widget.get_selected_unit()

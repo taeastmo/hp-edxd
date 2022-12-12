@@ -57,6 +57,9 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.sum_btn = FlatButton('Flatten')
         self.sum_btn.setMaximumWidth(90)
         self.sum_btn.setMinimumWidth(90)
+        self.sum_scratch_btn = FlatButton('Flatten scratch')
+        self.sum_scratch_btn.setMaximumWidth(90)
+        self.sum_scratch_btn.setMinimumWidth(90)
         self.ebg_btn = FlatButton('Save DC')
         self.ebg_btn.setMaximumWidth(90)
         self.ebg_btn.setMinimumWidth(90)
@@ -81,6 +84,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         
         self._button_layout.addWidget(self.align_btn)
         self._button_layout.addWidget(self.sum_btn)
+        self._button_layout.addWidget(self.sum_scratch_btn)
         self._button_layout.addWidget(self.ebg_btn)
         self._button_layout.addWidget(self.tth_btn)
         self._button_layout.addWidget(self.transpose_btn)

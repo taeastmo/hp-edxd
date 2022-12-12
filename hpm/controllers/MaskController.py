@@ -383,9 +383,12 @@ class MaskController(object):
             self.directories.mask = os.path.dirname(filename)
             self.mask_model.save_mask(filename)
 
-    def load_mask_btn_click(self):
-        filename = open_file_dialog(self.widget, caption="Load mask data",
-                                    directory=self.directories.mask, filter='*.mask')
+    def load_mask_btn_click(self, *args, **kwargs):
+        filename = kwargs.get('filename', None)
+
+        if filename == None:
+            filename = open_file_dialog(self.widget, caption="Load mask data",
+                                        directory=self.directories.mask, filter='*.mask')
 
         if filename is not '':
             self.directories.mask = os.path.dirname(filename)
@@ -396,8 +399,11 @@ class MaskController(object):
                                                'Image data and mask data in selected file do not have '
                                                'the same shape. Mask could not be loaded.')
 
-    def add_mask_btn_click(self):
-        filename = open_file_dialog(self.widget, caption="Add mask data",
+    def add_mask_btn_click(self, *args, **kwargs):
+        filename = kwargs.get('filename', None)
+
+        if filename == None:
+            filename = open_file_dialog(self.widget, caption="Add mask data",
                                     directory=self.directories.mask, filter='*.mask')
 
         if filename is not '':
