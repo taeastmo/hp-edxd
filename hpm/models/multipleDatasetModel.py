@@ -98,6 +98,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         # Compute the average beam profile by averaging all the rows while in energy space. 
         # Then, convert that average profile to q space then you can use that to 
         # normalize all of the data rows.
+        # do a weighted average because the high energy / low energy bins will be more noisy 
         out = np.mean(np.ma.array(data, mask=self.mask_model.get_mask()), axis=0 )
         return out
 
