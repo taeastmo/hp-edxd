@@ -33,7 +33,31 @@ import hpm.models.Xrf as Xrf
 
 from hpm.models.MaskModel import MaskModel
 
-class MultipleSpectraModel(QtCore.QObject):  # 
+class AnalysisStep():
+    def __init__(self, data_in, unit_in):
+        self.data_in = data_in
+        self.unit_in = unit_in
+        self.rebinned_data = np.zeros(self.data_in.shape)
+
+
+        self.E = []
+        self.E_average = []
+
+        self.q = []
+        self.q_average = []
+
+    def flaten_data(self, data, mask):
+
+        # Compute the average beam profile by averaging all the rows while in energy space. 
+        # Then, convert that average profile to q space then you can use that to 
+        # normalize all of the data rows.
+        # do a weighted average because the high energy / low energy bins will be more noisy 
+        self.rebinned_data = np.mean(np.ma.array(data, mask=mask), axis=0 )
+        
+
+    
+
+class AmorphousAnalysisModel(QtCore.QObject):  # 
     def __init__(self, mask_model:MaskModel, *args, **filekw):
         
         """
@@ -45,47 +69,6 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.mca = None
         self.mask_model = mask_model
         
-        self.max_spectra = 500
-        self.nchans = 4000
-
-        self.data = []
-        self.data_average = []
-
-        self.scratch = []
-        self.scratch_average = []
-
-        self.scratch_E = []
-        self.scratch_E_average = []
-
-        self.scratch_q = []
-        self.scratch_q_average = []
-        
-        self.calibration = {}
-        self.calibration_inv = {}
-
-        self.channel_calibration_scales = []
-
-        self.rebinned_channel_data = []
-        self.rebinned_channel_average = []
-
-        self.E = []
-        self.E_average = []
-
-        self.q = []
-        self.q_average = []
-
-        self.current_scale = {'label': 'channel', 'range': [1,0]}
-        self.q_scale = [1 , 0]
-        self.E_scale = [1 , 0]
-        self.tth_scale = [1,0]
-        
-        self.r = {'files_loaded':[],
-                'start_times' :[],
-                'data': np.empty((0,0)),
-                'calibration':[],
-                'elapsed':[]}
-
-      
 
     def clear(self):
         self.__init__(self.mask_model)
@@ -96,7 +79,8 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
         self.data = np.asarray(mca.get_data())
 
-
+    def was_canceled(self):
+        return False
 
     def flaten_data(self, data, mask):
 
@@ -173,7 +157,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
 
-        #self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
+        self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
         
     def rebin_scratch(self, scale, new_scale):
         

@@ -28,7 +28,7 @@ from hpm.widgets.PltWidget import PltWidget
 from hpm.widgets.MaskWidget import MaskWidget
 from hpm.widgets.plot_widgets import ImgWidget2
 
-class MultiSpectraWidget(QtWidgets.QWidget):
+class AmorphousAnalysisWidget(QtWidgets.QWidget):
 
     color_btn_clicked = QtCore.pyqtSignal(int, QtWidgets.QWidget)
     #env_btn_clicked = QtCore.pyqtSignal(int)
@@ -42,7 +42,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self._layout = QtWidgets.QVBoxLayout()  
-        self.setWindowTitle('Multiple spectra view')
+        self.setWindowTitle('Amorphous analysis')
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setMaximumHeight(40)
         self.button_widget.setObjectName('multispectra_control_button_widget')
@@ -51,47 +51,47 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.setSpacing(6)
 
        
-        self.align_btn = FlatButton('Align')
+        '''self.align_btn = FlatButton('Align')
         self.align_btn.setMaximumWidth(90)
-        self.align_btn.setMinimumWidth(90)
-        self.amorphous_btn = FlatButton('Amorphous')
-        self.amorphous_btn.setMaximumWidth(90)
-        self.amorphous_btn.setMinimumWidth(90)
-        '''self.sum_scratch_btn = FlatButton('Flatten scratch')
+        self.align_btn.setMinimumWidth(90)'''
+        self.sum_btn = FlatButton('Flatten')
+        self.sum_btn.setMaximumWidth(90)
+        self.sum_btn.setMinimumWidth(90)
+        self.sum_scratch_btn = FlatButton('Flatten scratch')
         self.sum_scratch_btn.setMaximumWidth(90)
         self.sum_scratch_btn.setMinimumWidth(90)
         self.ebg_btn = FlatButton('Save DC')
         self.ebg_btn.setMaximumWidth(90)
-        self.ebg_btn.setMinimumWidth(90)'''
+        self.ebg_btn.setMinimumWidth(90)
         self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
         self.tth_btn.setEnabled(False)
         self.tth_btn.setMaximumWidth(90)
         self.tth_btn.setMinimumWidth(90)
-        '''self.transpose_btn = FlatButton(f'Transpose')
+        self.transpose_btn = FlatButton(f'Transpose')
         self.transpose_btn.setMaximumWidth(90)
-        self.transpose_btn.setMinimumWidth(90)'''
-        self.copy_rois_btn = FlatButton('Copy ROIs')
+        self.transpose_btn.setMinimumWidth(90)
+        '''self.copy_rois_btn = FlatButton('Copy ROIs')
         self.copy_rois_btn.setMaximumWidth(90)
         self.copy_rois_btn.setMinimumWidth(90)
         self.cal_btn = FlatButton('Calibrate')
         self.cal_btn.setMaximumWidth(90)
-        self.cal_btn.setMinimumWidth(90)
+        self.cal_btn.setMinimumWidth(90)'''
 
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
         self.clear_btn = FlatButton('Clear')
 
-        self._button_layout.addSpacerItem(HorizontalSpacerItem())
-        self._button_layout.addWidget(self.align_btn)
-        self._button_layout.addWidget(self.amorphous_btn)
-        '''self._button_layout.addWidget(self.sum_scratch_btn)
-        self._button_layout.addWidget(self.ebg_btn)'''
+        
+        #self._button_layout.addWidget(self.align_btn)
+        self._button_layout.addWidget(self.sum_btn)
+        self._button_layout.addWidget(self.sum_scratch_btn)
+        self._button_layout.addWidget(self.ebg_btn)
         self._button_layout.addWidget(self.tth_btn)
-        #self._button_layout.addWidget(self.transpose_btn)
+        self._button_layout.addWidget(self.transpose_btn)
+        self._button_layout.addSpacerItem(HorizontalSpacerItem())
+        #self._button_layout.addWidget(self.copy_rois_btn)
         
-        self._button_layout.addWidget(self.copy_rois_btn)
-        
-        self._button_layout.addWidget(self.cal_btn)
+        #self._button_layout.addWidget(self.cal_btn)
         
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
@@ -163,16 +163,16 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
 
         self.file_list_view = QtWidgets.QListWidget()
-        #self.mask_widget = MaskWidget()
-        self.file_view_tabs.addTab(self.file_list_view, 'Files')
+        self.mask_widget = MaskWidget()
+        self.file_view_tabs.addTab(self.mask_widget, 'Mask')
 
-        '''self.scratch_widget = ImgWidget2()
+        self.scratch_widget = ImgWidget2()
         self.file_view_tabs.addTab(self.scratch_widget, 'Scratch')
 
         self.line_plot_widget = PltWidget()
         self.line_plot_widget.set_log_mode(False,False)
        
-        self.file_view_tabs.addTab(self.line_plot_widget, 'Plot')'''
+        self.file_view_tabs.addTab(self.line_plot_widget, 'Plot')
 
         self._body_layout.addWidget(self.file_view_tabs)
         
@@ -182,11 +182,11 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.file_name = QtWidgets.QLabel('')
         self.file_name_fast = QtWidgets.QLabel('')
         self.file_name_fast.setObjectName("file_name_fast")
-        self._layout.addWidget(self.file_name_fast)
+        #self._layout.addWidget(self.file_name_fast)
         self.file_name_fast.setStyleSheet("""
                 color: #909090;
         """)
-        self._layout.addWidget(self.file_name)
+        #self._layout.addWidget(self.file_name)
         self.setLayout(self._layout)
         self.style_widgets()
         self.env_show_cbs = []
@@ -279,7 +279,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             img_data = img_data_positive + img_data_negative
             
             self.img.setImage(img_data.T)
-            #self.mask_widget.img_widget.plot_image(img_data, auto_level=True)
+            self.mask_widget.img_widget.plot_image(img_data, auto_level=True)
         else:
             self.img.clear()
 

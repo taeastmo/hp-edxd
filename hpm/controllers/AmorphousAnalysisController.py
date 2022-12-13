@@ -24,35 +24,34 @@ from PyQt5 import QtWidgets, QtCore
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
     HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, open_folder_dialog
-from hpm.widgets.MultipleDatasetsWidget import MultiSpectraWidget
-from hpm.models.multipleDatasetModel import MultipleSpectraModel
+from hpm.widgets.AmorphousAnalysisWidget import AmorphousAnalysisWidget
+from hpm.models.AmorphousAnalysisModel import AmorphousAnalysisModel
 from PyQt5.QtCore import pyqtSignal, QObject
 import natsort
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
 from hpm.models.mcaModel import MCA
 from hpm.controllers.MaskController import MaskController
 from hpm.models.MaskModel import MaskModel
-from hpm.controllers.AmorphousAnalysisController import AmorphousAnalysisController
 
-class MultipleDatasetsController(QObject):
+
+class AmorphousAnalysisController(QObject):
     file_changed_signal = pyqtSignal(str)  
     element_changed_signal = pyqtSignal(int)
     channel_changed_signal = pyqtSignal(float)  
     add_rois_signal = pyqtSignal(list)
 
-    def __init__(self, file_save_controller, directories):
+    def __init__(self,multi_spectra_model, file_save_controller, directories):
         super().__init__()
         self.file_save_controller = file_save_controller
         self.directories = directories
+        self.multi_spectra_model = multi_spectra_model
+        
         
         self.mask_model = MaskModel()
-        self.multi_spectra_model = MultipleSpectraModel(self.mask_model)
-        self.widget = MultiSpectraWidget()
+        self.model = AmorphousAnalysisModel(self.mask_model)
+        self.widget = AmorphousAnalysisWidget()
         
-
-        #self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 
-
-        self.aac = AmorphousAnalysisController(self.multi_spectra_model, file_save_controller,directories)
+        self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 
 
         self.folder = ''
         self.active = False
@@ -65,9 +64,8 @@ class MultipleDatasetsController(QObject):
         self.row_scale = 'Index'
         self.file = ''
         self.row = 0
-        #self.mask_controller = MaskController(self.mask_model, self.widget.mask_widget, directories)
+        self.mask_controller = MaskController(self.mask_model, self.widget.mask_widget, directories)
 
-        #self.phases =dict()
         self.create_signals()
         
     def create_signals(self):
@@ -79,111 +77,21 @@ class MultipleDatasetsController(QObject):
         self.widget.radioChannel.clicked.connect(partial (self.HorzScaleRadioToggle, 'Channel'))
         self.widget.radioAligned.clicked.connect(partial (self.HorzScaleRadioToggle, 'Aligned'))
 
-        self.widget.align_btn.clicked.connect(self.align_btn_callback)
-        self.widget.amorphous_btn.clicked.connect(self.amorphous_btn_callback)
-        '''self.widget.sum_scratch_btn.clicked.connect(self.sum_scratch_callback)
+        self.widget.sum_btn.clicked.connect(self.sum_data)
+        self.widget.sum_scratch_btn.clicked.connect(self.sum_scratch_callback)
         self.widget.ebg_btn.clicked.connect(self.ebg_data)
-        self.widget.transpose_btn.clicked.connect(self.transpose_E_2theta)'''
-        self.widget.copy_rois_btn.clicked.connect(self.propagate_rois_to_all_elements)
-        self.widget.cal_btn.clicked.connect(self.calibrate_all_elements)
-
-        self.widget.key_signal.connect(self.key_sig_callback)
-        self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
-        self.widget.plotMouseCursorSignal.connect(self.CursorClick)
-        self.widget.file_list_view.currentRowChanged.connect(self.file_list_selection_changed_callback)
+        self.widget.transpose_btn.clicked.connect(self.transpose_E_2theta)
+      
+        #self.widget.key_signal.connect(self.key_sig_callback)
+        #self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
+        #self.widget.plotMouseCursorSignal.connect(self.CursorClick)
+        #self.widget.file_list_view.currentRowChanged.connect(self.file_list_selection_changed_callback)
         
-
-        self.widget.prev_btn.clicked.connect(partial(self.key_sig_callback, 'left'))
-        self.widget.next_btn.clicked.connect(partial(self.key_sig_callback, 'right'))
-
-    def set_mca(self, mca, element=0):
-        self.multi_spectra_model.set_mca(mca)
-        self.setHorzScaleBtnsEnabled()
-        self.multispectra_loaded()
-    
-    def set_channel_cursor(self, cursor):
-        if len(cursor):
-           
-            channel = cursor['channel']
-            pos = channel
-            if self.scale == 'q' or self.scale == 'E':
-                ndet = self.multi_spectra_model.mca.n_detectors
-                if not ndet > self.row:
-                    self.row = 0
-                converter = self.multi_spectra_model.mca.get_calibration()[self.row].channel_to_scale
-                pos = converter(channel,self.scale)
-            elif self.scale == 'Aligned':
-                if len(self.multi_spectra_model.calibration_inv):
-                    pos = self.multi_spectra_model.channel_to_aligned(channel, self.row)
-              
-            self.widget.select_value(pos)
+        #self.widget.prev_btn.clicked.connect(partial(self.key_sig_callback, 'left'))
+        #self.widget.next_btn.clicked.connect(partial(self.key_sig_callback, 'right'))
 
     
-
-    def file_list_selection_changed_callback(self, row):
-        files = self.multi_spectra_model.r['files_loaded']
-        if len(files):
-            file = files[row]
-            self.row = row
-            self.file_changed(file)
-            self.widget.select_spectrum(row)
-
-    def file_changed(self, file):
-        self.file_changed_signal.emit(file)
-        file_display = os.path.split(file)[-1]
-        self.widget.file_name.setText(file_display)  
-
-    def element_changed(self, element):
-        self.element_changed_signal.emit(int(element))
-
-    def fastCursorMove(self, index):
-        index = int(index)
-        files = self.multi_spectra_model.r['files_loaded']
-        if index < len(files) and index >= 0:
-            file = os.path.split(files[index])[-1]
-            self.widget.file_name_fast.setText(file)
-
-    def key_sig_callback(self, sig):
-        if self.widget.file_view_tabs.currentIndex() == 0:
-            row = self.row
-            if sig == 'right' or sig == 'up':
-                row += 1
-            if sig == 'left' or sig == 'down':
-                row -= 1
-            pos = self.widget.cursorPoints[0][1]
-            if not np.isnan(pos):
-                self.CursorClick([row, pos])
-
-    def CursorClick(self, index):
-        index, pos = int(index[0]), index[1]
-        
-        rows = np.shape(self.multi_spectra_model.data)[0]
-        if index < rows and index >= 0:
-            self.row = index
-            self.widget.select_spectrum(index)
-            self. element_changed(index)
-            
-            self.widget.select_value(pos)
-            self.set_channel(index, pos)
-        
-
-    def set_channel(self, index, pos):
-        channel = pos
-        if self.scale == 'q' or self.scale == 'E':
-            converter = self.multi_spectra_model.mca.get_calibration()[index].scale_to_channel
-            channel = converter(pos,self.scale)
-        elif self.scale == 'Aligned':
-            if len(self.multi_spectra_model.calibration):
-                channel = self.multi_spectra_model.aligned_to_channel(pos, self.row)
-        self.channel_changed_signal.emit(channel)
-
-
-    def align_btn_callback(self):
-        if len(self.multi_spectra_model.data):
-            self.multi_spectra_model.rebin_channels(1)
-            self.setHorzScaleBtnsEnabled()
-            scale = "Aligned"
-            self.update_view(scale)
+ 
 
 
     def HorzScaleRadioToggle(self,horzScale):
@@ -228,10 +136,10 @@ class MultipleDatasetsController(QObject):
         if len(self.multi_spectra_model.data):
             if scale == 'q' or scale == 'E':
                 self.multi_spectra_model.rebin_scale(scale) 
-                #self.multi_spectra_model.rebin_scratch('Channel', scale)
+                self.multi_spectra_model.rebin_scratch('Channel', scale)
             self.update_view(scale)    
-            #self.mask_controller.mask_model.scale = scale
-            #self.mask_controller.plot_mask()
+            self.mask_controller.mask_model.scale = scale
+            self.mask_controller.plot_mask()
 
     def set_row_scale(self, label='Index'):
         d = [1,0]
@@ -270,20 +178,33 @@ class MultipleDatasetsController(QObject):
             #r = self.multi_spectra_model.E_scale
 
         self.widget.set_spectral_data(view)
-        #if len(scratch_view):
-        #    self.widget.scratch_widget.plot_image(scratch_view)
-        #self.mask_controller.mask_model._img_data = view
-        #self.mask_controller.update_mask_dimension()
+        if len(scratch_view):
+            self.widget.scratch_widget.plot_image(scratch_view)
+        self.mask_controller.mask_model._img_data = view
+        self.mask_controller.update_mask_dimension()
         self.widget.set_image_scale(scale, r)
         
         self.scale = scale
-        
 
-    def amorphous_btn_callback(self):
+    def sum_data(self):
 
-        self.aac.show_view()
-
-
+        if self.scale == 'E':
+            data = self.multi_spectra_model.E
+            scale = self.multi_spectra_model.E_scale
+        elif self.scale == 'q':
+            data = self.multi_spectra_model.q
+            scale = self.multi_spectra_model.q_scale
+        elif self.scale == 'Channel':
+            data = self.multi_spectra_model.data
+            scale = [1,0]
+        elif self.scale == 'Aligned':
+            data = self.multi_spectra_model.rebinned_channel_data
+            scale = [1,0]
+        mask = self.mask_model.get_mask()
+        out = self.multi_spectra_model.flaten_data(data, mask)
+        self.multi_spectra_model.scratch_E_average = out
+        x = np.arange(len(out)) * scale[0] + scale[1]
+        self.widget.plot_data(x, out)
 
     def sum_scratch_callback(self):
 
@@ -327,8 +248,8 @@ class MultipleDatasetsController(QObject):
         data = self.multi_spectra_model.data
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.E = np.zeros(np.shape(data))
-        #self.multi_spectra_model.scratch_E = np.zeros(np.shape(data))
-        #self.multi_spectra_model.scratch_q = np.zeros(np.shape(data))
+        self.multi_spectra_model.scratch_E = np.zeros(np.shape(data))
+        self.multi_spectra_model.scratch_q = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = copy.deepcopy(data)
         scales = self.get_available_scales()
         horzScale = self.widget.get_selected_unit()
@@ -341,25 +262,7 @@ class MultipleDatasetsController(QObject):
         for f in files_loaded:
             files.append(os.path.basename(f))
         self.widget.reload_files(files)
-        self.aac.multispectra_loaded()
 
-    def propagate_rois_to_all_elements(self):
-        row = self.row
-        rois = self.multi_spectra_model.mca.get_rois_by_det_index(row)
-        all_new_rois = self.multi_spectra_model.make_aligned_rois(row, rois)
-        self.add_rois_signal.emit(all_new_rois)
-
-    def calibrate_all_elements(self):
-        self.multi_spectra_model.calibrate_all_elements(1)
-        self.setHorzScaleBtnsEnabled()
-        self.multispectra_loaded()
-        
-
-    
-                
-
-        self.setHorzScaleBtnsEnabled()
-        self.multispectra_loaded()
 
     def show_view(self):
         self.active = True
