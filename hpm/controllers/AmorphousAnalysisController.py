@@ -50,6 +50,15 @@ class AmorphousAnalysisController(QObject):
         self.mask_model = MaskModel()
         self.model = AmorphousAnalysisModel( self.mask_model)
         self.widget = AmorphousAnalysisWidget()
+
+        for step in self.model.steps:
+            s = self.model.steps[step]
+            dims = s.get_data_out_dims()
+            name = s.name
+            mask = s.mask
+            plot = self.widget.add_scratch_plot(name, dims, mask)
+        plots_keys = list(self.widget.scratch_plots.keys())
+        self.widget.scratch_widget = self.widget.scratch_plots[plots_keys[0]]
         
         self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 
 

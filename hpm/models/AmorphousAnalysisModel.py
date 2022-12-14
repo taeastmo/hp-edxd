@@ -34,29 +34,52 @@ import hpm.models.Xrf as Xrf
 from hpm.models.MaskModel import MaskModel
 
 class AnalysisStep():
-    def __init__(self, name):
+    def __init__(self, name, data_in_dims, data_out_dims, mask=False):
         self.name = name
+
         self.data_in = None
         self.unit_in = None
-        self.rebinned_data = np.zeros(self.data_in.shape)
+        self.data_in_dims = data_in_dims
 
+        self.data_out = None
+        self.unit_out = None
+        self.data_out_dims = data_out_dims
 
-        self.E = []
-        self.E_average = []
+        self.analysis_function = None
+        self.processed = False
 
-        self.q = []
-        self.q_average = []
+        self.mask = mask # this is used only by the controller to determine what kind of widget is needed
 
-    def flaten_data(self, data, mask):
+    def set_function(self, f ):
+        self.analysis_function = f
 
-        # Compute the average beam profile by averaging all the rows while in energy space. 
-        # Then, convert that average profile to q space then you can use that to 
-        # normalize all of the data rows.
-        # do a weighted average because the high energy / low energy bins will be more noisy 
-        self.rebinned_data = np.mean(np.ma.array(data, mask=mask), axis=0 )
-        
+    def calculate (self):
+        if self.f is not None:
+            self.data_out, self.unit_out = self.f(self.data_in)
+            self.processed = True
 
-    
+    def set_data_in(self, data):
+        self.processed = False
+        self.data_in = data
+
+    def set_unit_in(self, unit):
+        self.processed = False
+        self.unit_in = unit
+
+    def get_data_out(self):
+        return self.data_out
+
+    def get_unit_out(self):
+        return self.unit_out
+
+    def get_data_out_dims(self):
+        return self.data_out_dims
+
+    def set_mask(self, mask):
+        self.processed = False
+        self.mask = mask
+
+   
 
 class AmorphousAnalysisModel(QtCore.QObject):  # 
     def __init__(self, mask_model:MaskModel, *args, **filekw):
@@ -69,14 +92,20 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         """
         
         self.mask_model = mask_model
+
+        self.steps = {}
+        self.make_calculators()
         
     def set_data(self, data):
         self.data = data
 
+    def get_data(self):
+        return self.data
+
     def clear(self):
         self.__init__(self.mask_model)
 
-    def calculate_Sq(self):
+    def make_calculators(self):
         pass
         # this is a placeholder for the eventual calculation
         # List of the steps needed for the calculation
@@ -98,18 +127,19 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
 
         steps = {}
-        steps['1'] = AnalysisStep('Convert dataset to E')
-        steps['2'] = AnalysisStep('apply mask in E')
-        steps['3'] = AnalysisStep('Flaten to 1D')
-        steps['4'] = AnalysisStep('Normalize the dataset')
-        steps['5'] = AnalysisStep('convert to q')
-        steps['6'] = AnalysisStep('apply any mask in q')
-        steps['7'] = AnalysisStep('calculate 2-theta dependent scaling factors')
-        steps['8'] = AnalysisStep('Flaten to 1D')
-        steps['9'] = AnalysisStep('convert Iq to E')
-        steps['10'] = AnalysisStep('normalize dataset in E by Iq')
-        steps['11'] = AnalysisStep('Flaten to 1D')
+        steps['1'] = AnalysisStep('dataset E',2,2)
+        steps['2'] = AnalysisStep('mask in E',2,2,mask=True)
+        steps['3'] = AnalysisStep('Flaten',2,1)
+        steps['4'] = AnalysisStep('Normalize ',2,2)
+        steps['5'] = AnalysisStep('convert to q',2,2)
+        steps['6'] = AnalysisStep('mask in q',2,2,mask=True)
+        steps['7'] = AnalysisStep('2-th scaling',2,1)
+        steps['8'] = AnalysisStep('Flaten ',2,1)
+        steps['9'] = AnalysisStep('Iq to E', 1,2)
+        steps['10'] = AnalysisStep('normalize E by Iq',2,2)
+        steps['11'] = AnalysisStep('Flaten', 2,1)
 
+        self.steps = steps
 
     def flaten_data(self, data, mask):
 
@@ -117,8 +147,11 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         # Then, convert that average profile to q space then you can use that to 
         # normalize all of the data rows.
         # do a weighted average because the high energy / low energy bins will be more noisy 
-        out = np.mean(np.ma.array(data, mask=mask), axis=0 )
+        weights = np.ones(data.shape)
+        out = np.mean(np.ma.array(data, mask=mask, weights= weights), axis=0 )
         return out
+    
+
 
     def is2thetaScan(self):
         '''

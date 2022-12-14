@@ -27,6 +27,7 @@ from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, Verti
 from hpm.widgets.PltWidget import PltWidget
 from hpm.widgets.MaskWidget import MaskWidget
 from hpm.widgets.plot_widgets import ImgWidget2
+from hpm.controllers.DisplayPrefsController import DisplayPreferences
 
 class AmorphousAnalysisWidget(QtWidgets.QWidget):
 
@@ -43,6 +44,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         super().__init__()
         self._layout = QtWidgets.QVBoxLayout()  
         self.setWindowTitle('Amorphous analysis')
+        self.resize(2000,1200)
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setMaximumHeight(40)
         self.button_widget.setObjectName('multispectra_control_button_widget')
@@ -166,8 +168,16 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self.mask_widget = MaskWidget()
         self.file_view_tabs.addTab(self.mask_widget, 'Mask')
 
-        self.scratch_widget = ImgWidget2()
-        self.file_view_tabs.addTab(self.scratch_widget, 'Scratch')
+        
+
+        self.plot_tabs = QtWidgets.QTabWidget()
+        
+        
+        self.scratch_plots = {}
+        
+        
+
+        self.file_view_tabs.addTab(self.plot_tabs, 'Scratch')
 
         self.line_plot_widget = PltWidget()
         self.line_plot_widget.set_log_mode(False,False)
@@ -192,7 +202,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self.env_show_cbs = []
         self.pv_items = []
         self.index_items = []
-        self.resize(500,633)
+        
 
         self.HorizontalScaleWidget.setStyleSheet("""
             QPushButton{
@@ -221,6 +231,21 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
                             'Channel':self.radioChannel,
                             '2 theta':self.radiotth}
 
+    def add_scratch_plot(self, name, dims=2, mask = False):
+        
+        if dims ==2:
+            if mask:
+                plot = MaskWidget()
+            else:
+                plot = ImgWidget2()
+        elif dims == 1:
+            plot = PltWidget()
+            plot.set_log_mode(False,False)
+            displayPrefs = DisplayPreferences(plot)
+        self.scratch_plots[name]=plot
+        self.plot_tabs.addTab(plot, name)
+        return plot
+        
 
     def set_scales_enabled_states(self, enabled=['Channel']):
         for btn in self.scales_btns:
