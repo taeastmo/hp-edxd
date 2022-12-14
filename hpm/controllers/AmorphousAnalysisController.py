@@ -48,7 +48,7 @@ class AmorphousAnalysisController(QObject):
         
         
         self.mask_model = MaskModel()
-        self.model = AmorphousAnalysisModel(self.mask_model)
+        self.model = AmorphousAnalysisModel( self.mask_model)
         self.widget = AmorphousAnalysisWidget()
         
         self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 

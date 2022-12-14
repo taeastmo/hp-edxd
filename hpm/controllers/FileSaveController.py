@@ -96,7 +96,11 @@ class FileSaveController(object):
         self.create_signals()
 
     def file_dragged_in_signal(self, f):
-        self.openFile(filename=f)
+
+        if os.path.isfile(f):
+            self.openFile(filename=f)
+        elif os.path.isdir(f):
+            self.openFolder(foldername = f)
 
     def preferences_module(self, *args, **kwargs):
         [ok, file_options] = mcaUtil.mcaFilePreferences.showDialog(self.widget, self.file_options) 

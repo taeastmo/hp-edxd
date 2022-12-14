@@ -263,7 +263,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             self.file_list_view.blockSignals(False)
             if row < 0 or row >= len(files):
                 row = 0
-            self.file_list_view.setCurrentRow(row)
+            self.select_file(row)
         else:
             self.file_list_view.clear()
 
@@ -372,7 +372,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         
         self.cursors = [self.hLine, self.hLineFast]
         # self.cursorPoints = [(cursor.index, cursor.channel),(fast.index, fast.channel)]
-        self.cursorPoints = [(0,0),(0,0)]
+        self.cursorPoints = [[0,0],[0,0]]
         
         self.view.addItem(self.vLine, ignoreBounds=True)
         self.view.addItem(self.hLine, ignoreBounds=True)
@@ -398,9 +398,10 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
         if self.view.sceneBoundingRect().contains(pos):
             mousePoint = self.view.mapSceneToView(pos)
-            index = mousePoint.y()
+            index = round(mousePoint.y(),5)
             if index >= 0:
                 self.hLineFast.setPos(index)
+                self.cursorPoints[1][0] = index
                 self.plotMouseMoveSignal.emit(index)
 
     def customMouseClickEvent(self, ev):
@@ -420,12 +421,12 @@ class MultiSpectraWidget(QtWidgets.QWidget):
                 self.plotMouseCursorSignal.emit([index_scaled, scale_point])  
         ev.accept()
 
-    def set_cursorFast_pos(self, index, E):
+    '''def set_cursorFast_pos(self, index, E):
         self.hLine.blockSignals(True)
         
         self.hLine.setPos(int(index)+0.5)
         self.cursorPoints[1] = (index,E)
-        self.hLineFast.blockSignals(False)
+        self.hLineFast.blockSignals(False)'''
 
 
     def set_cursor_pos(self, index = None, E=None):

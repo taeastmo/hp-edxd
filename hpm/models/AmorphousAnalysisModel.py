@@ -34,9 +34,10 @@ import hpm.models.Xrf as Xrf
 from hpm.models.MaskModel import MaskModel
 
 class AnalysisStep():
-    def __init__(self, data_in, unit_in):
-        self.data_in = data_in
-        self.unit_in = unit_in
+    def __init__(self, name):
+        self.name = name
+        self.data_in = None
+        self.unit_in = None
         self.rebinned_data = np.zeros(self.data_in.shape)
 
 
@@ -66,21 +67,49 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         Example:
             m = MultipleSpectraModel()
         """
-        self.mca = None
+        
         self.mask_model = mask_model
         
+    def set_data(self, data):
+        self.data = data
 
     def clear(self):
         self.__init__(self.mask_model)
 
-    def set_mca(self, mca, element=0):
-        self.clear()
-        self.mca = mca
+    def calculate_Sq(self):
+        pass
+        # this is a placeholder for the eventual calculation
+        # List of the steps needed for the calculation
+        # 1. Convert dataset to E
+        # 2. apply mask in E (punch and fill any peaks)
+        # 3. Flaten to 1D (np.mean, axis=0) , this is now the estimated beam profile
+        # 4. Normalize the original dataset in E by the estimated beam profile
+        # 5. convert to q
+        # 6. apply any mask in q (punch and fill any peaks)
+        # 7. calculate 2-theta-dependent scaling factors by looking at consecutive brightness of the nearby rows
+        # 8. Flaten to 1D (np.mean, axis=0), this is now the estimated Iq (flattening is weighted and masked )
+        # 9. convert Iq to E for each row
+        #10. normalize dataset in E by Iq, remember to scale Iq for each row by 2-theta-dependent scaling factors
+        #11. Flaten to 1D (np.mean, axis=0) , this is now the estimated beam profile
 
-        self.data = np.asarray(mca.get_data())
+        # repeat steps 4. to 11. 
+    
+        # .. convert Iq to Sq by applying scattering factors correction
 
-    def was_canceled(self):
-        return False
+
+        steps = {}
+        steps['1'] = AnalysisStep('Convert dataset to E')
+        steps['2'] = AnalysisStep('apply mask in E')
+        steps['3'] = AnalysisStep('Flaten to 1D')
+        steps['4'] = AnalysisStep('Normalize the dataset')
+        steps['5'] = AnalysisStep('convert to q')
+        steps['6'] = AnalysisStep('apply any mask in q')
+        steps['7'] = AnalysisStep('calculate 2-theta dependent scaling factors')
+        steps['8'] = AnalysisStep('Flaten to 1D')
+        steps['9'] = AnalysisStep('convert Iq to E')
+        steps['10'] = AnalysisStep('normalize dataset in E by Iq')
+        steps['11'] = AnalysisStep('Flaten to 1D')
+
 
     def flaten_data(self, data, mask):
 

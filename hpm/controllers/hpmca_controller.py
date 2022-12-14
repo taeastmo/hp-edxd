@@ -459,10 +459,28 @@ class hpmcaController(QObject):
     ########################################################################################
 
     def update_titlebar(self):
-        name = self.mca.name
-        if name != '':
-            name += ' - '
-        self.widget.setWindowTitle(name + u'hpMCA')
+        title = u'hpMCA'
+        index = self.element
+        file_detail = self._file_detail(index)
+        if file_detail != '':
+            title += ' - ' + file_detail
+        self.widget.setWindowTitle(title )
+
+    def _file_detail(self, index):
+      
+        files = self.mca.files_loaded
+        file_display = ''
+        if index < len(files) and len(files)>1:
+            file = files[index]
+            file_display = os.path.split(file)[-1]
+             
+        elif len(files)==1:
+            file = files[0]
+            file_display = os.path.split(file)[-1] 
+            n_det = self.mca.n_detectors
+            if n_det > 1:
+                file_display += ' : ' + str(index)
+        return file_display
 
     def data_updated(self):
         element = self.element # for multielement detectors, careful, not implemented everywhere yet

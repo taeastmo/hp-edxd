@@ -52,6 +52,7 @@ class MCA():  #
 
         self.name = ''
         self.file_name = ''
+        self.files_loaded = []
         self.file_saved_timestamp = None
         self.file_settings = file_settings # not used in this based class, used in device dependent class
 
@@ -689,7 +690,7 @@ class MCA():  #
      
         if success == True:
             self.file_name=file
-            
+            self.files_loaded = [file]
             self.data = r['data']
             self.nchans = len(r['data'][0])
             self.n_detectors=len(self.data)

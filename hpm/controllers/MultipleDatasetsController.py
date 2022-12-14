@@ -14,7 +14,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+from cmath import isnan
 from functools import partial
+from tkinter import filedialog
 #from platform import java_ver
 import pyqtgraph as pg
 import copy
@@ -121,27 +123,42 @@ class MultipleDatasetsController(QObject):
     
 
     def file_list_selection_changed_callback(self, row):
-        files = self.multi_spectra_model.r['files_loaded']
-        if len(files):
-            file = files[row]
-            self.row = row
-            self.file_changed(file)
-            self.widget.select_spectrum(row)
+        self.file_changed(row)
+        pos = self.widget.cursorPoints[0][1]
+        if  np.isnan(pos):
+            pos = 0
+        
+        self.CursorClick([row, pos])
+            
 
-    def file_changed(self, file):
-        self.file_changed_signal.emit(file)
-        file_display = os.path.split(file)[-1]
-        self.widget.file_name.setText(file_display)  
+    def file_changed(self, index):
+        self._file_name_update(self.widget.file_name, index )
+
+    def file_changed_fast(self, index):
+        self._file_name_update(self.widget.file_name_fast, index )
+    
+    def _file_name_update(self, widget:QtWidgets.QLabel, index):
+        index = int(round(index))
+        files = self.multi_spectra_model.mca.files_loaded
+        file_display = ''
+        if index < len(files) and len(files)>1:
+            file = files[index]
+            file_display = os.path.split(file)[-1]
+             
+        elif len(files)==1:
+            file = files[0]
+            file_display = os.path.split(file)[-1] 
+            n_det = self.multi_spectra_model.mca.n_detectors
+            if n_det > 1:
+                file_display += ' : ' + str(index)
+        widget.setText(file_display)
 
     def element_changed(self, element):
         self.element_changed_signal.emit(int(element))
 
     def fastCursorMove(self, index):
         index = int(index)
-        files = self.multi_spectra_model.r['files_loaded']
-        if index < len(files) and index >= 0:
-            file = os.path.split(files[index])[-1]
-            self.widget.file_name_fast.setText(file)
+        self.file_changed_fast(index)
 
     def key_sig_callback(self, sig):
         if self.widget.file_view_tabs.currentIndex() == 0:
@@ -162,9 +179,13 @@ class MultipleDatasetsController(QObject):
             self.row = index
             self.widget.select_spectrum(index)
             self. element_changed(index)
+            self.file_changed(index) # in case the mca in multifile
             
             self.widget.select_value(pos)
             self.set_channel(index, pos)
+            files_loaded = self.multi_spectra_model.mca.files_loaded
+            if index < len(files_loaded):
+                self.widget.select_file(index)
         
 
     def set_channel(self, index, pos):
@@ -325,22 +346,24 @@ class MultipleDatasetsController(QObject):
 
     def multispectra_loaded(self, scale='Channel'):
         data = self.multi_spectra_model.data
+        self.aac.model.set_data(data)
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.E = np.zeros(np.shape(data))
-        #self.multi_spectra_model.scratch_E = np.zeros(np.shape(data))
-        #self.multi_spectra_model.scratch_q = np.zeros(np.shape(data))
-        self.multi_spectra_model.rebinned_channel_data = copy.deepcopy(data)
+        self.multi_spectra_model.rebinned_channel_data = np.zeros(np.shape(data))
         scales = self.get_available_scales()
         horzScale = self.widget.get_selected_unit()
         if horzScale in scales:
             self.rebin_by_unit(horzScale)
             scale = horzScale
         self.update_view(scale)
-        files_loaded = self.multi_spectra_model.r['files_loaded']
+        files_loaded = self.multi_spectra_model.mca.files_loaded
         files = []
         for f in files_loaded:
             files.append(os.path.basename(f))
         self.widget.reload_files(files)
+        self.file_changed(self.row)
+        fast_row = self.widget.cursorPoints[1][0]
+        self.file_changed_fast(fast_row)
         self.aac.multispectra_loaded()
 
     def propagate_rois_to_all_elements(self):
