@@ -194,7 +194,9 @@ class epicsMCA(MCA):
             if environment_file != None:
                 self.read_environment_file(environment_file)
                 for env in self.environment:
-                    self.env_pvs.append(PV(env.name))
+                    if len(env):
+
+                        self.env_pvs.append(PV(env.name))
 
             ## monitors for asynchronous actions
             self.read_done_monitor = epicsMonitor(self.pvs['acquire']['read'], self.handle_mca_callback, autostart=True)
@@ -340,7 +342,7 @@ class epicsMCA(MCA):
                 env.description = ' '
             self.environment.append(env)
 
-    def get_environment(self):
+    def get_environment(self, detector = 0):
         """
         Reads the current values of the environment PVs.  Returns a list of
         McaEnvironment objects with Mca.get_environment().
@@ -362,7 +364,7 @@ class epicsMCA(MCA):
     #######################################################################
     #######################################################################
 
-    def get_det_rois(self):
+    def get_det_rois(self, energy=0):
         """     Reads the ROI information from the EPICS mca record.  Stores this information
         in the epicsMca object, and returns a list of McaROI objects with this information.
         """
