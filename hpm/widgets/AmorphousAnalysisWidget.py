@@ -141,7 +141,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         
         if dims ==2:
             if mask:
-                plot = MaskWidget()
+                plot = MaskWidget() 
             else:
                 plot = ImgWidget2()
         elif dims == 1:
