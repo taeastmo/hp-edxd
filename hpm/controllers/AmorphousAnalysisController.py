@@ -57,6 +57,8 @@ class AmorphousAnalysisController(QObject):
             name = s.name
             mask = s.mask
             plot = self.widget.add_scratch_plot(name, dims, mask)
+            s.updated.connect(plot.plot_image)
+            
         plots_keys = list(self.widget.scratch_plots.keys())
         self.widget.scratch_widget = self.widget.scratch_plots[plots_keys[0]]
         
@@ -81,74 +83,21 @@ class AmorphousAnalysisController(QObject):
        
         self.widget.widget_closed.connect(self.view_closed)
 
-        self.widget.radioE.clicked.connect(partial (self.HorzScaleRadioToggle, 'E'))
-        self.widget.radioq.clicked.connect(partial (self.HorzScaleRadioToggle, 'q'))
-        self.widget.radioChannel.clicked.connect(partial (self.HorzScaleRadioToggle, 'Channel'))
-        self.widget.radioAligned.clicked.connect(partial (self.HorzScaleRadioToggle, 'Aligned'))
 
         self.widget.sum_btn.clicked.connect(self.sum_data)
         self.widget.sum_scratch_btn.clicked.connect(self.sum_scratch_callback)
         self.widget.ebg_btn.clicked.connect(self.ebg_data)
         self.widget.transpose_btn.clicked.connect(self.transpose_E_2theta)
       
-        #self.widget.key_signal.connect(self.key_sig_callback)
-        #self.widget.plotMouseMoveSignal.connect(self.fastCursorMove)
-        #self.widget.plotMouseCursorSignal.connect(self.CursorClick)
-        #self.widget.file_list_view.currentRowChanged.connect(self.file_list_selection_changed_callback)
-        
-        #self.widget.prev_btn.clicked.connect(partial(self.key_sig_callback, 'left'))
-        #self.widget.next_btn.clicked.connect(partial(self.key_sig_callback, 'right'))
-
-    
- 
 
 
     def HorzScaleRadioToggle(self,horzScale):
         
         self.set_unit(horzScale)
 
-    def setHorzScaleBtnsEnabled(self):
-        
-        scales = self.get_available_scales()
-        horzScale = self.widget.get_selected_unit()
-        if not horzScale in scales:
-            self.widget.set_unit_btn('Channel')
-            self.unit = 'Channel'
-        self.widget.set_scales_enabled_states(scales)
+    
 
-    def get_available_scales(self):
-        all_available_scales = []
-        available_scales = []
-        rows = np.shape(self.multi_spectra_model.data)[0]
-        for row in range(rows):
-            all_available_scales.append(self.multi_spectra_model.mca.get_calibration()[row].available_scales)
-        
-        for scale in all_available_scales:
-            for item in scale:
-                if not item in available_scales:
-                    available_scales.append(item)
-
-        aligned = len(self.multi_spectra_model.rebinned_channel_data) >0
-        if aligned:
-            available_scales.append('Aligned')
-        
-        scales = available_scales
-        return scales
-        
-
-    def set_unit(self,unit):
-        self.scale = unit
-        if self.multi_spectra_model.mca != None:
-            self.rebin_by_unit(unit)
-
-    def rebin_by_unit(self, scale):
-        if len(self.multi_spectra_model.data):
-            if scale == 'q' or scale == 'E':
-                self.multi_spectra_model.rebin_scale(scale) 
-                self.multi_spectra_model.rebin_scratch('Channel', scale)
-            self.update_view(scale)    
-            self.mask_controller.mask_model.scale = scale
-            self.mask_controller.plot_mask()
+    
 
     def set_row_scale(self, label='Index'):
         d = [1,0]
@@ -260,17 +209,8 @@ class AmorphousAnalysisController(QObject):
         self.multi_spectra_model.scratch_E = np.zeros(np.shape(data))
         self.multi_spectra_model.scratch_q = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = copy.deepcopy(data)
-        scales = self.get_available_scales()
-        horzScale = self.widget.get_selected_unit()
-        if horzScale in scales:
-            self.rebin_by_unit(horzScale)
-            scale = horzScale
-        self.update_view(scale)
-        files_loaded = self.multi_spectra_model.r['files_loaded']
-        files = []
-        for f in files_loaded:
-            files.append(os.path.basename(f))
-        self.widget.reload_files(files)
+       
+        
 
 
     def show_view(self):

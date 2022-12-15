@@ -33,8 +33,10 @@ import hpm.models.Xrf as Xrf
 
 from hpm.models.MaskModel import MaskModel
 
-class AnalysisStep():
+class AnalysisStep(QtCore.QObject):
+    updated = QtCore.pyqtSignal(np.ndarray)
     def __init__(self, name, data_in_dims, data_out_dims, mask=False):
+        super().__init__()
         self.name = name
 
         self.data_in = None
@@ -57,6 +59,7 @@ class AnalysisStep():
         if self.f is not None:
             self.data_out, self.unit_out = self.f(self.data_in)
             self.processed = True
+            self.updated.emit(self.data_out)
 
     def set_data_in(self, data):
         self.processed = False

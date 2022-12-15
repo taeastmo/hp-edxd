@@ -48,6 +48,10 @@ class MaskWidget(QtWidgets.QWidget):
         self.style_widgets()
         self.setLayout(self._layout)
 
+    def plot_image(self, data):
+        self.img_widget.plot_image(data)
+        
+        
     def create_display_widget(self):
         self._display_widget = QtWidgets.QFrame(self)
         self._display_layout = QtWidgets.QVBoxLayout()

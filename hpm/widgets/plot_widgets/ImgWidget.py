@@ -357,6 +357,8 @@ class MaskImgWidget(ImgWidget2):
         self.set_mask_color()
         self.mask_preview_fill_color = QtGui.QColor(255, 0, 0, 150)
 
+    
+
     def activate_mask(self):
         if not self.mask_img_item in self.img_view_box.addedItems:
             self.img_view_box.addItem(self.mask_img_item)

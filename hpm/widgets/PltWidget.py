@@ -382,6 +382,8 @@ class PltWidget(pg.PlotWidget):
         self.legend.addItem(self.plotRoi, '')
         self.setLabel('bottom', xLabel) 
 
+    def plot_image(self, data):
+        self.plotData(data[0], data[1])
 
     def plotData(self, xAxis,data,roiHorz=[],roiData=[], xLabel='', dataLabel=''):
         

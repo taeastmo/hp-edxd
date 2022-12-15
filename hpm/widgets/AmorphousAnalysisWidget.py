@@ -52,10 +52,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self._button_layout.setContentsMargins(0, 0, 0, 0)
         self._button_layout.setSpacing(6)
 
-       
-        '''self.align_btn = FlatButton('Align')
-        self.align_btn.setMaximumWidth(90)
-        self.align_btn.setMinimumWidth(90)'''
+
         self.sum_btn = FlatButton('Flatten')
         self.sum_btn.setMaximumWidth(90)
         self.sum_btn.setMinimumWidth(90)
@@ -72,28 +69,19 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self.transpose_btn = FlatButton(f'Transpose')
         self.transpose_btn.setMaximumWidth(90)
         self.transpose_btn.setMinimumWidth(90)
-        '''self.copy_rois_btn = FlatButton('Copy ROIs')
-        self.copy_rois_btn.setMaximumWidth(90)
-        self.copy_rois_btn.setMinimumWidth(90)
-        self.cal_btn = FlatButton('Calibrate')
-        self.cal_btn.setMaximumWidth(90)
-        self.cal_btn.setMinimumWidth(90)'''
 
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
         self.clear_btn = FlatButton('Clear')
 
-        
-        #self._button_layout.addWidget(self.align_btn)
+
         self._button_layout.addWidget(self.sum_btn)
         self._button_layout.addWidget(self.sum_scratch_btn)
         self._button_layout.addWidget(self.ebg_btn)
         self._button_layout.addWidget(self.tth_btn)
         self._button_layout.addWidget(self.transpose_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
-        #self._button_layout.addWidget(self.copy_rois_btn)
-        
-        #self._button_layout.addWidget(self.cal_btn)
+      
         
         self.button_widget.setLayout(self._button_layout)
         self._layout.addWidget(self.button_widget)
@@ -109,59 +97,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
 
         self._plot_widget_layout.addWidget( self.win)
 
-        self.HorizontalScaleWidget = QtWidgets.QWidget()
-        self.HorizontalScaleLayout = QtWidgets.QHBoxLayout(self.HorizontalScaleWidget)
-        self.HorizontalScaleLayout.setSpacing(0)
-        self.HorizontalScaleLayout.setContentsMargins(0,0,0,0)
-        self.HorizontalScale_btn_group = QtWidgets.QButtonGroup()
-        self.radioE = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        self.radioE.setObjectName("radioE")
-        self.HorizontalScaleLayout.addWidget(self.radioE)
-        self.radioq = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        self.radioq.setObjectName("radioq")
-        self.HorizontalScaleLayout.addWidget(self.radioq)
-        self.radiotth = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        self.radiotth.setObjectName("radiotth")
-        self.HorizontalScaleLayout.addWidget(self.radiotth)
-        self.radioChannel = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        self.radioChannel.setObjectName("radioChannel")
-        self.HorizontalScaleLayout.addWidget(self.radioChannel)
-        self.radioAligned = QtWidgets.QPushButton(self.HorizontalScaleWidget)
-        self.radioAligned.setObjectName("radioAligned")
-        self.HorizontalScaleLayout.addWidget(self.radioAligned)
-
-        self.HorizontalScaleLayout.addSpacerItem(HorizontalSpacerItem())
-
-        self.radioE.setCheckable(True)
-        self.radioq.setCheckable(True)
-        self.radiotth.setCheckable(True)
-        self.radioChannel.setCheckable(True)
-        self.radioAligned.setCheckable(True)
-
-        self.radioE.setText("E")
-        self.radioq.setText("q")
-        self.radiotth.setText(f'2\N{GREEK SMALL LETTER THETA}')
-        self.radioChannel.setText("Channel")
-        self.radioAligned.setText("Aligned")
-
-        self.HorizontalScale_btn_group.addButton(self.radioE)
-        self.HorizontalScale_btn_group.addButton(self.radioq)
-        self.HorizontalScale_btn_group.addButton(self.radiotth)
-        self.HorizontalScale_btn_group.addButton(self.radioChannel)
-        self.HorizontalScale_btn_group.addButton(self.radioAligned)
-
-        self.radioChannel.setChecked(True)
-        #self._plot_widget_layout.addWidget(self.HorizontalScaleWidget)
-
-        self.navigation_buttons = QtWidgets.QWidget()
-        self._nav_layout = QtWidgets.QHBoxLayout(self.navigation_buttons)
-        self._nav_layout.setContentsMargins(0,0,0,0)
-        self.prev_btn = QtWidgets.QPushButton('< Previous')
-        self.next_btn = QtWidgets.QPushButton('Next >')
-        self._nav_layout.addWidget(self.prev_btn)
-        self._nav_layout.addWidget(self.next_btn)
-        self._plot_widget_layout.addWidget(self.navigation_buttons)
-        
+       
         self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
 
         self.file_list_view = QtWidgets.QListWidget()
@@ -169,14 +105,12 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self.file_view_tabs.addTab(self.mask_widget, 'Mask')
 
         
-
         self.plot_tabs = QtWidgets.QTabWidget()
         
         
         self.scratch_plots = {}
         
         
-
         self.file_view_tabs.addTab(self.plot_tabs, 'Scratch')
 
         self.line_plot_widget = PltWidget()
@@ -188,15 +122,8 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         
 
         self._layout.addLayout(self._body_layout)
-        self._layout.addWidget(self.HorizontalScaleWidget)
-        self.file_name = QtWidgets.QLabel('')
-        self.file_name_fast = QtWidgets.QLabel('')
-        self.file_name_fast.setObjectName("file_name_fast")
-        #self._layout.addWidget(self.file_name_fast)
-        self.file_name_fast.setStyleSheet("""
-                color: #909090;
-        """)
-        #self._layout.addWidget(self.file_name)
+        
+        
         self.setLayout(self._layout)
         self.style_widgets()
         self.env_show_cbs = []
@@ -204,32 +131,11 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self.index_items = []
         
 
-        self.HorizontalScaleWidget.setStyleSheet("""
-            QPushButton{
-                
-                border-radius: 0px;
-            }
-            #radioE {
-
-                border-top-left-radius:5px;
-                border-bottom-left-radius:5px;
-            }
-            #radioAligned {
-
-                border-top-right-radius:5px;
-                border-bottom-right-radius:5px;
-            }
-       
-	    """)
 
         self.current_scale = {'label': 'Channel', 'scale': [1,0]}
         self.current_row_scale = {'label': 'Index', 'scale': [1,0]}
 
-        self.scales_btns = {'E':self.radioE,
-                            'q':self.radioq,
-                            'Aligned': self.radioAligned,
-                            'Channel':self.radioChannel,
-                            '2 theta':self.radiotth}
+        
 
     def add_scratch_plot(self, name, dims=2, mask = False):
         
@@ -251,22 +157,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         for btn in self.scales_btns:
             self.scales_btns[btn].setEnabled(btn in enabled)
 
-    def get_selected_unit(self):
-        horzScale = 'Channel'
-        if self.radioE.isChecked() == True:
-            horzScale = 'E'
-        elif self.radioq.isChecked() == True:
-            horzScale = 'q'
-        elif self.radiotth.isChecked() == True:
-            horzScale = '2 theta'
-        elif self.radioAligned.isChecked() == True:
-            horzScale = 'Aligned'
-        return horzScale
-
-    def set_unit_btn(self, unit):
-        if unit in self.scales_btns:
-            btn = self.scales_btns[unit]
-            btn.setChecked(True)
+    
 
     def plot_data(self, x=[],y=[]):
         self.line_plot_widget.plotData(x, y)
