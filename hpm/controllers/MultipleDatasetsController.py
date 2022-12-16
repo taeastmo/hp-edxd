@@ -278,12 +278,12 @@ class MultipleDatasetsController(QObject):
         elif scale == 'q':
             view = self.multi_spectra_model.q
             r = self.multi_spectra_model.q_scale
-            scratch_view = self.multi_spectra_model.scratch_q
+            #scratch_view = self.multi_spectra_model.scratch_q
             self.widget.radioq.setChecked(True)
         elif scale == 'E':
             view = self.multi_spectra_model.E
             r = self.multi_spectra_model.E_scale
-            scratch_view = self.multi_spectra_model.scratch_E
+            #scratch_view = self.multi_spectra_model.scratch_E
             self.widget.radioE.setChecked(True)
         elif scale == 'Aligned':
             view = self.multi_spectra_model.rebinned_channel_data
