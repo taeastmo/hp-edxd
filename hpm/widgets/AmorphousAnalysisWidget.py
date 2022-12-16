@@ -44,7 +44,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         super().__init__()
         self._layout = QtWidgets.QVBoxLayout()  
         self.setWindowTitle('Amorphous analysis')
-        self.resize(2000,1200)
+        self.resize(1200,700)
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setMaximumHeight(40)
         self.button_widget.setObjectName('multispectra_control_button_widget')
@@ -87,42 +87,14 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.button_widget)
        
         self._body_layout = QtWidgets.QHBoxLayout()
-        self.file_view_tabs= QtWidgets.QTabWidget(self)
-        
-        self.file_view_tabs.setObjectName("file_view_tabs")
-        self.make_img_plot()
-        self.plot_widget = QtWidgets.QWidget()
-        self._plot_widget_layout = QtWidgets.QVBoxLayout(self.plot_widget)
-        self._plot_widget_layout.setContentsMargins(0,0,0,0)
 
-        self._plot_widget_layout.addWidget( self.win)
-
-       
-        self.file_view_tabs.addTab(self.plot_widget, 'Spectra')
-
-        self.file_list_view = QtWidgets.QListWidget()
-        self.mask_widget = MaskWidget()
-        self.file_view_tabs.addTab(self.mask_widget, 'Mask')
-
-        
         self.plot_tabs = QtWidgets.QTabWidget()
         
-        
         self.scratch_plots = {}
-        
-        
-        self.file_view_tabs.addTab(self.plot_tabs, 'Scratch')
 
-        self.line_plot_widget = PltWidget()
-        self.line_plot_widget.set_log_mode(False,False)
-       
-        self.file_view_tabs.addTab(self.line_plot_widget, 'Plot')
-
-        self._body_layout.addWidget(self.file_view_tabs)
-        
+        self._body_layout.addWidget(self.plot_tabs)
 
         self._layout.addLayout(self._body_layout)
-        
         
         self.setLayout(self._layout)
         self.style_widgets()

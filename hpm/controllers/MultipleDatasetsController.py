@@ -54,7 +54,7 @@ class MultipleDatasetsController(QObject):
 
         #self.displayPrefs = DisplayPreferences(self.widget.line_plot_widget) 
 
-        self.aac = AmorphousAnalysisController(self.multi_spectra_model, file_save_controller,directories)
+        self.aac = AmorphousAnalysisController( file_save_controller,directories)
 
         self.folder = ''
         self.active = False
@@ -301,8 +301,11 @@ class MultipleDatasetsController(QObject):
         
 
     def amorphous_btn_callback(self):
-
-        self.aac.show_view()
+        scales =  self.get_available_scales()
+        if 'E' in scales:
+            
+            self.aac.set_models(self.multi_spectra_model)
+            self.aac.show_view()
 
 
 
@@ -346,7 +349,8 @@ class MultipleDatasetsController(QObject):
 
     def multispectra_loaded(self, scale='Channel'):
         data = self.multi_spectra_model.data
-        self.aac.model.set_data(data)
+       
+        #self.aac.model.set_data(data)
         self.multi_spectra_model.q = np.zeros(np.shape(data))
         self.multi_spectra_model.E = np.zeros(np.shape(data))
         self.multi_spectra_model.rebinned_channel_data = np.zeros(np.shape(data))
@@ -364,7 +368,7 @@ class MultipleDatasetsController(QObject):
         self.file_changed(self.row)
         fast_row = self.widget.cursorPoints[1][0]
         self.file_changed_fast(fast_row)
-        self.aac.multispectra_loaded()
+        
 
     def propagate_rois_to_all_elements(self):
         row = self.row

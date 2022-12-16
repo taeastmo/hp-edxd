@@ -51,15 +51,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         self.data = []
         self.data_average = []
 
-        self.scratch = []
-        self.scratch_average = []
 
-        self.scratch_E = []
-        self.scratch_E_average = []
-
-        self.scratch_q = []
-        self.scratch_q_average = []
-        
         self.calibration = {}
         self.calibration_inv = {}
 

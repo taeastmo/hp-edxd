@@ -83,7 +83,7 @@ class MultiSpectraWidget(QtWidgets.QWidget):
 
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
         self._button_layout.addWidget(self.align_btn)
-        #self._button_layout.addWidget(self.amorphous_btn)
+        self._button_layout.addWidget(self.amorphous_btn)
         '''self._button_layout.addWidget(self.sum_scratch_btn)
         self._button_layout.addWidget(self.ebg_btn)'''
         self._button_layout.addWidget(self.tth_btn)

@@ -91,7 +91,7 @@ def main():
     #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
-    #controller.file_save_controller.openFolder(foldername=multi_spectra2)
+    controller.file_save_controller.openFolder(foldername=multi_spectra2)
     #controller.multiple_datasets_controller.mask_controller.load_mask_btn_click(filename = mask_path)
     #controller.multiple_datasets_controller.show_view()
     
