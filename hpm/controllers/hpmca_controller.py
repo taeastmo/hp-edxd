@@ -461,7 +461,11 @@ class hpmcaController(QObject):
     def update_titlebar(self):
         title = u'hpMCA'
         index = self.element
-        file_detail = self._file_detail(index)
+        file_detail = ''
+        if self.Foreground == 'file':
+            file_detail = self._file_detail(index)
+        elif self.Foreground == 'epics':
+            file_detail = self.mca.name
         if file_detail != '':
             title += ' - ' + file_detail
         self.widget.setWindowTitle(title )
