@@ -61,6 +61,7 @@ class AmorphousAnalysisController(QObject):
             
         plots_keys = list(self.widget.scratch_plots.keys())
         self.widget.scratch_widget = self.widget.scratch_plots[plots_keys[2]]
+        self.widget.scratch_widget.set_log_mode(False, True)
         
         self.displayPrefs = DisplayPreferences(self.widget.scratch_widget) 
 

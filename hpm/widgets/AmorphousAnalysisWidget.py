@@ -118,7 +118,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
                 plot = ImgWidget2()
         elif dims == 1:
             plot = PltWidget()
-            plot.set_log_mode(False,False)
+            plot.set_log_mode(False,True)
             displayPrefs = DisplayPreferences(plot)
         self.scratch_plots[name]=plot
         self.plot_tabs.addTab(plot, name)
