@@ -49,21 +49,20 @@ class AmorphousAnalysisController(QObject):
         
       
         self.model = AmorphousAnalysisModel( )
-        self.widget = AmorphousAnalysisWidget()
+        self.widget = AmorphousAnalysisWidget(directories)
 
         for step in self.model.steps:
             s = self.model.steps[step]
             dims = s.get_data_out_dims()
             name = s.name
             mask = s.params_in['mask']
-            plot = self.widget.add_scratch_plot(name, dims, mask)
-            s.updated.connect(plot.plot_image)
             
-        plots_keys = list(self.widget.scratch_plots.keys())
-        self.widget.scratch_widget = self.widget.scratch_plots[plots_keys[2]]
-        self.widget.scratch_widget.set_log_mode(False, True)
-        
-        self.displayPrefs = DisplayPreferences(self.widget.scratch_widget) 
+            plot = self.widget.add_scratch_plot(name, dims, mask)
+            if mask:
+                s.set_param({'mask_model': self.widget.mask_controllers[name].mask_model})
+            
+            s.updated.connect(partial( self._update_output_plot, s))
+            
 
         self.folder = ''
         self.active = False
@@ -79,10 +78,32 @@ class AmorphousAnalysisController(QObject):
        
 
         self.create_signals()
+
+    def _update_output_plot(self, step):
+        
+        dims = step.get_data_out_dims()
+        mask = step.params_in['mask']
+        data_out = step.params_out['data_out']
+        name = step.name
+
+        if dims == 2 and mask == True:
+            mask_controller = self.widget.mask_controllers[name]
+            if len(data_out):
+                
+                mask_controller.mask_model._img_data = data_out
+                mask_controller.update_mask_dimension()
+                mask_controller.update_gui()
+        else:
+            plot = self.widget.scratch_plots[name]
+            plot.plot_image(data_out)
         
     def create_signals(self):
        
-        self.widget.sum_btn.clicked.connect(self.sum_callback)
+        self.widget.step1_btn.clicked.connect(self.step1_callback)
+        self.widget.step2_btn.clicked.connect(self.step2_callback)
+        self.widget.step3_btn.clicked.connect(self.step3_callback)
+        self.widget.step4_btn.clicked.connect(self.step4_callback)
+        self.widget.step5_btn.clicked.connect(self.step5_callback)
         self.widget.widget_closed.connect(self.view_closed)
 
 
@@ -118,9 +139,37 @@ class AmorphousAnalysisController(QObject):
         pass
         
 
-    def sum_callback(self):
+    def step1_callback(self):
         now = time.time()
-        self.model.calculate()
+        self.model.calculate_1()
+        later = time.time()
+        elapsed = later - now
+        print(elapsed)
+
+    def step2_callback(self):
+        now = time.time()
+        self.model.calculate_2()
+        later = time.time()
+        elapsed = later - now
+        print(elapsed)
+    
+    def step3_callback(self):
+        now = time.time()
+        self.model.calculate_3()
+        later = time.time()
+        elapsed = later - now
+        print(elapsed)
+
+    def step4_callback(self):
+        now = time.time()
+        self.model.calculate_4()
+        later = time.time()
+        elapsed = later - now
+        print(elapsed)
+
+    def step5_callback(self):
+        now = time.time()
+        self.model.calculate_5()
         later = time.time()
         elapsed = later - now
         print(elapsed)

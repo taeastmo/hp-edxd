@@ -47,8 +47,8 @@ class MultipleDatasetsController(QObject):
         self.file_save_controller = file_save_controller
         self.directories = directories
         
-        self.mask_model = MaskModel()
-        self.multi_spectra_model = MultipleSpectraModel(self.mask_model)
+        
+        self.multi_spectra_model = MultipleSpectraModel()
         self.widget = MultiSpectraWidget()
         
 
@@ -67,9 +67,7 @@ class MultipleDatasetsController(QObject):
         self.row_scale = 'Index'
         self.file = ''
         self.row = 0
-        #self.mask_controller = MaskController(self.mask_model, self.widget.mask_widget, directories)
-
-        #self.phases =dict()
+   
         self.create_signals()
         
     def create_signals(self):

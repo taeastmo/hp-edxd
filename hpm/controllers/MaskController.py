@@ -185,7 +185,7 @@ class MaskController(object):
 
     def plot_image(self):
         self.widget.img_widget.plot_image(self.mask_model._img_data, False)
-        self.widget.img_widget.auto_level()
+        #self.widget.img_widget.auto_level()
 
     def process_click(self, x, y):
         x, y = int(x), int(y)

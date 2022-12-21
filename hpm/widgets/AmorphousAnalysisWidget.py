@@ -29,6 +29,9 @@ from hpm.widgets.MaskWidget import MaskWidget
 from hpm.widgets.plot_widgets import ImgWidget2
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
 
+from hpm.controllers.MaskController import MaskController
+from hpm.models.MaskModel import MaskModel
+
 class AmorphousAnalysisWidget(QtWidgets.QWidget):
 
     color_btn_clicked = QtCore.pyqtSignal(int, QtWidgets.QWidget)
@@ -40,8 +43,10 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
     plotMouseMoveSignal = pyqtSignal(float)  
     plotMouseCursorSignal = pyqtSignal(list)
 
-    def __init__(self):
+    def __init__(self,directories):
         super().__init__()
+
+        self.directories = directories
         self._layout = QtWidgets.QVBoxLayout()  
         self.setWindowTitle('Amorphous analysis')
         self.resize(1200,700)
@@ -53,33 +58,32 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self._button_layout.setSpacing(6)
 
 
-        self.sum_btn = FlatButton('Flatten')
-        self.sum_btn.setMaximumWidth(90)
-        self.sum_btn.setMinimumWidth(90)
-        self.sum_scratch_btn = FlatButton('Flatten scratch')
-        self.sum_scratch_btn.setMaximumWidth(90)
-        self.sum_scratch_btn.setMinimumWidth(90)
-        self.ebg_btn = FlatButton('Save DC')
-        self.ebg_btn.setMaximumWidth(90)
-        self.ebg_btn.setMinimumWidth(90)
-        self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
-        self.tth_btn.setEnabled(False)
-        self.tth_btn.setMaximumWidth(90)
-        self.tth_btn.setMinimumWidth(90)
-        self.transpose_btn = FlatButton(f'Transpose')
-        self.transpose_btn.setMaximumWidth(90)
-        self.transpose_btn.setMinimumWidth(90)
+        self.step1_btn = FlatButton('Step 1')
+        self.step1_btn.setMaximumWidth(90)
+        self.step1_btn.setMinimumWidth(90)
+        self.step2_btn = FlatButton('Step 2')
+        self.step2_btn.setMaximumWidth(90)
+        self.step2_btn.setMinimumWidth(90)
+        self.step3_btn = FlatButton('Step 3')
+        self.step3_btn.setMaximumWidth(90)
+        self.step3_btn.setMinimumWidth(90)
+        self.step4_btn = FlatButton('Step 4')
+        self.step4_btn.setMaximumWidth(90)
+        self.step4_btn.setMinimumWidth(90)
+        self.step5_btn = FlatButton('Step 5')
+        self.step5_btn.setMaximumWidth(90)
+        self.step5_btn.setMinimumWidth(90)
 
         self.edit_btn = FlatButton('Edit')
         self.delete_btn = FlatButton('Delete')
         self.clear_btn = FlatButton('Clear')
 
 
-        self._button_layout.addWidget(self.sum_btn)
-        self._button_layout.addWidget(self.sum_scratch_btn)
-        self._button_layout.addWidget(self.ebg_btn)
-        self._button_layout.addWidget(self.tth_btn)
-        self._button_layout.addWidget(self.transpose_btn)
+        self._button_layout.addWidget(self.step1_btn)
+        self._button_layout.addWidget(self.step2_btn)
+        self._button_layout.addWidget(self.step3_btn)
+        self._button_layout.addWidget(self.step4_btn)
+        self._button_layout.addWidget(self.step5_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
       
         
@@ -91,6 +95,8 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self.plot_tabs = QtWidgets.QTabWidget()
         
         self.scratch_plots = {}
+        self.mask_controllers = {}
+        self.displayPrefs = {}
 
         self._body_layout.addWidget(self.plot_tabs)
 
@@ -113,15 +119,23 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         
         if dims ==2:
             if mask:
-                plot = MaskWidget() 
+                mask_model = MaskModel()
+                mask_widget = MaskWidget() 
+                mask_controller = MaskController(mask_model, mask_widget, self.directories)
+                self.mask_controllers[name] = mask_controller
+                plot = mask_widget.img_widget
+                self.plot_tabs.addTab(mask_widget, name)
             else:
                 plot = ImgWidget2()
+                self.plot_tabs.addTab(plot, name)
         elif dims == 1:
             plot = PltWidget()
-            plot.set_log_mode(False,True)
-            displayPrefs = DisplayPreferences(plot)
+            plot.set_log_mode(False,False)
+            self.displayPrefs [ name] =  DisplayPreferences(plot)
+            self.plot_tabs.addTab(plot, name)
+
         self.scratch_plots[name]=plot
-        self.plot_tabs.addTab(plot, name)
+        
         return plot
         
 

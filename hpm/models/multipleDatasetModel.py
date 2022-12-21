@@ -34,7 +34,7 @@ import hpm.models.Xrf as Xrf
 from hpm.models.MaskModel import MaskModel
 
 class MultipleSpectraModel(QtCore.QObject):  # 
-    def __init__(self, mask_model:MaskModel, *args, **filekw):
+    def __init__(self,  *args, **filekw):
         
         """
         Creates new Multiple Spectra object.  
@@ -43,7 +43,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
             m = MultipleSpectraModel()
         """
         self.mca = None
-        self.mask_model = mask_model
+   
         
         self.max_spectra = 500
         self.nchans = 4000
@@ -80,7 +80,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
       
 
     def clear(self):
-        self.__init__(self.mask_model)
+        self.__init__()
 
     def set_mca(self, mca, element=0):
         self.clear()
@@ -126,7 +126,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
      
         print(len(cal_t))
 
-    def _rebin_scale(self, data, new_data, mask, new_mask, scale, new_scale):
+    def _rebin_scale(self, data, new_data, scale, new_scale):
         
         rows = len(data)
         tth = np.zeros(rows)
@@ -167,34 +167,20 @@ class MultipleSpectraModel(QtCore.QObject):  #
 
         #self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
         
-    def rebin_scratch(self, scale, new_scale):
-        
-        if new_scale == 'q':
-            data = self.scratch_E
-            new_data = self.scratch_q
-            mask = self.mask_model._mask_data_E
-            new_mask = self.mask_model._mask_data_q
-       
-        elif new_scale == 'E':
-            data = self.scratch_q
-            new_data = self.scratch_E
-            mask = self.mask_model._mask_data_q
-            new_mask = self.mask_model._mask_data_E
-            
-        self._rebin_scale(data, new_data, mask, new_mask, scale, new_scale)
+    
 
     def rebin_scale(self, new_scale='q'):
         data = self.data
-        mask = self.mask_model._mask_data
+        
         if new_scale == 'q':
             new_data = self.q
-            new_mask = self.mask_model._mask_data_q
+           
        
         elif new_scale == 'E':
             new_data = self.E
-            new_mask = self.mask_model._mask_data_E
             
-        self._rebin_scale(data, new_data, mask, new_mask, 'Channel', new_scale)
+            
+        self._rebin_scale(data, new_data, 'Channel', new_scale)
 
     def rebin_channels(self, order = 1):
         # This is useful for the germanium strip detector data, 

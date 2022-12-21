@@ -34,6 +34,8 @@ import hpm.models.Xrf as Xrf
 
 from hpm.models.MaskModel import MaskModel
 
+from .. import resources_path
+
 class AnalysisStep(QtCore.QObject):
     updated = QtCore.pyqtSignal(np.ndarray)
     def __init__(self, name, data_in_dims, data_out_dims, mask=False):
@@ -99,6 +101,15 @@ class AnalysisStep(QtCore.QObject):
         self.processed = False
         self.params_in['mask_img'] = mask
 
+    def get_mask(self):
+        mask = self.params_in['mask_img']
+        if 'mask_model' in self.params_in:
+            mask_model = self.params_in['mask_model']
+            mask = mask_model.get_mask()
+        return mask
+
+
+
    
 
 class AmorphousAnalysisModel(QtCore.QObject):  # 
@@ -148,69 +159,113 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
 
         steps = {}
-        steps[1] = AnalysisStep('dataset E',2,2)
-        steps[2 ] = AnalysisStep('mask in E',2,2,mask=True)
-        steps[3 ] = AnalysisStep('Flaten',2,1)
-        steps[4 ] = AnalysisStep('Normalize ',2,2)
-        steps[5 ] = AnalysisStep('convert to q',2,2)
-        steps[6 ] = AnalysisStep('mask in q',2,2,mask=True)
-        steps[7 ] = AnalysisStep('2-th scaling',2,1)
-        steps[8 ] = AnalysisStep('Flaten ',2,1)
-        steps[9 ] = AnalysisStep('Iq to E', 1,2)
-        steps[10] = AnalysisStep('normalize E by Iq',2,2)
-        steps[11] = AnalysisStep('Flaten', 2,1)
+        self.defs = [('dataset E',2,2),
+                ('mask in E',2,2,True),
+                ('Flaten 1',2,1),
+                ('Normalize',2,2),
+                
+                ('convert to q',2,2),
+                ('mask in q',2,2,True),
+                ('2-th scaling',2,1),
+            
+                ('Flaten 2',2,1),
+                ('Iq to E', 1,2),
+                ('normalize by Iq',2,2),
+                ('Flaten 3', 2,1),
+                ]
+        for i, d in enumerate(self.defs):
 
-        steps[1].set_function(self._propagate_data, ['data_in'],  ['data_out'])
-        steps[2].set_function(self._propagate_data, ['data_in'],  ['data_out'])
-        steps[3].set_function(self._flaten_data, ['data_in', 'unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
-        steps[4].set_function(self._normalize, ['data_in', 'norm_function'],  ['data_out'])
-        steps[5].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
-
-        steps[8].set_function(self._flaten_data, ['data_in', 'unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+            steps[d[0]] = AnalysisStep(*d)
+        
+        steps['dataset E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        steps['Flaten 1'].set_function(self._flaten_data, ['data_in', 'unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+        steps['Normalize'].set_function(self._normalize, ['data_in', 'norm_function'],  ['data_out'])
+        
+        steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        steps['convert to q'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
+        steps['mask in q'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        steps['Flaten 2'].set_function(self._flaten_data, ['data_in', 'unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
 
         self.steps = steps
 
-    def calculate(self):
+    def calculate_1(self):
 
         self.multi_spectra_model.rebin_scale('E') 
         self.multi_spectra_model.rebin_scale('q') 
 
-        scale_E = self.multi_spectra_model.E_scale
-        scale_q = self.multi_spectra_model.q_scale
+        self.scale_E = self.multi_spectra_model.E_scale
+        self.scale_q = self.multi_spectra_model.q_scale
+
+       
         
-        data_in_E = copy.deepcopy(self.multi_spectra_model.E)
-        data_in_q = copy.deepcopy(self.multi_spectra_model.q)
-        data_in_E[:,:69] = 0
+        self.data_in_E = copy.deepcopy(self.multi_spectra_model.E)
+        self.data_in_q = copy.deepcopy(self.multi_spectra_model.q)
+        self.data_in_E[:,:69] = 0
 
-        self.steps[1].set_data_in(data_in_E)
-        self.steps[1].calculate()
-        self.steps[2].set_data_in(self.steps[1].get_data_out())
-        self.steps[2].calculate()
+        for step in (1,2):
+            self._calculate_step(step)
 
-        self.steps[3].set_data_in(self.steps[2].get_data_out())
-        self.steps[3].set_param({'unit_in':'E','scale_in':scale_E})
-        self.steps[3].calculate()
+    def calculate_2(self):
+        for step in (3,4,5,6):
+            self._calculate_step(step)
 
-        self.steps[4].set_data_in(self.steps[2].get_data_out())
-        self.steps[4].set_param({'norm_function':self.steps[3].get_data_out()[1]})
-        self.steps[4].calculate()
+    def calculate_3(self):
+        for step in (8,):
+            self._calculate_step(step)
 
-        self.steps[5].set_data_in(self.steps[4].get_data_out())
-        self.steps[5].set_param({'unit_in':'E', 'unit_out':'q'})
-        self.steps[5].calculate()
+    def calculate_4(self):
+        pass
 
-        self.steps[8].set_data_in(self.steps[5].get_data_out())
-        weights_q = data_in_q/ np.amax(data_in_q)
-        weights_q [weights_q==0 ] = 1e-7
-        self.steps[8].set_param({'weights':weights_q, 'unit_in':'q','scale_in':scale_q})
-        self.steps[8].calculate()
+    def calculate_5(self):
+        pass
+        
+
+    def _calculate_step(self, step):
+        if step == 1:
+            self.steps['dataset E'].set_data_in(self.data_in_E)
+            self.steps['dataset E'].calculate()
+        elif step == 2:
+            self.steps['mask in E'].set_data_in(self.steps['dataset E'].get_data_out())
+            self.steps['mask in E'].calculate()
+        
+        elif step == 3:
+            self.steps['Flaten 1'].set_data_in(self.steps['mask in E'].get_data_out())
+
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['Flaten 1'].set_param({'mask_img':mask})
+
+            self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E})
+            self.steps['Flaten 1'].calculate()
+        elif step == 4:
+
+            self.steps['Normalize'].set_data_in(self.steps['mask in E'].get_data_out())
+            self.steps['Normalize'].set_param({'norm_function':self.steps['Flaten 1'].get_data_out()[1]})
+            self.steps['Normalize'].calculate()
+        elif step == 5:
+            self.steps['convert to q'].set_data_in(self.steps['Normalize'].get_data_out())
+            self.steps['convert to q'].set_param({'unit_in':'E', 'unit_out':'q'})
+            self.steps['convert to q'].calculate()
+        elif step == 6:
+            self.steps['mask in q'].set_data_in(self.steps['convert to q'].get_data_out())
+            self.steps['mask in q'].calculate()   
+        elif step == 8:
+            self.steps['Flaten 2'].set_data_in(self.steps['convert to q'].get_data_out())
+
+            mask = self.steps['mask in q'].get_mask()
+            self.steps['Flaten 2'].set_param({'mask_img':mask})
+            
+            weights_q = self.data_in_q/ np.amax(self.data_in_q)
+            weights_q [weights_q==0 ] = 1e-7
+            self.steps['Flaten 2'].set_param({'weights':weights_q, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['Flaten 2'].calculate()
 
  
     def _propagate_data(self, **args):
+        # propagates data_in to data_out
         data = args['data_in']
         args['data_out'] = data
         return args
-
   
     def _flaten_data(self, **args):
 
@@ -233,6 +288,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         return args
 
     def _normalize(self, **args):
+        # divides each row in the data_in (2D) by the norm_function (1D)
         data = args['data_in']
         out = np.zeros(data.shape)
         norm_function = args['norm_function']
@@ -243,14 +299,16 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         return args
 
     def _rebin(self, **args):
+        # re-bins the data_in into a different scale, 
+        # for example change each row in data_in from E scale to q scale
         data = args['data_in']
-        unit = args['unit_out']
+        
+        unit_out = args['unit_out']
         mask = args['mask_img']
         new_mask = copy.deepcopy(mask)
         new_data = np.ones(data.shape)
-        out = np.zeros(data.shape)
 
-        self._rebin_scale(data, new_data, mask, new_mask, 'Channel', unit)
+        self._rebin_to_scale(data, new_data, mask, new_mask, unit_out)
         
         args['data_out'] = new_data
         args['mask_out'] = new_mask
@@ -283,22 +341,51 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
      
         print(len(cal_t))
 
-    def _rebin_scale(self, data, new_data, mask, new_mask, scale, new_scale):
+    
+    def _rebin_to_channel(self, data, new_data, mask, new_mask, unit):
+        
+        rows = len(data)
+
+        bins = np.size(data[0])
+        x = np.arange(bins)
+
+        calibrations = self.mca.get_calibration()
+        rebinned_scales = []
+
+
+        for row in range(rows):
+            calibration = calibrations[row]
+            ch = calibration.scale_to_channel(x,unit)
+            rebinned_scales.append(ch)
+        
+        rebinned_scales = np.asarray(rebinned_scales)
+
+        rebinned_new = [x]*rows
+
+        self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
+
+        self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
+
+
+    def _rebin_to_scale(self, data, new_data, mask, new_mask, unit):
         
         rows = len(data)
         tth = np.zeros(rows)
         bins = np.size(data[0])
         x = np.arange(bins)
+   
         calibrations = self.mca.get_calibration()
-        rebinned_scales = []
     
-        if new_scale == 'q':
+        rebinned_scales = []
+
+   
+        if unit == 'q':
             for row in range(rows):
                 calibration = calibrations[row]
                 q = calibration.channel_to_q(x)
                 tth[row]= calibration.two_theta
                 rebinned_scales.append(q)
-        elif new_scale == 'E':
+        elif unit == 'E':
             for row in range(rows):
                 calibration = calibrations[row]
                 e = calibration.channel_to_energy(x)
@@ -315,9 +402,9 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         rebinned_max = np.amax(rebinned_scales)
      
         rebinned_step = (rebinned_max-rebinned_min)/bins
-        if new_scale == 'q':
+        if unit == 'q':
             self.q_scale = [rebinned_step, rebinned_min]
-        elif new_scale == 'E':
+        elif unit == 'E':
             self.E_scale = [rebinned_step, rebinned_min]
         rebinned_new = [x*rebinned_step+rebinned_min]*rows
         self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
@@ -338,7 +425,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             mask = self.mask_model._mask_data_q
             new_mask = self.mask_model._mask_data_E
             
-        self._rebin_scale(data, new_data, mask, new_mask, scale, new_scale)
+        self._rebin_to_scale(data, new_data, mask, new_mask, scale, new_scale)
 
     def rebin_scale(self, new_scale='q'):
         data = self.data
@@ -351,7 +438,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             new_data = self.E
             new_mask = self.mask_model._mask_data_E
             
-        self._rebin_scale(data, new_data, mask, new_mask, 'Channel', new_scale)
+        self._rebin_to_scale(data, new_data, mask, new_mask, 'Channel', new_scale)
 
     def rebin_channels(self, order = 1):
         # This is useful for the germanium strip detector data, 
