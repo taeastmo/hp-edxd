@@ -299,7 +299,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         unit = args['unit_in']
         mask = args['mask_img']
         scale = args['scale_in']
-        weights = args['weights']
+        weights = np.ma.array(args['weights'], mask=mask)
         y = np.average(np.ma.array(data, mask=mask), weights= weights, axis=0 )
         if unit == 'E':
             scale = self.multi_spectra_model.E_scale
@@ -320,6 +320,16 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['data_out'] = out
         return args
 
+    @staticmethod
+    def find_non_zero_range(a):
+        # Find the indices of the non-zero elements
+        nonzero_indices = np.flatnonzero(a)
+        # Find the index of the maximum value among the non-zero indices
+        last_nonzero_index = np.amax(nonzero_indices)
+        # Find the index of the minimum value among the non-zero indices
+        first_nonzero_index = np.amin(nonzero_indices)
+        return first_nonzero_index, last_nonzero_index
+
     def _get_row_scale(self, **args):
         # calculates the relative scaling of rows with the last row having the scale value of 1
         data = args['data_in']
@@ -327,10 +337,45 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         weights = args['weights']
 
         rows = np.arange(data.shape[0])
-        new_data = np.zeros(data.shape[0])
-        for row in rows:
-            new_data[row] = np.average(np.ma.array(data[row], mask=mask[row]), weights= weights[row])
-            #np.mean( data[row])
+        new_data = np.ones(data.shape[0])
+
+        last_row_index = rows[-1]
+        row = data[last_row_index]
+        mask_row = mask[last_row_index]
+        weights_row = np.ma.array(weights[last_row_index], mask=mask_row)
+        first_nonzero_index, last_nonzero_index = self.find_non_zero_range(row) 
+        scale = 1
+
+        for next_row_index in np.flip( rows):
+
+            next_row = data[next_row_index]
+            next_mask_row = mask[next_row_index]
+            next_weights_row = np.ma.array(weights[next_row_index], mask=next_mask_row)
+
+           
+            common_mask = next_mask_row | mask_row
+            next_first_nonzero_index, next_last_nonzero_index = self.find_non_zero_range(next_row) 
+
+            first_index = max(first_nonzero_index,next_first_nonzero_index)
+            last_index = min(last_nonzero_index, next_last_nonzero_index)
+            common_mask[:first_index] = True
+            common_mask[last_index:] = True
+
+            row_masked = np.ma.array(row, mask=common_mask)
+            next_row_masked = np.ma.array(next_row, mask=common_mask)
+            average_scale = np.average( next_row_masked/row_masked, weights=weights_row)
+            scale = scale * average_scale
+
+            new_data[next_row_index] = scale
+
+            
+
+            row = copy.deepcopy(next_row)
+            mask_row = copy.deepcopy(next_mask_row)
+            weights_row = copy.deepcopy(next_weights_row)
+            first_nonzero_index, last_nonzero_index = next_first_nonzero_index, next_last_nonzero_index 
+        
+        new_data[0] = new_data[1]
 
         args['data_out'] = np.asarray([rows, new_data])
         return args
@@ -339,7 +384,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         # calculates the relative scaling of rows with the last row having the scale value of 1
         data = args['data_in']
         row_scale_in = args['row_scale_in'][1]
-       
+        row_scale_in [row_scale_in==0 ] = 1e-7  # avoid division by 0
         rows = np.arange(data.shape[0])
         new_data = np.zeros(data.shape)
         for row in rows:
@@ -364,6 +409,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['data_out'] = new_data
         args['mask_out'] = new_mask
         return args
+
+    
 
     def is2thetaScan(self):
         '''
