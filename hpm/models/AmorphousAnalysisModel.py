@@ -166,8 +166,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
                 
                 ('convert to q',2,2),
                 ('mask in q',2,2,True),
-                ('2-th scaling',2,1),
-            
+                ('get row scale',2,1),
+                ('apply scaling',2,2),
                 ('Flaten 2',2,1),
                 ('Iq to E', 1,2),
                 ('normalize by Iq',2,2),
@@ -185,6 +185,9 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         steps['convert to q'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
         steps['mask in q'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        steps['get row scale'].set_function(self._get_row_scale, ['data_in', 'mask_img','weights'],  ['data_out'])
+        steps['apply scaling'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
+
         steps['Flaten 2'].set_function(self._flaten_data, ['data_in', 'unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
 
         self.steps = steps
@@ -211,14 +214,16 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self._calculate_step(step)
 
     def calculate_3(self):
-        for step in (8,):
+        for step in (7,):
             self._calculate_step(step)
 
     def calculate_4(self):
-        pass
+        for step in (8,):
+            self._calculate_step(step)
 
     def calculate_5(self):
-        pass
+        for step in (9,):
+            self._calculate_step(step)
         
 
     def _calculate_step(self, step):
@@ -249,8 +254,25 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         elif step == 6:
             self.steps['mask in q'].set_data_in(self.steps['convert to q'].get_data_out())
             self.steps['mask in q'].calculate()   
+
+        elif step == 7:
+            self.steps['get row scale'].set_data_in(self.steps['convert to q'].get_data_out())
+            mask = self.steps['mask in q'].get_mask()
+            self.steps['get row scale'].set_param({'mask_img':mask})
+            weights_q = self.data_in_q/ np.amax(self.data_in_q)
+            weights_q [weights_q==0 ] = 1e-7
+            self.steps['get row scale'].set_param({'weights':weights_q, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['get row scale'].calculate()
+
         elif step == 8:
-            self.steps['Flaten 2'].set_data_in(self.steps['convert to q'].get_data_out())
+            self.steps['apply scaling'].set_data_in(self.steps['convert to q'].get_data_out())
+     
+            row_scale_in = self.steps['get row scale'].get_data_out()
+            self.steps['apply scaling'].set_param({'row_scale_in':row_scale_in})
+            self.steps['apply scaling'].calculate()    
+
+        elif step == 9:
+            self.steps['Flaten 2'].set_data_in(self.steps['apply scaling'].get_data_out())
 
             mask = self.steps['mask in q'].get_mask()
             self.steps['Flaten 2'].set_param({'mask_img':mask})
@@ -297,6 +319,35 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
            out[i] = data[i] / norm_function
         args['data_out'] = out
         return args
+
+    def _get_row_scale(self, **args):
+        # calculates the relative scaling of rows with the last row having the scale value of 1
+        data = args['data_in']
+        mask = args['mask_img']
+        weights = args['weights']
+
+        rows = np.arange(data.shape[0])
+        new_data = np.zeros(data.shape[0])
+        for row in rows:
+            new_data[row] = np.average(np.ma.array(data[row], mask=mask[row]), weights= weights[row])
+            #np.mean( data[row])
+
+        args['data_out'] = np.asarray([rows, new_data])
+        return args
+
+    def _apply_row_scale(self, **args):
+        # calculates the relative scaling of rows with the last row having the scale value of 1
+        data = args['data_in']
+        row_scale_in = args['row_scale_in'][1]
+       
+        rows = np.arange(data.shape[0])
+        new_data = np.zeros(data.shape)
+        for row in rows:
+            new_data[row] = data[row] / row_scale_in[row]
+
+        args['data_out'] = new_data
+        return args
+
 
     def _rebin(self, **args):
         # re-bins the data_in into a different scale, 
