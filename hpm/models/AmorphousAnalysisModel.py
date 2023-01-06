@@ -109,18 +109,9 @@ class AnalysisStep(QtCore.QObject):
         return mask
 
 
-
-   
-
 class AmorphousAnalysisModel(QtCore.QObject):  # 
     def __init__(self,  *args, **filekw):
         
-        """
-        Creates new Multiple Spectra object.  
-    
-        Example:
-            m = MultipleSpectraModel()
-        """
         self.mca = None
         self.multi_spectra_model =  None
 
@@ -133,12 +124,11 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         self.multi_spectra_model = multi_spectra_model
 
 
-
     def clear(self):
         self.__init__()
 
     def make_calculators(self):
-        pass
+        
         # this is a placeholder for the eventual calculation
         # List of the steps needed for the calculation
         # 1. Convert dataset to E
@@ -189,6 +179,10 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         steps['apply scaling'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
 
         steps['Flaten 2'].set_function(self._flaten_data, ['data_in', 'unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+        steps['Iq to E'].set_function(self._q_to_channel, ['data_in'],  ['data_out'])
+
+        steps['normalize by Iq'].set_function(self._normalize_3d, ['data_in', 'norm_function'],  ['data_out'])
+        steps['Flaten 3'].set_function(self._flaten_data, ['data_in', 'unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
 
         self.steps = steps
 
@@ -222,7 +216,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self._calculate_step(step)
 
     def calculate_5(self):
-        for step in (9,):
+        for step in (9,10,11, 12):
             self._calculate_step(step)
         
 
@@ -281,6 +275,24 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             weights_q [weights_q==0 ] = 1e-7
             self.steps['Flaten 2'].set_param({'weights':weights_q, 'unit_in':'q','scale_in':self.scale_q})
             self.steps['Flaten 2'].calculate()
+            
+        elif step == 10:
+            self.steps['Iq to E'].set_data_in(self.steps['Flaten 2'].get_data_out())
+            self.steps['Iq to E'].calculate()
+
+        elif step == 11:
+            self.steps['normalize by Iq'].set_data_in(self.steps['mask in E'].get_data_out())
+            self.steps['normalize by Iq'].set_param({'norm_function':self.steps['Iq to E'].get_data_out()})
+            self.steps['normalize by Iq'].calculate()
+
+        elif step == 12:
+            self.steps['Flaten 3'].set_data_in(self.steps['normalize by Iq'].get_data_out())
+
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['Flaten 3'].set_param({'mask_img':mask})
+
+            self.steps['Flaten 3'].set_param({'unit_in':'E','scale_in':self.scale_E})
+            self.steps['Flaten 3'].calculate()
 
  
     def _propagate_data(self, **args):
@@ -310,13 +322,24 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         return args
 
     def _normalize(self, **args):
-        # divides each row in the data_in (2D) by the norm_function (1D)
+        # divides each row in the data_in (2D) by the norm_function (2D)
         data = args['data_in']
         out = np.zeros(data.shape)
         norm_function = args['norm_function']
         norm_function[norm_function==0]= np.amin(norm_function[norm_function!=0])
         for i in range(np.shape(data)[0]):
            out[i] = data[i] / norm_function
+        args['data_out'] = out
+        return args
+
+    def _normalize_3d(self, **args):
+        # divides each row in the data_in (3D) by the norm_function (3D)
+        data = args['data_in']
+        
+        norm_function = args['norm_function']
+        norm_function[norm_function==0]= np.amin(norm_function[norm_function!=0])
+        
+        out = data / norm_function
         args['data_out'] = out
         return args
 
@@ -332,53 +355,39 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
     def _get_row_scale(self, **args):
         # calculates the relative scaling of rows with the last row having the scale value of 1
+        # uses masked and weighted scaling or adjecent rows
+        # the weights are the normalized counts of the Im
         data = args['data_in']
         mask = args['mask_img']
         weights = args['weights']
-
         rows = np.arange(data.shape[0])
         new_data = np.ones(data.shape[0])
-
         last_row_index = rows[-1]
         row = data[last_row_index]
         mask_row = mask[last_row_index]
         weights_row = np.ma.array(weights[last_row_index], mask=mask_row)
         first_nonzero_index, last_nonzero_index = self.find_non_zero_range(row) 
         scale = 1
-
         for next_row_index in np.flip( rows):
-
             next_row = data[next_row_index]
             next_mask_row = mask[next_row_index]
-            
-
-           
             common_mask = next_mask_row | mask_row
             next_first_nonzero_index, next_last_nonzero_index = self.find_non_zero_range(next_row) 
-
             first_index = max(first_nonzero_index,next_first_nonzero_index)
             last_index = min(last_nonzero_index, next_last_nonzero_index)
             common_mask[:first_index] = True
             common_mask[last_index:] = True
-
             row_masked = np.ma.array(row, mask=common_mask)
             next_row_masked = np.ma.array(next_row, mask=common_mask)
-
             next_weights_row = np.ma.array(weights[next_row_index], mask=common_mask)
             average_scale = np.average( next_row_masked/row_masked, weights=weights_row)
             scale = scale * average_scale
-
             new_data[next_row_index] = scale
-
-            
-
-            row = copy.deepcopy(next_row)
-            mask_row = copy.deepcopy(next_mask_row)
-            weights_row = copy.deepcopy(next_weights_row)
+            row = next_row
+            mask_row = next_mask_row
+            weights_row = next_weights_row
             first_nonzero_index, last_nonzero_index = next_first_nonzero_index, next_last_nonzero_index 
-        
-        new_data[0] = new_data[1]
-
+        #new_data[0] = new_data[1]
         args['data_out'] = np.asarray([rows, new_data])
         return args
 
@@ -412,60 +421,39 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['mask_out'] = new_mask
         return args
 
+    def _q_to_channel(self, **args):
+
+        # used to convert 2D data in (q) back to 3D data in (E, 2theta)
+        data = args['data_in']
+        x = data[0]
+        rows = len(self.mca.get_calibration())
+        y = data[1]
+        data_3d = np.zeros((rows,len(x)))
+        for row in range(rows):
+            data_3d[row] = y
+        unit = 'q'
+
+        new_data = np.zeros((rows, len(x)))
+
+        self._rebin_to_channel(x,data_3d, new_data, unit) # this updates the new_data array directly
+
+        args['data_out']=new_data
+
+        return args
     
-
-    def is2thetaScan(self):
-        '''
-        Returns True if the mca is a 2theta scan, i.e. each element (detector) is collected 
-        at a different 2theta. Otherwise returns False. Essentially checks if 
-        the 2theta for each element is diffetent. 
-        '''
-        pass
-
-    def energy_to_2theta(self):
-        '''
-        transposes the 2D dataset, converts from 2D EDX to 2D ADX
-        '''
-        data_t = np.transpose(self.data)
-        s = np.shape(data_t)
-        n_det = s[0]
-        n_cnan = s[1]
-        cal_t = []
-        cal = McaCalibration()
-        
-        cal.slope = self.tth_scale[0]
-        cal.offset = self.tth_scale[1]
-        cal.set_dx_type('adx')
-        for det in range(n_det):
-            cal_t.append(copy.deepcopy(cal))
-     
-        print(len(cal_t))
-
-    
-    def _rebin_to_channel(self, data, new_data, mask, new_mask, unit):
-        
+    def _rebin_to_channel(self, x, data, new_data, unit):
         rows = len(data)
-
         bins = np.size(data[0])
-        x = np.arange(bins)
-
         calibrations = self.mca.get_calibration()
-        rebinned_scales = []
-
-
+        q_ranges = []
+        channel_ranges = []
         for row in range(rows):
             calibration = calibrations[row]
             ch = calibration.scale_to_channel(x,unit)
-            rebinned_scales.append(ch)
-        
-        rebinned_scales = np.asarray(rebinned_scales)
-
-        rebinned_new = [x]*rows
-
-        self.align_multialement_data(data, new_data, rebinned_scales,rebinned_new )
-
-        self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
-
+            q_ranges.append(ch)
+            channel_ranges.append(np.arange(bins))
+        q_ranges = np.asarray(q_ranges)
+        self.align_multialement_data(data, new_data, q_ranges, channel_ranges )
 
     def _rebin_to_scale(self, data, new_data, mask, new_mask, unit):
         
@@ -511,132 +499,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
         self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
         
-    def rebin_scratch(self, scale, new_scale):
-        
-        if new_scale == 'q':
-            data = self.scratch_E
-            new_data = self.scratch_q
-            mask = self.mask_model._mask_data_E
-            new_mask = self.mask_model._mask_data_q
-       
-        elif new_scale == 'E':
-            data = self.scratch_q
-            new_data = self.scratch_E
-            mask = self.mask_model._mask_data_q
-            new_mask = self.mask_model._mask_data_E
-            
-        self._rebin_to_scale(data, new_data, mask, new_mask, scale, new_scale)
-
-    def rebin_scale(self, new_scale='q'):
-        data = self.data
-        mask = self.mask_model._mask_data
-        if new_scale == 'q':
-            new_data = self.q
-            new_mask = self.mask_model._mask_data_q
-       
-        elif new_scale == 'E':
-            new_data = self.E
-            new_mask = self.mask_model._mask_data_E
-            
-        self._rebin_to_scale(data, new_data, mask, new_mask, 'Channel', new_scale)
-
-    def rebin_channels(self, order = 1):
-        # This is useful for the germanium strip detector data, 
-        # where the rows have to be aligned before processing
-        
-        data = self.data
-        bins = np.size(data[0])
-        x =  np.arange(bins)
-        rows = len(data)
-        new_scales = [x]*rows
-        if not len(self.channel_calibration_scales):
-            
-            now = time.time()
-            
-            range_1 = (667,1100)
-            range_2 = (3000,3480)
-            range_3 = (2600,3000)
-
-            max_points_left = np.zeros(rows)
-            max_points_right = np.zeros(rows)
-            max_points_middle= np.zeros(rows)
-
-            fit_range = 20
-            for row in range(rows):
-                max_rough = int(range_1[0]+ np.argmax(data[row][slice(*range_1)]))
-                if max_rough == 0:
-                    continue
-                fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
-                fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
-                min_y = np.amin(fit_segment_y)
-                _ , centroid,_ = fit_gaussian(fit_segment_x,fit_segment_y - min_y)
-                max_points_left[row] = centroid
-
-                max_rough = int(range_2[0] + np.argmax(data[row][slice(*range_2)]))
-                fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
-                fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
-                min_y = np.amin(fit_segment_y)
-                _ , centroid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
-                max_points_right[row] = centroid
-
-                if order == 2:
-                    max_rough = int(range_3[0] + np.argmax(data[row][slice(*range_3)]))
-                    fit_segment_x = x[max_rough-fit_range:max_rough+fit_range]
-                    fit_segment_y = data[row][max_rough-fit_range:max_rough+fit_range]
-                    min_y = np.amin(fit_segment_y)
-                    _ , centroid,_ = fit_gaussian(fit_segment_x,fit_segment_y- min_y)
-                    max_points_middle[row] = centroid
-            
-            max_points_left_ =  max_points_left[max_points_left != 0]
-            max_points_right_ = max_points_right[max_points_right != 0]
-            max_points_middle_ = max_points_middle[max_points_middle != 0]
-            left = np.mean(max_points_left_)
-            right = np.mean(max_points_right_)
-            middle = np.mean(max_points_middle_)
-        
-            slope = np.ones(rows)   # relative slopes
-            offset = np.zeros(rows)  # relative y-intercepts
-            quad = np.zeros(rows)  # quad coefficient
-
-            slope_inv = np.ones(rows)   # relative slopes
-            offset_inv = np.zeros(rows)  # relative y-intercepts
-            quad_inv = np.zeros(rows)  # quad coefficient
-            
-            for row in range(rows):
-                if max_points_left[row] == 0:
-                    continue
-                x1 = left
-                x2 = right
-                
-                y1 = max_points_left[row]
-                y2 = max_points_right[row]
-                
-                if order == 1:
-                    slope[row] = (y1-y2)/(x1-x2)
-                    offset[row] = (x1*y2 - x2*y1)/(x1-x2)
-                    slope_inv[row] = (x1-x2)/(y1-y2)
-                    offset_inv[row] = (y1*x2 - y2*x1)/(y1-y2)
-                elif order == 2:
-                    x3 = middle
-                    y3 = max_points_middle[row]
-                    quad[row],slope[row],offset[row] = calc_parabola_vertex(x1,y1,x2,y2,x3,y3)
-                    quad_inv[row],slope_inv[row],offset_inv[row] = calc_parabola_vertex(y1,x1,y2,x2,y3,x3)
-
-            calibration = {}
-            calibration['slope'] = slope
-            calibration['offset'] = offset
-            calibration['quad'] = quad
-            calibration_inv = {}
-            calibration_inv['slope'] = slope_inv
-            calibration_inv['offset'] = offset_inv
-            calibration_inv['quad'] = quad_inv
-            self.calibration = calibration
-            self.calibration_inv = calibration_inv
-
-            self.channel_calibration_scales = self.create_multialement_alighment_calibration(data, calibration)
-       
-        self.align_multialement_data(data , self.rebinned_channel_data, new_scales, self.channel_calibration_scales )
-        
+    
     def create_multialement_alighment_calibration(self, data, calibration):
         rows = len(data)
         bins = np.size(data[0])
@@ -656,7 +519,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         rows = len(data)
         
         bins = np.size(data[0])
-        x = np.arange(bins)
+        #x = np.arange(bins)
         for row in range(rows): 
             x = old_scales[row]
             xnew = new_scales[row]
@@ -670,60 +533,4 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
 
 
-    def aligned_to_channel(self, aligned, row):
-        slope = self.calibration['slope'][row]
-        offset = self.calibration['offset'][row]
-        channel = aligned * slope + offset
-        quad = self.calibration['quad'][row]
-        if quad != 0:
-            channel = channel + quad * aligned * aligned
-        return channel
-
-    def channel_to_aligned(self, channel, row):
-        slope = self.calibration_inv['slope'][row]
-        offset = self.calibration_inv['offset'][row]
-        aligned = channel * slope + offset
-        quad = self.calibration_inv['quad'][row]
-        if quad != 0:
-            aligned = aligned + quad * channel * channel
-        return aligned
-
-    def make_aligned_rois(self, row, rois):
-        
-        all_new_rois = []
-        for roi in rois:
-            left = roi.left
-            right = roi.right
-            aligned_left = self.channel_to_aligned(left, row)
-            aligned_right = self.channel_to_aligned(right, row)
-            roi.left = aligned_left
-            roi.right = aligned_right
-        for det in range(self.mca.n_detectors):
-            new_rois = []
-            for roi in rois:
-                aligned_left = roi.left
-                aligned_right = roi.right
-                left = int(round(self.aligned_to_channel(aligned_left,det)))
-                right = int(round(self.aligned_to_channel(aligned_right,det)))
-                new_roi = McaROI(left,right,label = roi.label)
-                new_rois.append(new_roi)
-            all_new_rois.append(new_rois)
-        return all_new_rois
-
-    def calibrate_all_elements(self, order = 1):
-        calibration = self.mca.get_calibration()
-        all_rois = self.mca.get_rois()
-        det0_rois = all_rois[0]
-        energies = []
-        for r in det0_rois:
-            energy = Xrf.lookup_xrf_line(r.label)
-            if (energy == None):
-                energy = Xrf.lookup_gamma_line(r.label)
-            if (energy != None): 
-                energies.append( energy)
-        for det in range(self.mca.n_detectors):
-            cal = calibration[det]
-            rois = all_rois[det]
-            for i, roi in enumerate(rois):
-                roi.energy = energies[i]
-            fit_energies(rois, order,cal)
+    
