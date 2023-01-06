@@ -350,7 +350,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
             next_row = data[next_row_index]
             next_mask_row = mask[next_row_index]
-            next_weights_row = np.ma.array(weights[next_row_index], mask=next_mask_row)
+            
 
            
             common_mask = next_mask_row | mask_row
@@ -363,6 +363,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
             row_masked = np.ma.array(row, mask=common_mask)
             next_row_masked = np.ma.array(next_row, mask=common_mask)
+
+            next_weights_row = np.ma.array(weights[next_row_index], mask=common_mask)
             average_scale = np.average( next_row_masked/row_masked, weights=weights_row)
             scale = scale * average_scale
 
