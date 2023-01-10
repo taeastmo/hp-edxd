@@ -104,6 +104,8 @@ class AnalysisStep(QtCore.QObject):
      
         if 'mask_model' in self.params_in:
             mask_model = self.params_in['mask_model']
+            data = self.params_in['data_in']
+            mask_model.set_dimension(data.shape)
             mask_model.load_mask(filename)
 
             mask = mask_model.get_mask()
@@ -172,8 +174,9 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
                 ('Normalize',2,2),
                 
                 ('convert to q',2,2),
+                ('convert to q Ieff',1,2),
                 ('mask in q',2,2,True),
-                ('Flaten 2',2,1),
+                ('weights q',2,2),
                 ('get row scale',2,1),
                 ('apply scaling',2,2),
                 ('S(q)',2,1),
@@ -198,11 +201,14 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         
         steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         steps['convert to q'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
+        steps['convert to q Ieff'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
         steps['mask in q'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        
+        steps['weights q'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         steps['get row scale'].set_function(self._get_row_scale, ['data_in', 'mask_img','weights'],  ['data_out'])
         steps['apply scaling'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
 
-        steps['Flaten 2'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+        #steps['Flaten 2'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
         steps['Iq to E'].set_function(self._q_to_channel, ['data_in'],  ['data_out'])
 
         steps['normalize by Iq'].set_function(self._normalize_3d, ['data_in','mask_img', 'norm_function'],  ['data_out'])
@@ -230,7 +236,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         self.data_in_q = copy.deepcopy(self.multi_spectra_model.q)
         self.data_in_E[:,:69] = 0
 
-        for step in (1,2):
+        for step in (1,2,3,4,5,6,7,8,9,10,11,12):
             self._calculate_step(step)
 
     def calculate_2(self):
@@ -294,6 +300,13 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['convert to q'].set_param({'mask_img':mask})
             self.steps['convert to q'].set_param({'unit_in':'E', 'unit_out':'q'})
             self.steps['convert to q'].calculate()
+
+            self.steps['convert to q Ieff'].set_data_in(self.steps['unFlaten 1'].get_data_out())
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['convert to q Ieff'].set_param({'mask_img':mask})
+            self.steps['convert to q Ieff'].set_param({'unit_in':'E', 'unit_out':'q'})
+            self.steps['convert to q Ieff'].calculate()
+
         elif step == 6:
             self.steps['mask in q'].set_data_in(self.steps['convert to q'].get_data_out())
             self.steps['mask in q'].load_mask('/Users/ross/GitHub/hp-edxd/hpm/resources/q.mask')
@@ -301,24 +314,29 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['mask in q'].calculate()   
 
         elif step == 7:
-            data = self.steps['mask in q'].get_data_out()
-            self.steps['Flaten 2'].set_data_in(data)
-            rows = data.shape[0]
-            mask = self.steps['mask in q'].get_mask()
-            self.steps['Flaten 2'].set_param({'mask_img':mask, 'range':(0,rows-1)})
-            
-            weights_q = self.data_in_q/ np.amax(self.data_in_q)
-            weights_q [weights_q==0 ] = 1e-7
-            self.steps['Flaten 2'].set_param({'weights':weights_q, 'unit_in':'q','scale_in':self.scale_q})
-            self.steps['Flaten 2'].calculate()
+           
+            w_q = self.steps['convert to q Ieff'].get_data_out()
+            w_q = w_q / np.amax(w_q)
 
+            for i, row in enumerate(w_q):
+                row[:] = row * np.max(self.data_in_q[i])
+
+            w_q = w_q / np.amax(w_q)
+            
+            mask = self.steps['mask in q'].get_mask()
+            
+
+            w_q [w_q==0 ] = 1e-7
+            
+
+            self.steps['weights q'].set_data_in(w_q)
+            self.steps['weights q'].calculate()
 
             self.steps['get row scale'].set_data_in(self.steps['convert to q'].get_data_out())
-            mask = self.steps['mask in q'].get_mask()
+            
             self.steps['get row scale'].set_param({'mask_img':mask})
-            weights_q = self.data_in_q/ np.amax(self.data_in_q)
-            weights_q [weights_q==0 ] = 1e-7
-            self.steps['get row scale'].set_param({'weights':weights_q, 'unit_in':'q','scale_in':self.scale_q})
+            
+            self.steps['get row scale'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
             self.steps['get row scale'].calculate()
 
         elif step == 8:
@@ -337,9 +355,9 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             mask = self.steps['mask in q'].get_mask()
             self.steps['S(q)'].set_param({'mask_img':mask, 'range':(0,rows-1)})
             
-            weights_q = self.data_in_q/ np.amax(self.data_in_q)
-            weights_q [weights_q==0 ] = 1e-7
-            self.steps['S(q)'].set_param({'weights':weights_q, 'unit_in':'q','scale_in':self.scale_q})
+            w_q = self.steps['weights q'].get_data_out()
+            
+            self.steps['S(q)'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
             self.steps['S(q)'].calculate()
             
         elif step == 10:
@@ -494,6 +512,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         row = data[last_row_index]
         mask_row = mask[last_row_index]
         weights_row = np.ma.array(weights[last_row_index], mask=mask_row)
+        
         first_nonzero_index, last_nonzero_index = self.find_non_zero_range(row) 
         scale = 1
         for next_row_index in np.flip( rows):
@@ -507,15 +526,16 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             common_mask[last_index:] = True
             row_masked = np.ma.array(row, mask=common_mask)
             next_row_masked = np.ma.array(next_row, mask=common_mask)
-            next_weights_row = np.ma.array(weights[next_row_index], mask=common_mask)
-            average_scale = np.average( next_row_masked/row_masked, weights=weights_row)
+            divided = np.ma.array(next_row_masked/row_masked, mask = common_mask)
+            average_scale = np.ma.average( divided, weights=weights_row)
             scale = scale * average_scale
             new_data[next_row_index] = scale
             row = next_row
             mask_row = next_mask_row
+            next_weights_row = np.ma.array(weights[next_row_index], mask=common_mask)
+            
             weights_row = next_weights_row
             first_nonzero_index, last_nonzero_index = next_first_nonzero_index, next_last_nonzero_index 
-        #new_data[0] = new_data[1]
         args['data_out'] = np.asarray([rows, new_data])
         return args
 
