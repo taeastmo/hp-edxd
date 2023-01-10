@@ -93,6 +93,8 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self._body_layout = QtWidgets.QHBoxLayout()
 
         self.plot_tabs = QtWidgets.QTabWidget()
+        style_sheet = "QTabBar::tab { min-width: 40px; }"
+        self.plot_tabs.setStyleSheet(style_sheet)
         
         self.scratch_plots = {}
         self.mask_controllers = {}
@@ -124,15 +126,15 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
                 mask_controller = MaskController(mask_model, mask_widget, self.directories)
                 self.mask_controllers[name] = mask_controller
                 plot = mask_widget.img_widget
-                self.plot_tabs.addTab(mask_widget, name)
+                self.plot_tabs.addTab(mask_widget, str(len(self.scratch_plots)))
             else:
                 plot = ImgWidget2()
-                self.plot_tabs.addTab(plot, name)
+                self.plot_tabs.addTab(plot, str(len(self.scratch_plots)))
         elif dims == 1:
             plot = PltWidget()
             plot.set_log_mode(False,False)
             self.displayPrefs [ name] =  DisplayPreferences(plot)
-            self.plot_tabs.addTab(plot, name)
+            self.plot_tabs.addTab(plot, str(len(self.scratch_plots)))
 
         self.scratch_plots[name]=plot
         
