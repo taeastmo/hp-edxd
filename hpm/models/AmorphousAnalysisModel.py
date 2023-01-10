@@ -15,10 +15,10 @@
 
 
 from fileinput import filelineno
-import imp
-from this import d
-from tkinter import N
-from tkinter.messagebox import NO
+#import imp
+#from this import d
+'''from tkinter import N
+from tkinter.messagebox import NO'''
 import numpy as np
 from scipy import interpolate
 from PyQt5 import QtCore, QtWidgets
@@ -26,6 +26,8 @@ from PyQt5 import QtCore, QtWidgets
 import os
 import time
 import copy
+from scipy.ndimage import gaussian_filter
+from scipy.ndimage import zoom
 
 from .mcareaderGeStrip import *
 from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
@@ -186,6 +188,18 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
                 ('Flaten 3',2,1),
                 ('apply scaling 2',2,2),
                 ('apply scaling 3',2,2),
+
+                ('normalize Ieff',2,2),
+                ('normalize Icor',2,2),
+
+                ('bin Ieff',2,2),
+                #('scale by flat Ieff by binned Ieff',2,2),
+                ('normalize by corrected Ieff',2,2),
+
+                #('convert to q corr',2,2),
+
+                #('S(q) corr',2,1),
+                
                 ]
         for i, d in enumerate(self.defs):
 
@@ -219,6 +233,19 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         steps['apply scaling 2'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
         steps['apply scaling 3'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
 
+        steps['normalize Ieff'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
+        steps['normalize Icor'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
+
+        steps['bin Ieff'].set_function(self._bin, ['data_in', ],  ['data_out'])
+
+        #steps['scale by flat Ieff by binned Ieff'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
+
+        steps['normalize by corrected Ieff'].set_function(self._subtract_3d, ['data_in','subtract_data'],  ['data_out'])
+        
+        #steps['S(q) corr'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+
+        #steps['convert to q corr'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
+        
 
         self.steps = steps
 
@@ -236,23 +263,22 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         self.data_in_q = copy.deepcopy(self.multi_spectra_model.q)
         self.data_in_E[:,:69] = 0
 
-        for step in (1,2,3,4,5,6,7,8,9,10,11,12):
+        for step in (1,2,3,4,5,6,7,8,9,10,11,12, 13):
             self._calculate_step(step)
 
     def calculate_2(self):
-        for step in (3,):
+        for step in (14,):
             self._calculate_step(step)
 
     def calculate_3(self):
-        for step in (4,5,6):
+        for step in (4,5, 6,7,8,9,10,11,12, 13):
             self._calculate_step(step)
 
     def calculate_4(self):
-        for step in (7,):
-            self._calculate_step(step)
+        self.make_calculators()
 
     def calculate_5(self):
-        for step in (7,8,9,10,11, 12):
+        for step in (7,8,9,10,11, 12, 13):
             self._calculate_step(step)
         
 
@@ -263,7 +289,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         elif step == 2:
             data = self.steps['dataset E'].get_data_out()
             self.steps['mask in E'].set_data_in(data)
-            mask = np.zeros(data.shape)
+            mask = np.zeros(data.shape) == 1
             
             self.steps['mask in E'].set_mask(mask)
             #self.steps['mask in E'].load_mask('/Users/ross/GitHub/hp-edxd/hpm/resources/E.mask')
@@ -316,19 +342,11 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         elif step == 7:
            
             w_q = self.steps['convert to q Ieff'].get_data_out()
-            w_q = w_q / np.amax(w_q)
-
-            for i, row in enumerate(w_q):
-                row[:] = row * np.max(self.data_in_q[i])
-
-            w_q = w_q / np.amax(w_q)
             
+            w_q = w_q / np.amax(w_q)
             mask = self.steps['mask in q'].get_mask()
-            
-
             w_q [w_q==0 ] = 1e-7
             
-
             self.steps['weights q'].set_data_in(w_q)
             self.steps['weights q'].calculate()
 
@@ -384,16 +402,6 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['Flaten 3'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights})
             self.steps['Flaten 3'].calculate()
 
-            '''elif step == 13:
-            self.steps['scale dataset E'].set_data_in(self.steps['dataset E'].get_data_out())
-     
-            row_scale_in = self.steps['get row scale'].get_data_out()
-            self.steps['scale dataset E'].set_param({'row_scale_in':row_scale_in})
-            self.steps['scale dataset E'].calculate()   
-            
-            self.steps['mask in E'].set_data_in(self.steps['scale dataset E'].get_data_out())
-            self.steps['mask in E'].calculate()'''
-
   
             self.steps['apply scaling 2'].set_data_in(self.steps['normalize by Iq'].get_data_out())
             row_scale_in = self.steps['get row scale'].get_data_out()
@@ -405,6 +413,78 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['apply scaling 3'].set_param({'row_scale_in':row_scale_in})
             self.steps['apply scaling 3'].calculate()    
 
+            self.steps['normalize Ieff'].set_data_in(self.steps['apply scaling 2'].get_data_out())
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['normalize Ieff'].set_param({'mask_img':mask})
+            self.steps['normalize Ieff'].set_param({'norm_function':self.steps['Flaten 3'].get_data_out()[1]})
+            self.steps['normalize Ieff'].calculate()
+
+            self.steps['normalize Icor'].set_data_in(self.steps['apply scaling 3'].get_data_out())
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['normalize Icor'].set_param({'mask_img':mask})
+            self.steps['normalize Icor'].set_param({'norm_function':self.steps['Flaten 3'].get_data_out()[1]})
+            self.steps['normalize Icor'].calculate()
+
+            self.steps['bin Ieff'].set_data_in(self.steps['normalize Ieff'].get_data_out())
+            self.steps['bin Ieff'].calculate()
+
+            '''data = 1/self.steps['bin Ieff'].get_data_out()
+            self.steps['scale by flat Ieff by binned Ieff'].set_data_in(data)
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['scale by flat Ieff by binned Ieff'].set_param({'mask_img':mask})
+            norm = 1 / self.steps['Flaten 3'].get_data_out()[1]
+            self.steps['scale by flat Ieff by binned Ieff'].set_param({'norm_function':norm})
+            self.steps['scale by flat Ieff by binned Ieff'].calculate()'''
+
+        elif step == 13:
+            
+            data = self.steps['mask in E'].get_data_out()
+            
+            subtract_data = self.steps['bin Ieff'].get_data_out()
+            self.steps['normalize by corrected Ieff'].set_data_in(data)
+            self.steps['normalize by corrected Ieff'].set_param({'subtract_data':subtract_data})
+
+            
+            self.steps['normalize by corrected Ieff'].calculate()
+        
+        elif step == 14:
+
+            
+            data = self.steps['normalize by corrected Ieff'].get_data_out()
+            rows = data.shape[0]
+            self.steps['Flaten 1'].set_data_in(data)
+
+            mask = self.steps['mask in E'].get_mask()
+            weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
+            #weights_E [weights_E==0 ] = 1e-7
+            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(0,rows-1)})
+            self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights_E})
+            self.steps['Flaten 1'].calculate()
+
+
+            flattened = self.steps['Flaten 1'].get_data_out()[1]
+            self.steps['unFlaten 1'].set_data_in(flattened)
+            self.steps['unFlaten 1'].set_param({'rows':rows})
+            self.steps['unFlaten 1'].calculate()
+
+            '''self.steps['convert to q corr'].set_data_in(self.steps['normalize by corrected Ieff'].get_data_out())
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['convert to q corr'].set_param({'mask_img':mask})
+            self.steps['convert to q corr'].set_param({'unit_in':'E', 'unit_out':'q'})
+            self.steps['convert to q corr'].calculate()
+
+            data = self.steps['convert to q corr'].get_data_out()
+            rows = data.shape[0]
+            self.steps['S(q) corr'].set_data_in(data)
+
+            mask = self.steps['mask in q'].get_mask()
+            self.steps['S(q) corr'].set_param({'mask_img':mask, 'range':(0,rows-1)})
+            
+            w_q = self.steps['weights q'].get_data_out()
+            
+            self.steps['S(q) corr'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['S(q) corr'].calculate()'''
+            
  
     def _propagate_data(self, **args):
         # propagates data_in to data_out
@@ -477,6 +557,17 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['data_out'] = out
         return args
 
+    def _subtract_3d(self, **args):
+        # divides each row in the data_in (3D) by the norm_function (3D)
+        data = args['data_in']
+        
+        subtract_data = args['subtract_data']
+        
+        out = data - subtract_data 
+        out [out<=0] = 1e-7
+        args['data_out'] = out
+        return args    
+
     def _normalize_3d(self, **args):
         # divides each row in the data_in (3D) by the norm_function (3D)
         data = args['data_in']
@@ -524,10 +615,20 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             last_index = min(last_nonzero_index, next_last_nonzero_index)
             common_mask[:first_index] = True
             common_mask[last_index:] = True
-            row_masked = np.ma.array(row, mask=common_mask)
-            next_row_masked = np.ma.array(next_row, mask=common_mask)
-            divided = np.ma.array(next_row_masked/row_masked, mask = common_mask)
-            average_scale = np.ma.average( divided, weights=weights_row)
+            common_mask[row<1] = True
+            common_mask[next_row<1] = True
+            #row_masked = np.ma.array(row, mask=common_mask)
+            #next_row_masked = np.ma.array(next_row, mask=common_mask)
+
+            row_masked_subset = row[np.logical_not(common_mask)]
+            next_row_masked_subset = next_row[np.logical_not(common_mask)]
+            divided = next_row_masked_subset / row_masked_subset
+            weights_row_subset = weights_row[np.logical_not(common_mask)]
+            weighted_average_subset = np.sum(divided * weights_row_subset)/ np.sum(weights_row_subset)
+            average_scale = weighted_average_subset
+            #divided = np.ma.array(next_row_masked/row_masked, mask = common_mask)
+            #average_scale = np.ma.average( divided, weights=weights_row)
+            #average_scale = np.average (divided )
             scale = scale * average_scale
             new_data[next_row_index] = scale
             row = next_row
@@ -552,6 +653,21 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['data_out'] = new_data
         return args
 
+    def _bin(self, **args):
+        # re-bins the data_in into a different scale, 
+        # for example change each row in data_in from E scale to q scale
+        data = args['data_in']
+        #mask = args['mask_img']
+        array = data
+        scaling_factor = 10
+        channels = data.shape[1]
+        binned_array = np.mean(array.reshape(-1, scaling_factor), axis=1).reshape(-1, int(channels/scaling_factor))
+        blurred_array = gaussian_filter(binned_array, sigma=5)
+        interpolated_array = zoom(blurred_array, zoom=(1, scaling_factor))
+        args['data_out'] = interpolated_array
+        
+        #args['mask_out'] = new_mask
+        return args
 
     def _rebin(self, **args):
         # re-bins the data_in into a different scale, 
