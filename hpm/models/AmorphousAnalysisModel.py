@@ -171,6 +171,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         steps = {}
         self.defs = [('dataset E',2,2),
                 ('mask in E',2,2,True),
+                ('blur',2,2),
                 ('Flaten 1',2,1),
                 ('unFlaten 1',1,2),
                 ('Normalize',2,2),
@@ -196,6 +197,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         
         steps['dataset E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        steps['blur'].set_function(self._bin, ['data_in', 'sigma', 'scaling_factor'],  ['data_out'])
         steps['Flaten 1'].set_function(self._flaten_data, ['data_in', 'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
         steps['unFlaten 1'].set_function(self._unflaten_data, ['data_in', 'rows'],  ['data_out'])
         
@@ -240,9 +242,11 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
        
         
-        self.data_in_E = copy.deepcopy(self.multi_spectra_model.E)
-        self.data_in_q = copy.deepcopy(self.multi_spectra_model.q)
-        self.data_in_E[:,:69] = 0
+        self.data_in_E = copy.deepcopy(self.multi_spectra_model.E )
+    
+        self.data_in_q = copy.deepcopy(self.multi_spectra_model.q )
+   
+        self.data_in_E[:,:400] = 0
 
         for step in (1,2,3,4,5,6,7,8,9,10,11,12, 13):
             self._calculate_step(step)
@@ -252,7 +256,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self._calculate_step(step)
 
     def calculate_3(self):
-        for step in (4,5, 6,7,8,9,10,11,12, 13):
+        for step in (2,3,4,5, 6,7,8,9,10,11,12, 13):
             self._calculate_step(step)
 
     def calculate_4(self):
@@ -274,18 +278,22 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             mask = np.zeros(data.shape) == 1
             
             self.steps['mask in E'].set_mask(mask)
-            #self.steps['mask in E'].load_mask('/Users/ross/GitHub/hp-edxd/hpm/resources/E.mask')
             self.steps['mask in E'].calculate()
+
+            self.steps['blur'].set_data_in(data)
+            self.steps['blur'].set_param({'sigma':10, 'scaling_factor':10})
+            self.steps['blur'].set_mask(mask)
+            self.steps['blur'].calculate()
         
         elif step == 3:
-            data = self.steps['mask in E'].get_data_out()
+            data = self.steps['blur'].get_data_out()
             rows = data.shape[0]
             self.steps['Flaten 1'].set_data_in(data)
 
             mask = self.steps['mask in E'].get_mask()
             weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
             #weights_E [weights_E==0 ] = 1e-7
-            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(150,rows-1)})
+            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(160,rows-1)})
             self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights_E})
             self.steps['Flaten 1'].calculate()
 
@@ -296,11 +304,13 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['unFlaten 1'].calculate()
             
         elif step == 4:
-
-            self.steps['Normalize'].set_data_in(self.steps['mask in E'].get_data_out())
+            data = self.steps['mask in E'].get_data_out()
+            
+            self.steps['Normalize'].set_data_in(data)
             mask = self.steps['mask in E'].get_mask()
             self.steps['Normalize'].set_param({'mask_img':mask})
-            self.steps['Normalize'].set_param({'norm_function':self.steps['Flaten 1'].get_data_out()[1]})
+            norm_function = self.steps['Flaten 1'].get_data_out()[1] 
+            self.steps['Normalize'].set_param({'norm_function':norm_function})
             self.steps['Normalize'].calculate()
         elif step == 5:
             self.steps['convert to q'].set_data_in(self.steps['Normalize'].get_data_out())
@@ -398,11 +408,21 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
 
         elif step == 14:
-            data = self.steps['apply scaling 3'].get_data_out()
+            '''data = self.steps['apply scaling 2'].get_data_out()
+
+            mask = self.steps['mask in E'].get_mask()
+
+            self.steps['blur'].set_data_in(data)
+            self.steps['blur'].set_mask(mask)
+            self.steps['blur'].set_param({'sigma':2, 'scaling_factor':2})
+            self.steps['blur'].calculate()  
+
+            data = self.steps['blur'].get_data_out()
+
             rows = data.shape[0]
             self.steps['Flaten 1'].set_data_in(data)
 
-            mask = self.steps['mask in E'].get_mask()
+            
             weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
             #weights_E [weights_E==0 ] = 1e-7
             self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(50,rows-1)})
@@ -413,8 +433,11 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             flattened = self.steps['Flaten 1'].get_data_out()[1]
             self.steps['unFlaten 1'].set_data_in(flattened)
             self.steps['unFlaten 1'].set_param({'rows':rows})
-            self.steps['unFlaten 1'].calculate()
+            self.steps['unFlaten 1'].calculate()'''
         
+            corrected_data = self.steps['apply scaling 3'].get_data_out() 
+            self.steps['dataset E'].set_data_in(corrected_data)
+            self.steps['dataset E'].calculate()
    
             
  
@@ -586,15 +609,17 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         return args
 
     def _bin(self, **args):
-        # re-bins the data_in into a different scale, 
-        # for example change each row in data_in from E scale to q scale
+        # applies a gaussian blur to the 3d data, rebins the channels before applying the blur
+
         data = args['data_in']
+        sigma = args['sigma']
+        scaling_factor = args['scaling_factor']
         #mask = args['mask_img']
         array = data
         scaling_factor = 10
         channels = data.shape[1]
         binned_array = np.mean(array.reshape(-1, scaling_factor), axis=1).reshape(-1, int(channels/scaling_factor))
-        blurred_array = gaussian_filter(binned_array, sigma=5)
+        blurred_array = gaussian_filter(binned_array, sigma=sigma)
         interpolated_array = zoom(blurred_array, zoom=(1, scaling_factor))
         args['data_out'] = interpolated_array
         
