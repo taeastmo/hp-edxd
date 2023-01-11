@@ -246,7 +246,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
     
         self.data_in_q = copy.deepcopy(self.multi_spectra_model.q )
    
-        self.data_in_E[:,:400] = 0
+        self.data_in_E[:,:600] = 0
 
         for step in (1,2,3,4,5,6,7,8,9,10,11,12, 13):
             self._calculate_step(step)
@@ -256,7 +256,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self._calculate_step(step)
 
     def calculate_3(self):
-        for step in (2,3,4,5, 6,7,8,9,10,11,12, 13):
+        for step in (4,5, 6,15,10,11,12, 13):
             self._calculate_step(step)
 
     def calculate_4(self):
@@ -293,7 +293,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             mask = self.steps['mask in E'].get_mask()
             weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
             #weights_E [weights_E==0 ] = 1e-7
-            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(160,rows-1)})
+            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(150,rows-1)})
             self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights_E})
             self.steps['Flaten 1'].calculate()
 
@@ -399,7 +399,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['Flaten 3'].set_data_in(data)
 
             mask = self.steps['mask in E'].get_mask()
-            self.steps['Flaten 3'].set_param({'mask_img':mask, 'range':(120,rows-1)})
+            self.steps['Flaten 3'].set_param({'mask_img':mask, 'range':(150,rows-1)})
 
             weights = np.ones(data.shape)
 
@@ -408,13 +408,13 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
 
         elif step == 14:
-            '''data = self.steps['apply scaling 2'].get_data_out()
+            data = self.steps['apply scaling 2'].get_data_out()
 
             mask = self.steps['mask in E'].get_mask()
 
             self.steps['blur'].set_data_in(data)
             self.steps['blur'].set_mask(mask)
-            self.steps['blur'].set_param({'sigma':2, 'scaling_factor':2})
+            self.steps['blur'].set_param({'sigma':2, 'scaling_factor':1})
             self.steps['blur'].calculate()  
 
             data = self.steps['blur'].get_data_out()
@@ -433,13 +433,20 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             flattened = self.steps['Flaten 1'].get_data_out()[1]
             self.steps['unFlaten 1'].set_data_in(flattened)
             self.steps['unFlaten 1'].set_param({'rows':rows})
-            self.steps['unFlaten 1'].calculate()'''
+            self.steps['unFlaten 1'].calculate()
         
-            corrected_data = self.steps['apply scaling 3'].get_data_out() 
-            self.steps['dataset E'].set_data_in(corrected_data)
-            self.steps['dataset E'].calculate()
-   
+        elif step == 15:
+            data = self.steps['convert to q'].get_data_out()
+            rows = data.shape[0]
+            self.steps['S(q)'].set_data_in(data)
+
+            mask = self.steps['mask in q'].get_mask()
+            self.steps['S(q)'].set_param({'mask_img':mask, 'range':(0,rows-1)})
             
+            w_q = self.steps['weights q'].get_data_out()
+            
+            self.steps['S(q)'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['S(q)'].calculate()
  
     def _propagate_data(self, **args):
         # propagates data_in to data_out
