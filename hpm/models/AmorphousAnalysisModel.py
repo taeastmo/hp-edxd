@@ -185,21 +185,10 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
                 ('Iq to E', 1,2),
                 ('normalize by Iq',2,2),
                 
-                ('Flaten 3',2,1),
+                
                 ('apply scaling 2',2,2),
                 ('apply scaling 3',2,2),
-
-                ('normalize Ieff',2,2),
-                ('normalize Icor',2,2),
-
-                ('bin Ieff',2,2),
-                #('scale by flat Ieff by binned Ieff',2,2),
-                ('normalize by corrected Ieff',2,2),
-
-                #('convert to q corr',2,2),
-
-                #('S(q) corr',2,1),
-                
+                ('Flaten 3',2,1),
                 ]
         for i, d in enumerate(self.defs):
 
@@ -233,14 +222,6 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         steps['apply scaling 2'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
         steps['apply scaling 3'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
 
-        steps['normalize Ieff'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
-        steps['normalize Icor'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
-
-        steps['bin Ieff'].set_function(self._bin, ['data_in', ],  ['data_out'])
-
-        #steps['scale by flat Ieff by binned Ieff'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
-
-        steps['normalize by corrected Ieff'].set_function(self._subtract_3d, ['data_in','subtract_data'],  ['data_out'])
         
         #steps['S(q) corr'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
 
@@ -275,7 +256,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self._calculate_step(step)
 
     def calculate_4(self):
-        self.make_calculators()
+        for step in (1,):
+            self._calculate_step(step)
 
     def calculate_5(self):
         for step in (7,8,9,10,11, 12, 13):
@@ -303,7 +285,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             mask = self.steps['mask in E'].get_mask()
             weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
             #weights_E [weights_E==0 ] = 1e-7
-            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(0,rows-1)})
+            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(150,rows-1)})
             self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights_E})
             self.steps['Flaten 1'].calculate()
 
@@ -390,19 +372,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['normalize by Iq'].calculate()
 
         elif step == 12:
-            data = self.steps['normalize by Iq'].get_data_out()
-            rows = data.shape[0]
-            self.steps['Flaten 3'].set_data_in(data)
-
-            mask = self.steps['mask in E'].get_mask()
-            self.steps['Flaten 3'].set_param({'mask_img':mask, 'range':(50,rows-1)})
-
-            weights = np.ones(data.shape)
-
-            self.steps['Flaten 3'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights})
-            self.steps['Flaten 3'].calculate()
-
-  
+            
             self.steps['apply scaling 2'].set_data_in(self.steps['normalize by Iq'].get_data_out())
             row_scale_in = self.steps['get row scale'].get_data_out()
             self.steps['apply scaling 2'].set_param({'row_scale_in':row_scale_in})
@@ -413,51 +383,29 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['apply scaling 3'].set_param({'row_scale_in':row_scale_in})
             self.steps['apply scaling 3'].calculate()    
 
-            self.steps['normalize Ieff'].set_data_in(self.steps['apply scaling 2'].get_data_out())
-            mask = self.steps['mask in E'].get_mask()
-            self.steps['normalize Ieff'].set_param({'mask_img':mask})
-            self.steps['normalize Ieff'].set_param({'norm_function':self.steps['Flaten 3'].get_data_out()[1]})
-            self.steps['normalize Ieff'].calculate()
-
-            self.steps['normalize Icor'].set_data_in(self.steps['apply scaling 3'].get_data_out())
-            mask = self.steps['mask in E'].get_mask()
-            self.steps['normalize Icor'].set_param({'mask_img':mask})
-            self.steps['normalize Icor'].set_param({'norm_function':self.steps['Flaten 3'].get_data_out()[1]})
-            self.steps['normalize Icor'].calculate()
-
-            self.steps['bin Ieff'].set_data_in(self.steps['normalize Ieff'].get_data_out())
-            self.steps['bin Ieff'].calculate()
-
-            '''data = 1/self.steps['bin Ieff'].get_data_out()
-            self.steps['scale by flat Ieff by binned Ieff'].set_data_in(data)
-            mask = self.steps['mask in E'].get_mask()
-            self.steps['scale by flat Ieff by binned Ieff'].set_param({'mask_img':mask})
-            norm = 1 / self.steps['Flaten 3'].get_data_out()[1]
-            self.steps['scale by flat Ieff by binned Ieff'].set_param({'norm_function':norm})
-            self.steps['scale by flat Ieff by binned Ieff'].calculate()'''
-
         elif step == 13:
-            
-            data = self.steps['mask in E'].get_data_out()
-            
-            subtract_data = self.steps['bin Ieff'].get_data_out()
-            self.steps['normalize by corrected Ieff'].set_data_in(data)
-            self.steps['normalize by corrected Ieff'].set_param({'subtract_data':subtract_data})
+            data = self.steps['apply scaling 2'].get_data_out()
+            rows = data.shape[0]
+            self.steps['Flaten 3'].set_data_in(data)
 
-            
-            self.steps['normalize by corrected Ieff'].calculate()
-        
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['Flaten 3'].set_param({'mask_img':mask, 'range':(120,rows-1)})
+
+            weights = np.ones(data.shape)
+
+            self.steps['Flaten 3'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights})
+            self.steps['Flaten 3'].calculate()
+
+
         elif step == 14:
-
-            
-            data = self.steps['normalize by corrected Ieff'].get_data_out()
+            data = self.steps['apply scaling 3'].get_data_out()
             rows = data.shape[0]
             self.steps['Flaten 1'].set_data_in(data)
 
             mask = self.steps['mask in E'].get_mask()
             weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
             #weights_E [weights_E==0 ] = 1e-7
-            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(0,rows-1)})
+            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(50,rows-1)})
             self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights_E})
             self.steps['Flaten 1'].calculate()
 
@@ -466,24 +414,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['unFlaten 1'].set_data_in(flattened)
             self.steps['unFlaten 1'].set_param({'rows':rows})
             self.steps['unFlaten 1'].calculate()
-
-            '''self.steps['convert to q corr'].set_data_in(self.steps['normalize by corrected Ieff'].get_data_out())
-            mask = self.steps['mask in E'].get_mask()
-            self.steps['convert to q corr'].set_param({'mask_img':mask})
-            self.steps['convert to q corr'].set_param({'unit_in':'E', 'unit_out':'q'})
-            self.steps['convert to q corr'].calculate()
-
-            data = self.steps['convert to q corr'].get_data_out()
-            rows = data.shape[0]
-            self.steps['S(q) corr'].set_data_in(data)
-
-            mask = self.steps['mask in q'].get_mask()
-            self.steps['S(q) corr'].set_param({'mask_img':mask, 'range':(0,rows-1)})
-            
-            w_q = self.steps['weights q'].get_data_out()
-            
-            self.steps['S(q) corr'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
-            self.steps['S(q) corr'].calculate()'''
+        
+   
             
  
     def _propagate_data(self, **args):

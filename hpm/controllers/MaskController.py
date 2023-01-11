@@ -110,12 +110,13 @@ class MaskController(object):
         self.circle = None
         self.polygon = None
 
-        try:
-            self.widget.img_widget.mouse_moved.disconnect(self.point.set_position)
-            self.widget.img_widget.img_view_box.removeItem(self.point)
-            self.point = None
-        except AttributeError:
-            pass
+        if self.point is not None:
+            try:
+                self.widget.img_widget.mouse_moved.disconnect(self.point.set_position)
+                self.widget.img_widget.img_view_box.removeItem(self.point)
+                self.point = None
+            except AttributeError:
+                pass
 
         if self.arc is not None:
             if self.clicks == 1:
@@ -311,15 +312,20 @@ class MaskController(object):
     def update_shape_preview_fill_color(self):
         try:
             if self.state == 'circle':
-                self.circle.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
+                if self.circle != None:
+                    self.circle.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
             elif self.state == 'rectangle':
-                self.rect.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
+                if self.rect != None:
+                    self.rect.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
             elif self.state == 'point':
-                self.point.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
+                if self.point != None:
+                    self.point.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
             elif self.state == 'polygon':
-                self.polygon.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
+                if self.polygon != None:
+                    self.polygon.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
             elif self.state == 'arc':
-                self.arc.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
+                if self.arc != None:
+                    self.arc.setBrush(QtGui.QBrush(self.widget.img_widget.mask_preview_fill_color))
         except AttributeError:
             return
 
@@ -459,11 +465,17 @@ class MaskController(object):
         self.plot_mask()
 
     def show_img_mouse_position(self, x, y):
+        str = ''
         try:
             s = self.widget.img_widget.img_data.shape
             if x > 0 and y > 0 and x < s[0] and y < s[1]:
-                str = "x: %8.1f   y: %8.1f   I: %6.f" % (
-                    x, y, self.widget.img_widget.img_data.T[int(np.floor(x)), int(np.floor(y))])
+                int_x = int(np.floor(x))
+                int_y =  int(np.floor(y))
+                data_T = self.widget.img_widget.img_data.T
+                if int_x < data_T.shape[0] and int_y < data_T.shape[1]:
+                    str = "x: %8.1f   y: %8.1f   I: %6.f" % (
+                        
+                        x, y, data_T[int_x, int_x])
             else:
                 str = "x: %.1f y: %.1f" % (x, y)
         except (IndexError, AttributeError):
