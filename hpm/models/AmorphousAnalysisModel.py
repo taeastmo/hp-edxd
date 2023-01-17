@@ -326,9 +326,14 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['convert to q Ieff'].calculate()
 
         elif step == 6:
-            self.steps['mask in q'].set_data_in(self.steps['convert to q'].get_data_out())
-            self.steps['mask in q'].load_mask('/Users/ross/GitHub/hp-edxd/hpm/resources/q.mask')
             
+
+            data = self.steps['convert to q'].get_data_out()
+            self.steps['mask in q'].set_data_in(data)
+            
+            mask = np.zeros(data.shape) == 1
+            #self.steps['mask in q'].load_mask('/Users/ross/GitHub/hp-edxd/hpm/resources/q.mask')
+            self.steps['mask in q'].set_mask(mask)
             self.steps['mask in q'].calculate()   
 
         elif step == 7:
