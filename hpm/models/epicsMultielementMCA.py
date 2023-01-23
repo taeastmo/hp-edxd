@@ -30,10 +30,10 @@ Sept. 25, 2002  MLR.
     - Fixed bug reading environment file
 OCT. 30, 2018 Ross Hrubiak
     - Updated to Python 3, implemented monitor handling using QtCore signalling
-    
+JAN. 23, 2023 Ross Hrubiak
+    - Compatible with multi-element epicsMCA (such as dxpXMAP 4 element detector)
 """
 
-from audioop import mul
 from epics import caput, caget, PV
 from epics.utils import BYTES2STR
 import numpy as np
@@ -89,26 +89,16 @@ class epicsMCA(MCA):
         environment_file  = kwargs['environment_file']
         
         dead_time_indicator  = kwargs['dead_time_indicator']
-        if 'multielement' in kwargs:
-            multielement = kwargs['multielement']
-            self.element = kwargs['element']
-        else:
-            multielement = False
-            self.element = 1
 
-        if multielement:
-            self.name = record_name + ':mca' + str(self.element)
-            self.record_name = record_name + ':mca' + str(self.element)
-        else:
-            self.name = record_name
-            self.record_name = record_name
+        self.name = record_name
+        
         self.last_saved=''
         self.file_settings = file_options
         self.verbose = False
         
         self.mcaRead = None
         [self.btnOn, self.btnOff, self.btnErase] = epics_buttons  
-        
+        self.record_name = record_name
         
         self.max_rois = 24           
         self.initOK = False             
@@ -172,9 +162,6 @@ class epicsMCA(MCA):
             
                     
             self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
-
-            if multielement:
-                pass
 
             # Construct the names of the PVs for the ROIs
             self.roi_def_pvs=[]
