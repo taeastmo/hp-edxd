@@ -34,6 +34,7 @@ OCT. 30, 2018 Ross Hrubiak
 """
 
 from audioop import mul
+from socket import timeout
 from epics import caput, caget, PV
 from epics.utils import BYTES2STR
 import numpy as np
@@ -89,11 +90,27 @@ class epicsMCA(MCA):
         environment_file  = kwargs['environment_file']
         dead_time_indicator  = kwargs['dead_time_indicator']
 
-        self.element = kwargs['element']
-        self.multielement = kwargs['multielement']
+        multielement = False
+        element_num = 1
+        prefix = record_name
+        if ":" in record_name:
+            appendix = str.split(record_name, ':')[-1]
+            prefix = ":".join(str.split(record_name, ':')[:-1])
+            if len(appendix)>3:
+                if str.startswith(appendix,'mca'):
+                    numeric_appendix = appendix[3:]
+                    if str.isnumeric(numeric_appendix):
+                        element_num = int(numeric_appendix)
+                        if element_num >=0 and element_num < 100:
+                            multielement = True
+        self.element = element_num
+        self.multielement = multielement
+        self.prefix = prefix
 
         self.name = record_name
         self.record_name = record_name
+
+        self.files_loaded = []
         self.last_saved=''
         self.file_settings = file_options
         self.verbose = False
@@ -103,12 +120,43 @@ class epicsMCA(MCA):
         
         
         self.max_rois = 24           
-        self.initOK = False             
-        self.mcaPV = PV(self.record_name)
+        self.initOK = False    
+                
+        self.mcaPV = []
         
-        test = self.mcaPV.get()
-        if test is not None:
-            self.initOK = True
+        self.n_detectors = 0
+        if self.multielement:
+            self.max_rois = 8
+            while True:
+                test_mca_pv_name = self.prefix + ':mca' + str(self.n_detectors+1)
+                
+                test_mca_pv= PV(test_mca_pv_name)
+                test_mca_pv.wait_for_connection(timeout=0.05)
+                if test_mca_pv.connected:
+                    self.initOK = True
+                    self.files_loaded.append(test_mca_pv_name)
+                    self.n_detectors += 1
+                    self.mcaPV.append(test_mca_pv)
+                else:
+                    break
+
+        else:
+            self.mcaPV.append(PV(self.record_name))
+            test = self.mcaPV[0].get()
+            if test is not None:
+                self.n_detectors = 1
+                self.initOK = True
+
+        self.calibration = []
+        self.rois  = []
+        self.rois_from_det = []
+        self.rois_from_file = []
+        for det in range(self.n_detectors):
+            self.calibration.append([])
+            self.rois .append([])
+            self.rois_from_det.append([])
+            self.rois_from_file.append([])
+
         if self.initOK:
             self.initOK = False
             #epics related buttons:
@@ -119,7 +167,7 @@ class epicsMCA(MCA):
             self.toggleEpicsWidgetsEnabled(False)
             if self.verbose:
                 start_time = time.time()
-            self.pvs = {'calibration': 
+            pvs = {'calibration': 
                             {'calo': None,
                             'cals': None,
                             'calq': None,
@@ -131,7 +179,13 @@ class epicsMCA(MCA):
                             'act' : None,
                             'rtim': None,
                             'stim': None},
-                        
+                        'acquire' : {'strt': None,
+                                    'stop': None,
+                                    'eras': None,
+                                    'acqg': None,
+                                    'proc': None,
+                                    'erst': None,
+                                    'read': None},
                         'data':
                             {'val':  None,
                             'nuse': None,
@@ -146,59 +200,40 @@ class epicsMCA(MCA):
                             'dwel': None,
                             'pscl': None}}
             
-           
-            self.pvs['acquire'] = {'strt': None,
-                                    'stop': None,
-                                    'eras': None,
-                                    'acqg': None,
-                                    'proc': None,
-                                    'erst': None,
-                                    'read': None}
-    
-
-            for group in self.pvs.keys():
-                for pv in self.pvs[group].keys():
-                    name = self.record_name + '.' + pv.upper()
-                    self.pvs[group][pv] = PV(name)
-
-            
-            '''if self.multielement:
-                base_pv_name =  ':'.join(str.split(self.record_name, ':')[:-1])
-
-                self.pvs['acquire']['strt']= PV(base_pv_name + ':StartAll')
-                self.pvs['acquire']['stop']= PV(base_pv_name + ':StopAll')
-                self.pvs['acquire']['eras']= PV(base_pv_name + ':EraseAll')
-                #self.pvs['acquire']['acqg']= PV(base_pv_name + ':Acquiring')
-                self.pvs['acquire']['erst']= PV(base_pv_name + ':EraseStart')'''
-            
-                    
-            #self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
-
-           
+            self.pvs = []
+            for i in range(self.n_detectors):
+                self.pvs.append(copy.deepcopy(pvs))
+                for group in self.pvs[i].keys():
+                    for pv in self.pvs[i][group].keys():
+                        name = self.record_name[:-1]+str(i+1) + '.' + pv.upper()
+                        self.pvs[i][group][pv] = PV(name)
 
             # Construct the names of the PVs for the ROIs
+
             self.roi_def_pvs=[]
             self.roi_data_pvs=[]
-            for i in range(self.max_rois):
-                n = 'R'+str(i)
-                r = {n+'lo'  : None,
-                    n+'hi'  : None,
-                    n+'bg'  : None,
-                    n+'nm'  : None}
-                self.roi_def_pvs.append(r)
-                r = {n       : None,
-                    n+'n'   : None}
-                self.roi_data_pvs.append(r)
-            for roi in range(self.max_rois):
-                for pv in self.roi_def_pvs[roi].keys():
-                    name = self.record_name + '.' + pv.upper()
-                    self.roi_def_pvs[roi][pv] = PV(name)
-                for pv in self.roi_data_pvs[roi].keys():
-                    name = self.record_name + '.' + pv.upper()
-                    self.roi_data_pvs[roi][pv] = PV(name)
+            for det in range(self.n_detectors):
+                self.roi_def_pvs.append([])
+                self.roi_data_pvs.append([])
+                for i in range(self.max_rois):
+                    n = 'R'+str(i)
+                    r = {n+'lo'  : None,
+                        n+'hi'  : None,
+                        n+'bg'  : None,
+                        n+'nm'  : None}
+                    self.roi_def_pvs[det].append(r)
+                    r = {n       : None,
+                        n+'n'   : None}
+                    self.roi_data_pvs[det].append(r)
+                for roi in range(self.max_rois):
+                    for pv in self.roi_def_pvs[det][roi].keys():
+                        name = self.record_name[:-1]+str(det+1) + '.' + pv.upper()
+                        self.roi_def_pvs[det][roi][pv] = PV(name)
+                    for pv in self.roi_data_pvs[det][roi].keys():
+                        name = self.record_name[:-1]+str(det+1) + '.' + pv.upper()
+                        self.roi_data_pvs[det][roi][pv] = PV(name)
 
             # set up the dead-time indicator pvWidget
-            
             self.dt_pv = self.name + '.IDTIM'
             dead_time_indicator.connect(self.dt_pv)
            
@@ -209,25 +244,24 @@ class epicsMCA(MCA):
                 self.read_environment_file(environment_file)
                 for env in self.environment:
                     if len(env):
-
                         self.env_pvs.append(PV(env.name))
 
             ## monitors for asynchronous actions
-            self.read_done_monitor = epicsMonitor(self.pvs['acquire']['read'], self.handle_mca_callback, autostart=True)
-            self.erase_start_monitor = epicsMonitor(self.pvs['acquire']['erst'], self.handle_mca_callback_erase_start, autostart=True) 
+            self.read_done_monitor = epicsMonitor(self.pvs[0]['acquire']['read'], self.handle_mca_callback, autostart=True)
+            self.erase_start_monitor = epicsMonitor(self.pvs[0]['acquire']['erst'], self.handle_mca_callback_erase_start, autostart=True) 
             #self.start_monitor = epicsMonitor(self.pvs['acquire']['strt'], self.handle_mca_callback_start, autostart=True) 
 
-            self.acqg_monitor = epicsMonitor(self.pvs['acquire']['acqg'], self.handle_mca_callback_acqg, autostart=True) 
+            self.acqg_monitor = epicsMonitor(self.pvs[0]['acquire']['acqg'], self.handle_mca_callback_acqg, autostart=True) 
 
             #self.stop_monitor = epicsMonitor(self.pvs['acquire']['stop'],self.handle_mca_callback_stop, autostart=False) 
-            self.end_time_monitor = epicsMonitor(self.pvs['elapsed']['stim'],self.handle_mca_callback_end_time, autostart=False)   
+            self.end_time_monitor = epicsMonitor(self.pvs[0]['elapsed']['stim'],self.handle_mca_callback_end_time, autostart=False)   
 
-            self.erase_monitor = epicsMonitor(self.pvs['acquire']['eras'], self.handle_mca_callback_erase, autostart=True)  
+            self.erase_monitor = epicsMonitor(self.pvs[0]['acquire']['eras'], self.handle_mca_callback_erase, autostart=True)  
             '''if self.pvs['acquire']['swhy'].connected:
                 self.why_stopped = epicsMonitor(self.pvs['acquire']['swhy'], self.handle_mca_callback_why_stopped, autostart=True)
             '''
-            self.live_time_preset_monitor = epicsMonitor(self.pvs['presets']['pltm'], self.handle_mca_callback_pltm, autostart=True)  
-            self.real_time_preset_monitor = epicsMonitor(self.pvs['presets']['prtm'], self.handle_mca_callback_prtm, autostart=True)  
+            self.live_time_preset_monitor = epicsMonitor(self.pvs[0]['presets']['pltm'], self.handle_mca_callback_pltm, autostart=True)  
+            self.real_time_preset_monitor = epicsMonitor(self.pvs[0]['presets']['prtm'], self.handle_mca_callback_prtm, autostart=True)  
             
             # a way to send a signal to the parent controller that new data is ready
             self.dataAcquired = custom_signal(debounce_time=0.8)  
@@ -252,21 +286,22 @@ class epicsMCA(MCA):
         self.live_time_preset_monitor.unSetPVmonitor()
         self.real_time_preset_monitor.unSetPVmonitor()
 
-        for pv_group in self.pvs:
-            p_g = self.pvs[pv_group]
-            for pv in p_g:
-                p = p_g[pv]
-                p.disconnect()
+        for i in range(self.n_detectors):
+            for pv_group in self.pvs:
+                p_g = self.pvs[i][pv_group]
+                for pv in p_g:
+                    p = p_g[pv]
+                    p.disconnect()
 
-        for p_g in self.roi_def_pvs:
-            for pv in p_g:
-                p = p_g[pv]
-                p.disconnect()
+            for p_g in self.roi_def_pvs[i]:
+                for pv in p_g:
+                    p = p_g[pv]
+                    p.disconnect()
 
-        for p_g in self.roi_data_pvs:
-            for pv in p_g:
-                p = p_g[pv]
-                p.disconnect()
+            for p_g in self.roi_data_pvs[i]:
+                for pv in p_g:
+                    p = p_g[pv]
+                    p.disconnect()
 
     #######################################################################
     #######################################################################
@@ -387,19 +422,21 @@ class epicsMCA(MCA):
         """
         if self.verbose:
             start_time = time.time()
-        rois = []
-        for i in range(self.max_rois):
-            roi = McaROI()
-            pvs = self.roi_def_pvs[i]
-            r = 'R'+str(i)
-            roi.left      = pvs[r+'lo'].get()
-            roi.right     = pvs[r+'hi'].get()
-            roi.label     = pvs[r+'nm'].get()
-            #roi.bgd_width = pvs[r+'bg'].get()
-            roi.use = 1
-            if (roi.left > 0) and (roi.right > 0): rois.append(roi)
-        self.auto_process_rois=True
-        super().set_rois(rois, source='detector')
+
+        for det in range(self.n_detectors):
+            rois = []
+            for i in range(self.max_rois):
+                roi = McaROI()
+                pvs = self.roi_def_pvs[det][i]
+                r = 'R'+str(i)
+                roi.left      = pvs[r+'lo'].get()
+                roi.right     = pvs[r+'hi'].get()
+                roi.label     = pvs[r+'nm'].get()
+                #roi.bgd_width = pvs[r+'bg'].get()
+                roi.use = 1
+                if (roi.left > 0) and (roi.right > 0): rois.append(roi)
+            self.auto_process_rois=True
+            super().set_rois(rois, detector= det, source='detector')
         if self.verbose:
             print("get_rois --- %s seconds ---" % (time.time() - start_time))
         return self.rois_from_det
@@ -424,14 +461,15 @@ class epicsMCA(MCA):
         if self.verbose:
             start_time = time.time()
         nrois = len(rois)
-        available_rois = len(self.roi_def_pvs)
+        available_rois = len(self.roi_def_pvs[detector])
         if nrois > available_rois:
             nrois = available_rois
             rois = rois[:nrois]
-        super().set_rois(rois, source=source)
+        super().set_rois(rois, detector=detector, source=source)
 
         
         nrois = len(rois)
+        
         for i in range(nrois):
             roi = rois[i]
 
@@ -449,7 +487,7 @@ class epicsMCA(MCA):
                     lbl = lbl[:12]
             roi.label = lbl
             
-            pvs = self.roi_def_pvs[i]
+            pvs = self.roi_def_pvs[detector][i]
             n = 'R'+str(i)
             pvs[n+'lo'].put(roi.left)
             pvs[n+'hi'].put(roi.right)
@@ -457,7 +495,7 @@ class epicsMCA(MCA):
             #pvs[n+'bg'].put(roi.bgd_width)
         for i in range(nrois, self.max_rois):
             n = 'R'+str(i)
-            pvs = self.roi_def_pvs[i]
+            pvs = self.roi_def_pvs[detector][i]
             pvs[n+'lo'].put(-1)
             pvs[n+'hi'].put(-1)
             pvs[n+'nm'].put(" ")
@@ -508,7 +546,7 @@ class epicsMCA(MCA):
         self.set_rois(self.rois[detector])
 
     def clear_rois(self, source, detector):
-        self.set_rois([],source=source)
+        self.set_rois([],detector = detector, source=source)
 
     #######################################################################
     #######################################################################
@@ -524,18 +562,20 @@ class epicsMCA(MCA):
         if self.verbose:
             start_time = time.time()
 
-        calibration = McaCalibration()
-        pvs = self.pvs['calibration']
-        
-        calibration.offset    = pvs['calo'].get()
-        calibration.slope     = pvs['cals'].get()
-        calibration.quad      = pvs['calq'].get()
-        calibration.two_theta = pvs['tth'].get()
-        calibration.units     = pvs['egu'].get()
-        calibration.set_dx_type('edx')
-        
+        calibration = []
+        for i in range(self.n_detectors):
+            calibration.append( McaCalibration())
+            pvs = self.pvs[i]['calibration']
+            
+            calibration[i].offset    = pvs['calo'].get()
+            calibration[i].slope     = pvs['cals'].get()
+            calibration[i].quad      = pvs['calq'].get()
+            calibration[i].two_theta = pvs['tth'].get()
+            calibration[i].units     = pvs['egu'].get()
+            calibration[i].set_dx_type('edx')
+            
 
-        super().set_calibration(calibration, 0)
+            super().set_calibration(calibration[i], i)
         if self.verbose:
             print("get_calibration --- %s seconds ---" % (time.time() - start_time))
         return self.calibration
@@ -552,13 +592,14 @@ class epicsMCA(MCA):
         """
         if self.verbose:
             start_time = time.time()
-        super().set_calibration(calibration)
-        pvs = self.pvs['calibration']
-        pvs['calo'].put(calibration[0].offset)
-        pvs['cals'].put(calibration[0].slope)
-        pvs['calq'].put(calibration[0].quad)
-        pvs['tth'].put(calibration[0].two_theta)
-        pvs['egu'].put(calibration[0].units)
+        for i in range(self.n_detectors):
+            super().set_calibration(calibration, i)
+            pvs = self.pvs[i]['calibration']
+            pvs['calo'].put(calibration[0].offset)
+            pvs['cals'].put(calibration[0].slope)
+            pvs['calq'].put(calibration[0].quad)
+            pvs['tth'].put(calibration[0].two_theta)
+            pvs['egu'].put(calibration[0].units)
         if self.verbose:
             print("set_calibration --- %s seconds ---" % (time.time() - start_time))
 
@@ -610,50 +651,57 @@ class epicsMCA(MCA):
         """
         if self.verbose:
             start_time = time.time()
-        elapsed = McaElapsed()
-        pvs = self.pvs['elapsed']
+        elapsed = []
         
-        elapsed.real_time    = pvs['ertm'].get()
-        elapsed.live_time    = pvs['eltm'].get()
-        elapsed.total_counts = pvs['act'].get()
-        elapsed.read_time    = pvs['rtim'].get()
-        elapsed.start_time   = pvs['stim'].get().strip()
-        super().set_elapsed([elapsed])
+        for i in range(self.n_detectors):
+            elapsed.append(McaElapsed())
+            pvs = self.pvs[i]['elapsed']
+            
+            elapsed[i].real_time    = pvs['ertm'].get()
+            elapsed[i].live_time    = pvs['eltm'].get()
+            elapsed[i].total_counts = pvs['act'].get()
+            elapsed[i].read_time    = pvs['rtim'].get()
+            elapsed[i].start_time   = pvs['stim'].get().strip()
+
+        super().set_elapsed(elapsed)
         if self.verbose:
             print("get_elapsed --- %s seconds ---" % (time.time() - start_time))
         return self.elapsed
 
-    def get_data(self):
+    def get_data(self, element = 0):
         if self.verbose:
             start_time = time.time()
-        data = self.mcaPV.get()
-        nuse = self.pvs['data']['nuse'].get()
+        data = []
+        for i in range(self.n_detectors):
+            data.append(self.mcaPV[i].get())
+
+        nuse = self.pvs[0]['data']['nuse'].get()
         self.nchans = nuse
         
 
-        if type(data).__name__ == 'int':   ## if MCA is erased, for some reason the pyepics returns 0 instead of an array
+        if type(data[0]).__name__ == 'int':   ## if MCA is erased, for some reason the pyepics returns 0 instead of an array
       
-            data = np.zeros(nuse) 
-        if len(data) !=nuse:
-            data = np.zeros(nuse)
+            data[0] = np.zeros(nuse) 
+        if len(data[0]) !=nuse:
+            data[0] = np.zeros(nuse)
             if self.verbose:
                 print ('len(data) !=nuse')
-        t = type(data)
+        t = type(data[0])
         if t != np.ndarray:
             if self.verbose:
                 print ('not np.ndarray')
-        super().set_data([data])
+        super().set_data(data)
         if self.verbose:
             print("get_data --- %s seconds ---" % (time.time() - start_time))
         return self.data
 
     def get_acquire_status(self):
-        return self.pvs['acquire']['acqg'].get()
+        return self.pvs[0]['acquire']['acqg'].get()
 
     def acq_on(self):
         status = self.get_acquire_status()
         if status == 0:
-            self.pvs['acquire']['strt'].put(1)
+            self.pvs[0]['acquire']['strt'].put(1)
         self.read_done_monitor.SetPVmonitor()
         #self.stop_monitor.SetPVmonitor()
         self.end_time_monitor.SetPVmonitor()
@@ -662,7 +710,7 @@ class epicsMCA(MCA):
     def acq_off(self):
         acq = self.get_acquire_status() 
         if acq == 1:
-            self.pvs['acquire']['stop'].put(1)
+            self.pvs[0]['acquire']['stop'].put(1)
         self.read_done_monitor.unSetPVmonitor() 
   
         if acq == 1:
@@ -670,11 +718,11 @@ class epicsMCA(MCA):
             self.dataAcquired.emit()
 
     def acq_erase(self):
-        self.pvs['acquire']['eras'].put(1)
+        self.pvs[0]['acquire']['eras'].put(1)
 
     def acq_erase_start(self):
         
-        self.pvs['acquire']['erst'].put(1)
+        self.pvs[0]['acquire']['erst'].put(1)
 
     def is_monitor_on(self):
         return self.read_done_monitor.monitor_On

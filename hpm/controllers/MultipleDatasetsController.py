@@ -137,18 +137,21 @@ class MultipleDatasetsController(QObject):
     
     def _file_name_update(self, widget:QtWidgets.QLabel, index):
         index = int(round(index))
-        files = self.multi_spectra_model.mca.files_loaded
-        file_display = ''
-        if index < len(files) and len(files)>1:
-            file = files[index]
-            file_display = os.path.split(file)[-1]
-             
-        elif len(files)==1:
-            file = files[0]
-            file_display = os.path.split(file)[-1] 
-            n_det = self.multi_spectra_model.mca.n_detectors
-            if n_det > 1:
-                file_display += ' : ' + str(index)
+        if hasattr(self.multi_spectra_model.mca, 'files_loaded'):
+            files = self.multi_spectra_model.mca.files_loaded
+            file_display = ''
+            if index < len(files) and len(files)>1:
+                file = files[index]
+                file_display = os.path.split(file)[-1]
+                
+            elif len(files)==1:
+                file = files[0]
+                file_display = os.path.split(file)[-1] 
+                n_det = self.multi_spectra_model.mca.n_detectors
+                if n_det > 1:
+                    file_display += ' : ' + str(index)
+        else:
+            file_display = ''
         widget.setText(file_display)
 
     def element_changed(self, element):

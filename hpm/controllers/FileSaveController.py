@@ -359,7 +359,7 @@ class FileSaveController(object):
                         self.mca_controller.initControllers()
 
                     self.mca_controller.multiple_datasets_controller.set_mca(self.mca_controller.mca)
-                    self.mca_controller.data_updated()
+                    self.mca_controller.dataReceivedFile()
                 else:
                     mcaUtil.displayErrorMessage( 'fr')
             else:
@@ -387,7 +387,7 @@ class FileSaveController(object):
                     if not self.mca_controller.controllers_initialized:  
                         self.mca_controller.initControllers()
                     self.mca_controller.multiple_datasets_controller.set_mca(self.mca_controller.mca)
-                    self.mca_controller.data_updated()
+                    self.mca_controller.dataReceivedFolder()
                 else:
                     mcaUtil.displayErrorMessage( 'fr')
             else:

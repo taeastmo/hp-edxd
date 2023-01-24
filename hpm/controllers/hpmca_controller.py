@@ -297,26 +297,15 @@ class hpmcaController(QObject):
             if self.epicsMCAholder != None:
                 self.epicsMCAholder.unload()
 
-            multielement = False
-            element_num = 1
-            if ":" in det:
-                appendix = str.split(det, ':')[-1]
-                if len(appendix)>3:
-                    if str.startswith(appendix,'mca'):
-                        numeric_appendix = appendix[3:]
-                        if str.isnumeric(numeric_appendix):
-                            element_num = int(numeric_appendix)
-                            if element_num >=0 and element_num < 10000:
-                                multielement = True
+            
             
 
             mca = epicsMCA(record_name = det, 
                             epics_buttons = self.epicsBtns, 
                             file_options = self.file_save_controller.file_options,
                             environment_file = 'catch1d.env',
-                            dead_time_indicator = self.widget.dead_time_indicator,
-                            multielement = multielement,
-                            element = element_num
+                            dead_time_indicator = self.widget.dead_time_indicator
+                            
                             )
             if not mca.initOK:
                 [live_val, real_val] = self.epicsPresets
@@ -448,7 +437,7 @@ class hpmcaController(QObject):
                 if self.controllers_initialized == False:
                     status = self.initControllers()
                 if status == 0:
-                    self.data_updated()
+                    self.dataReceivedEpics()
                     acquiring = self.mca.get_acquire_status()
                     self.mca.dataAcquired.signal.connect(self.dataReceivedEpics)
                     self.mca.acq_stopped.signal.connect(self.file_save_controller.acq_stopped)
@@ -469,9 +458,14 @@ class hpmcaController(QObject):
                 mcaUtil.displayErrorMessage( 'init')
 
     def dataReceivedEpics(self ):
+        self.multiple_datasets_controller.set_mca(self.mca)
         self.data_updated()
 
-  
+    def dataReceivedFile(self):
+        self.data_updated()
+
+    def dataReceivedFolder(self):
+        self.data_updated()
 
     ########################################################################################
     ########################################################################################

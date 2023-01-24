@@ -97,6 +97,10 @@ class MCA():  #
             calibration:
                 An McaCalibration object
         """
+        if det > len(self.calibration)-1:
+            diff = det - (len(self.calibration)-1)
+            for i in range(diff):
+                self.calibration.append(None)
         self.calibration[det] = calibration
 
     
