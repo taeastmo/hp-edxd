@@ -87,21 +87,13 @@ class epicsMCA(MCA):
         epics_buttons = kwargs['epics_buttons']
         file_options  = kwargs['file_options']
         environment_file  = kwargs['environment_file']
-        
         dead_time_indicator  = kwargs['dead_time_indicator']
-        if 'multielement' in kwargs:
-            multielement = kwargs['multielement']
-            self.element = kwargs['element']
-        else:
-            multielement = False
-            self.element = 1
 
-        if multielement:
-            self.name = record_name + ':mca' + str(self.element)
-            self.record_name = record_name + ':mca' + str(self.element)
-        else:
-            self.name = record_name
-            self.record_name = record_name
+        self.element = kwargs['element']
+        self.multielement = kwargs['multielement']
+
+        self.name = record_name
+        self.record_name = record_name
         self.last_saved=''
         self.file_settings = file_options
         self.verbose = False
@@ -139,14 +131,7 @@ class epicsMCA(MCA):
                             'act' : None,
                             'rtim': None,
                             'stim': None},
-                        'acquire':
-                            {'strt': None,
-                            'stop': None,
-                            'eras': None,
-                            'acqg': None,
-                            'proc': None,
-                            'erst': None,
-                            'read': None},
+                        
                         'data':
                             {'val':  None,
                             'nuse': None,
@@ -161,6 +146,15 @@ class epicsMCA(MCA):
                             'dwel': None,
                             'pscl': None}}
             
+           
+            self.pvs['acquire'] = {'strt': None,
+                                    'stop': None,
+                                    'eras': None,
+                                    'acqg': None,
+                                    'proc': None,
+                                    'erst': None,
+                                    'read': None}
+    
 
             for group in self.pvs.keys():
                 for pv in self.pvs[group].keys():
@@ -168,13 +162,19 @@ class epicsMCA(MCA):
                     self.pvs[group][pv] = PV(name)
 
             
-            
+            '''if self.multielement:
+                base_pv_name =  ':'.join(str.split(self.record_name, ':')[:-1])
+
+                self.pvs['acquire']['strt']= PV(base_pv_name + ':StartAll')
+                self.pvs['acquire']['stop']= PV(base_pv_name + ':StopAll')
+                self.pvs['acquire']['eras']= PV(base_pv_name + ':EraseAll')
+                #self.pvs['acquire']['acqg']= PV(base_pv_name + ':Acquiring')
+                self.pvs['acquire']['erst']= PV(base_pv_name + ':EraseStart')'''
             
                     
-            self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
+            #self.pvs['acquire']['swhy']= PV(self.record_name + 'Why4')
 
-            if multielement:
-                pass
+           
 
             # Construct the names of the PVs for the ROIs
             self.roi_def_pvs=[]
@@ -215,14 +215,17 @@ class epicsMCA(MCA):
             ## monitors for asynchronous actions
             self.read_done_monitor = epicsMonitor(self.pvs['acquire']['read'], self.handle_mca_callback, autostart=True)
             self.erase_start_monitor = epicsMonitor(self.pvs['acquire']['erst'], self.handle_mca_callback_erase_start, autostart=True) 
-            self.start_monitor = epicsMonitor(self.pvs['acquire']['strt'], self.handle_mca_callback_start, autostart=True) 
+            #self.start_monitor = epicsMonitor(self.pvs['acquire']['strt'], self.handle_mca_callback_start, autostart=True) 
 
-            self.stop_monitor = epicsMonitor(self.pvs['acquire']['stop'],self.handle_mca_callback_stop, autostart=False) 
+            self.acqg_monitor = epicsMonitor(self.pvs['acquire']['acqg'], self.handle_mca_callback_acqg, autostart=True) 
+
+            #self.stop_monitor = epicsMonitor(self.pvs['acquire']['stop'],self.handle_mca_callback_stop, autostart=False) 
             self.end_time_monitor = epicsMonitor(self.pvs['elapsed']['stim'],self.handle_mca_callback_end_time, autostart=False)   
 
-            self.erase_monitor = epicsMonitor(self.pvs['acquire']['eras'], self.handle_mca_callback_erase, autostart=True)      
-            self.why_stopped = epicsMonitor(self.pvs['acquire']['swhy'], self.handle_mca_callback_why_stopped, autostart=True)
-
+            self.erase_monitor = epicsMonitor(self.pvs['acquire']['eras'], self.handle_mca_callback_erase, autostart=True)  
+            '''if self.pvs['acquire']['swhy'].connected:
+                self.why_stopped = epicsMonitor(self.pvs['acquire']['swhy'], self.handle_mca_callback_why_stopped, autostart=True)
+            '''
             self.live_time_preset_monitor = epicsMonitor(self.pvs['presets']['pltm'], self.handle_mca_callback_pltm, autostart=True)  
             self.real_time_preset_monitor = epicsMonitor(self.pvs['presets']['prtm'], self.handle_mca_callback_prtm, autostart=True)  
             
@@ -652,7 +655,7 @@ class epicsMCA(MCA):
         if status == 0:
             self.pvs['acquire']['strt'].put(1)
         self.read_done_monitor.SetPVmonitor()
-        self.stop_monitor.SetPVmonitor()
+        #self.stop_monitor.SetPVmonitor()
         self.end_time_monitor.SetPVmonitor()
        
 
@@ -694,22 +697,33 @@ class epicsMCA(MCA):
 
 
     def handle_mca_callback_start(self, Status):
+        pass
+        '''if Status == 'Acquire' or Status == '1':
+            if self.acq_status == 'off':
+                self.acqOn()'''
+
+    def handle_mca_callback_acqg(self, Status):
         
         if Status == 'Acquire' or Status == '1':
             if self.acq_status == 'off':
                 self.acqOn()
+
+        if Status == 'Done' or Status == '0':
+            if self.acq_status == 'on':
+                self.acqOff()
                
 
     def handle_mca_callback_stop(self, Status):
         
-        if Status == 'Done':
+        pass
+        '''if Status == 'Done':
             #if self.acq_status == 'on':
             self.set_epics_btns_state('off')
             self.acq_status = 'off'
             
             self.stop_monitor.unSetPVmonitor()
             self.end_time_monitor.unSetPVmonitor()
-            self.acq_stopped.emit()
+            self.acq_stopped.emit()'''
             
             
 
@@ -717,14 +731,11 @@ class epicsMCA(MCA):
         # this is the only way I could figure out how detect stop when scanning
         
         if Status != self.end_time:
-            # ans = 0 if stopped by live or real time, 1 if stopped by user
-            ans = self.pvs['acquire']['swhy'].get()
-            if ans == 0:
-                self.acqOff()
-               
-                self.stop_monitor.unSetPVmonitor()
-                self.end_time_monitor.unSetPVmonitor()
-                self.acq_stopped.emit()
+     
+            self.acqOff()
+            
+            self.end_time_monitor.unSetPVmonitor()
+            self.acq_stopped.emit()
                 
                 
     def handle_mca_callback_why_stopped(self, Status):

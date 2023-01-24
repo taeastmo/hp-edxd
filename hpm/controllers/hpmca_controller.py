@@ -240,12 +240,14 @@ class hpmcaController(QObject):
 
     def initMCA(self, mcaType, det_or_file):
         if mcaType == 'file':    
-            init =    self.initFileMCA(det_or_file)
+            file = det_or_file
+            init =    self.initFileMCA(file)
             if init == 0:
                 self.widget.file_view_btn.setEnabled(True)
                 self.widget.file_view_btn.setChecked(True)  
         elif mcaType == 'epics': 
-            init =    self.initEpicsMCA(det_or_file)
+            detector = det_or_file
+            init =    self.initEpicsMCA(detector)
             if init == 0:
                 self.widget.live_view_btn.setEnabled(True)
                 self.widget.live_view_btn.setChecked(True) 
@@ -294,11 +296,27 @@ class hpmcaController(QObject):
         else:
             if self.epicsMCAholder != None:
                 self.epicsMCAholder.unload()
+
+            multielement = False
+            element_num = 1
+            if ":" in det:
+                appendix = str.split(det, ':')[-1]
+                if len(appendix)>3:
+                    if str.startswith(appendix,'mca'):
+                        numeric_appendix = appendix[3:]
+                        if str.isnumeric(numeric_appendix):
+                            element_num = int(numeric_appendix)
+                            if element_num >=0 and element_num < 10000:
+                                multielement = True
+            
+
             mca = epicsMCA(record_name = det, 
                             epics_buttons = self.epicsBtns, 
                             file_options = self.file_save_controller.file_options,
                             environment_file = 'catch1d.env',
-                            dead_time_indicator = self.widget.dead_time_indicator
+                            dead_time_indicator = self.widget.dead_time_indicator,
+                            multielement = multielement,
+                            element = element_num
                             )
             if not mca.initOK:
                 [live_val, real_val] = self.epicsPresets
