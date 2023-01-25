@@ -610,7 +610,8 @@ class epicsMCA(MCA):
         in the epicsMca object, and returns an McaPresets object with this information.
         """
         presets = McaPresets()
-        pvs = self.pvs['presets']
+        
+        pvs = self.pvs[0]['presets']
         
         presets.real_time       = pvs['prtm'].get()
         presets.live_time       = pvs['pltm'].get()
@@ -634,7 +635,7 @@ class epicsMCA(MCA):
                 An McaPresets instance containing the presets information.
         """
         super().set_presets(presets)
-        pvs = self.pvs['presets']
+        pvs = self.pvs[0]['presets']
         pvs['prtm'].put(presets.real_time)
         pvs['pltm'].put(presets.live_time)
         pvs['pct'].put(presets.total_counts)

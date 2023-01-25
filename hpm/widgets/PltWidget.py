@@ -538,7 +538,7 @@ class PltWidget(pg.PlotWidget):
     def add_roi_cursor(self, name, positions, intensities, baseline):
         self.roi_cursor.append(PhasePlot(self.pattern_plot, \
                     self.xrf_legend, positions, intensities, \
-                    name, baseline,'solid',line_width=8,color=(255,0,0)))
+                    name, baseline,'solid',line_width=5,color=(255,0,0)))
         return self.roi_cursor[-1].color
 
     def set_roi_cursor_color(self, ind, color):
