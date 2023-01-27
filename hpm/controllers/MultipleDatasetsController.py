@@ -188,6 +188,11 @@ class MultipleDatasetsController(QObject):
             if index < len(files_loaded):
                 self.widget.select_file(index)
         
+    def set_element(self, element ):
+
+        self.widget.select_spectrum(element)
+    
+        self.file_changed(element) # in case the mca in multifile
 
     def set_channel(self, index, pos):
         channel = pos

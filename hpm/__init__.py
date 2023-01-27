@@ -85,12 +85,15 @@ def main():
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
     multi_spectra2 =  os.path.normpath( os.path.join(desktop,'dt/20221213-SiO2'))
     mask_path =  os.path.normpath( os.path.join(resources_path,'my.mask'))
-    #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
-    multi_element =  os.path.normpath( '/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca')
+    multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
+    #multi_element =  os.path.normpath( '/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca')
     #multi_element =  os.path.normpath( os.path.join(resources_path,'20221116_test_010.hpmca'))
     #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
+    controller.file_save_controller.openFile(filename=multi_element)
+    controller.element = 1
+    controller.data_updated()
     #controller.file_save_controller.openFolder(foldername=multi_spectra2)
     #controller.multiple_datasets_controller.mask_controller.load_mask_btn_click(filename = mask_path)
     #controller.multiple_datasets_controller.show_view()

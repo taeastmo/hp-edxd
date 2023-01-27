@@ -85,6 +85,7 @@ class hpmcaController(QObject):
         self.last_saved = ''
         
         # initialize some stuff
+        self.mca: MCA               # this is for type hinting 
         self.mca = None             # mca model
         self.element = 0
      
@@ -94,6 +95,8 @@ class hpmcaController(QObject):
 
         self.Foreground = None       # str, can be either 'epics' or 'file'
         
+        self.plotControllers = []   # future use, multiple plot controllers corresponging to multiple plots will be used
+                                    # for displayting a grid of plots or stacked plots when a multiple element detector is used
         self.plotController = None    
         self.roi_controller = None
         self.phase_controller = None  # phase controller 
@@ -260,7 +263,7 @@ class hpmcaController(QObject):
         self.mca.auto_process_rois = True
         if self.controllers_initialized:
             element = self.element
-            self.plotController.set_mca(self.mca, element)
+            self.get_plot_controller().set_mca(self.mca, element)
             self.phase_controller.set_mca(self.mca, element)
             self.roi_controller.set_mca(self.mca, element)
             self.fluorescence_controller.set_mca(self.mca, element)
@@ -286,7 +289,7 @@ class hpmcaController(QObject):
         self.set_file_mca(mca)
         return 0
 
-    def initEpicsMCA(self, det):
+    def initEpicsMCA(self, det:str):
         name = ''
         if self.epicsMCAholder is not None:
             name = self.epicsMCAholder.name
@@ -332,6 +335,21 @@ class hpmcaController(QObject):
         for btn in epicsElapsedTimeBtns_PLTM:
             btn.connect(record + '.PLTM')
         self.widget.dead_time_indicator.re_connect()
+        #self.update_n_detectors()
+
+    def update_n_detectors(self):
+        n_det = self.mca.n_detectors
+
+        cmb = self.widget.element_number_cmb
+        items = []
+        for i in range(cmb.count()):
+            items.append(cmb.itemText(i))
+        
+        dets = list(map(str, range(1, n_det+1)))
+        if dets != items:
+            cmb.clear()
+            cmb.addItems(dets)    
+      
 
     def set_file_mca(self, mca):
         if self.mca != mca:
@@ -340,7 +358,7 @@ class hpmcaController(QObject):
                 epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
                 epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
                 self.mca.dataAcquired.disconnect()
-                self.mca.acq_stopped.disconnect()
+                self.mca.acq_stopped.disconnect() 
                 self.epicsMCAholder = self.mca
                 self.blockSignals(True)
                 for btn in self.epicsBtns:
@@ -357,7 +375,7 @@ class hpmcaController(QObject):
                 self.blockSignals(False)
             self.mca = mca
             self.Foreground = 'file'
-        
+        #self.update_n_detectors()
             
 
     def update_elapsed_preset_btn_messages(self, elapsed_presets):
@@ -370,11 +388,13 @@ class hpmcaController(QObject):
         #initialize plot model
         
         self.plotController = plotController(self.widget.pg, self.mca, self, self.unit)
+        self.plotControllers.append(self.plotController)
         # updates cursor position labels
         self.plotController.staticCursorMovedSignal.connect(self.mouseCursor)
         self.plotController.fastCursorMovedSignal.connect(self.mouseMoved)  
         self.plotController.selectedRoiChanged.connect(self.roi_selection_updated) 
         self.plotController.envUpdated.connect(self.envs_updated_callback)
+        self.widget.element_number_cmb.currentIndexChanged.connect(self.element_number_cmb_currentIndexChanged_callback)
 
         self.environment_controller = EnvironmentController()
         
@@ -391,7 +411,7 @@ class hpmcaController(QObject):
         self.roiPrefs = RoiPreferences(self.phase_controller)
     
         # initialize overlay controller: not done yet
-        self.overlay_controller = OverlayController( self, self.plotController, self.widget)
+        self.overlay_controller = OverlayController( self, self.plotController)
         #initialize xrf controller
         self.fluorescence_controller = xrfWidget(self.widget.pg, self.plotController, self.roi_controller, self.mca)
         self.fluorescence_controller.xrf_selection_updated_signal.connect(self.xrf_updated)
@@ -431,6 +451,7 @@ class hpmcaController(QObject):
             text, ok = QInputDialog.getText(self.widget, 'EPICS MCA', 'Enter MCA PV name: ', text=detector)
         
         if ok:
+            mcaTemp: epicsMCA
             mcaTemp = self.mca 
             status = self.initMCA('epics',text)
             if status == 0:
@@ -439,7 +460,7 @@ class hpmcaController(QObject):
                 if status == 0:
                     self.dataReceivedEpics()
                     acquiring = self.mca.get_acquire_status()
-                    self.mca.dataAcquired.signal.connect(self.dataReceivedEpics)
+                    self.mca.dataAcquired.signal.connect(self.dataReceivedEpics) 
                     self.mca.acq_stopped.signal.connect(self.file_save_controller.acq_stopped)
                     if acquiring == 1:
                         self.mca.acqOn()
@@ -459,12 +480,15 @@ class hpmcaController(QObject):
 
     def dataReceivedEpics(self ):
         self.multiple_datasets_controller.set_mca(self.mca)
+        self.update_n_detectors()
         self.data_updated()
 
     def dataReceivedFile(self):
+        self.update_n_detectors()
         self.data_updated()
 
     def dataReceivedFolder(self):
+        self.update_n_detectors()
         self.data_updated()
 
     ########################################################################################
@@ -482,7 +506,7 @@ class hpmcaController(QObject):
             title += ' - ' + file_detail
         self.widget.setWindowTitle(title )
 
-    def _file_detail(self, index):
+    def _file_detail(self, index) -> str:
       
         files = self.mca.files_loaded
         file_display = ''
@@ -498,17 +522,35 @@ class hpmcaController(QObject):
                 file_display += ' : ' + str(index)
         return file_display
 
+    def get_plot_controller(self) -> plotController:
+        ## future use for displaying multiple plots stacked or in a grid, 
+        ## each plot will be in its own pltWidget, associated with its own plotController
+        ## other controllers that depend on plotController need new methods for updating the plotController
+        
+        if len (self.plotControllers):
+            return self.plotControllers[0]
+        else:
+            return None
+
+    def element_number_cmb_currentIndexChanged_callback(self, index):
+        if self.element != index:
+            self.element = index
+            self.set_multispectral_element(index)
+            self.data_updated()
+
+
     def data_updated(self):
+        
         element = self.element # for multielement detectors, careful, not implemented everywhere yet
         ndet = self.mca.n_detectors
         if element >= ndet:
             element = ndet-1
             self.element = element
 
-        self.plotController.update_plot_data(element) 
+        self.get_plot_controller().update_plot_data(element) 
         
         
-        self.plotController.roi_controller.data_updated(element)  #this will in turn trigger updateViews() 
+        self.get_plot_controller().roi_controller.data_updated(element)  #this will in turn trigger updateViews() 
         environment = self.mca.get_environment(element)
         self.environment_controller.set_environment(environment)
         self.update_titlebar()
@@ -561,6 +603,9 @@ class hpmcaController(QObject):
         
         pass
 
+    
+
+
     def xrf_updated(self,text):
         self.blockSignals(True)
         self.widget.lineEdit_2.setText(text)
@@ -608,7 +653,7 @@ class hpmcaController(QObject):
     def calibrate_tth_module(self):
         if self.mca != None:
             phase=self.working_directories.phase
-            data_label = self.plotController.get_data_label()
+            data_label = self.get_plot_controller().get_data_label()
             self.ctth = mcaCalibrate2theta(self.mca, detector=self.element, jcpds_directory=phase, data_label=data_label, command=self.calibrate_tth_module_callback)
             if self.ctth.nrois < 1:
                 mcaUtil.displayErrorMessage( 'calroi')
@@ -623,7 +668,7 @@ class hpmcaController(QObject):
             self.multiple_datasets_controller.set_mca(self.mca)
 
     def set_Tth(self):
-        mca = self.mca
+        mca = self.mca 
         element = copy.copy(self.element)
         calibration = copy.deepcopy(mca.get_calibration()[element])
         tth = calibration.two_theta
@@ -732,13 +777,18 @@ class hpmcaController(QObject):
 
     def multispectral_channel_changed_callback(self, channel):
         
-        self.plotController.mouseCursor_non_signalling(channel)
+        self.get_plot_controller().mouseCursor_non_signalling(channel)
 
+    def set_multispectral_element(self, element):
+        self.multiple_datasets_controller.set_element(element)
     
     def multispectral_element_changed_callback(self, element):
         self.element = element
+        self.widget.element_number_cmb.blockSignals(True)
+        self.widget.element_number_cmb.setCurrentIndex(element)
+        self.widget.element_number_cmb.blockSignals(False)
         self.data_updated()
-        #self.plotController.mouseCursor_non_signalling(channel)
+        #self.get_plot_controller().mouseCursor_non_signalling(channel)
 
     def multispectral_add_rois_callback(self, all_rois):
         print(len(all_rois))
@@ -746,7 +796,8 @@ class hpmcaController(QObject):
             self.roi_controller.add_rois_to_mca(rois,det)
 
     def hklGen_module(self):
-        self.hlkgen_controller.show_view()
+        pass
+        #self.hlkgen_controller.show_view()
         
 
     ########################################################################################
@@ -790,7 +841,7 @@ class hpmcaController(QObject):
     def set_unit(self,unit):
             self.unit = unit
             if self.mca != None:
-                self.plotController.set_unit(unit)
+                self.get_plot_controller().set_unit(unit)
 
     def zoomPan(self, zoom):
         if zoom: setting = 1
@@ -802,8 +853,8 @@ class hpmcaController(QObject):
         pg.setPlotMouseMode(mode)
         
     def setPlotLogMode(self, mode):
-        if self.plotController != None:
-            self.plotController.setLogMode([False, mode])
+        if self.get_plot_controller() != None:
+            self.get_plot_controller().setLogMode([False, mode])
             self.overlay_controller.update_log_scale()
         pg = self.widget.pg   
         pg.set_log_mode(False, mode)
@@ -818,11 +869,11 @@ class hpmcaController(QObject):
         self.setPlotLogMode(log_scale)
 
     def baseline_subtract_callback(self):
-        if self.plotController != None:
+        if self.get_plot_controller() != None:
 
             baseline_state = self.widget.baseline_subtract.isChecked()
             self.mca.baseline_state = baseline_state
-            self.plotController.updated_baseline_state()
+            self.get_plot_controller().updated_baseline_state()
 
         
     ########################################################################################

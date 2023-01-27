@@ -25,12 +25,15 @@ from PyQt5 import uic, QtWidgets,QtCore
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5.QtWidgets import QMainWindow
 
+from hpm.widgets.PltWidget import PltWidget
+
 #qtCreatorFile = 'hpMCA.ui'
 #Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 _platform = platform.system()
 
 from hpm.widgets.hpMCA_ui import Ui_hpMCA
-
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, HorizontalLine, IntegerTextField, VerticalSpacerItem, NoRectDelegate, \
+    HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, CheckableFlatButton
 
 
 class hpMCAWidget(QMainWindow, Ui_hpMCA):
@@ -42,6 +45,22 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         Ui_hpMCA.__init__(self)
         self.app = app
         self.setupUi(self)
+
+        self.element_number_cmb = QtWidgets.QComboBox()
+        self.element_number_cmb.setStyleSheet("QComboBox { color: white; }")
+        self._plot_toolbar_top_widget_layout.addWidget(QtWidgets.QLabel('Detector'))
+        self._plot_toolbar_top_widget_layout.addWidget(self.element_number_cmb)
+        self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
+
+        self.pg = PltWidget(self.plot_widget,
+                        toolbar_widgets=[self.plot_toolbar_right_widget,
+                                        self.plot_toolbar_top_widget])
+        self.pg.setMinimumSize(QtCore.QSize(205, 100))
+        self.pg.setObjectName("pg")
+
+        self._plot_widget_layout.addWidget(self.pg)
+        self._plot_widget_layout.addWidget(self.plot_toolbar_right_widget)
+
         self.scales_btns = {'E':self.radioE,
                             'q':self.radioq,
                             'd':self.radiod,

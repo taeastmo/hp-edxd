@@ -37,7 +37,7 @@ class OverlayController(object):
     the corresponding overlay data in the Pattern Model.
     """
 
-    def __init__(self, mcc, plot_controller, hpMcaWidget):
+    def __init__(self, mcc, plot_controller):
         """
         :param widget: Reference to IntegrationWidget object
         :param pattern_model: Reference to PatternModel object
@@ -49,7 +49,7 @@ class OverlayController(object):
         self.overlay_widget = OverlayWidget()
         self.model = mcc
         self.overlay_model = OverlayModel()
-        self.pattern_widget = hpMcaWidget.pg
+        self.pattern_widget = plot_controller.pg
         self.plotController = plot_controller
         
         

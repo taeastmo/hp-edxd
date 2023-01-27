@@ -9,7 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from pyqtgraph.widgets.PlotWidget import PlotWidget
 from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton, pvQProgressBar
-from hpm.widgets.PltWidget import PltWidget
+
 from hpm.widgets.collapsible_widget import CollapsibleBox, EliderLabel
 
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, HorizontalLine, IntegerTextField, VerticalSpacerItem, NoRectDelegate, \
@@ -646,9 +646,9 @@ class Ui_hpMCA(object):
                                                         ''')
         self._plot_toolbar_top_widget_layout = QtWidgets.QHBoxLayout(self.plot_toolbar_top_widget)
         self._plot_toolbar_top_widget_layout.setSpacing(15)
-        self._plot_toolbar_top_widget_layout.setContentsMargins(8,0,8,0)
-        self.plot_toolbar_top_widget.setMinimumHeight(15)
-        self.plot_toolbar_top_widget.setMaximumHeight(15)
+        self._plot_toolbar_top_widget_layout.setContentsMargins(8,2,8,2)
+        self.plot_toolbar_top_widget.setMinimumHeight(21)
+        self.plot_toolbar_top_widget.setMaximumHeight(21)
 
         
 
@@ -659,7 +659,8 @@ class Ui_hpMCA(object):
         self.load_calibration_btn = FlatButton('Load Calibration')
         self.calibration_lbl = QtWidgets.QLabel('None')
 
-        '''self._plot_toolbar_top_widget_layout.addWidget(self.save_pattern_btn)
+        
+        '''
         self._plot_toolbar_top_widget_layout.addWidget(self.as_overlay_btn)
         self._plot_toolbar_top_widget_layout.addWidget(self.as_bkg_btn)
         self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
@@ -719,14 +720,14 @@ class Ui_hpMCA(object):
         self._plot_widget_layout.setContentsMargins(10,0,5,10)
         
         
-        self.pg = PltWidget(self.plot_widget,
+        '''self.pg = PltWidget(self.plot_widget,
                         toolbar_widgets=[self.plot_toolbar_right_widget,
                                         self.plot_toolbar_top_widget])
         self.pg.setMinimumSize(QtCore.QSize(205, 100))
         self.pg.setObjectName("pg")
 
         self._plot_widget_layout.addWidget(self.pg)
-        self._plot_widget_layout.addWidget(self.plot_toolbar_right_widget)
+        self._plot_widget_layout.addWidget(self.plot_toolbar_right_widget)'''
 
 
         self._DisplayLayout.addWidget(self.plot_widget)
