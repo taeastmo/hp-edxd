@@ -45,12 +45,14 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         Ui_hpMCA.__init__(self)
         self.app = app
         self.setupUi(self)
-
+        
+        self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
         self.element_number_cmb = QtWidgets.QComboBox()
         self.element_number_cmb.setStyleSheet("QComboBox { color: white; }")
-        self._plot_toolbar_top_widget_layout.addWidget(QtWidgets.QLabel('Detector'))
+        self.element_number_lbl = QtWidgets.QLabel('Detector')
+        self._plot_toolbar_top_widget_layout.addWidget(self.element_number_lbl)
         self._plot_toolbar_top_widget_layout.addWidget(self.element_number_cmb)
-        self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
+        
 
         self.pg = PltWidget(self.plot_widget,
                         toolbar_widgets=[self.plot_toolbar_right_widget,
@@ -69,6 +71,14 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         
         self.add_menu_items()
         self.setAcceptDrops(True)
+
+    def hide_det_cmb(self, hide : bool):
+        if hide:
+            self.element_number_cmb.hide()
+            self.element_number_lbl.hide()
+        else:
+            self.element_number_cmb.show()
+            self.element_number_lbl.show()
 
     def closeEvent(self, QCloseEvent, *event):
         self.app.closeAllWindows()

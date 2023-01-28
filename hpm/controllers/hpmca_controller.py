@@ -61,6 +61,7 @@ class hpmcaController(QObject):
     
     def __init__(self, app):
         super().__init__()
+        self.app : QtWidgets.QApplication
         self.app = app  # app object
         global Theme
         self.Theme = Theme
@@ -335,10 +336,12 @@ class hpmcaController(QObject):
         for btn in epicsElapsedTimeBtns_PLTM:
             btn.connect(record + '.PLTM')
         self.widget.dead_time_indicator.re_connect()
-        #self.update_n_detectors()
+        
 
     def update_n_detectors(self):
         n_det = self.mca.n_detectors
+
+        self.widget.hide_det_cmb(n_det < 2)
 
         cmb = self.widget.element_number_cmb
         items = []
@@ -375,8 +378,7 @@ class hpmcaController(QObject):
                 self.blockSignals(False)
             self.mca = mca
             self.Foreground = 'file'
-        #self.update_n_detectors()
-            
+      
 
     def update_elapsed_preset_btn_messages(self, elapsed_presets):
         for i, btn in enumerate(self.epicsElapsedTimeBtns_PLTM):
@@ -519,7 +521,7 @@ class hpmcaController(QObject):
             file_display = os.path.split(file)[-1] 
             n_det = self.mca.n_detectors
             if n_det > 1:
-                file_display += ' : ' + str(index)
+                file_display += ' : ' + str(index +1)
         return file_display
 
     def get_plot_controller(self) -> plotController:
@@ -536,6 +538,9 @@ class hpmcaController(QObject):
         if self.element != index:
             self.element = index
             self.set_multispectral_element(index)
+            self.widget.element_number_cmb.blockSignals(True)
+            self.widget.element_number_cmb.setCurrentIndex(index)
+            self.widget.element_number_cmb.blockSignals(False)
             self.data_updated()
 
 
@@ -551,8 +556,7 @@ class hpmcaController(QObject):
         
         
         self.get_plot_controller().roi_controller.data_updated(element)  #this will in turn trigger updateViews() 
-        environment = self.mca.get_environment(element)
-        self.environment_controller.set_environment(environment)
+      
         self.update_titlebar()
         elapsed = self.mca.get_elapsed()[element]
         self.widget.lblLiveTime.setText("%0.2f" %(elapsed.live_time))
@@ -601,7 +605,8 @@ class hpmcaController(QObject):
 
     def envs_updated_callback(self, envs):
         
-        pass
+        
+        self.environment_controller.set_environment(envs)
 
     
 
@@ -823,7 +828,8 @@ class hpmcaController(QObject):
     ########################################################################################
     ########################################################################################
 
-    def HorzScaleRadioToggle(self,b):
+    def HorzScaleRadioToggle(self, b : QtWidgets.QPushButton):
+        
         if b.isChecked() == True:
             horzScale = self.widget.get_selected_unit()
            

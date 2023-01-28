@@ -29,7 +29,7 @@ class plotController(QObject):
     logScaleYUpdated = pyqtSignal(bool)
     selectedRoiChanged =pyqtSignal(str)
     dataPlotUpdated=pyqtSignal(dict)
-    envUpdated=pyqtSignal(dict)
+    envUpdated=pyqtSignal(list)
 
     def __init__(self, plotWidget, mcaModel, mainController, horzScale='E'):
         super().__init__()
@@ -87,12 +87,12 @@ class plotController(QObject):
             
         self.elapsed = m.get_elapsed()[element]
         self.name = m.get_name()
-        #self.roi_controller.update_rois()  #this will in turn trigger updateViews()
+        
         self.envs = m.get_environment()
-        envs = {}
+        '''envs = {}
         for env in self.envs:
-            envs [env.description]=env.value
-        self.envUpdated.emit(envs)
+            envs [env.description]=env.value'''
+        self.envUpdated.emit(self.envs)
 
     def updated_baseline_state(self):
         self.update_plot_data()
