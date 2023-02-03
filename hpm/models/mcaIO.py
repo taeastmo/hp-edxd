@@ -310,8 +310,8 @@ class mcaFileIO():
         rois = [[]]
         dx_type = ''
         data_type = int
+        
         try:
-            
             while(1):
                 line = fp.readline()
                 if (line == ''): break
@@ -339,6 +339,7 @@ class mcaFileIO():
                 elif (tag == 'CAL_QUAD:'):  
                     for d in range(n_detectors):
                         calibration[d].quad = float(values[d])
+                        
                 elif (tag == 'TWO_THETA:'):
                     for d in range(n_detectors):
                         calibration[d].two_theta = float(values[d])
@@ -356,26 +357,34 @@ class mcaFileIO():
                     for d in range(n_detectors):    
                         if calibration[d].dx_type == '':
                             calibration[d].set_dx_type('edx')
-               
+                
                 else:
                     pass
-            
-            # Make sure DATA array is defined, else this was not a valid data file
-            #if (data == None): return [None, False]
-            fp.close()
-            # Built dictionary to return
-            r = {}
-            r['n_detectors'] = n_detectors
-            r['calibration'] = calibration
-            r['elapsed'] = elapsed
-            r['rois'] = rois
-            r['data'] = data
-            r['environment'] = environment
-            r['dx_type'] = dx_type
-            
-            return [r, True]
+
         except:
             return [None, False]
+
+        if dx_type == '':
+            dx_type = 'edx'
+            for d in range(len(calibration)):
+                calibration[d].set_dx_type('edx')
+                calibration[d].units = 'keV'
+        
+        # Make sure DATA array is defined, else this was not a valid data file
+        #if (data == None): return [None, False]
+        fp.close()
+        # Built dictionary to return
+        r = {}
+        r['n_detectors'] = n_detectors
+        r['calibration'] = calibration
+        r['elapsed'] = elapsed
+        r['rois'] = rois
+        r['data'] = data
+        r['environment'] = environment
+        r['dx_type'] = dx_type
+        
+        return [r, True]
+        
 
     def compute_tth_calibration_coefficients(self, tth):
         chan = np.linspace(0,len(tth)-1,len(tth))[::50]
