@@ -344,12 +344,14 @@ QPushButton::focus {
  QGroupBox {
      border: 1px solid #26282b;
      border-radius: 5px;
-     
+     margin-top: 7px;
+     padding: 0px
      
  }
- QGroupBox::title {
+QGroupBox::title {
       subcontrol-origin: margin;
       left: 20px
+      
   }
 
 QSplitter::handle:hover {
