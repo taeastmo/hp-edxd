@@ -43,6 +43,7 @@ class EosGroupbox(QtWidgets.QWidget):
         super().__init__()
         self.equation_of_state = equation_of_state
         self._layout = QtWidgets.QVBoxLayout()
+        self._layout.setContentMargins(10,10,10,10)
         self.eos_gb = QtWidgets.QGroupBox("Equation of State")
         self._eos_gb_layout = QtWidgets.QVBoxLayout()
         
