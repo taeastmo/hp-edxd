@@ -76,12 +76,19 @@ class RoiController(QObject):
         
     def set_mca(self, mca, element=0):
         self.mca = mca
-        self.calibration = self.mca.get_calibration()[element]
+        calibrations = self.mca.get_calibration()
+        if not element < len(calibrations):
+            element = 0
+        self.calibration = calibrations[element]
+
     
 
     def get_calibration(self):
         element = self.mcaController.element
-        self.calibration = self.mca.get_calibration()[element]
+        calibrations = self.mca.get_calibration()
+        if not element < len(calibrations):
+            element = 0
+        self.calibration = calibrations[element]
         return self.calibration
         
     def create_signals(self):

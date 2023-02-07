@@ -148,7 +148,10 @@ class xrfWidget(QtWidgets.QWidget):
     def set_mca(self, mca, element=0):
         self.mca = mca
         
-        self.calibration = self.mca.calibration[element]
+        calibrations = self.mca.get_calibration()
+        if not element < len(calibrations):
+            element = 0
+        self.calibration = calibrations[element]
         
     def update_x_scale(self,unit):
         self.x_scale = unit
