@@ -99,7 +99,7 @@ def main():
     #controller.multiple_datasets_controller.mask_controller.load_mask_btn_click(filename = mask_path)
     #controller.multiple_datasets_controller.show_view()
     
-    #controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
+    controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])

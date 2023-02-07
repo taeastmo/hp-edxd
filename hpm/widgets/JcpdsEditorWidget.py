@@ -26,6 +26,7 @@
 """
 
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.Qt import Qt
 
 
 from hpm.widgets.CustomWidgets import NumberTextField, LabelAlignRight, DoubleSpinBoxAlignRight, HorizontalSpacerItem, \
@@ -43,10 +44,10 @@ class EosGroupbox(QtWidgets.QWidget):
         super().__init__()
         self.equation_of_state = equation_of_state
         self._layout = QtWidgets.QVBoxLayout()
-        self._layout.setContentsMargins(10,10,10,10)
+        
         self.eos_gb = QtWidgets.QGroupBox("Equation of State")
         self._eos_gb_layout = QtWidgets.QVBoxLayout()
-        
+        #self._eos_gb_layout.setContentsMargins(10,25,10,10)
 
         self.EOS_params = equations_of_state
         self.EOS_widgets = {}
@@ -224,6 +225,7 @@ class JcpdsEditorWidget(QtWidgets.QWidget):
 
         self.lattice_parameters_gb = QtWidgets.QGroupBox('Lattice Parameters')
         self._lattice_parameters_layout = QtWidgets.QVBoxLayout()
+        #self._lattice_parameters_layout.setContentsMargins(10,25,10,10)
 
         self._symmetry_layout = QtWidgets.QHBoxLayout()
         self._symmetry_layout.addWidget(LabelAlignRight('Symmetry'))
@@ -311,7 +313,9 @@ class JcpdsEditorWidget(QtWidgets.QWidget):
         self.eos_widget = EosGroupbox()
 
         self.reflections_gb = QtWidgets.QGroupBox('Reflections')
+        #self.reflections_gb.setContentsMargins(0, 20, 0, 0)
         self._reflection_layout = QtWidgets.QGridLayout()
+        #self._reflection_layout.setContentsMargins(10,25,10,10)
         self.reflection_table_view = QtWidgets.QTableView()
         self.reflection_table_model = ReflectionTableModel()
         self.reflection_table_view.setModel(self.reflection_table_model)
