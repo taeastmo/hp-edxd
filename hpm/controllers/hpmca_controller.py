@@ -536,12 +536,14 @@ class hpmcaController(QObject):
 
     def element_number_cmb_currentIndexChanged_callback(self, index):
         if self.element != index:
-            self.element = index
-            self.set_multispectral_element(index)
-            self.widget.element_number_cmb.blockSignals(True)
-            self.widget.element_number_cmb.setCurrentIndex(index)
-            self.widget.element_number_cmb.blockSignals(False)
-            self.data_updated()
+            n_det = self.mca.n_detectors
+            if index < n_det and index >= 0:
+                self.element = index
+                self.set_multispectral_element(index)
+                self.widget.element_number_cmb.blockSignals(True)
+                self.widget.element_number_cmb.setCurrentIndex(index)
+                self.widget.element_number_cmb.blockSignals(False)
+                self.data_updated()
 
 
     def data_updated(self):

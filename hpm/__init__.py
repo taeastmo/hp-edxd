@@ -92,14 +92,14 @@ def main():
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
 
     
-    controller.file_save_controller.openFile(filename=multi_element)
-    controller.element_number_cmb_currentIndexChanged_callback(1)
+    controller.file_save_controller.openFile(filename=pattern)
+    #controller.element_number_cmb_currentIndexChanged_callback(1)
     
     #controller.file_save_controller.openFolder(foldername=multi_spectra2)
     #controller.multiple_datasets_controller.mask_controller.load_mask_btn_click(filename = mask_path)
     #controller.multiple_datasets_controller.show_view()
     
-    controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
+    #controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
 
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])

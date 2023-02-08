@@ -44,6 +44,12 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         QMainWindow.__init__(self)
         Ui_hpMCA.__init__(self)
         self.app = app
+        desktop = QtWidgets.QDesktopWidget()
+        self.dpi = desktop.logicalDpiX()
+        if self.dpi > 96:
+            print("Running on a high resolution Retina display. dpi = " + str(self.dpi))
+        else:
+            print("Running on a standard resolution display. dpi = " + str(self.dpi))
         self.setupUi(self)
         
         self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
