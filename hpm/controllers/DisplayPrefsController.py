@@ -100,22 +100,30 @@ class DisplayPreferences(Preferences):
         colors = readconfig(config_file)
 
         opts = {'display':
-                    {'plot_background_color':
-                        {'val': (255, 255, 255),
-                        'desc': '',
-                        'label': 'Background'},
+                        {'plot_background_color':
+                            {'val': (255, 255, 255),
+                                'desc': 'color',
+                                'label': 'Background'},
                         'data_color':
                             {'val': '#2F2F2F',
-                                'desc': '',
+                                'desc': 'color',
                                 'label': 'Plot foreground'},
                         'rois_color':
                             {'val': (0, 180, 255),
-                                'desc': '',
+                                'desc': 'color',
                                 'label': "ROIs highlight"},
                         'roi_cursor_color':
                             {'val': (255, 0, 0),
-                                'desc': '',
-                                'label': 'Selected ROI cursor'}
+                                'desc': 'color',
+                                'label': 'Selected ROI cursor'} \
+                        #            ,
+                        #'plot_width':
+                        #    {'val': 1,
+                        #        'desc': 'num',
+                        #        'min': 1,
+                        #        'max': 4,
+                        #        'label': 'Plot line width'}
+                                
 
                         }
                     }

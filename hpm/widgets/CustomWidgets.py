@@ -26,9 +26,14 @@ from math import floor, log10
 class NumberTextField(QtWidgets.QLineEdit):
     def __init__(self, *args, **kwargs):
         super(NumberTextField, self).__init__(*args, **kwargs)
-        self.setValidator(QtGui.QDoubleValidator())
+        
         self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
         self.min = None
+        self.max = None
+
+        validator = QtGui.QDoubleValidator()
+        self.setValidator(validator)
+        
 
     def text(self):
         return super(NumberTextField, self).text().replace(",", ".")
@@ -40,11 +45,21 @@ class NumberTextField(QtWidgets.QLineEdit):
         if self.min is not None:
             if self.min > value:
                 value=self.min
+            if self.max < value:
+                value=self.max    
         self.setText(str(value))
 
     def setMinimum(self, Minimum):
         if isinstance(Minimum, float) or isinstance(Minimum ,int):
             self.min=float(Minimum)
+            validator = self.validator()
+            validator.setRange(self.min,validator.top())
+
+    def setMaximum(self, Maximum):
+        if isinstance(Maximum, float) or isinstance(Maximum ,int):
+            self.max=float(Maximum)
+            validator = self.validator()
+            validator.setRange(validator.bottom(),self.max)
 
 
 class IntegerTextField(QtWidgets.QLineEdit):
