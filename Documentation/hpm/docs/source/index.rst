@@ -1,6 +1,6 @@
 .. _home:
 
-16-BM-B PE Press Experiments User Manual
+hp-EDXD Tools Documentation
 ========================================
 
 .. figure:: /images/beamline_16bmb.jpg
@@ -11,18 +11,7 @@
 
 .. toctree::
    :maxdepth: 2
-   :caption: User guide:
-   
-   beamline_description
-   sample_preparation
-   beamline_operation
-   beamline_troubleshooting
-   beamline_support
-   staff
-
-.. toctree::
-   :maxdepth: 2
    :caption: Beamline software:
    
-   hpmca
+   hpmca 
    

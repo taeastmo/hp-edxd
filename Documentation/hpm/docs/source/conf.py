@@ -17,8 +17,8 @@
 
 # -- Project information -----------------------------------------------------
 
-project = '16-BM-B Docs'
-copyright = '2022, Argonne National Laboratory'
+project = 'hp-EDXD Docs'
+copyright = '2023, Argonne National Laboratory'
 author = 'R. Hrubiak'
 
 # The full version, including alpha/beta/rc tags
