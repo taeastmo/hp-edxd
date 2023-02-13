@@ -1,0 +1,11 @@
+﻿Ion Chamber 1,16bmb:scaler1.S2
+Oil pressure (psi),16bmb:DMM1Ch8_calc.VAL 
+Power output (W),16bmb:PS66xxA:PS1:SR:powerOutPut 
+Resistance (Ohm),16bmb:PS66xxA:PS1:SR:Resistance
+SAM X (mm),16bmb:m20.RBV
+SAM Y (mm),16bmb:m21.RBV 
+SAM Z (mm),16bmb:m19.RBV 
+2-Theta motor (deg),16bmb:m5.RBV 
+Tip X (mm),16bmb:m53.RBV 
+Filter wheel (deg),16bmb:m13.RBV 
+Experiment note,16bmb:exp_log:Note 
