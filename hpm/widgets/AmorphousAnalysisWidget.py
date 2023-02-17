@@ -126,20 +126,26 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
                 mask_controller = MaskController(mask_model, mask_widget, self.directories)
                 self.mask_controllers[name] = mask_controller
                 plot = mask_widget.img_widget
-                self.plot_tabs.addTab(mask_widget, str(len(self.scratch_plots)))
+                self.add_tab(mask_widget, str(len(self.scratch_plots)), name)
             else:
                 plot = ImgWidget2()
-                self.plot_tabs.addTab(plot, str(len(self.scratch_plots)))
+                self.add_tab(plot, str(len(self.scratch_plots)), name)
         elif dims == 1:
             plot = PltWidget()
             plot.set_log_mode(False,False)
             self.displayPrefs [ name] =  DisplayPreferences(plot)
-            self.plot_tabs.addTab(plot, str(len(self.scratch_plots)))
+            self.add_tab(plot, str(len(self.scratch_plots)), name)
 
         self.scratch_plots[name]=plot
         
         return plot
         
+    def add_tab(self, widget, label, desc):
+        w = QtWidgets.QWidget()
+        w_layout = QtWidgets.QVBoxLayout(w)
+        w_layout.addWidget(QtWidgets.QLabel(desc))
+        w_layout.addWidget(widget)
+        self.plot_tabs.addTab(w, label)
 
     def set_scales_enabled_states(self, enabled=['Channel']):
         for btn in self.scales_btns:

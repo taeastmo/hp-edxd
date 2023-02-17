@@ -256,7 +256,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self._calculate_step(step)
 
     def calculate_3(self):
-        for step in (4,5, 6,15,10,11,12, 13):
+        for step in (5, 6,15,10,11,12, 13):
             self._calculate_step(step)
 
     def calculate_4(self):
@@ -277,7 +277,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['mask in E'].set_data_in(data)
             mask = np.zeros(data.shape) == 1
             mask[:,:700] = True
-            mask[:,2100:] = True
+            #mask[:,2100:] = True
             
             self.steps['mask in E'].set_mask(mask)
             self.steps['mask in E'].calculate()
@@ -295,7 +295,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             mask = self.steps['mask in E'].get_mask()
             weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
             #weights_E [weights_E==0 ] = 1e-7
-            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(100,rows-1)})
+            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(150,rows-1)})
             self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights_E})
             self.steps['Flaten 1'].calculate()
 
@@ -415,7 +415,17 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
 
         elif step == 14:
-            data = self.steps['apply scaling 2'].get_data_out()
+
+            data = self.steps['mask in E'].get_data_out()
+            
+            self.steps['Normalize'].set_data_in(data)
+            mask = self.steps['mask in E'].get_mask()
+            self.steps['Normalize'].set_param({'mask_img':mask})
+            norm_function = self.steps['Flaten 3'].get_data_out()[1] 
+            self.steps['Normalize'].set_param({'norm_function':norm_function})
+            self.steps['Normalize'].calculate()
+
+            '''data = self.steps['apply scaling 2'].get_data_out()
 
             mask = self.steps['mask in E'].get_mask()
 
@@ -440,7 +450,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             flattened = self.steps['Flaten 1'].get_data_out()[1]
             self.steps['unFlaten 1'].set_data_in(flattened)
             self.steps['unFlaten 1'].set_param({'rows':rows})
-            self.steps['unFlaten 1'].calculate()
+            self.steps['unFlaten 1'].calculate()'''
         
         elif step == 15:
             data = self.steps['convert to q'].get_data_out()
