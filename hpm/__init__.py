@@ -92,7 +92,8 @@ def main():
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
 
     
-    controller.file_save_controller.openFile(filename=pattern)
+    #controller.file_save_controller.openFile(filename=pattern)
+    controller.file_save_controller.openFolder(foldername=multi_spectra2)
     #controller.element_number_cmb_currentIndexChanged_callback(1)
     
     #controller.file_save_controller.openFolder(foldername=multi_spectra2)

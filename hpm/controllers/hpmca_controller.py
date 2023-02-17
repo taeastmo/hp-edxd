@@ -173,6 +173,7 @@ class hpmcaController(QObject):
         ui.actionFluor.triggered.connect(self.fluorescence_module)
         ui.actionEvironment.triggered.connect(self.environment_module)
         ui.actionMultiSpectra.triggered.connect(self.multi_spectra_module)
+        ui.actionAmorphous.triggered.connect(self.amorphous_btn_callback)
         
         ui.actionLatticeRefinement.triggered.connect(self.lattice_refinement_module)
         ui.actionhklGen.triggered.connect(self.hklGen_module)
@@ -777,6 +778,9 @@ class hpmcaController(QObject):
 
     def multi_spectra_module(self):
         self.multiple_datasets_controller.show_view()
+
+    def amorphous_btn_callback(self):
+        self.multiple_datasets_controller.amorphous_btn_callback()
 
     def file_changed_signal_callback(self, fname):
         if self.file_save_controller.McaFileName != fname:

@@ -791,6 +791,8 @@ class Ui_hpMCA(object):
         self.actionEvironment.setEnabled(False)
         self.actionMultiSpectra = QtWidgets.QAction(hpMCA)
         self.actionMultiSpectra.setObjectName("actionMultiSpectra")
+        self.actionAmorphous = QtWidgets.QAction(hpMCA)
+        self.actionAmorphous.setObjectName("actionAmorphous")
         self.actionExit = QtWidgets.QAction(hpMCA)
         self.actionExit.setObjectName("actionExit")
         self.actionPresets = QtWidgets.QAction(hpMCA)
@@ -858,6 +860,7 @@ class Ui_hpMCA(object):
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addAction(self.actionEvironment)
         self.menuFile.addAction(self.actionMultiSpectra)
+        self.menuFile.addAction(self.actionAmorphous)
 
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
@@ -1003,6 +1006,7 @@ class Ui_hpMCA(object):
         self.actionPreferences.setText(_translate("hpMCA", "Preferences"))
         self.actionEvironment.setText(_translate("hpMCA", "Environment"))
         self.actionMultiSpectra.setText(_translate("hpMCA", "Multiple spectra"))
+        self.actionAmorphous.setText(_translate("hpMCA", "Amorphous S(q)"))
         
         self.actionExit.setText(_translate("hpMCA", "Exit"))
         self.actionPresets.setText(_translate("hpMCA", "Presets..."))

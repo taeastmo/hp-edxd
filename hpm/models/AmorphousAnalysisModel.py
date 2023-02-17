@@ -246,7 +246,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
     
         self.data_in_q = copy.deepcopy(self.multi_spectra_model.q )
    
-        self.data_in_E[:,:600] = 0
+        #self.data_in_E[:,:600] = 0
 
         for step in (1,2,3,4,5,6,7,8,9,10,11,12, 13):
             self._calculate_step(step)
@@ -276,12 +276,14 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             data = self.steps['dataset E'].get_data_out()
             self.steps['mask in E'].set_data_in(data)
             mask = np.zeros(data.shape) == 1
+            mask[:,:700] = True
+            mask[:,2100:] = True
             
             self.steps['mask in E'].set_mask(mask)
             self.steps['mask in E'].calculate()
 
             self.steps['blur'].set_data_in(data)
-            self.steps['blur'].set_param({'sigma':10, 'scaling_factor':10})
+            self.steps['blur'].set_param({'sigma':15, 'scaling_factor':10})
             self.steps['blur'].set_mask(mask)
             self.steps['blur'].calculate()
         
@@ -293,7 +295,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             mask = self.steps['mask in E'].get_mask()
             weights_E = np.ones(data.shape) #self.data_in_E/ np.amax(self.data_in_E)
             #weights_E [weights_E==0 ] = 1e-7
-            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(150,rows-1)})
+            self.steps['Flaten 1'].set_param({'mask_img':mask, 'range':(100,rows-1)})
             self.steps['Flaten 1'].set_param({'unit_in':'E','scale_in':self.scale_E, 'weights':weights_E})
             self.steps['Flaten 1'].calculate()
 
@@ -503,7 +505,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             scale = self.multi_spectra_model.q_scale
 
         l,r = self.find_non_zero_range(y)
-        y[:l]=y[l]
+        #y[:l]=y[l]
         
         x = np.arange(len(y)) * scale[0] + scale[1]
         args['data_out'] = np.asarray([x, y])
