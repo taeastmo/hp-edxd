@@ -466,7 +466,7 @@ class MaskController(object):
 
     def show_img_mouse_position(self, x, y):
         str = ''
-        if hasattr(self.widget.img_widget.img_data):
+        if hasattr(self.widget.img_widget, "img_data"):
             try:
                 s = self.widget.img_widget.img_data.shape
                 if x > 0 and y > 0 and x < s[0] and y < s[1]:

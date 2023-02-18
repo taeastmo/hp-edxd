@@ -337,6 +337,7 @@ class hpmcaController(QObject):
         for btn in epicsElapsedTimeBtns_PLTM:
             btn.connect(record + '.PLTM')
         self.widget.dead_time_indicator.re_connect()
+        self.multiple_datasets_controller.set_mca(self.mca)
         
 
     def update_n_detectors(self):
@@ -379,6 +380,7 @@ class hpmcaController(QObject):
                 self.blockSignals(False)
             self.mca = mca
             self.Foreground = 'file'
+            self.multiple_datasets_controller.set_mca(self.mca)
       
 
     def update_elapsed_preset_btn_messages(self, elapsed_presets):

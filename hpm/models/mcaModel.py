@@ -84,7 +84,7 @@ class MCA():  #
         
 
     ########################################################################
-    def get_calibration(self):
+    def get_calibration(self) -> list : 
         """ Returns the Mca calibration, as an McaCalibration object """
         return self.calibration
 

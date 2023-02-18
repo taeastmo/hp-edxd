@@ -63,13 +63,13 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.ebg_btn = FlatButton('Save DC')
         self.ebg_btn.setMaximumWidth(90)
         self.ebg_btn.setMinimumWidth(90)'''
-        self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
+        '''self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
         self.tth_btn.setEnabled(False)
         self.tth_btn.setMaximumWidth(90)
-        self.tth_btn.setMinimumWidth(90)
-        '''self.transpose_btn = FlatButton(f'Transpose')
+        self.tth_btn.setMinimumWidth(90)'''
+        self.transpose_btn = FlatButton(f'Transpose')
         self.transpose_btn.setMaximumWidth(90)
-        self.transpose_btn.setMinimumWidth(90)'''
+        self.transpose_btn.setMinimumWidth(90)
         self.copy_rois_btn = FlatButton('Copy ROIs')
         self.copy_rois_btn.setMaximumWidth(90)
         self.copy_rois_btn.setMinimumWidth(90)
@@ -86,8 +86,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         #self._button_layout.addWidget(self.amorphous_btn)
         '''self._button_layout.addWidget(self.sum_scratch_btn)
         self._button_layout.addWidget(self.ebg_btn)'''
-        self._button_layout.addWidget(self.tth_btn)
-        #self._button_layout.addWidget(self.transpose_btn)
+        #self._button_layout.addWidget(self.tth_btn)
+        self._button_layout.addWidget(self.transpose_btn)
         
         self._button_layout.addWidget(self.copy_rois_btn)
         

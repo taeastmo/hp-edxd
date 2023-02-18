@@ -23,7 +23,7 @@ import copy
 import numpy as np
 import pyqtgraph as pg
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
-    HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight
+    HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, TabWidget
 from hpm.widgets.PltWidget import PltWidget
 from hpm.widgets.MaskWidget import MaskWidget
 from hpm.widgets.plot_widgets import ImgWidget2
@@ -31,53 +31,6 @@ from hpm.controllers.DisplayPrefsController import DisplayPreferences
 
 from hpm.controllers.MaskController import MaskController
 from hpm.models.MaskModel import MaskModel
-
-
-
-class TabWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.btn_grp = QtWidgets.QButtonGroup()
-        self.btn_grp.setExclusive(True)
-        self.tabwidget = QtWidgets.QTabWidget()
-        self.btns = []
-        self.btn_grp.buttonPressed.connect(self.handle_button_click)
-
-        self.button_layout = QtWidgets.QVBoxLayout()
-        self.button_layout.setSpacing(5)
-        self.button_layout.setContentsMargins(2,2,2,2)
-        self.button_layout.addSpacerItem(VerticalSpacerItem())
-        self.button_layout.addSpacerItem(VerticalSpacerItem())
-        
-        self.main_layout = QtWidgets.QHBoxLayout()
-        self.main_layout.setSpacing(2)
-        self.main_layout.setContentsMargins(2,2,2,2)
-        self.main_layout.addLayout(self.button_layout)
-        self.main_layout.addWidget(self.tabwidget)
-        self.setLayout(self.main_layout)
-
-        self.tabwidget.tabBar().hide()
-
-    def handle_button_click(self, button):
-        button.setChecked(True)
-        self.tabwidget.setCurrentIndex(self.btns.index(button))
-
-    def addTab(self, widget, label, desc):
-        self.tabwidget.addTab( widget, label)
-        btn = QtWidgets.QPushButton(label + ' : ' + desc)
-        btn.setTextAlignment(Qt.AlignLeft)
-        self.btns.append(btn)
-        self.btn_grp.addButton(btn)
-
-        self.button_layout.insertWidget(self.button_layout.count() - 1, btn)
-        
-        btn.setCheckable(True)
-       
-
-    def setCurrentIndex(self, index):
-        self.tabwidget.setCurrentIndex(index)
-        self.btns[index].setChecked(True)
-
 
 
 class AmorphousAnalysisWidget(QtWidgets.QWidget):

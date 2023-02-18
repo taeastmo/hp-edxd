@@ -18,10 +18,111 @@
 
 # Based on code from Dioptas - GUI program for fast processing of 2D X-ray diffraction data
 
-
+from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5 import QtCore, QtWidgets, QtGui
 from math import floor, log10
 
+class TabWidget(QtWidgets.QWidget):
+    ''' 
+    A tab widget with tabs on the left with text displayed horizontally 
+    tab bar is made from regular qpushbuttons since i could not figure out how to rotate the text in a vertical qtabbar
+    '''
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.btn_grp = QtWidgets.QButtonGroup()
+        self.btn_grp.setExclusive(True)
+        self.tabwidget = QtWidgets.QTabWidget()
+        self.btns = []
+        self.btn_grp.buttonClicked.connect(self.handle_button_click)
+
+        self.button_layout = QtWidgets.QVBoxLayout()
+        self.button_layout.setSpacing(0)
+        self.button_layout.setContentsMargins(2,2,2,2)
+        self.button_layout.addSpacerItem(VerticalSpacerItem())
+        self.button_layout.addSpacerItem(VerticalSpacerItem())
+        
+        self.main_layout = QtWidgets.QHBoxLayout()
+        self.main_layout.setSpacing(2)
+        self.main_layout.setContentsMargins(2,2,2,2)
+        self.main_layout.addLayout(self.button_layout)
+        self.main_layout.addWidget(self.tabwidget)
+        self.setLayout(self.main_layout)
+
+        self.tabwidget.tabBar().hide()
+
+    def handle_button_click(self, button: QtWidgets.QPushButton):
+        button.setChecked(True)
+        self.tabwidget.setCurrentIndex(self.btns.index(button))
+
+    def addTab(self, widget, label, desc):
+        self.tabwidget.addTab( widget, label)
+        btn = QtWidgets.QPushButton(label + ' : ' + desc)
+        btn.setCheckable(True)
+        self.btns.append(btn)
+        self.btn_grp.addButton(btn)
+       
+        stylesheet = """
+                        QPushButton {
+                            background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #3C3C3C, stop:1 #505050);
+                            border: 1px solid  #5B5B5B;
+                            border-right: 0px solid white;
+                            color: #F1F1F1;
+                            font: normal 12px;
+                            border-radius:2px;
+                            min-width: 120px;
+                            height: 21px;
+                            padding: 1px;
+                            padding-left: 5px;
+                            margin-top: 1px ;
+                            margin-bottom: 1px;
+                            Text-align:left;
+                            }
+                        QPushButton:checked {
+
+                            background: qlineargradient(
+                                x1: 0, y1: 1,
+                                x2: 0, y2: 0,
+                                stop: 0 #727272,
+                                stop: 1 #444444
+                            );
+                            border:1px solid  rgb(255, 120,00);/*#ADADAD; */
+                        }
+                        QPushButton:hover {
+                            border: 1px solid #ADADAD;
+                        }
+                        """
+        stylesheet_last =  """QPushButton {
+                                border-bottom-left-radius: 10px;
+                                border-bottom-right-radius: 10px;
+                            }
+                            """
+        if len(self.btns) == 1:
+
+            stylesheet_first =  """QPushButton {
+                                border-top-left-radius: 10px;
+                                border-top-right-radius: 10px;
+                            }
+                            """
+            btn.setStyleSheet(stylesheet + stylesheet_first)
+            btn.setChecked(True)
+        else:
+
+            btn.setStyleSheet(stylesheet + stylesheet_last)
+
+        self.button_layout.insertWidget(self.button_layout.count() - 1, btn)
+        
+        if len(self.btns) >2:
+            second_to_last_widget = self.button_layout.itemAt(self.button_layout.count() - 3).widget()
+            second_to_last_widget.setStyleSheet(stylesheet)
+
+        
+        
+        
+       
+
+    def setCurrentIndex(self, index):
+        self.tabwidget.setCurrentIndex(index)
+        self.btns[index].setChecked(True)
 
 class NumberTextField(QtWidgets.QLineEdit):
     def __init__(self, *args, **kwargs):

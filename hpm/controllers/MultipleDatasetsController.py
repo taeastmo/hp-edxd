@@ -82,8 +82,8 @@ class MultipleDatasetsController(QObject):
         self.widget.align_btn.clicked.connect(self.align_btn_callback)
         self.widget.amorphous_btn.clicked.connect(self.amorphous_btn_callback)
         '''self.widget.sum_scratch_btn.clicked.connect(self.sum_scratch_callback)
-        self.widget.ebg_btn.clicked.connect(self.ebg_data)
-        self.widget.transpose_btn.clicked.connect(self.transpose_E_2theta)'''
+        self.widget.ebg_btn.clicked.connect(self.ebg_data)'''
+        self.widget.transpose_btn.clicked.connect(self.transpose_E_2theta)
         self.widget.copy_rois_btn.clicked.connect(self.propagate_rois_to_all_elements)
         self.widget.cal_btn.clicked.connect(self.calibrate_all_elements)
 
@@ -272,7 +272,8 @@ class MultipleDatasetsController(QObject):
         self.row_scale = row_scale
 
     def transpose_E_2theta(self):
-        self.multi_spectra_model.energy_to_2theta()
+        if self.multi_spectra_model.is2thetaScan():
+            self.multi_spectra_model.energy_to_2theta()
 
     def update_view (self, scale='Channel'):
         r = [1,0]

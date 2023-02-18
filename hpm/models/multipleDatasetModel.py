@@ -16,6 +16,7 @@
 
 from fileinput import filelineno
 import imp
+from operator import truediv
 import numpy as np
 from scipy import interpolate
 from PyQt5 import QtCore, QtWidgets
@@ -25,7 +26,7 @@ import time
 import copy
 
 from .mcareaderGeStrip import *
-from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
+from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment, MCA
 from utilities.CARSMath import fit_gaussian
 from .eCalModel import calc_parabola_vertex, fit_energies
 from .mcaComponents import McaROI
@@ -42,6 +43,7 @@ class MultipleSpectraModel(QtCore.QObject):  #
         Example:
             m = MultipleSpectraModel()
         """
+        self.mca : MCA
         self.mca = None
    
         
@@ -105,24 +107,45 @@ class MultipleSpectraModel(QtCore.QObject):  #
         at a different 2theta. Otherwise returns False. Essentially checks if 
         the 2theta for each element is diffetent. 
         '''
-        pass
+        return True
+        
 
     def energy_to_2theta(self):
         '''
         transposes the 2D dataset, converts from 2D EDX to 2D ADX
         '''
+        
         data_t = np.transpose(self.data)
         s = np.shape(data_t)
         n_det = s[0]
         n_cnan = s[1]
         cal_t = []
+        
+        calibrations = self.mca.get_calibration()
+        old_cal : McaCalibration
+        old_cal = calibrations[0]
+
+        tths = []
+        for n in range(len(calibrations)):
+            cal_n : McaCalibration
+            cal_n = calibrations[n]
+            tth = cal_n.two_theta
+            tths.append(tth)
+        offset = tths[0]
+        slope = abs(tths[1] - tths[0])
+
         cal = McaCalibration()
         
-        cal.slope = self.tth_scale[0]
-        cal.offset = self.tth_scale[1]
+        cal.slope = slope
+        cal.offset = offset
         cal.set_dx_type('adx')
-        for det in range(n_det):
-            cal_t.append(copy.deepcopy(cal))
+
+        for n in range(n_det):
+            
+            E = old_cal.channel_to_energy(n)
+            new_cal_n = copy.deepcopy(cal)
+            new_cal_n.wavelength = E
+            cal_t.append(new_cal_n)
      
         print(len(cal_t))
 
