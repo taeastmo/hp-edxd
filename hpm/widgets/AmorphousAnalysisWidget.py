@@ -64,11 +64,8 @@ class TabWidget(QtWidgets.QWidget):
 
     def addTab(self, widget, label, desc):
         self.tabwidget.addTab( widget, label)
-
-        b_label = QtWidgets. QLabel(label + ' : ' + desc)
-        b_label.setAlignment(Qt.AlignLeft)
-        btn = QtWidgets.QPushButton(b_label)
-   
+        btn = QtWidgets.QPushButton(label + ' : ' + desc)
+        btn.setTextAlignment(Qt.AlignLeft)
         self.btns.append(btn)
         self.btn_grp.addButton(btn)
 
