@@ -18,7 +18,7 @@
 
 from functools import partial
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 import copy
 import numpy as np
 import pyqtgraph as pg
@@ -31,6 +31,57 @@ from hpm.controllers.DisplayPrefsController import DisplayPreferences
 
 from hpm.controllers.MaskController import MaskController
 from hpm.models.MaskModel import MaskModel
+
+
+
+class TabWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.btn_grp = QtWidgets.QButtonGroup()
+        self.btn_grp.setExclusive(True)
+        self.tabwidget = QtWidgets.QTabWidget()
+        self.btns = []
+        self.btn_grp.buttonPressed.connect(self.handle_button_click)
+
+        self.button_layout = QtWidgets.QVBoxLayout()
+        self.button_layout.setSpacing(5)
+        self.button_layout.setContentsMargins(2,2,2,2)
+        self.button_layout.addSpacerItem(VerticalSpacerItem())
+        self.button_layout.addSpacerItem(VerticalSpacerItem())
+        
+        self.main_layout = QtWidgets.QHBoxLayout()
+        self.main_layout.setSpacing(2)
+        self.main_layout.setContentsMargins(2,2,2,2)
+        self.main_layout.addLayout(self.button_layout)
+        self.main_layout.addWidget(self.tabwidget)
+        self.setLayout(self.main_layout)
+
+        self.tabwidget.tabBar().hide()
+
+    def handle_button_click(self, button):
+        button.setChecked(True)
+        self.tabwidget.setCurrentIndex(self.btns.index(button))
+
+    def addTab(self, widget, label, desc):
+        self.tabwidget.addTab( widget, label)
+
+        b_label = QtWidgets. QLabel(label + ' : ' + desc)
+        b_label.setAlignment(Qt.AlignLeft)
+        btn = QtWidgets.QPushButton(b_label)
+   
+        self.btns.append(btn)
+        self.btn_grp.addButton(btn)
+
+        self.button_layout.insertWidget(self.button_layout.count() - 1, btn)
+        
+        btn.setCheckable(True)
+       
+
+    def setCurrentIndex(self, index):
+        self.tabwidget.setCurrentIndex(index)
+        self.btns[index].setChecked(True)
+
+
 
 class AmorphousAnalysisWidget(QtWidgets.QWidget):
 
@@ -92,8 +143,8 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
        
         self._body_layout = QtWidgets.QHBoxLayout()
 
-        self.plot_tabs = QtWidgets.QTabWidget()
-        style_sheet = "QTabBar::tab { min-width: 40px; }"
+        self.plot_tabs = TabWidget()
+        style_sheet = "QTabBar::tab { min-width: 20px; }"
         self.plot_tabs.setStyleSheet(style_sheet)
         
         self.scratch_plots = {}
@@ -145,7 +196,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         w_layout = QtWidgets.QVBoxLayout(w)
         w_layout.addWidget(QtWidgets.QLabel(desc))
         w_layout.addWidget(widget)
-        self.plot_tabs.addTab(w, label)
+        self.plot_tabs.addTab(w, label, desc)
 
     def set_scales_enabled_states(self, enabled=['Channel']):
         for btn in self.scales_btns:

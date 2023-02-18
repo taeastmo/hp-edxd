@@ -113,6 +113,8 @@ QTabBar::tab::top, QTabBar::tab::bottom {
      margin-top: 1px ;
 	margin-right: 1px;
  }
+
+
 QTabBar::tab::left:last, QTabBar::tab::right:last{
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;

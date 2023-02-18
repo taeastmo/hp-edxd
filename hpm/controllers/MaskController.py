@@ -466,20 +466,22 @@ class MaskController(object):
 
     def show_img_mouse_position(self, x, y):
         str = ''
-        try:
-            s = self.widget.img_widget.img_data.shape
-            if x > 0 and y > 0 and x < s[0] and y < s[1]:
-                int_x = int(np.floor(x))
-                int_y =  int(np.floor(y))
-                data_T = self.widget.img_widget.img_data.T
-                if int_x < data_T.shape[0] and int_y < data_T.shape[1]:
-                    str = "x: %8.1f   y: %8.1f   I: %6.f" % (
-                        
-                        x, y, data_T[int_x, int_x])
-            else:
+        if hasattr(self.widget.img_widget.img_data):
+            try:
+                s = self.widget.img_widget.img_data.shape
+                if x > 0 and y > 0 and x < s[0] and y < s[1]:
+                    int_x = int(np.floor(x))
+                    int_y =  int(np.floor(y))
+                    data_T = self.widget.img_widget.img_data.T
+                    if int_x < data_T.shape[0] and int_y < data_T.shape[1]:
+                        str = "x: %8.1f   y: %8.1f   I: %6.f" % (
+                            
+                            x, y, data_T[int_x, int_x])
+                else:
+                    str = "x: %.1f y: %.1f" % (x, y)
+            except (IndexError, AttributeError):
                 str = "x: %.1f y: %.1f" % (x, y)
-        except (IndexError, AttributeError):
-            str = "x: %.1f y: %.1f" % (x, y)
+        
         self.widget.pos_lbl.setText(str)
 
     def update_gui(self):
