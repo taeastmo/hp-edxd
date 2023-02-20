@@ -13,7 +13,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os.path, os
+import os.path, os, time
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from functools import partial
@@ -560,3 +560,39 @@ class mcaControlPresets(QtWidgets.QDialog):
       else : self.ok = [False, self.original_presets]
       self.close()
 
+
+
+class custom_signal(QtCore.QObject):
+   signal = QtCore.pyqtSignal() 
+
+
+   def __init__(self, debounce_time=None):
+      super().__init__()
+      self.debounce_time = debounce_time
+      self.emitted_timestamp = None
+
+
+    
+   def emit(self):
+      if self.debounce_time is None:
+         self.signal.emit()
+         return
+      else:
+         # the following is the de-bouncing code
+         if self.emitted_timestamp is not None:
+               elapsed_since_last_emit = time.time() - self.emitted_timestamp
+            
+         else:
+               elapsed_since_last_emit = -1
+         self.emitted_timestamp = time.time()
+         if elapsed_since_last_emit >= 0 and (elapsed_since_last_emit < self.debounce_time):
+         
+               pass
+         else:
+               self.signal.emit()
+
+   def connect(self, slot):
+      self.signal.connect(slot)
+
+   def disconnect(self, slot):
+      self.signal.disconnect(slot)

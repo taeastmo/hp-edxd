@@ -23,8 +23,9 @@ from typing import TextIO
 from PyQt5.QtGui import QFontMetrics
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import pyqtSignal, QObject, QFileSystemWatcher, QDir
 from datetime import datetime
-
+import pyqtgraph as pg
 import time
 import copy
 from hpm.models.PhaseModel import PhaseLoadError
@@ -32,10 +33,15 @@ from utilities.HelperModule import get_base_name, increment_filename
 from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog, open_folder_dialog
 import utilities.hpMCAutilities as mcaUtil
 from hpm.widgets.SaveFileWidget import SaveFileWidget
-
+from utilities.hpMCAutilities import custom_signal
 from epics import caput, caget, PV
+import natsort
 
 from .. import epics_sync
+
+
+
+
 
 class FileSaveController(object):
     """
@@ -93,6 +99,10 @@ class FileSaveController(object):
         lbl.setText(self.mca_controller.working_directories.savedata)
         lbl = self.mca_controller.widget.last_saved_lbl
         lbl.setText(self.mca_controller.working_directories.last_saved_file)
+        self.folder_watcher = QFileSystemWatcher()
+        self.directory_changed_connected = False
+        self.proxy = pg.SignalProxy(self.folder_watcher.directoryChanged, rateLimit=2, slot=self.handle_directory_changed )
+    
         self.create_signals()
 
     def file_dragged_in_signal(self, f):
@@ -146,6 +156,9 @@ class FileSaveController(object):
 
 
         ui.save_file_btn.clicked.connect(self.save_file_btn_callback)
+
+        
+        
 
     def acq_stopped(self):
         
@@ -308,7 +321,7 @@ class FileSaveController(object):
                 mcaUtil.displayErrorMessage('fs')
 
     def folder_browse_btn_callback(self):
-        open_folder_dialog
+        
         folder = open_folder_dialog(self.widget, "Select folder for saving data.")
         if folder != '' and folder is not None:
             self.update_saveDataDir(folder)
@@ -338,7 +351,7 @@ class FileSaveController(object):
 
     def openFile(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
-     
+        self.folder_watcher_stop_watching()
         if filename is None:
             filename = open_file_dialog(self.widget, "Open spectrum file.",
                                     self.mca_controller.working_directories .readdata)
@@ -367,7 +380,7 @@ class FileSaveController(object):
 
     def openFolder(self, *args, **kwargs):
         foldername = kwargs.get('foldername', None)
-     
+        self.folder_watcher_stop_watching()
         if foldername is None:
             foldername = open_folder_dialog(self.widget, "Open folder.",
                                     self.mca_controller.working_directories .readdata)
@@ -375,10 +388,11 @@ class FileSaveController(object):
             if os.path.isdir(foldername):
                 if self.mca_controller.Foreground != 'file':
                     success = self.mca_controller.initMCA('file',foldername) == 0
+                    
                 else:
                 
-                    [foldername, success] = self.mca_controller.mca.read_files(folder=foldername, netcdf=0, detector=0)
-                   
+                    [filenames, success] = self.mca_controller.mca.read_files(folder=foldername, netcdf=0, detector=0)
+                    
                 if success:
                     self.McaFileName = foldername
                     self.update_readDataDir (os.path.dirname(str(foldername)) ) #working directory xrd files
@@ -388,10 +402,91 @@ class FileSaveController(object):
                         self.mca_controller.initControllers()
                     self.mca_controller.multiple_datasets_controller.set_mca(self.mca_controller.mca)
                     self.mca_controller.dataReceivedFolder()
+
+                
+                    self.folder_watcher_add_directory(foldername)
+                    self.folder_watcher_start_watching()
+                    
                 else:
                     mcaUtil.displayErrorMessage( 'fr')
             else:
                 mcaUtil.displayErrorMessage( 'fr')
+
+    #################### #################### #################### 
+    #################### Folder wathcher code start
+    #################### #################### #################### 
+
+    def folder_watcher_start_watching(self):
+        if not self.directory_changed_connected:
+
+            #self.folder_watcher.directoryChanged.connect(self.handle_directory_changed)
+            self.directory_changed_connected = True
+
+    def folder_watcher_stop_watching(self):
+        if self.directory_changed_connected:
+            #self.folder_watcher.directoryChanged.disconnect(self.handle_directory_changed)
+            self.directory_changed_connected = False
+            print("Stopped watching all directories.")
+        else:
+            pass
+            print("Warning: 'folder_watcher_handle_directory_changed' slot was not connected to 'directoryChanged' signal.")
+
+    '''def folder_watcher_handle_directory_changed(self):
+        self.proxy.emit()'''
+        
+
+    def folder_watcher_add_directory(self, path):
+        self.folder_watcher_remove_all_directories()
+        self.folder_watcher.addPath(path)
+        print(f"Watching directory: {path}")
+
+    def folder_watcher_remove_all_directories(self):
+        watched_directories = self.folder_watcher.directories()
+        if len(watched_directories):
+            self.folder_watcher.removePaths(watched_directories)
+            print(f"Stopped watching all directories.")
+    
+    def handle_directory_changed(self):
+        if self.directory_changed_connected:
+            directories =  self.folder_watcher.directories()
+            if len(directories):
+                path = directories[0]
+                paths = []
+                eL = QDir(path).entryList(QDir.Files)
+                for file in eL:
+                    file_path = QDir.toNativeSeparators(path + '/' + file)
+                    paths.append(file_path)
+                self.add_files(paths)
+
+            
+
+    def add_files(self, paths):
+        paths = self.sort_and_filter_files(paths)
+        new_paths = []
+        if len(paths):
+            for path in paths:
+                if path not in self.mca_controller.mca.files_loaded:
+                    new_paths.append(path)
+        
+
+            if len(new_paths):
+                self.mca_controller.mca.read_files(paths=new_paths, replace = False)
+                self.mca_controller.multiple_datasets_controller.set_mca(self.mca_controller.mca)
+                self.mca_controller.dataReceivedFolder()
+
+    def sort_and_filter_files(self, paths):
+        files = natsort.natsorted(paths)
+        files_filtered = []
+        for f in files:
+            if f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy') or f[-3:].isnumeric() :
+                
+                
+                files_filtered.append(f)
+        return files_filtered
+
+    #################### #################### #################### 
+    #################### Folder wathcher code end
+    #################### #################### #################### 
 
     def export_pattern(self):
         if self.mca_controller.mca is not None:

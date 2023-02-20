@@ -45,6 +45,7 @@ import utilities.hpMCAutilities as hpUtil
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMessageBox
 from hpm.models.mcaModel import *
+from utilities.hpMCAutilities import custom_signal
 
 class epicsMCA(MCA):
     """
@@ -279,10 +280,10 @@ class epicsMCA(MCA):
     def unload(self):
         self.read_done_monitor.unSetPVmonitor()
         self.erase_start_monitor.unSetPVmonitor()
-        self.start_monitor.unSetPVmonitor()
-        self.stop_monitor.unSetPVmonitor()
+        #self.start_monitor.unSetPVmonitor()
+        #self.stop_monitor.unSetPVmonitor()
         self.erase_monitor.unSetPVmonitor()  
-        self.why_stopped.unSetPVmonitor()
+        #self.why_stopped.unSetPVmonitor()
         self.live_time_preset_monitor.unSetPVmonitor()
         self.real_time_preset_monitor.unSetPVmonitor()
 
@@ -825,34 +826,7 @@ class epicsMCA(MCA):
    ############################################################################
 
         
-class custom_signal(QtCore.QObject):
-    signal = QtCore.pyqtSignal() 
 
-
-    def __init__(self, debounce_time=None):
-        super().__init__()
-        self.debounce_time = debounce_time
-        self.emitted_timestamp = None
-
-
-    
-    def emit(self):
-        if self.debounce_time is None:
-            self.signal.emit()
-            return
-        else:
-            # the following is the de-bouncing code
-            if self.emitted_timestamp is not None:
-                elapsed_since_last_emit = time.time() - self.emitted_timestamp
-             
-            else:
-                elapsed_since_last_emit = -1
-            self.emitted_timestamp = time.time()
-            if elapsed_since_last_emit >= 0 and (elapsed_since_last_emit < self.debounce_time):
-            
-                pass
-            else:
-                self.signal.emit()
     
 
 class epicsMonitor(QtCore.QObject):

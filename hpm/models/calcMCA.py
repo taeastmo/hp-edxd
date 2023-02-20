@@ -1,9 +1,10 @@
+import imp
 import numpy as np
 #from epics.clibs import *
 import copy
 import time
 import utilities.hpMCAutilities as hpUtil
-from PyQt5 import QtCore
+from PyQt5.QtCore import pyqtSignal, QObject
 from PyQt5.QtWidgets import QMessageBox
 from hpm.models.mcaModel import *
 from PyQt5 import QtCore, QtWidgets
@@ -11,6 +12,9 @@ from PyQt5 import QtCore, QtWidgets
 from .mcaModel import McaCalibration, McaElapsed, McaROI, McaEnvironment
 
 import natsort
+
+
+
 
 class multiFileMCA(MCA):
     """
@@ -56,12 +60,15 @@ class multiFileMCA(MCA):
         
         self.max_rois = 24           
         self.max_spectra = 500
-        self.initOK = False             
+        self.initOK = False           
+        self.handle_new_file = lambda new_file: print(f"New file detected: {new_file}")
+        self.watch_folder = None 
 
     ########################################################################
     
     
-    def read_files(self, folder, *args, **kwargs):
+    
+    def read_files(self, *args, **kwargs):
         """
         Reads multiple disk files into a single multi-detector MCA object.  
         The netcdf input is depricated and is not used.
@@ -88,25 +95,45 @@ class multiFileMCA(MCA):
             mca.read_file('mca.001')
         """
         success = False
-
-        if folder == '':
-            return
-        paths = []
-        files_filtered = []
        
-        if os.path.exists(folder):
-            files = natsort.natsorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
-            for f in files:
-                if f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy') or f[-3:].isnumeric() :
-                    file = os.path.join(folder, f) 
-                    paths.append(file)  
-                    files_filtered.append(f)
-            filenames = paths
+
+        if 'folder' in kwargs:
+            folder = kwargs['folder']
+        
+            if folder == '':
+                return
+            paths = []
+            #files_filtered = []
+        
+            if os.path.exists(folder):
+                files = natsort.natsorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and not f.startswith('.')]) 
+                for f in files:
+                    if f.endswith('.hpmca') or f.endswith('.chi') or f.endswith('.mca') or f.endswith('.xy') or f[-3:].isnumeric() :
+                        file = os.path.join(folder, f) 
+                        paths.append(file)  
+                        #files_filtered.append(f)
+                filenames = paths
+        else:
+            if 'paths' in kwargs:
+                paths = kwargs['paths']
+                if len(paths) < 1:
+                    return
+                
+                folder = os.path.split( paths[0])[0]
+                filenames = paths
+        
+            else:
+                filenames = []
 
         if 'progress_dialog' in kwargs:
             progress_dialog = kwargs['progress_dialog']
         else:
             progress_dialog = QtWidgets.QProgressDialog()
+
+        if 'replace' in kwargs:
+            replace = kwargs['replace']
+        else:
+            replace = True
             
 
         if len(filenames):
@@ -126,28 +153,56 @@ class multiFileMCA(MCA):
             progress_dialog.close()
         
         if success == True:
-            self.file_name=folder
-            
-            self.data = r['data']
-            self.nchans = len(r['data'][0])
-            self.n_detectors=r['n_detectors']
 
-            calibration = self.calibration_persistent
-            if len(calibration) == self.n_detectors:
-                for i, cal in enumerate(calibration):
-                    self.set_calibration(cal, i)
+            if replace:
+                self.file_name=folder
+                self.data = r['data']
+                self.nchans = len(r['data'][0])
+                self.n_detectors=r['n_detectors']
+
+                calibration = self.calibration_persistent
+                if len(calibration) == self.n_detectors:
+                    for i, cal in enumerate(calibration):
+                        self.set_calibration(cal, i)
+                else:
+                    self.clear_persistent_calibration()
+                    self.calibration = r['calibration']
+
+                self.rois_from_file = r['rois']
+                self.rois = r['rois']
+                self.elapsed = r['elapsed']
+                
+                self.environment = r['environment']
+                self.name = os.path.split(folder)[-1]
+                self.dx_type = r['dx_type']
+
+                self.files_loaded = r['files_loaded']
+            
             else:
-                self.clear_persistent_calibration()
-                self.calibration = r['calibration']
+                #self.file_name=folder
+                self.data = np.concatenate((self.data, r['data']), axis=0) 
+                #self.nchans = len(r['data'][0])
+                self.n_detectors += r['n_detectors']
 
-            self.rois_from_file = r['rois']
-            self.rois = r['rois']
-            self.elapsed = r['elapsed']
-            
-            self.environment = r['environment']
-            self.name = os.path.split(folder)[-1]
-            self.dx_type = r['dx_type']
+                calibration = self.calibration_persistent
+                if len(calibration) == self.n_detectors:
+                    for i, cal in enumerate(calibration):
+                        self.set_calibration(cal, i)
+                else:
+                    self.clear_persistent_calibration()
+                    self.calibration +=  r['calibration']
+
+                self.rois_from_file += r['rois']
+                self.rois += r['rois']
+                self.elapsed += r['elapsed']
+                
+                #self.environment += r['environment']
+                #self.name = os.path.split(folder)[-1]
+                #self.dx_type = r['dx_type']
+
+                self.files_loaded += r['files_loaded']
     
+        print('added')
         return([paths,success])
 
         
@@ -316,9 +371,11 @@ class multiFileMCA(MCA):
         r['data'] = data
         r['environment'] = environment
         r['dx_type'] = dx_type
+        r['files_loaded'] = files_loaded
 
-        self.files_loaded = files_loaded
+        
         success = True
+        
         return [r, success]
 
     def read_chi_files_2d(self, paths, *args, **kwargs):
@@ -406,7 +463,7 @@ class multiFileMCA(MCA):
         r['wavelength'] = wavelength
         r['dx_type'] = 'adx'
 
-        self.files_loaded = files_loaded
+        r['files_loaded'] = files_loaded
         success = True
         return [r, success]
 
