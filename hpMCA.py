@@ -21,7 +21,7 @@ main()
 # TODO epics PVs for application flow control
 # TODO try smooth_bruckner for baseline subtraction, save bg subtracted file
 
-# TODO add ROI width options for the xrd module   
+# TODO add ROI width options for the xrf module   
 
 # TODO output lattice refinement results as table
 # TODO multi detector display
