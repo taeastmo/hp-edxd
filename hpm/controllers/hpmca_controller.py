@@ -362,8 +362,8 @@ class hpmcaController(QObject):
                 [live_val, real_val] = self.epicsPresets
                 epicsElapsedTimeBtns_PRTM = self.epicsElapsedTimeBtns_PRTM
                 epicsElapsedTimeBtns_PLTM = self.epicsElapsedTimeBtns_PLTM
-                self.mca.dataAcquired.disconnect()
-                self.mca.acq_stopped.disconnect() 
+                self.mca.dataAcquired.disconnect(self.dataReceivedEpics)
+                self.mca.acq_stopped.disconnect(self.file_save_controller.acq_stopped) 
                 self.epicsMCAholder = self.mca
                 self.blockSignals(True)
                 for btn in self.epicsBtns:

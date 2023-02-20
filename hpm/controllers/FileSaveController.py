@@ -447,16 +447,17 @@ class FileSaveController(object):
             print(f"Stopped watching all directories.")
     
     def handle_directory_changed(self):
-        if self.directory_changed_connected:
-            directories =  self.folder_watcher.directories()
-            if len(directories):
-                path = directories[0]
-                paths = []
-                eL = QDir(path).entryList(QDir.Files)
-                for file in eL:
-                    file_path = QDir.toNativeSeparators(path + '/' + file)
-                    paths.append(file_path)
-                self.add_files(paths)
+        if self.mca_controller.Foreground == 'file':
+            if self.directory_changed_connected:
+                directories =  self.folder_watcher.directories()
+                if len(directories):
+                    path = directories[0]
+                    paths = []
+                    eL = QDir(path).entryList(QDir.Files)
+                    for file in eL:
+                        file_path = QDir.toNativeSeparators(path + '/' + file)
+                        paths.append(file_path)
+                    self.add_files(paths)
 
             
 
