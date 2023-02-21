@@ -345,8 +345,8 @@ class PltWidget(pg.PlotWidget):
         self.vLine.hide()
         self.vLineFast.hide()
         exporter = pg.exporters.ImageExporter(self.plotItem)
-        exporter.params.param('width').setValue(1920, blockSignal=exporter.widthChanged)
-        exporter.params.param('height').setValue(1080, blockSignal=exporter.heightChanged)
+        #exporter.params.param('width').setValue(1920, blockSignal=exporter.widthChanged)
+        #exporter.params.param('height').setValue(1080, blockSignal=exporter.heightChanged)
      
         exporter.export(filename)
         self.vLine.show()

@@ -19,7 +19,7 @@
 from functools import partial
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5 import QtWidgets, QtCore, QtGui
-import copy
+import copy, os
 import numpy as np
 import pyqtgraph as pg
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, VerticalSpacerItem, NoRectDelegate, \
@@ -28,7 +28,7 @@ from hpm.widgets.PltWidget import PltWidget
 from hpm.widgets.MaskWidget import MaskWidget
 from hpm.widgets.plot_widgets import ImgWidget2
 from hpm.controllers.DisplayPrefsController import DisplayPreferences
-
+from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_files_dialog, CifConversionParametersDialog, open_folder_dialog
 from hpm.controllers.MaskController import MaskController
 from hpm.models.MaskModel import MaskModel
 
@@ -94,10 +94,11 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self._body_layout = QtWidgets.QHBoxLayout()
 
         self.plot_tabs = TabWidget()
-        style_sheet = "QTabBar::tab { min-width: 20px; }"
-        self.plot_tabs.setStyleSheet(style_sheet)
+        #style_sheet = "QTabBar::tab { min-width: 20px; }"
+        #self.plot_tabs.setStyleSheet(style_sheet)
         
         self.scratch_plots = {}
+        self.scratch_plots_btns = {}
         self.mask_controllers = {}
         self.displayPrefs = {}
 
@@ -142,11 +143,28 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         return plot
         
     def add_tab(self, widget, label, desc):
+        btn = QtWidgets.QPushButton('Export')
+        self.scratch_plots_btns[desc] = btn
+        btn.clicked.connect(partial(self.handle_export_btn, desc))
         w = QtWidgets.QWidget()
         w_layout = QtWidgets.QVBoxLayout(w)
         w_layout.addWidget(QtWidgets.QLabel(desc))
+        w_layout.addWidget(btn)
         w_layout.addWidget(widget)
         self.plot_tabs.addTab(w, label, desc)
+
+    def handle_export_btn(self, desc):
+        plot = self.scratch_plots[desc]
+      
+        filename = save_file_dialog(
+            self, "Export plot.",'',('png (*.png)'))
+        if filename != '':
+            self.export(plot, filename)
+
+    def export(self, plot, filename):
+        
+        if filename.endswith('.png'):
+            plot.export_plot_png(filename)
 
     def set_scales_enabled_states(self, enabled=['Channel']):
         for btn in self.scales_btns:

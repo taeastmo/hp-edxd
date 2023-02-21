@@ -276,8 +276,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             data = self.steps['dataset E'].get_data_out()
             self.steps['mask in E'].set_data_in(data)
             mask = np.zeros(data.shape) == 1
-            mask[:,:1100] = True
-            mask[:,3350:] = True
+            mask[:,:1200] = True
+            mask[:,3450:] = True
             
             self.steps['mask in E'].set_mask(mask)
             self.steps['mask in E'].calculate()
@@ -370,7 +370,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['S(q)'].set_data_in(data)
 
             mask = self.steps['mask in q'].get_mask()
-            self.steps['S(q)'].set_param({'mask_img':mask, 'range':(0,rows-1)})
+            self.steps['S(q)'].set_param({'mask_img':mask, 'range':(4,rows-1)})
             
             w_q = self.steps['weights q'].get_data_out()
             
