@@ -406,7 +406,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['Flaten 3'].set_data_in(data)
 
             mask = self.steps['mask in E'].get_mask()
-            self.steps['Flaten 3'].set_param({'mask_img':mask, 'range':(80,rows-1)})
+            self.steps['Flaten 3'].set_param({'mask_img':mask, 'range':(20,rows-1)})
 
             weights = np.ones(data.shape)
 
