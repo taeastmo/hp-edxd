@@ -31,7 +31,7 @@ class TabWidget(QtWidgets.QWidget):
         super().__init__(parent)
         self.btn_grp = QtWidgets.QButtonGroup()
         self.btn_grp.setExclusive(True)
-        self.tabwidget = QtWidgets.QTabWidget()
+        self.tabwidget = QtWidgets.QStackedWidget()
         self.btns = []
         self.btn_grp.buttonClicked.connect(self.handle_button_click)
 
@@ -48,14 +48,14 @@ class TabWidget(QtWidgets.QWidget):
         self.main_layout.addWidget(self.tabwidget)
         self.setLayout(self.main_layout)
 
-        self.tabwidget.tabBar().hide()
+        #self.tabwidget.tabBar().hide()
 
     def handle_button_click(self, button: QtWidgets.QPushButton):
         button.setChecked(True)
         self.tabwidget.setCurrentIndex(self.btns.index(button))
 
     def addTab(self, widget, label, desc):
-        self.tabwidget.addTab( widget, label)
+        self.tabwidget.addWidget( widget)
         btn = QtWidgets.QPushButton(label + ' : ' + desc)
         btn.setCheckable(True)
         self.btns.append(btn)

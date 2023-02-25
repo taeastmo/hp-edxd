@@ -50,7 +50,7 @@ class AmorphousAnalysisWidget(QtWidgets.QWidget):
         self.directories = directories
         self._layout = QtWidgets.QVBoxLayout()  
         self.setWindowTitle('Amorphous analysis')
-        self.resize(1200,700)
+        self.resize(1000,700)
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setMaximumHeight(40)
         self.button_widget.setObjectName('multispectra_control_button_widget')
