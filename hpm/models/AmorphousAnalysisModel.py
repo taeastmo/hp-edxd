@@ -204,7 +204,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         
         steps['Normalize'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
         
-        steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
+        #steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         steps['convert to q'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
         steps['convert to q Ieff'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
         steps['mask in q'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
