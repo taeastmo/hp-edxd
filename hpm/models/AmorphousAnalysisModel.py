@@ -372,6 +372,12 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['weights q'].set_data_in(w_q)
             self.steps['weights q'].calculate()
 
+            #################################################
+
+            ####### GET row scale may not be working well yet
+
+            #################################################
+
             self.steps['get row scale'].set_data_in(self.steps['mask in q'].get_data_out())
             
             self.steps['get row scale'].set_param({'mask_img':mask})
