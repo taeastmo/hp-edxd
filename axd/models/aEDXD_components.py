@@ -94,8 +94,15 @@ class primaryBeam(Calculator):
         # find [Ip(E')/Ip(E)] ratio iteratively:
         fs = np.ones(len(xp),dtype=float) # initial relative scale assumed one
         qp = 4*np.pi/(12.3984/xp)*np.sin(np.radians(tth/2))
-        xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
-        qpc = 4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+        xpc = xp#-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+        qpc = qp#4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+        print('tth '+ str(tth))
+        print('xp '+ str(xp[0]) + ' ... '+str(xp[-1]))
+        print('xpc '+ str(xpc[0]) + ' ... '+str(xpc[-1]))
+        print('xqpp '+ str(qp[0]) + ' ... '+str(qp[-1]))
+        print('qpc '+ str(qpc[0]) + ' ... '+str(qpc[-1]))
+        
+        
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
         
         # start iteration; UPDATED: iretation was replaced at some point in time by custom_fit
@@ -178,6 +185,11 @@ class structureFactor(Calculator):
             qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
             xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
             qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+            print('tth '+ str(tth))
+            print('xn '+ str(xn[0]) + ' ... '+str(xn[-1]))
+            print('xpc '+ str(xnc[0]) + ' ... '+str(xnc[-1]))
+            print('qi '+ str(qi[0]) + ' ... '+str(qi[-1]))
+            print('qic '+ str(qic[0]) + ' ... '+str(qic[-1]))
             mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
             y_primary = model_func(xn,*p_opt)
             Iq_base = mean_fqsquare + mean_I_inc

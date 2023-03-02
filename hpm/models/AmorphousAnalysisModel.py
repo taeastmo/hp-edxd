@@ -798,6 +798,12 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
             xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
             qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+
+            print('tth '+ str(tth))
+            print('xn '+ str(xn[0]) + ' ... '+str(xn[-1]))
+            print('xpc '+ str(xnc[0]) + ' ... '+str(xnc[-1]))
+            print('qi '+ str(qi[0]) + ' ... '+str(qi[-1]))
+            print('qic '+ str(qic[0]) + ' ... '+str(qic[-1]))
             mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
             y_primary = model_func(xn,*p_opt)
             Iq_base = mean_fqsquare + mean_I_inc
