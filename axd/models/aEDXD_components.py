@@ -18,6 +18,7 @@ from axd.models.aEDXD_functions import *
 import copy
 import os
 import time
+import pyqtgraph as pg
 
 from utilities.hpMCAutilities import compare
 from utilities.hpMCAutilities import Preferences as Calculator
@@ -114,10 +115,21 @@ class primaryBeam(Calculator):
         p_opt,p_stdev,p_cov,p_corp,schi2,r = \
                         custom_fit(model_func,xp,yp/Iq_base,p0,ypb/Iq_base)
         y_model = model_func(xp,*p_opt)*Iq_base
-        I_p = model_func(xp,*p_opt)
+        '''I_p = model_func(xp,*p_opt)
         I_p_inc = model_func(xpc,*p_opt)
-        fs = I_p_inc/I_p
+        fs = I_p_inc/I_p'''
 
+        self.win = pg.GraphicsLayoutWidget(show=True, title="Basic plotting examples")
+        self.win.resize(1000,600)
+        self.win.setWindowTitle('pyqtgraph example: Plotting')
+
+        # Enable antialiasing for prettier plots
+        pg.setConfigOptions(antialias=True)
+
+        self.p1 = self.win.addPlot(title="model_func(xp,*p_opt)", x=qp , y=model_func(xp,*p_opt))
+        self.p2 = self.win.addPlot(title="Iq_base", x=qp , y=Iq_base)
+        self.p2 = self.win.addPlot(title="yp", x=qp , y=yp)
+        self.win.show()
         # propagate the mean residual error
         model_mre = np.sqrt(sum((yp/Iq_base - y_model/Iq_base))**2/len(yp))
         # Note that the mean residual error defined here is non-standard.
