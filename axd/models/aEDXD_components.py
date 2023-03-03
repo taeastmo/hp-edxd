@@ -97,11 +97,11 @@ class primaryBeam(Calculator):
         qp = 4*np.pi/(12.3984/xp)*np.sin(np.radians(tth/2))
         xpc = xp#-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
         qpc = qp#4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
-        print('tth '+ str(tth))
+        '''print('tth '+ str(tth))
         print('xp '+ str(xp[0]) + ' ... '+str(xp[-1]))
         print('xpc '+ str(xpc[0]) + ' ... '+str(xpc[-1]))
         print('xqpp '+ str(qp[0]) + ' ... '+str(qp[-1]))
-        print('qpc '+ str(qpc[0]) + ' ... '+str(qpc[-1]))
+        print('qpc '+ str(qpc[0]) + ' ... '+str(qpc[-1]))'''
         
         
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
@@ -119,7 +119,7 @@ class primaryBeam(Calculator):
         I_p_inc = model_func(xpc,*p_opt)
         fs = I_p_inc/I_p'''
 
-        self.win = pg.GraphicsLayoutWidget(show=True, title="Basic plotting examples")
+        '''self.win = pg.GraphicsLayoutWidget(show=True, title="Basic plotting examples")
         self.win.resize(1000,600)
         self.win.setWindowTitle('pyqtgraph example: Plotting')
 
@@ -129,7 +129,7 @@ class primaryBeam(Calculator):
         self.p1 = self.win.addPlot(title="model_func(xp,*p_opt)", x=qp , y=model_func(xp,*p_opt))
         self.p2 = self.win.addPlot(title="Iq_base", x=qp , y=Iq_base)
         self.p2 = self.win.addPlot(title="yp", x=qp , y=yp)
-        self.win.show()
+        self.win.show()'''
         # propagate the mean residual error
         model_mre = np.sqrt(sum((yp/Iq_base - y_model/Iq_base))**2/len(yp))
         # Note that the mean residual error defined here is non-standard.
@@ -197,11 +197,11 @@ class structureFactor(Calculator):
             qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
             xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
             qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
-            print('tth '+ str(tth))
+            '''print('tth '+ str(tth))
             print('xn '+ str(xn[0]) + ' ... '+str(xn[-1]))
             print('xpc '+ str(xnc[0]) + ' ... '+str(xnc[-1]))
             print('qi '+ str(qi[0]) + ' ... '+str(qi[-1]))
-            print('qic '+ str(qic[0]) + ' ... '+str(qic[-1]))
+            print('qic '+ str(qic[0]) + ' ... '+str(qic[-1]))'''
             mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
             y_primary = model_func(xn,*p_opt)
             Iq_base = mean_fqsquare + mean_I_inc
