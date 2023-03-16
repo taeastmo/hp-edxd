@@ -182,15 +182,17 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
                 ('mask in q',2,2,True),
                 ('weights q',2,2),
                 ('get row scale',2,1),
-                ('apply scaling',2,2),
-                ('I_t(q)',2,1), # I_t = I_coh + I_inc
+                ('apply row scaling',2,2),
+                ('a_I_t(q)',2,1), # I_t = I_coh + I_inc
                 ('Iq to E', 1,2),
                 ('normalize by Iq',2,2),
-                
-                
-                #('apply scaling 2',2,2),
-                #('apply scaling 3',2,2),
+ 
                 ('I_eff(E)',2,1),
+                ('I_base(q)',1,1),
+                ('Scale factor',1,1),
+                ('I_t(q)',1,1),
+                ('I_t-I_base',1,1),
+                ('mean_fq',1,1),
                 ]
         for i, d in enumerate(self.defs):
 
@@ -205,31 +207,27 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         
         steps['Normalize'].set_function(self._normalize, ['data_in', 'mask_img', 'norm_function'],  ['data_out'])
         
-        #steps['mask in E'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         steps['convert to q'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
         steps['convert to q Ieff'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
         steps['mask in q'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         
         steps['weights q'].set_function(self._propagate_data, ['data_in'],  ['data_out'])
         steps['get row scale'].set_function(self._get_row_scale, ['data_in', 'mask_img','weights'],  ['data_out'])
-        steps['apply scaling'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
-
-        #steps['Flaten 2'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+        steps['apply row scaling'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
         steps['Iq to E'].set_function(self._q_to_channel, ['data_in'],  ['data_out'])
 
         steps['normalize by Iq'].set_function(self._normalize_3d, ['data_in','mask_img', 'norm_function'],  ['data_out'])
-        steps['I_t(q)'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+        steps['a_I_t(q)'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
 
-        #steps['scale dataset E'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
-        steps['I_eff(E)'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
-        #steps['apply scaling 2'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
-        #steps['apply scaling 3'].set_function(self._apply_row_scale, ['data_in', 'row_scale_in'],  ['data_out'])
+        steps['I_eff(E)'].set_function(self._flaten_data, ['data_in','range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+       
+        steps['I_base(q)'].set_function(self._get_I_base, ['data_in', 'opts','unit_in','scale_in'],  ['data_out'])
+        steps['Scale factor'].set_function(self._get_scaling_factor, ['data_in', 'I_base', 'range','unit_in','scale_in'],  ['data_out'])
 
-        
-        #steps['I_t(q) corr'].set_function(self._flaten_data, ['data_in',  'range','unit_in','scale_in', 'mask_img','weights'],  ['data_out'])
+        steps['I_t(q)'].set_function(self._apply_scale_2d, ['data_in', 'scale_in'],  ['data_out'])
+        steps['I_t-I_base'].set_function(self._subtract_2d, ['data_in', 'subtract_data'],  ['data_out'])
 
-        #steps['convert to q corr'].set_function(self._rebin, ['data_in', 'unit_in', 'unit_out', 'mask_img'],  ['data_out', 'mask_out'])
-        
+        steps['mean_fq'].set_function(self._get_mean_fq, ['data_in', 'opts','unit_in','scale_in'],  ['data_out'])
 
         self.steps = steps
 
@@ -255,6 +253,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         for n in range(5):
             self.calculate_2()
             self.calculate_3()
+        
+        self.calculate_4()
 
     def calculate_2(self):
         for step in (14,):
@@ -265,7 +265,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self._calculate_step(step)
 
     def calculate_4(self):
-        for step in (1,):
+        for step in (16,):
             self._calculate_step(step)
 
     def calculate_5(self):
@@ -391,28 +391,28 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['get row scale'].calculate()
 
         elif step == 8:
-            self.steps['apply scaling'].set_data_in(self.steps['mask in q'].get_data_out())
+            self.steps['apply row scaling'].set_data_in(self.steps['mask in q'].get_data_out())
      
             row_scale_in = self.steps['get row scale'].get_data_out()
-            self.steps['apply scaling'].set_param({'row_scale_in':row_scale_in})
-            self.steps['apply scaling'].calculate()    
+            self.steps['apply row scaling'].set_param({'row_scale_in':row_scale_in})
+            self.steps['apply row scaling'].calculate()    
 
         elif step == 9:
 
-            data = self.steps['apply scaling'].get_data_out()
+            data = self.steps['apply row scaling'].get_data_out()
             rows = data.shape[0]
-            self.steps['I_t(q)'].set_data_in(data)
+            self.steps['a_I_t(q)'].set_data_in(data)
 
             mask = self.steps['mask in q'].get_mask()
-            self.steps['I_t(q)'].set_param({'mask_img':mask, 'range':(5,rows-1)})
+            self.steps['a_I_t(q)'].set_param({'mask_img':mask, 'range':(5,rows-1)})
             
             w_q = self.steps['weights q'].get_data_out()
             
-            self.steps['I_t(q)'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
-            self.steps['I_t(q)'].calculate()
+            self.steps['a_I_t(q)'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['a_I_t(q)'].calculate()
             
         elif step == 10:
-            self.steps['Iq to E'].set_data_in(self.steps['I_t(q)'].get_data_out())
+            self.steps['Iq to E'].set_data_in(self.steps['a_I_t(q)'].get_data_out())
             self.steps['Iq to E'].calculate()
 
         elif step == 11:
@@ -423,16 +423,17 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             self.steps['normalize by Iq'].calculate()
 
         elif step == 12:
-            
-            """self.steps['apply scaling 2'].set_data_in(self.steps['normalize by Iq'].get_data_out())
-            row_scale_in = self.steps['get row scale'].get_data_out()
-            self.steps['apply scaling 2'].set_param({'row_scale_in':row_scale_in})
-            self.steps['apply scaling 2'].calculate()   """ 
 
-            '''self.steps['apply scaling 3'].set_data_in(self.steps['dataset E'].get_data_out())
+            pass
+            """self.steps['apply row scaling 2'].set_data_in(self.steps['normalize by Iq'].get_data_out())
             row_scale_in = self.steps['get row scale'].get_data_out()
-            self.steps['apply scaling 3'].set_param({'row_scale_in':row_scale_in})
-            self.steps['apply scaling 3'].calculate()   ''' 
+            self.steps['apply row scaling 2'].set_param({'row_scale_in':row_scale_in})
+            self.steps['apply row scaling 2'].calculate()   """ 
+
+            '''self.steps['apply row scaling 3'].set_data_in(self.steps['dataset E'].get_data_out())
+            row_scale_in = self.steps['get row scale'].get_data_out()
+            self.steps['apply row scaling 3'].set_param({'row_scale_in':row_scale_in})
+            self.steps['apply row scaling 3'].calculate()   ''' 
 
         elif step == 13:
             data = self.steps['normalize by Iq'].get_data_out()
@@ -470,15 +471,43 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         elif step == 15:
             data = self.steps['convert to q'].get_data_out()
             rows = data.shape[0]
-            self.steps['I_t(q)'].set_data_in(data)
+            self.steps['a_I_t(q)'].set_data_in(data)
 
             mask = self.steps['mask in q'].get_mask()
-            self.steps['I_t(q)'].set_param({'mask_img':mask, 'range':(0,rows-1)})
+            self.steps['a_I_t(q)'].set_param({'mask_img':mask, 'range':(0,rows-1)})
             
             w_q = self.steps['weights q'].get_data_out()
             
-            self.steps['I_t(q)'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['a_I_t(q)'].set_param({'weights':w_q, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['a_I_t(q)'].calculate()
+
+        elif step == 16:
+            data = self.steps['a_I_t(q)'].get_data_out()
+            q = data[0]
+            self.steps['I_base(q)'].set_data_in(q)
+            self.steps['I_base(q)'].set_param({'opts':{'element':'Fe'}, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['I_base(q)'].calculate()
+
+            self.steps['Scale factor'].set_data_in(data)
+            I_base = self.steps['I_base(q)'].get_data_out()
+            self.steps['Scale factor'].set_param({'range':[2000,3000], 'I_base':I_base,'unit_in':'q','scale_in':self.scale_q})
+            self.steps['Scale factor'].calculate()
+
+            scale_in = self.steps['Scale factor'].get_data_out()[1]*1.2
+            self.steps['I_t(q)'].set_data_in(data)
+            self.steps['I_t(q)'].set_param({'scale_in':scale_in})
             self.steps['I_t(q)'].calculate()
+
+            I_t = self.steps['I_t(q)'].get_data_out()
+            self.steps['I_t-I_base'].set_data_in(I_t)    
+            subtract_data = self.steps['I_base(q)'].get_data_out()
+            self.steps['I_t-I_base'].set_param({'subtract_data':subtract_data})
+            self.steps['I_t-I_base'].calculate()
+
+            
+            self.steps['mean_fq'].set_data_in(q)
+            self.steps['mean_fq'].set_param({'opts':{'element':'Fe'}, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['mean_fq'].calculate()
  
     def _propagate_data(self, **args):
         # propagates data_in to data_out
@@ -552,6 +581,80 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['data_out'] = out
         return args
 
+    def _get_I_base(self, **args):
+        q = args['data_in']
+        
+        opts = args['opts']
+        element = opts['element']
+        unit = args['unit_in']
+        
+        sq_par = self.get_sq_par(element)
+        
+
+        mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(q,q,sq_par)
+        Iq_base = mean_fqsquare + mean_I_inc
+        
+        
+        args['data_out'] = np.asarray([q, Iq_base])
+        return args
+
+    def _get_mean_fq(self, **args):
+        q = args['data_in']
+        
+        opts = args['opts']
+        element = opts['element']
+        unit = args['unit_in']
+        
+        sq_par = self.get_sq_par(element)
+        
+
+        mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(q,q,sq_par)
+        # Iq_base = mean_fqsquare + mean_I_inc
+        
+        
+        args['data_out'] = np.asarray([q, mean_fq])
+        return args
+
+    def _get_scaling_factor(self, **args):
+        rng = args['range']
+        data = args['data_in']
+        q = data[0]
+        I_t = data[1]
+        
+        
+        I_base = args['I_base'][1]
+        unit = args['unit_in']
+        
+        
+        a = np.ones(q.shape) * np.average( I_base[rng[0]:rng[1]]/I_t[rng[0]:rng[1]])
+        
+        
+        
+        args['data_out'] = np.asarray([q, a])
+        return args
+
+    def _apply_scale_2d(self, **args):
+        
+        data = args['data_in']
+        scale_in = args['scale_in'][1]
+        
+        new_data= data[1] * scale_in
+
+        args['data_out'] = np.asarray([data[0],new_data])
+        return args
+
+    def _subtract_2d(self, **args):
+        # divides each row in the data_in (3D) by the norm_function (3D)
+        data = args['data_in']
+        
+        subtract_data = args['subtract_data'][1]
+        
+        out = data[1] - subtract_data 
+        
+        args['data_out'] = np.asarray([data[0],out])
+
+        return args    
+
     def _subtract_3d(self, **args):
         # divides each row in the data_in (3D) by the norm_function (3D)
         data = args['data_in']
@@ -575,15 +678,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['data_out'] = out
         return args
 
-    @staticmethod
-    def find_non_zero_range(a):
-        # Find the indices of the non-zero elements
-        nonzero_indices = np.flatnonzero(a)
-        # Find the index of the maximum value among the non-zero indices
-        last_nonzero_index = np.amax(nonzero_indices)
-        # Find the index of the minimum value among the non-zero indices
-        first_nonzero_index = np.amin(nonzero_indices)
-        return first_nonzero_index, last_nonzero_index
+    
 
     def _get_row_scale(self, **args):
         # calculates the relative scaling of rows with the last row having the scale value of 1
@@ -923,4 +1018,12 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
 
 
-    
+    @staticmethod
+    def find_non_zero_range(a):
+        # Find the indices of the non-zero elements
+        nonzero_indices = np.flatnonzero(a)
+        # Find the index of the maximum value among the non-zero indices
+        last_nonzero_index = np.amax(nonzero_indices)
+        # Find the index of the minimum value among the non-zero indices
+        first_nonzero_index = np.amin(nonzero_indices)
+        return first_nonzero_index, last_nonzero_index
