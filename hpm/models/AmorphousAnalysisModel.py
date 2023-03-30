@@ -192,7 +192,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
                 ('Scale factor',1,1),
                 ('I_t(q)',1,1),
                 ('I_t-I_base',1,1),
-                ('mean_fq',1,1),
+                ('(mean_fq)^2',1,1),
+                ('S(q)',1,1),
                 ]
         for i, d in enumerate(self.defs):
 
@@ -226,8 +227,8 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
         steps['I_t(q)'].set_function(self._apply_scale_2d, ['data_in', 'scale_in'],  ['data_out'])
         steps['I_t-I_base'].set_function(self._subtract_2d, ['data_in', 'subtract_data'],  ['data_out'])
-
-        steps['mean_fq'].set_function(self._get_mean_fq, ['data_in', 'opts','unit_in','scale_in'],  ['data_out'])
+        steps['(mean_fq)^2'].set_function(self._get_mean_fq_squared, ['data_in', 'opts','unit_in','scale_in'],  ['data_out'])
+        steps['S(q)'].set_function(self._get_Sq, ['data_in', 'I_base', '(mean_fq)^2','a', 'unit_in','scale_in'],  ['data_out'])
 
         self.steps = steps
 
@@ -490,24 +491,29 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
 
             self.steps['Scale factor'].set_data_in(data)
             I_base = self.steps['I_base(q)'].get_data_out()
-            self.steps['Scale factor'].set_param({'range':[2000,3000], 'I_base':I_base,'unit_in':'q','scale_in':self.scale_q})
+            self.steps['Scale factor'].set_param({'range':[2000,3500], 'I_base':I_base,'unit_in':'q','scale_in':self.scale_q})
             self.steps['Scale factor'].calculate()
 
-            scale_in = self.steps['Scale factor'].get_data_out()[1]*1.2
+            scale_in = self.steps['Scale factor'].get_data_out()[1][0]
             self.steps['I_t(q)'].set_data_in(data)
             self.steps['I_t(q)'].set_param({'scale_in':scale_in})
             self.steps['I_t(q)'].calculate()
 
             I_t = self.steps['I_t(q)'].get_data_out()
             self.steps['I_t-I_base'].set_data_in(I_t)    
-            subtract_data = self.steps['I_base(q)'].get_data_out()
+            subtract_data = I_base
             self.steps['I_t-I_base'].set_param({'subtract_data':subtract_data})
             self.steps['I_t-I_base'].calculate()
-
+            I_t_minus_I_base = self.steps['I_t-I_base'].get_data_out()
             
-            self.steps['mean_fq'].set_data_in(q)
-            self.steps['mean_fq'].set_param({'opts':{'element':'Fe'}, 'unit_in':'q','scale_in':self.scale_q})
-            self.steps['mean_fq'].calculate()
+            self.steps['(mean_fq)^2'].set_data_in(q)
+            self.steps['(mean_fq)^2'].set_param({'opts':{'element':'Fe'}, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['(mean_fq)^2'].calculate()
+            mean_fq_squared = self.steps['(mean_fq)^2'].get_data_out()
+
+            self.steps['S(q)'].set_data_in(I_t)
+            self.steps['S(q)'].set_param({'I_base':I_base,'I_t-I_base':I_t_minus_I_base , '(mean_fq)^2':mean_fq_squared, 'a':scale_in,  'unit_in':'q','scale_in':self.scale_q})
+            self.steps['S(q)'].calculate()
  
     def _propagate_data(self, **args):
         # propagates data_in to data_out
@@ -598,7 +604,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         args['data_out'] = np.asarray([q, Iq_base])
         return args
 
-    def _get_mean_fq(self, **args):
+    def _get_mean_fq_squared(self, **args):
         q = args['data_in']
         
         opts = args['opts']
@@ -612,7 +618,25 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         # Iq_base = mean_fqsquare + mean_I_inc
         
         
-        args['data_out'] = np.asarray([q, mean_fq])
+        args['data_out'] = np.asarray([q, mean_fq**2 ])
+        return args
+
+    
+    def _get_Sq(self, **args):
+        data_in  = args['data_in']
+        q = data_in[0]
+        I_t = data_in[1]
+        
+        I_base = args['I_base'][1]
+        a = args['a']
+        mean_fq_squared = args['(mean_fq)^2'][1]
+
+        unit = args['unit_in']
+        
+        
+        Sq = (I_t  - I_base)/mean_fq_squared  +1
+        
+        args['data_out'] = np.asarray([q, Sq])
         return args
 
     def _get_scaling_factor(self, **args):
@@ -636,7 +660,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
     def _apply_scale_2d(self, **args):
         
         data = args['data_in']
-        scale_in = args['scale_in'][1]
+        scale_in = args['scale_in']
         
         new_data= data[1] * scale_in
 
