@@ -15,6 +15,8 @@
 
 
 from fileinput import filelineno
+
+from axd.models import aEDXD_atomic_parameters
 #import imp
 #from this import d
 '''from tkinter import N
@@ -38,6 +40,7 @@ import hpm.models.Xrf as Xrf
 
 from hpm.models.MaskModel import MaskModel
 from axd.models.aEDXD_functions import I_base_calc
+from axd.models.aEDXD_atomic_parameters import aEDXDAtomicParameters
 
 from .. import resources_path
 
@@ -135,6 +138,10 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         
         self.mca = None
         self.multi_spectra_model =  None
+
+        self.element_opts = {'elements':['Si','O'],'choices_abc':['Si4+','O1-'],'choices_mkl':['Si','O'], 'fractions':[.333,.667]}
+
+        self.ap = aEDXDAtomicParameters()
 
         self.steps = {}
         self.make_calculators()
@@ -486,12 +493,12 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             data = self.steps['a_I_t(q)'].get_data_out()
             q = data[0]
             self.steps['I_base(q)'].set_data_in(q)
-            self.steps['I_base(q)'].set_param({'opts':{'element':'Fe'}, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['I_base(q)'].set_param({'opts':self.element_opts, 'unit_in':'q','scale_in':self.scale_q})
             self.steps['I_base(q)'].calculate()
 
             self.steps['Scale factor'].set_data_in(data)
             I_base = self.steps['I_base(q)'].get_data_out()
-            self.steps['Scale factor'].set_param({'range':[2000,3500], 'I_base':I_base,'unit_in':'q','scale_in':self.scale_q})
+            self.steps['Scale factor'].set_param({'range':[500,2200], 'I_base':I_base,'unit_in':'q','scale_in':self.scale_q})
             self.steps['Scale factor'].calculate()
 
             scale_in = self.steps['Scale factor'].get_data_out()[1][0]
@@ -507,7 +514,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
             I_t_minus_I_base = self.steps['I_t-I_base'].get_data_out()
             
             self.steps['(mean_fq)^2'].set_data_in(q)
-            self.steps['(mean_fq)^2'].set_param({'opts':{'element':'Fe'}, 'unit_in':'q','scale_in':self.scale_q})
+            self.steps['(mean_fq)^2'].set_param({'opts':self.element_opts, 'unit_in':'q','scale_in':self.scale_q})
             self.steps['(mean_fq)^2'].calculate()
             mean_fq_squared = self.steps['(mean_fq)^2'].get_data_out()
 
@@ -591,10 +598,13 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         q = args['data_in']
         
         opts = args['opts']
-        element = opts['element']
+        elements = opts['elements']
+        fractions = opts['fractions']
+        choices_abc = opts['choices_abc']
+        choices_mkl= opts['choices_mkl']
         unit = args['unit_in']
         
-        sq_par = self.get_sq_par(element)
+        sq_par = self.get_sq_par(elements, fractions,choices_abc, choices_mkl)
         
 
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(q,q,sq_par)
@@ -608,10 +618,13 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         q = args['data_in']
         
         opts = args['opts']
-        element = opts['element']
+        elements = opts['elements']
+        fractions = opts['fractions']
+        choices_abc = opts['choices_abc']
+        choices_mkl= opts['choices_mkl']
         unit = args['unit_in']
         
-        sq_par = self.get_sq_par(element)
+        sq_par = self.get_sq_par(elements, fractions,choices_abc, choices_mkl)
         
 
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(q,q,sq_par)
@@ -630,6 +643,7 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         I_base = args['I_base'][1]
         a = args['a']
         mean_fq_squared = args['(mean_fq)^2'][1]
+        mean_fq_squared[mean_fq_squared<1] =  1
 
         unit = args['unit_in']
         
@@ -881,9 +895,14 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         self.align_multialement_data(mask, new_mask , rebinned_scales,rebinned_new ,kind='nearest')
 
 
-    def get_sq_par(self, element):
+    def get_sq_par(self, elements, fractions, choices_abc, choices_mkl):
         # for testing, always returns the sq_par for Fe
-        return [[26.0, 1.0, 11.7695, 4.7611, 7.3573, 0.3072, 3.5222, 15.3535, 2.3045, 76.8805, 1.0369, 0.62157, 0.94225, 9.8927]]
+
+        sq_pars = []
+        for i in range(len(elements)):
+            sq_pars.append(self._get_sq_par(elements[i],choices_abc[i],choices_mkl[i],fractions[i]))
+       
+        return sq_pars
         
 
 
@@ -1040,7 +1059,35 @@ class AmorphousAnalysisModel(QtCore.QObject):  #
         row = f(xnew)
         return row
 
+    def _get_sq_par(self, atom, choice_abc, choice_mkl, fract):
+        
+        opt_MKL = None
+        opt_abc = None
+        opt_ab5 = None
 
+        # selecting abc, abc table offers several oxidation state options 
+        # for some elements, in more than one choice exists then user 
+        # selects which one to use.
+        options_abc=self.ap.get_abc_options(atom)
+        opt_abc = options_abc[choice_abc][1:]
+        
+        #selecting MKL
+        options_MKL=self.ap.get_MKL_options(atom)
+        opt_MKL = options_MKL[choice_mkl][1:-1]
+            
+
+        # ab5 contains parameters for calculating incoherent scattering in different form than legacy MKL table
+        # from Ref: H.H.M. Balyuzi, Acta Cryst. (175). A31, 600
+        ab5 = self.ap.get_ab5_options(atom)[atom]
+        opt_ab5=ab5[1:11]
+        Z = ab5[0]
+        
+        part1 = int(Z), fract
+        part2 = list(opt_abc)
+        part3 = list(opt_MKL)
+        part4 = list(opt_ab5)
+        sq_par = [*part1] + part2 + part3 + part4
+        return sq_par
 
     @staticmethod
     def find_non_zero_range(a):
