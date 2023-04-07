@@ -85,6 +85,7 @@ def main():
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
     multi_spectra2 =  os.path.normpath( os.path.join(desktop,'dt/20221213-SiO2'))
     multi_spectra3 =  os.path.normpath( os.path.join(desktop,'dt/20230219_Fe/xrd/tth-scan'))
+    multi_spectra4 =  os.path.normpath( os.path.join(desktop,'dt/20230406_SiO2/0psi'))
     mask_path =  os.path.normpath( os.path.join(resources_path,'my.mask'))
     multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
     #multi_element =  os.path.normpath( '/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca')
@@ -94,7 +95,7 @@ def main():
 
     
     #controller.file_save_controller.openFile(filename=pattern)
-    controller.file_save_controller.openFolder(foldername=multi_spectra3)
+    controller.file_save_controller.openFolder(foldername=multi_spectra4)
     #controller.element_number_cmb_currentIndexChanged_callback(1)
     
     #controller.file_save_controller.openFolder(foldername=multi_spectra2)
