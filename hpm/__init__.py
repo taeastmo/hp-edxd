@@ -80,6 +80,7 @@ def main():
 
     # autoload a file, using for debugging
     pattern = os.path.normpath(os.path.join(resources_path,'20181010-Au-wire-50um-15deg.hpmca'))
+    pattern2 = os.path.normpath(os.path.join(resources_path,'20181001 Energy Calibration.000'))
     jcpds1 = os.path.normpath(os.path.join(resources_path,'au.jcpds'))
     jcpds2 = os.path.normpath(os.path.join(resources_path,'mgo.jcpds'))
     multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
@@ -94,8 +95,8 @@ def main():
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
 
     
-    #controller.file_save_controller.openFile(filename=pattern)
-    controller.file_save_controller.openFolder(foldername=multi_spectra4)
+    controller.file_save_controller.openFile(filename=pattern2)
+    #controller.file_save_controller.openFolder(foldername=multi_spectra4)
     #controller.element_number_cmb_currentIndexChanged_callback(1)
     
     #controller.file_save_controller.openFolder(foldername=multi_spectra2)

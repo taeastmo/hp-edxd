@@ -55,6 +55,9 @@ class Overlay_mca():
         self.tth = self.calibration.two_theta
         self.det_mode = 'edx'
 
+    def get_rois(self):
+        return self.mca.get_rois()
+
     def get_det_setting(self):
         return str(self.tth) + ' deg'
 

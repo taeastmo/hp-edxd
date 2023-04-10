@@ -647,7 +647,7 @@ class hpmcaController(QObject):
 
     def calibrate_energy_module(self):
         if self.mca != None:
-            self.ce = mcaCalibrateEnergy(self.mca, detector=self.element, command=self.calibrate_energy_module_callback)
+            self.ce = mcaCalibrateEnergy(self.mca, self.working_directories, detector=self.element, command=self.calibrate_energy_module_callback)
             if self.ce.nrois < 2:
                 mcaUtil.displayErrorMessage( 'calroi')
                 self.ce.destroy()
