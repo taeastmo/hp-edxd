@@ -199,7 +199,7 @@ be found in the header of the EDXD data file.
    :width: 500px
    :align: center
 
-When the energy calibration has to be done from different radio-nuclei sources. For example to cover an energy range from 15 to 160 keV, users may use 57Co, 133Ba etc. Define the appropriate fluerescence lines ROI's and save a separate data file for each acquisition. With the Energy calibration window open for one of the files, fluerescence ROI's from additional files can be loaded (by clicking :guilabel:`Load more regions...`) and used togeth to compute the calibration coefficients.
+When the energy calibration has to be done from different radio-nuclei sources. For example to cover an energy range from 15 to 160 keV, users may need to record spectra separate spectra. In this case, define the appropriate fluerescence lines ROI's and save a separate data file for each acquisition. With the Energy calibration window open for one of the files, fluerescence ROI's from additional files can be loaded (by clicking :guilabel:`Load more regions...`) and used togeth to compute the calibration coefficients.
 
 .. figure:: /images/hpmca/hpmca_e_cal.png
    :alt: hpmca_energy_calibration_screen
