@@ -199,7 +199,7 @@ be found in the header of the EDXD data file.
    :width: 500px
    :align: center
 
-In some cases the energy calibration has to be done from different radio-nuclei sources and the spectra recorded in separate acquisitions. In this case, define the appropriate fluerescence lines ROI's and save a separate data file for each acquisition. With the Energy calibration window open for one of the files, fluerescence ROI's from additional files can be loaded (by clicking :guilabel:`Load more regions...`) and used togeth to compute the calibration coefficients.
+In some cases the energy calibration has to be done from different radio-nuclei sources and the spectra recorded in separate acquisitions. In this case, define the appropriate fluerescence lines ROI's and save a separate data file for each acquisition. With the Energy calibration window open for one of the spectra, fluerescence ROI's from additional files can be loaded (by clicking :guilabel:`Load more regions...`) and used togeth to compute the calibration coefficients.
 
 .. figure:: /images/hpmca/hpmca_e_cal.png
    :alt: hpmca_energy_calibration_screen
