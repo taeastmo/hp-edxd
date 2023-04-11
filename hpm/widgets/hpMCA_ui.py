@@ -811,6 +811,10 @@ class Ui_hpMCA(object):
         self.actionLoadCalibration = QtWidgets.QAction(self)
         self.actionLoadCalibration.setText("Load energy calibration...")
         self.actionLoadCalibration.setEnabled(False)
+
+        self.actionShowCalibration = QtWidgets.QAction(self)
+        self.actionShowCalibration.setText("All calibration parameters")
+        self.actionShowCalibration.setEnabled(False)
         
         self.actionJCPDS = QtWidgets.QAction(hpMCA)
         self.actionJCPDS.setEnabled(False)
@@ -869,6 +873,7 @@ class Ui_hpMCA(object):
         self.menuControl.addAction(self.actionManualTth)
         self.menuControl.addAction(self.actionManualWavelength)
         self.menuControl.addAction(self.actionLoadCalibration)
+        self.menuControl.addAction(self.actionShowCalibration)
         self.menuDisplay.addAction(self.actionJCPDS)
         self.menuDisplay.addAction(self.actionFluor)
         self.menuDisplay.addAction(self.actionROIs)

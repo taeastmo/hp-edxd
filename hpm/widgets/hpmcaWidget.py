@@ -115,6 +115,7 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         self.actionhklGen.setEnabled(enabled)
         self.actionEvironment.setEnabled(enabled)
         self.actionLoadCalibration.setEnabled(enabled)
+        self.actionShowCalibration.setEnabled(enabled)
 
     def keyPressEvent(self, e):
         sig = None

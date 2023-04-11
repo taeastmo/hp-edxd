@@ -47,6 +47,8 @@ from hpm.controllers.DisplayPrefsController import DisplayPreferences
 #from hpm.controllers.hklGenController import hklGenController
 from hpm.controllers.RoiPrefsController import RoiPreferences
 
+from hpm.widgets.CalibrationViewWidget import CalibrationParametersWidget
+
 
 import utilities.hpMCAutilities as mcaUtil
 from utilities.HelperModule import increment_filename
@@ -180,6 +182,7 @@ class hpmcaController(QObject):
         ui.actionManualTth.triggered.connect(self.set_Tth)
         ui.actionLoadCalibration.triggered.connect(self.load_calibration)
         ui.actionManualWavelength.triggered.connect(self.set_Wavelength)
+        ui.actionShowCalibration.triggered.connect(self.show_calibration)
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
         ui.actionRoiPrefs.triggered.connect(self.roi_preferences_module)
         ui.actionPresets.triggered.connect(self.presets_module)
@@ -428,6 +431,7 @@ class hpmcaController(QObject):
         #initialize hklGen controller
         #self.hlkgen_controller = hklGenController(self.widget.pg,self.mca,self.plotController,self.roi_controller)
         
+        self.show_calibration_widget = CalibrationParametersWidget()
         
         self.controllers_initialized = True
 
@@ -709,6 +713,10 @@ class hpmcaController(QObject):
             mca.wavelength = val
             self.data_updated()
             self.multiple_datasets_controller.set_mca(self.mca)
+
+    def show_calibration(self, *args, **kwargs):
+        if hasattr(self, 'show_calibration_widget'):
+            self.show_calibration_widget.show()
 
     def load_calibration(self, *args, **kwargs):
         filename = kwargs.get('filename', None)
