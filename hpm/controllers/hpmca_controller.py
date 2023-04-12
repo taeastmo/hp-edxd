@@ -182,7 +182,7 @@ class hpmcaController(QObject):
         ui.actionManualTth.triggered.connect(self.set_Tth)
         ui.actionLoadCalibration.triggered.connect(self.load_calibration)
         ui.actionManualWavelength.triggered.connect(self.set_Wavelength)
-        ui.actionShowCalibration.triggered.connect(self.show_calibration)
+        #ui.actionShowCalibration.triggered.connect(self.show_calibration)
         ui.actionDisplayPrefs.triggered.connect(self.display_preferences_module)
         ui.actionRoiPrefs.triggered.connect(self.roi_preferences_module)
         ui.actionPresets.triggered.connect(self.presets_module)
@@ -918,8 +918,44 @@ class hpmcaController(QObject):
             hUnit = input['hUnit']
             vName = input['vName']
             vValue= input['vValue']
-            text = "%s = %0.3f%s, %sI(%s) = %.1f" \
+
+
+            if hName == 'E':
+
+                text = "%s = %0.3f %s, %sI(%s) = %.1f" \
                                % (hName,hValue,hUnit," ",vName,vValue)
+            elif hName == '2\N{GREEK SMALL LETTER THETA}':
+
+                text = "%s = %0.4f %s, %sI(%s) = %.1f" \
+                               % (hName,hValue,hUnit," ",vName,vValue)
+            elif hName == 'q':
+
+                text = "%s = %0.4f %s, %sI(%s) = %.1f" \
+                               % (hName,hValue,hUnit," ",vName,vValue)
+            elif hName == 'd':
+
+                text = "%s = %0.5f %s, %sI(%s) = %.1f" \
+                               % (hName,hValue,hUnit," ",vName,vValue)
+            elif hName == 'Channel':
+
+                text = "%s = %0.1f, %sI(%s) = %.1f" \
+                               % (hName,hValue," ",vName,vValue)
+
+            if 'E' in input:
+                text += '\n' + "%s = %0.3f %s" \
+                               % ('E',input['E'],self.plotController.units['E'])
+            if '2 theta' in input:
+                text += '\n' + "%s = %0.4f %s" \
+                               % ('2\N{GREEK SMALL LETTER THETA}',input['2 theta'],self.plotController.units['2 theta'])
+            if 'q' in input:
+                text += '\n' + "%s = %0.4f %s" \
+                               % ('q',input['q'],self.plotController.units['q'])
+            if 'd' in input:
+                text += '\n' + "%s = %0.5f %s" \
+                               % ('d',input['d'],self.plotController.units['d'])
+            if 'Channel' in input:
+                text += '\n' + "%s = %0.1f" \
+                               % ('Channel',input['Channel'])
         else:
             text = ''
         return text

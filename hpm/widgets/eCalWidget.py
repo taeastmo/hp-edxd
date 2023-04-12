@@ -218,6 +218,58 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         
         
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)
+
+        ### 
+        ### current calibration
+        ###
+
+        self.groupBox_current_calibration = QtWidgets.QGroupBox(self)
+        self.groupBox_current_calibration.setTitle("")
+        self.verticalLayout_current_calibration = QtWidgets.QVBoxLayout(self.groupBox_current_calibration)
+        self.gridLayout_current_calibration = QtWidgets.QGridLayout()
+
+        self.cc_label_12 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_12.setText("Units")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_12, 0, 1, 1, 1)
+        self.cc_label_13 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_13.setText("Offset")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_13, 0, 2, 1, 1)
+        self.cc_label_14 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_14.setText("Slope")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_14, 0, 3, 1, 1)
+        self.cc_label_15 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_15.setText("Quadratic")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_15, 0, 4, 1, 1)
+
+        self.cc_label_11 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_11.setText("Calibration coefficients:")
+        self.cc_label_11.setAlignment(QtCore.Qt.AlignRight)
+        self.gridLayout_current_calibration.addWidget(self.cc_label_11, 1, 0, 1, 1)
+
+        self.cc_cal_units = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText(self.calibration.units)
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 1, 1, 1)
+
+        self.cc_cal_offset = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText('%.7f'%(self.calibration.offset))
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 2, 1, 1)
+
+        self.cc_cal_slope = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText('%.7f'%(self.calibration.slope))
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 3, 1, 1)
+
+        self.cc_cal_quad = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText('%.7f'%(self.calibration.quad))
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 4, 1, 1)
+
+        self.verticalLayout_current_calibration.addLayout(self.gridLayout_current_calibration)
+
+        self.verticalLayout_4.addWidget(self.groupBox_current_calibration)
+
         self.groupBox = QtWidgets.QGroupBox(self)
         self.container = self.groupBox        
         self.gridLayout = QtWidgets.QGridLayout(self.container)
@@ -342,6 +394,8 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
 
         self.setWindowTitle("Energy Calibration")
         self.groupBox.setTitle("Defined regions")
+        self.groupBox_current_calibration.setTitle("Current calibration")
+        self.groupBox_3.setTitle('New calibration')
 
         
         #self.setFixedSize(self.verticalLayout_4.sizeHint())

@@ -873,7 +873,7 @@ class Ui_hpMCA(object):
         self.menuControl.addAction(self.actionManualTth)
         self.menuControl.addAction(self.actionManualWavelength)
         self.menuControl.addAction(self.actionLoadCalibration)
-        self.menuControl.addAction(self.actionShowCalibration)
+        #self.menuControl.addAction(self.actionShowCalibration)
         self.menuDisplay.addAction(self.actionJCPDS)
         self.menuDisplay.addAction(self.actionFluor)
         self.menuDisplay.addAction(self.actionROIs)

@@ -20,6 +20,9 @@ from numpy import pi
 from PyQt5.QtCore import pyqtSignal, QObject
 from hpm.controllers.RoiController import RoiController
 from utilities.HelperModule import getInterpolatedCounts
+from hpm.models.mcaModel import MCA
+from hpm.models.UnitConversions import *
+from hpm.models.mcaComponents import McaCalibration
 
 class plotController(QObject):
 
@@ -33,8 +36,10 @@ class plotController(QObject):
 
     def __init__(self, plotWidget, mcaModel, mainController, horzScale='E'):
         super().__init__()
-        
+        self.mca : MCA
         self.mca = mcaModel
+        self.calibration : McaCalibration
+        
         self.calibration= self.mca.get_calibration()[0]
         self.pg = plotWidget
         self.mcaController = mainController
@@ -108,10 +113,23 @@ class plotController(QObject):
 
     def get_data_label(self):
         dx_type = self.calibration.dx_type
+
         if dx_type == 'edx':
-            data_label = 'MCA, '+ self.elapsed.start_time[:-3]
+            
+            data_label = 'MCA, '
+            if hasattr(self.calibration, 'two_theta'):
+                tth = self.calibration.two_theta
+                if tth != None:
+                    data_label += '\n'+ f'2\N{GREEK SMALL LETTER THETA}='+ str(round(tth,4)) + f'\N{SUPERSCRIPT ZERO}'
+            data_label += '\n' + self.elapsed.start_time[:-3]
         elif dx_type == 'adx':
-            data_label = 'ADXD, '+ self.name 
+            
+            data_label = 'ADXD, '
+            if hasattr(self.calibration, 'wavelength'):
+                wavelength = self.calibration.wavelength
+                if wavelength != None:
+                    data_label += '\n'+ f'\N{GREEK SMALL LETTER LAMDA}='+ str(round(wavelength,4))+f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}'
+            data_label += '\n'+ self.name 
         else:
             data_label = 'MCA'
         return data_label
@@ -333,6 +351,7 @@ class plotController(QObject):
 
     def get_label_values(self, mousePoint):
         out = {}
+        
         cursorPosition = None
         if self.horzBins != None and self.dataInterpolated != None:
             if mousePoint >=0 and mousePoint <= max(self.horzBins[0]):
@@ -342,7 +361,27 @@ class plotController(QObject):
                 except:
                     i = None
                 if i != None:
+                    
+                    cal = self.calibration
+                    
+                    units = []
+                    other_units = ['E','2 theta','q','d', 'Channel']
+                    for unit in other_units:
+                        if unit in cal.available_scales and not unit in units and unit != self.unit:
+                            units.append(unit)
+
+                    for unit in units:
+                        val = cal.channel_to_scale(cursorPosition,unit)
+                        out[unit]=val
+
                     out = {'hName':self.horzBins[1],'hValue':mousePoint,'hUnit':self.horzBins[2],'vName':self.horzBins[1], 'vValue':i, 'channel':cursorPosition}
+
+                    #element = self.mcaController.element
+                    
+                    
+                    for unit in units:
+                        val = cal.channel_to_scale(cursorPosition,unit)
+                        out[unit]=val
         return cursorPosition, out
     
     def get_cursor_position(self):
