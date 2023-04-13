@@ -78,7 +78,7 @@ class hpmcaController(QObject):
         
         self.zoom_pan = 0        # mouse left button interaction mode 0=rectangle zoom 1=pan
         
-        self.create_connections() 
+        
         
         self.working_directories = mcaUtil.restore_folder_settings()
         
@@ -128,6 +128,7 @@ class hpmcaController(QObject):
         self.make_prefs_menu()  # for mac
 
         #self.initControllers()
+        self.create_connections() 
         
     def create_connections(self):
         ui = self.widget
@@ -192,6 +193,8 @@ class hpmcaController(QObject):
 
         ui.file_view_btn.pressed.connect(self.file_view_btn_callback)
         ui.live_view_btn.pressed.connect(self.live_view_btn_callback)
+
+        self.multiple_datasets_controller.widget.refresh_folder_btn.clicked.connect(self.multispectral_refresh_folder_btn_clicked_callback)
 
 
     def make_prefs_menu(self):
@@ -815,6 +818,10 @@ class hpmcaController(QObject):
         print(len(all_rois))
         for det, rois in enumerate(all_rois):
             self.roi_controller.add_rois_to_mca(rois,det)
+
+    def multispectral_refresh_folder_btn_clicked_callback(self):
+        pass
+        # I think this is no longer needed, the watch folder function has been built into the FileSaveController
 
     def hklGen_module(self):
         pass

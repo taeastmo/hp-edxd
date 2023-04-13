@@ -79,7 +79,10 @@ class MultipleSpectraModel(QtCore.QObject):  #
                 'calibration':[],
                 'elapsed':[]}
 
-      
+        range_1 = [667,1100]
+        range_2 = [3000,3480]
+        range_3 = [2600,3000]
+        self.alignment_rois = []
 
     def clear(self):
         self.__init__()
@@ -208,19 +211,25 @@ class MultipleSpectraModel(QtCore.QObject):  #
     def rebin_channels(self, order = 1):
         # This is useful for the germanium strip detector data, 
         # where the rows have to be aligned before processing
+        if len(self.alignment_rois)<2:
+            return
+     
+       
+        range_1 = self.alignment_rois[0]
+        range_2 = self.alignment_rois[1]
         
+        if len(self.alignment_rois)>2:
+            range_3 = self.alignment_rois[2]
+
         data = self.data
         bins = np.size(data[0])
         x =  np.arange(bins)
         rows = len(data)
         new_scales = [x]*rows
-        if not len(self.channel_calibration_scales):
+        if True: #not len(self.channel_calibration_scales):
             
             now = time.time()
             
-            range_1 = (667,1100)
-            range_2 = (3000,3480)
-            range_3 = (2600,3000)
 
             max_points_left = np.zeros(rows)
             max_points_right = np.zeros(rows)
@@ -392,3 +401,19 @@ class MultipleSpectraModel(QtCore.QObject):  #
             for i, roi in enumerate(rois):
                 roi.energy = energies[i]
             fit_energies(rois, order,cal)
+
+
+    def add_new_alignment_roi(self, center):
+        new_roi = [int(center-150), int(center+150)]
+        self.alignment_rois.append(new_roi)
+        return new_roi
+
+    def set_alignment_rois(self, rois):
+        self.alignment_rois = rois
+
+    def delete_alignment_roi(self):
+        if len(self.alignment_rois):
+            del self.alignment_rois[-1]
+
+    def clear_alignment_rois(self):
+        self.alignment_rois = []

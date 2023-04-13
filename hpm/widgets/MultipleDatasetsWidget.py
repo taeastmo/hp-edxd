@@ -38,10 +38,13 @@ class MultiSpectraWidget(QtWidgets.QWidget):
     key_signal = pyqtSignal(str)
     plotMouseMoveSignal = pyqtSignal(float)  
     plotMouseCursorSignal = pyqtSignal(list)
+    linearRegionMovedSignal = pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
         self._layout = QtWidgets.QVBoxLayout()  
+
+        self.p1 : pg.PlotWidget
         self.setWindowTitle('Multiple spectra view')
         self.button_widget = QtWidgets.QWidget(self)
         self.button_widget.setMaximumHeight(40)
@@ -51,22 +54,34 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self._button_layout.setSpacing(6)
 
        
+        self.show_roi_btn = FlatButton('Show ROIs')
+        self.show_roi_btn.setCheckable(True)
+        self.show_roi_btn.setChecked(False)
+        self.show_roi_btn.setMaximumWidth(90)
+        self.show_roi_btn.setMinimumWidth(90)
+
+        self.add_roi_btn = FlatButton('Add ROI')
+        self.add_roi_btn.setMaximumWidth(90)
+        self.add_roi_btn.setMinimumWidth(90)
+
+        self.delete_roi_btn = FlatButton('Delete')
+        self.delete_roi_btn.setMaximumWidth(90)
+        self.delete_roi_btn.setMinimumWidth(90)
+        self.clear_roi_btn = FlatButton('Clear')
+        self.clear_roi_btn.setMaximumWidth(90)
+        self.clear_roi_btn.setMinimumWidth(90)
+
         self.align_btn = FlatButton('Align')
         self.align_btn.setMaximumWidth(90)
         self.align_btn.setMinimumWidth(90)
         self.amorphous_btn = FlatButton('Amorphous')
         self.amorphous_btn.setMaximumWidth(90)
         self.amorphous_btn.setMinimumWidth(90)
-        '''self.sum_scratch_btn = FlatButton('Flatten scratch')
-        self.sum_scratch_btn.setMaximumWidth(90)
-        self.sum_scratch_btn.setMinimumWidth(90)
-        self.ebg_btn = FlatButton('Save DC')
-        self.ebg_btn.setMaximumWidth(90)
-        self.ebg_btn.setMinimumWidth(90)'''
-        '''self.tth_btn = FlatButton(f'2\N{GREEK SMALL LETTER THETA}')
-        self.tth_btn.setEnabled(False)
-        self.tth_btn.setMaximumWidth(90)
-        self.tth_btn.setMinimumWidth(90)'''
+       
+
+        self.refresh_folder_btn = FlatButton('Refresh')
+        self.refresh_folder_btn.setMaximumWidth(90)
+        self.refresh_folder_btn.setMinimumWidth(90)
         self.transpose_btn = FlatButton(f'Transpose')
         self.transpose_btn.setMaximumWidth(90)
         self.transpose_btn.setMinimumWidth(90)
@@ -77,17 +92,17 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.cal_btn.setMaximumWidth(90)
         self.cal_btn.setMinimumWidth(90)
 
-        self.edit_btn = FlatButton('Edit')
-        self.delete_btn = FlatButton('Delete')
-        self.clear_btn = FlatButton('Clear')
+        
 
+        #self._button_layout.addWidget(self.refresh_folder_btn)
         self._button_layout.addSpacerItem(HorizontalSpacerItem())
+        self._button_layout.addWidget(self.show_roi_btn)
+        self._button_layout.addWidget(self.add_roi_btn)
+        self._button_layout.addWidget(self.delete_roi_btn)
+        self._button_layout.addWidget(self.clear_roi_btn)
+    
         self._button_layout.addWidget(self.align_btn)
-        #self._button_layout.addWidget(self.amorphous_btn)
-        '''self._button_layout.addWidget(self.sum_scratch_btn)
-        self._button_layout.addWidget(self.ebg_btn)'''
-        #self._button_layout.addWidget(self.tth_btn)
-        self._button_layout.addWidget(self.transpose_btn)
+    
         
         self._button_layout.addWidget(self.copy_rois_btn)
         
@@ -221,6 +236,27 @@ class MultiSpectraWidget(QtWidgets.QWidget):
                             'Channel':self.radioChannel,
                             '2 theta':self.radiotth}
 
+        self.alignment_rois = []
+
+    def add_alignment_roi(self, roi, show):
+        #self.alignment_rois. append(roi)
+        self._add_alignment_roi(roi, show)
+
+
+    def set_alignment_roi_visibility(self, visible):
+        lr : pg.LinearRegionItem
+        for lr in self.alignment_rois:
+            if not visible:
+                try:
+                    self.p1.removeItem(lr)
+                except:
+                    pass
+            else:
+            
+                try:
+                    self.p1.addItem(lr)
+                except:
+                    pass
 
     def set_scales_enabled_states(self, enabled=['Channel']):
         for btn in self.scales_btns:
@@ -243,8 +279,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             btn = self.scales_btns[unit]
             btn.setChecked(True)
 
-    def plot_data(self, x=[],y=[]):
-        self.line_plot_widget.plotData(x, y)
+    '''def plot_data(self, x=[],y=[]):
+        self.line_plot_widget.plotData(x, y)'''
 
     def get_selected_row(self):
         selected  = self.file_list_view.selectionModel().selectedRows()
@@ -282,6 +318,37 @@ class MultiSpectraWidget(QtWidgets.QWidget):
             #self.mask_widget.img_widget.plot_image(img_data, auto_level=True)
         else:
             self.img.clear()
+
+    def set_linear_regions(self, rois, show:False):
+        lr : pg.LinearRegionItem
+        if len(self.alignment_rois):
+            for lr in self.alignment_rois:
+                self.p1.removeItem(lr)
+                lr.sigRegionChangeFinished.disconnect(self.lr_moved)
+            self.alignment_rois = []
+        for roi in rois:
+            self._add_alignment_roi(roi, show)
+      
+
+    def _add_alignment_roi(self, roi, show):
+        lr = pg.LinearRegionItem()
+            
+        lr.setZValue(0)
+        lr.setRegion(roi)
+        lr.sigRegionChangeFinished.connect(self.lr_moved)
+        self.alignment_rois.append(lr)
+
+        if show:
+            
+            self.p1.addItem(lr)
+
+    def lr_moved(self):
+        lr : pg.LinearRegionItem
+        rois = []
+        for lr in self.alignment_rois:
+            roi = lr.getRegion()
+            rois.append([int(roi[0]),int(roi[1])])
+        self.linearRegionMovedSignal.emit(rois)
 
     def select_file(self,index):
         self.file_list_view.blockSignals(True)
@@ -379,20 +446,6 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         self.view.addItem(self.hLineFast, ignoreBounds=True)
         self.view.mouseClickEvent = self.customMouseClickEvent
 
-
-    def make_lr(self):
-        self.lr1_p = pg.LinearRegionItem()
-        #self.lr1_p.setZValue(-10)
-        self.lr2_p = pg.LinearRegionItem()
-        #self.lr2_p.setZValue(-10)
-
-        self.echo_bounds_p = [self.lr1_p, self.lr2_p]
-        self.view.addItem(self.lr1_p)
-        self.view.addItem(self.lr2_p) 
-        self.lr1_p.setRegion([0, 20])
-        self.lr2_p.setRegion([40, 60])
-
-        
 
     def fastCursorMove(self, evt):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple

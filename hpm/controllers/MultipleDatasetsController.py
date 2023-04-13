@@ -80,6 +80,14 @@ class MultipleDatasetsController(QObject):
         self.widget.radioAligned.clicked.connect(partial (self.HorzScaleRadioToggle, 'Aligned'))
 
         self.widget.align_btn.clicked.connect(self.align_btn_callback)
+
+        self.widget.show_roi_btn.clicked.connect(self.show_roi_btn_callback)
+        self.widget.add_roi_btn.clicked.connect(self.add_roi_btn_callback)
+        self.widget.delete_roi_btn.clicked.connect(self.delete_roi_btn_callback)
+        self.widget.clear_roi_btn.clicked.connect(self.clear_roi_btn_callback)
+
+        self.widget.linearRegionMovedSignal.connect(self.linearRegionMovedSignal_callback)
+
         self.widget.amorphous_btn.clicked.connect(self.amorphous_btn_callback)
         '''self.widget.sum_scratch_btn.clicked.connect(self.sum_scratch_callback)
         self.widget.ebg_btn.clicked.connect(self.ebg_data)'''
@@ -212,6 +220,30 @@ class MultipleDatasetsController(QObject):
             scale = "Aligned"
             self.update_view(scale)
 
+    def show_roi_btn_callback(self):
+        show = self.widget.show_roi_btn.isChecked()
+        self.widget.set_alignment_roi_visibility(show)
+        
+
+    def add_roi_btn_callback(self):
+        pos = self.widget.cursorPoints[0][1]
+        roi = self.multi_spectra_model.add_new_alignment_roi(pos)
+        self.widget.add_alignment_roi(roi, True)
+        self.widget.show_roi_btn.setChecked(True)
+        self.widget.set_alignment_roi_visibility(True)
+
+    def linearRegionMovedSignal_callback(self, rois):
+        self.multi_spectra_model.set_alignment_rois(rois) 
+
+    def delete_roi_btn_callback(self):
+        self.multi_spectra_model.delete_alignment_roi()
+        self.widget.set_linear_regions(self.multi_spectra_model.alignment_rois, True)
+
+    def clear_roi_btn_callback(self):
+        self.multi_spectra_model.clear_alignment_rois()
+        self.widget.set_linear_regions(self.multi_spectra_model.alignment_rois, False)
+        self.widget.show_roi_btn.setChecked(False)
+
 
     def HorzScaleRadioToggle(self,horzScale):
         
@@ -298,6 +330,7 @@ class MultipleDatasetsController(QObject):
             #r = self.multi_spectra_model.E_scale
 
         self.widget.set_spectral_data(view)
+        self.widget.set_linear_regions(self.multi_spectra_model.alignment_rois, self.widget.show_roi_btn.isChecked())
         #if len(scratch_view):
         #    self.widget.scratch_widget.plot_image(scratch_view)
         #self.mask_controller.mask_model._img_data = view
