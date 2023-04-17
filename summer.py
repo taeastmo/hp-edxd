@@ -6,11 +6,13 @@ import numpy as np
 from PyQt5 import QtWidgets
 ##  WARNING do not run this unless you are sure
 
-files = ['/Users/hrubiak/Desktop/dt/GSD/sio2/20221204_Cd109Co57_3600sec_067.dat.mca',
-'/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_004.dat.mca'
+files = [
+    '/Volumes/data/16bmb/PEC/Data/2023-1/HPCAT/Ross/20230414_detectors/GSD/20230417_Cd109-C057-W_7200sec_031.dat.mca',
+    '/Volumes/data/16bmb/PEC/Data/2023-1/HPCAT/Ross/20230414_detectors/GSD/20230417_Cd109-C057-W_7200sec_032.dat.mca'    ,
+    '/Volumes/data/16bmb/PEC/Data/2023-1/HPCAT/Ross/20230414_detectors/GSD/20230417_Cd109-C057-W_7200sec_033.dat.mca'
 ]
 
-file_out = '/Users/hrubiak/Desktop/dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca'
+file_out = '/Users/hrubiak/Desktop/20230417_Cd109-C057-W_7200sec_031_033.dat.hpmca'
 
 def sum_files(files, file_out):
 
