@@ -108,8 +108,8 @@ class MultiSpectraWidget(QtWidgets.QWidget):
         
         self._button_layout.addWidget(self.cal_btn)
         
-        self.button_widget.setLayout(self._button_layout)
-        self._layout.addWidget(self.button_widget)
+        #self.button_widget.setLayout(self._button_layout)
+        #self._layout.addWidget(self.button_widget)
        
         self._body_layout = QtWidgets.QHBoxLayout()
         self.file_view_tabs= QtWidgets.QTabWidget(self)
