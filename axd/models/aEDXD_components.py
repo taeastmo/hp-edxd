@@ -18,6 +18,7 @@ from axd.models.aEDXD_functions import *
 import copy
 import os
 import time
+import pyqtgraph as pg
 
 from utilities.hpMCAutilities import compare
 from utilities.hpMCAutilities import Preferences as Calculator
@@ -94,23 +95,43 @@ class primaryBeam(Calculator):
         # find [Ip(E')/Ip(E)] ratio iteratively:
         fs = np.ones(len(xp),dtype=float) # initial relative scale assumed one
         qp = 4*np.pi/(12.3984/xp)*np.sin(np.radians(tth/2))
-        xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
-        qpc = 4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+        xpc = xp#-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+        qpc = qp#4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+        '''print('tth '+ str(tth))
+        print('xp '+ str(xp[0]) + ' ... '+str(xp[-1]))
+        print('xpc '+ str(xpc[0]) + ' ... '+str(xpc[-1]))
+        print('xqpp '+ str(qp[0]) + ' ... '+str(qp[-1]))
+        print('qpc '+ str(qpc[0]) + ' ... '+str(qpc[-1]))'''
+        
+        print('sq_par primary beam '+ str (sq_par))
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
+        
         
         # start iteration; UPDATED: iretation was replaced at some point in time by custom_fit
         #for itr in range(itr_comp):
         # re-adjust the primary beam model to fit mean_fqsqure + mean_I_inc 
         Iq_base = mean_fqsquare + fs*mean_I_inc 
+        pg.plot(Iq_base, title="Iq_base")
         # custom fit(func,x,y,p0,yb):
         ypb = np.sqrt(yp) # Poisson distribution error
         p_opt,p_stdev,p_cov,p_corp,schi2,r = \
                         custom_fit(model_func,xp,yp/Iq_base,p0,ypb/Iq_base)
         y_model = model_func(xp,*p_opt)*Iq_base
-        I_p = model_func(xp,*p_opt)
+        '''I_p = model_func(xp,*p_opt)
         I_p_inc = model_func(xpc,*p_opt)
-        fs = I_p_inc/I_p
+        fs = I_p_inc/I_p'''
 
+        '''self.win = pg.GraphicsLayoutWidget(show=True, title="Basic plotting examples")
+        self.win.resize(1000,600)
+        self.win.setWindowTitle('pyqtgraph example: Plotting')
+
+        # Enable antialiasing for prettier plots
+        pg.setConfigOptions(antialias=True)
+
+        self.p1 = self.win.addPlot(title="model_func(xp,*p_opt)", x=qp , y=model_func(xp,*p_opt))
+        self.p2 = self.win.addPlot(title="Iq_base", x=qp , y=Iq_base)
+        self.p2 = self.win.addPlot(title="yp", x=qp , y=yp)
+        self.win.show()'''
         # propagate the mean residual error
         model_mre = np.sqrt(sum((yp/Iq_base - y_model/Iq_base))**2/len(yp))
         # Note that the mean residual error defined here is non-standard.
@@ -160,6 +181,7 @@ class structureFactor(Calculator):
         sq_smoothing_factor = self.params['sq_smoothing_factor']
         q_spacing = self.params['q_spacing']
 
+        print(sq_par)
       
         S_q = []
         #tth_used = []
@@ -177,9 +199,16 @@ class structureFactor(Calculator):
             qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
             xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
             qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
+            '''print('tth '+ str(tth))
+            print('xn '+ str(xn[0]) + ' ... '+str(xn[-1]))
+            print('xpc '+ str(xnc[0]) + ' ... '+str(xnc[-1]))
+            print('qi '+ str(qi[0]) + ' ... '+str(qi[-1]))
+            print('qic '+ str(qic[0]) + ' ... '+str(qic[-1]))'''
+            print('sq_par sq ' + str(i)+ ' ' + str (sq_par))
             mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
             y_primary = model_func(xn,*p_opt)
             Iq_base = mean_fqsquare + mean_I_inc
+            pg.plot(Iq_base, title="Iq_base "+ str(i))
             s = (Iq_base*y_primary).mean()/yn.mean()
             sqi = (s*yn-Iq_base*y_primary)/y_primary/mean_fq**2 + 1.0
             sqi_err = s*yn/y_primary/mean_fq**2*np.sqrt(1.0/yn+(model_mre/y_primary)**2)

@@ -69,9 +69,12 @@ class JCPDS4(eos.EquationOfState):
             else:
                 self.mod_pressure = pressure - \
                         params['alpha_t'] * params['K_0'] * (temperature - 298.)
+
+                if self.mod_pressure < 0:
+                    return params['V_0'] * (1 - pressure / params['K_0'])
                 self.params = params
                 res = opt.minimize(self.bm3_inverse, 1.)
-                v = self.params['V_0'] / np.float(res.x)
+                v = self.params['V_0'] / res.x[0]
                 return v
         
     def bm3_inverse(self, v0_v):

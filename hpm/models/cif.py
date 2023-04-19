@@ -19,10 +19,7 @@ from __future__ import division, unicode_literals
 
 import os
 import itertools
-try:
-    from urllib import pathname2url
-except ImportError:
-    from urllib.request import pathname2url
+from urllib.request import pathname2url
 
 from math import degrees
 
@@ -65,7 +62,8 @@ class CifConverter(object):
         """
         file_url = 'file:' + pathname2url(filename)
         cif_file = ReadCif(file_url)
-        cif_phase = CifPhase(cif_file[cif_file.keys()[0]])
+        cif_keys = cif_file.keys()
+        cif_phase = CifPhase(cif_file[cif_keys[0]])
         jcpds_phase = self.convert_cif_phase_to_jcpds(cif_phase)
         jcpds_phase.filename = filename
         jcpds_phase.name = os.path.splitext(os.path.basename(filename))[0]
@@ -361,10 +359,12 @@ class CifPhase(object):
 
         self.volume = convert_cif_number_to_float(cif_dictionary['_cell_volume'])
 
-        if '_symmetry_space_group_name_h-m' in cif_dictionary.keys():
-            self.space_group = cif_dictionary['_symmetry_space_group_name_h-m']
-        elif '_symmetry_space_group_name_h-m_alt' in cif_dictionary.keys():
-            self.space_group = cif_dictionary['_symmetry_space_group_name_h-m_alt']
+        cif_keys = cif_dictionary.keys()
+        for key in cif_keys:
+            if 'space_group_name' in key:
+        
+                self.space_group = cif_dictionary[key]
+   
         else:
             self.space_group = None
 

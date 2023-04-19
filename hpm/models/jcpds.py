@@ -60,6 +60,7 @@ Modifications:
 
 """
 import logging
+import glob
 
 logger = logging.getLogger(__name__)
 
@@ -1100,7 +1101,7 @@ def lookup_jcpds_line(in_string,
         jcpds_dict = {}
 
     if not fname in jcpds_dict:
-        item = find_fname(path, file, fname)
+        item = find_fname(path, fname)
         if item is not None:
             jcpds_dict[fname] = item
 
@@ -1120,30 +1121,63 @@ def lookup_jcpds_line(in_string,
         jcpds_dict = None
         return None
 
-def find_fname(path, file, fname):
+def get_jcpds_files_in_folder(path, file_type='*.jcpds'):
+    jcpds_search = os.path.normpath(os.path.join(path, file_type))
+    res_files = glob.glob(jcpds_search)
+    return res_files
+
+def recursive_search_for_jcpds(path):
+
     files={}
-    for dirpath, dirnames, filenames in os.walk(path):
-        for filename in [f for f in filenames if f.endswith(".jcpds")]:
-            files[filename]=os.path.abspath(os.path.join(dirpath, filename)) 
-    lst = list(files.keys()) 
-    sub = file
-    fls = [s for s in lst if sub in s]
-    ok = False
-    if fname in fls:
-        ok = True
-    else:
-        if len(fls):
-            fname = next((s for s in lst if sub in s), None)
-            ok = True
-    if ok:
-        full_file = files[fname]
+    
+    res_files = get_jcpds_files_in_folder(path)
+    if len(res_files):
+         for f in res_files:
+            fname = os.path.split(f)[-1]
+            files[fname]=f
+    
+    path_search = os.path.normpath(os.path.join(path, '*/'))
+    res_folders = glob.glob(path_search)
+    if len (res_folders):
+        
+        for subfolder in res_folders:
+            sub_folder_files = get_jcpds_files_in_folder(subfolder)
+            for filename in sub_folder_files:
+                fname = os.path.split(filename)[-1]
+                files[fname]=filename
+    return files
+
+def match_file(files_dict, phase_name):
+    full_file = ''
+    lst = list(files_dict.keys()) 
+   
+    fls = [f for f in lst if phase_name in f]
+
+    if phase_name in fls:
+        full_file = files_dict[phase_name]
+
+    return full_file
+
+def find_fname(path,  fname):
+    '''
+        Searches the path and its subfolders, as well as up one folder and its subfolders, if they contain fname. Returns only one result if any
+    '''
+    ans = None
+    files = recursive_search_for_jcpds(path)
+    full_file = match_file(files, fname)
+    if not len(full_file):
+        path = os.path.split(path)[0]
+        files = recursive_search_for_jcpds(path)
+        full_file = match_file(files, fname)
+    
+    if len(full_file):
         try:
             j = jcpds()
             j.load_file(full_file)
             refl = j.get_reflections()
-            return {'refl':refl,'full_file':full_file}
+            ans =  {'refl':refl,'full_file':full_file}
         except:
-            return None
-    else:
-        return None
+            pass
+        
+    return ans
      

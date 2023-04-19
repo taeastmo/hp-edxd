@@ -145,10 +145,13 @@ class xrfWidget(QtWidgets.QWidget):
         self.plotController.unitUpdated.connect(self.update_x_scale)
         self.plotController.dataPlotUpdated.connect(self.update_all_xrf_lines)
 
-    def set_mca(self, mca):
+    def set_mca(self, mca, element=0):
         self.mca = mca
         
-        self.calibration = self.mca.calibration[0]
+        calibrations = self.mca.get_calibration()
+        if not element < len(calibrations):
+            element = 0
+        self.calibration = calibrations[element]
         
     def update_x_scale(self,unit):
         self.x_scale = unit

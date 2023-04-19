@@ -16,6 +16,7 @@
 
 
 from functools import partial
+import hpm.models.jcpds as jcpds
 import copy
 import utilities.centroid
 import numpy as np
@@ -27,66 +28,60 @@ from hpm.widgets.UtilityWidgets import save_file_dialog, open_file_dialog, open_
 from hpm.widgets.RoiWidget import RoiWidget, plotFitWindow
 from hpm.widgets.LatticeRefienementWidget import LatticeRefinementWidget
 from hpm.models.mcaModel import  McaROI
+from hpm.models.LatticeRefinementModel import LatticeRefinementModel
 from PyQt5.QtCore import pyqtSignal, QObject
-from hpm.models.pressure.LatticeRefinement import latticeRefinement
+
 import pyqtgraph as pg
 
 class LatticeRefinementController(QObject):
 
-   
+    refined_pressure_updated = pyqtSignal(float)
     
 
     def __init__(self, mcaModel, plotWidget, plotController, mainController):
         super().__init__()
 
-        self.working_directories = mainController.working_directories.phase
-        self.widget = LatticeRefinementWidget(self.working_directories)
+        self.phases_directory = mainController.working_directories.phase
+        
+        self.widget = LatticeRefinementWidget()
         self.set_mca(mcaModel)
         self.mcaController = mainController
-        self.phases=dict()
-        self.lattice_model = latticeRefinement()
+        
+        self.model = LatticeRefinementModel()
+        self.P = 0
 
         detector = 0
         self.ddiff =[]
-        self.roi = []     
-      
-        self.active = False
-        
+       
+    
         self.dataLen = self.mca.nchans
         self.pattern_widget = plotWidget
         self.plotController = plotController
   
-        self.nrois = 0
+        self.nreflections = 0
 
-        self.unit = 'E'
-        self.unit_ = 'KeV'
+        '''self.unit = 'E'
+        self.unit_ = 'KeV'''
+
+        self.selected_phase = ''
+
+        self.active = False
         
         self.create_signals()
 
-    def set_mca(self, mca):
+    def set_mca(self, mca, element=0):
         self.mca = mca
         self.dataLen = self.mca.nchans
-        self.calibration = self.mca.get_calibration()[0]
+        self.calibration = self.mca.get_calibration()[element]
         self.two_theta =  self.calibration.two_theta
         if type(self.two_theta) == type(float()):
-            self.widget.two_theta.setText(str(round(self.two_theta,5)))
+            self.widget.two_theta.setText(str(round(self.two_theta,5))+f'\N{DEGREE SIGN}')
 
-    '''def update_unit (self, unit):
-        self.unit_ = self.plotController.units[unit]
-        self.unit = unit
-        if unit == '2 theta':
-            unit = u'2θ'
-        self.widget.set_tw_header_unit(unit,self.unit_)
-        #self.update_rois(use_only=True)
-        if self.fitPlots is not None:
-            if self.plotFitOpen:
-                cur_ind = self.rois_widget.get_selected_roi_row()
-                if cur_ind >= 0 :
-                    self.updateFitPlot(cur_ind)'''
+
 
     def set_jcpds_directory(self, directory):
-        self.widget.jcpds_directory  = directory
-        self.working_directories = directory
+        
+        self.phases_directory = directory
 
 
     def get_calibration(self):
@@ -97,6 +92,18 @@ class LatticeRefinementController(QObject):
         self.widget.do_fit.clicked.connect(self.menu_do_fit)
         self.widget.auto_fit.toggled.connect(self.auto_fit_callback)
         self.widget.plot_cal.clicked.connect(self.menu_plot_refinement)
+        self.widget.phases_cbx.activated.connect(self.phases_cbx_callback)
+
+    def phases_cbx_callback(self, *args):
+        selected_ind = args[0]
+        phase = self.widget.phases_cbx.itemText(selected_ind)
+        if phase != self.selected_phase:
+            self.selected_phase = phase
+            reflections = self.model.refined_lattice_models[phase].get_reflections()
+            self.widget.roi_tw.clear_reflections()
+            self.output_clear()
+            self.widget.roi_tw. set_reflections(reflections)
+         
        
     def pressure(self):
         self.show_view()
@@ -116,147 +123,139 @@ class LatticeRefinementController(QObject):
        
         self.update_phases()
 
-    def clear_rois(self, *args, **kwargs):
-        """
-        Deletes all rois from the GUI
-        """
-        self.blockSignals(True)
-        while self.widget.roi_tw.rowCount() > 0:
-            self.roi_removed(self.widget.roi_tw.rowCount()-1)
-        self.lattice_model.clear()
-        self.ddiff =[]
-        self.roi = []
-        self.widget.roi_show_cbs = []
-        self.widget.name_items = []
-        self.widget.index_items = []
-        self.blockSignals(False)
-        self.widget.phases_lbl.setText('')
-        #self.update_rois()
+    def update_phases(self):
+        self.model.update_phases()
+        selected_phase = self.selected_phase
+        refined_lattice= self.model.refined_lattice_models[selected_phase]
+        use = self.widget.roi_tw. get_use()
+        refined_lattice.use = use
+        if self.model.refined_lattice_models[selected_phase].phase != None:
+            self.model.refine_phase(selected_phase)
 
-    def update_rois(self):
+            DCalc = refined_lattice.dcalc
+            if len(DCalc):
+                for i, dcalc in enumerate(DCalc):
+                
+                    ddiff = refined_lattice.ddiff[i]
+                    self.widget.roi_tw.update_roi(i,round(dcalc, 4),round(ddiff,4))
+
+                p = refined_lattice.P
+                lattice_out = refined_lattice.refined_lattice
+                lattice_esd_out = refined_lattice.refined_lattice_esd
+                volume_out = refined_lattice.V
+
+                self.update_output(selected_phase, refined_lattice)
+        else:
+            
+            self.output_clear()
+
+    def output_clear(self):
+        self.widget.model_lbl.setText('')
+        self.widget.parameter_widget.clear()
+
+    def clear_reflections(self, *args, **kwargs):
+        """
+        Deletes all reflections from the GUI and model
+        """
+        self.model.clear()
+        self.widget.roi_tw.clear_reflections()
+      
+        
+        self.ddiff =[]
+        self.reflection = []
+        
+     
+    def update_reflections(self):
         pass
 
-    def roi_removed(self, ind):
-        self.widget.del_roi(ind)
- 
 
     def menu_plot_refinement(self):
         """ Private method """
         
-        E_diff = self.ddiff
-        if len (E_diff):
-            energy_use = self.dobs
-            E_diff_use = E_diff
-           
+        if self.selected_phase in self.model.refined_lattice_models:
+            refined_lattice_p = self.model.refined_lattice_models[self.selected_phase]
+            E_diff = refined_lattice_p.ddiff
+            if len (E_diff):
+                energy_use = refined_lattice_p.dobs
+                E_diff_use = E_diff
             
-            pltError = pg.plot(energy_use,E_diff_use, 
-                    pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
-                    symbolPen='w', title= f'\N{GREEK CAPITAL LETTER DELTA} d'
-            )
-            pltError.setLabel('left', f'\N{GREEK CAPITAL LETTER DELTA} d '+ f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
-            pltError.setLabel('bottom', 'd '+f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
+                
+                pltError = pg.plot(energy_use,E_diff_use, 
+                        pen=(200,200,200), symbolBrush=(255,0,0),antialias=True, 
+                        symbolPen='w', title= f'\N{GREEK CAPITAL LETTER DELTA} d'
+                )
+                pltError.setLabel('left', f'\N{GREEK CAPITAL LETTER DELTA} d '+ f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
+                pltError.setLabel('bottom', 'd '+f'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}')
 
 
-    def set_rois_phases(self, rois, phases):
-        self. clear_rois()
-        self.widget.phases_lbl.setText('')
-        self.roi = rois
-        self.phases = phases
+    def set_reflections_and_phases(self, reflections, phases):
+        self.clear_reflections()
+      
+
+        self.model.set_reflections( reflections)
+        self.model.set_phases( phases)
+
+        reflection_groups = self.model. get_phases()
+        self.widget.phases_cbx.blockSignals(True)
+        self.widget.phases_cbx.clear()
+        self.widget.phases_cbx.addItems(reflection_groups)
+        self.widget.phases_cbx.blockSignals(False)
+
+        if not self.selected_phase in reflection_groups:
+            if len(reflection_groups):
+                self.selected_phase = reflection_groups[0]
+            else:
+                self.selected_phase = ''
         
-        self.widget.set_rois(rois)
-
-
-    def update_phases(self):
         
-        
-        rois = self.roi
-        #tth = self.two_theta
-        tth = 15
-        if len(rois)>0:
-            roi_groups = {}     # separate rois into groups based on name 
-            for r in rois:
-                l = r.label.split(' ')[0]
-                if len(l)>1:
-                    if not l in roi_groups.keys():
-                        roi_groups[l]=[r]
-                    else:
-                        roi_groups[l].append(r)
-            lbl= ''
+        if len(self.selected_phase):
+            show_reflections= self.model.refined_lattice_models[self.selected_phase].get_reflections()
+            self.widget.roi_tw.set_reflections(show_reflections)
+
+   
+    
             
 
-            for p in roi_groups:
-                if p !='':
-                    curr_phase = None
-                    
-                    
-                    if p in self.phases.keys():
-                        curr_phase = self.phases[p]
-                        
-                    else: 
-                        lbl += 'Phase '+ p +' not recognized. \nAdd corresponding phase \nto Phase control.'
-                        continue
-                    #lbl += p + ':\n '
-                    DHKL = []
-                    phase = roi_groups[p]
-                    for i, r in enumerate(phase):
-                        u = self.widget.roi[i].use
-                        if u:
-                            d = r.d_spacing
-                            hkl = r.label.split(' ')[1]
-                            if not len(hkl)==3 or not hkl.isdigit():
-                                break
-                            h = int(hkl[0])
-                            k = int(hkl[1])
-                            l = int(hkl[2])
-                            dhkl = [d,h,k,l]
-                            DHKL.append(dhkl)
-                    if len(dhkl)>0:
-                        self.lattice_model = latticeRefinement()
-                        self.lattice_model.set_dhkl(DHKL)
-                        symmetry = curr_phase.params['symmetry']
-                        self.lattice_model.set_symmetry(symmetry.lower())
-                        self.lattice_model.refine()
-                        v = self.lattice_model.get_volume()
-                        l = self.lattice_model.get_lattice()
-                        DCalc = self.lattice_model.refinement_output['Dcalc']
-                        v0 = curr_phase.params['v0']
-                        v_over_v0 = v/v0
-                        v0_v = 1/v_over_v0
-                        curr_phase.compute_pressure(volume = v)
-                        P = curr_phase.params['pressure']
-                        T = curr_phase.params['temperature']
-                     
-                        
-                        for line in l:
-                            parameter = line.replace('alpha', f'\N{GREEK SMALL LETTER ALPHA}') \
-                                                .replace('beta', f'\N{GREEK SMALL LETTER BETA}') \
-                                                    .replace('gamma', f'\N{GREEK SMALL LETTER GAMMA}')
-                            lbl += parameter + " = " + '%.4f'%(round(l[line],4)) + '\n'
+    def update_output(self,phase, refined_lattice):
+        
+        lattice = refined_lattice.refined_lattice
+        lattice_esd = refined_lattice.refined_lattice_esd
+        V = refined_lattice.V
+        V_esd = refined_lattice.V_esd
 
-                        lbl += 'V = ' + '%.3f'%(v) + '\n'
-                        lbl += f'\nV/V\N{SUBSCRIPT ZERO} = '+ '%.3f'%(v_over_v0)
-                        lbl += '\nP = '+ '%.2f'%(round(P,2))+ ' GPa '
-                        lbl += '\nT = '+ '%.2f'%(T) + ' K'
-                        lbl += '\n\n'
-                        
+        
+        curr_phase = self.model.refined_lattice_models[phase].phase
+        v0 = curr_phase.params['v0']
+        v_over_v0 = V/v0
+        v_over_v0_esd = V_esd/v0
 
-                        self.ddiff = []
-                        self.dobs = []
+        symmetry = curr_phase.params['symmetry']
+        if v_over_v0 > 0.3 and v_over_v0 < 2:
 
-                        for i, dcalc in enumerate(DCalc):
-                            d = dcalc 
-                            #t = self.widget.widgets.calc_d[i]
-                            #t.setText(str(e))
-                            dobs = DHKL[i][0]
-                             
-                            ddiff = round(dobs - d,4)
-                            #t = self.widget.widgets.calc_d_diff[i]
-                            #t.setText(str(ddiff))
-                            self.ddiff.append(ddiff)
-                            self.dobs.append(round(dobs,4))
+            # calculate P esd using a local derivative method
+            curr_phase.compute_pressure(volume = V)
+            
+            P = curr_phase.params['pressure']
+            curr_phase.compute_pressure(volume = V-V_esd/2)
+            P_min = curr_phase.params['pressure']
+            curr_phase.compute_pressure(volume = V+V_esd/2)
+            P_max = curr_phase.params['pressure']
+            P_esd = abs(P_max - P_min)
+            
+        else:
+            P = np.nan
+            P_esd = np.nan
+            
 
-                            self.widget.update_roi(i,round(d,4),ddiff)
-                        break
-                        
-     
-            self.widget.phases_lbl.setText(lbl)
+        self.P = P
+        T = curr_phase.params['temperature']
+        self.widget.model_lbl.setText('Symmetry: '+ symmetry)
+        self.widget.parameter_widget.update_output(lattice,lattice_esd, P,V,T, v_over_v0, P_esd, V_esd, v_over_v0_esd)
+        
+        
+
+        autosend = self.widget.auto_pressure_btn.isChecked()
+        if autosend:
+            self.refined_pressure_updated.emit(P)
+       
+       

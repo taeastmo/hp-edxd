@@ -17,12 +17,12 @@ sq_par_ca = [[20,1.0,8.6266,10.4421,7.3873,0.6599,1.5899,85.7484,1.0211,178.437,
 qp = range(5000)
 
 
-qp = np.asarray(qp)/50
+qp = np.asarray(qp)/200
 
 
 
 
-mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qp, sq_par_ca)
+mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qp, sq_par_fe)
 
 
 
@@ -119,16 +119,38 @@ fe_q = fe_s * 4 * np.pi
 
 
 ap = aEDXDAtomicParameters()
-symbol = 'Ca'
+symbol = 'Fe'
 opt = ap.get_ab5_options(symbol)[symbol]
 print(opt)
 i_inc = I_inc_new(qp/4/np.pi, opt)
 
 
-import matplotlib.pyplot as plt
-plt.plot(qp, mean_I_inc)
-#plt.plot(qp, mean_fq)
-plt.plot(qp, i_inc)
-plt.plot(fe_q, ca,'ro')
-#plt.plot(qp, mean_fqsquare)
-plt.show()
+
+
+from pyqtgraph.Qt import QtGui, QtCore
+import numpy as np
+import pyqtgraph as pg
+
+#QtGui.QApplication.setGraphicsSystem('raster')
+app = QtGui.QApplication([])
+#mw = QtGui.QMainWindow()
+#mw.resize(800,800)
+
+win = pg.GraphicsLayoutWidget(show=True, title="Basic plotting examples")
+win.resize(1000,600)
+win.setWindowTitle('pyqtgraph example: Plotting')
+
+# Enable antialiasing for prettier plots
+pg.setConfigOptions(antialias=True)
+
+p1 = win.addPlot(title="mean_I_inc", x=qp , y=mean_I_inc)
+p2 = win.addPlot(title="mean_fq", x=qp , y=mean_fq)
+#p3 = win.addPlot(title="i_inc", x=qp , y=i_inc)
+#p4 = win.addPlot(title="mean_fqsquare", x=qp , y=mean_fqsquare)
+
+
+## Start Qt event loop unless running in interactive mode or using pyside.
+if __name__ == '__main__':
+    import sys
+    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+        QtGui.QApplication.instance().exec_()

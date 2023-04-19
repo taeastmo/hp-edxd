@@ -9,7 +9,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from pyqtgraph.widgets.PlotWidget import PlotWidget
 from mypyeqt.pvWidgets import pvQDoubleSpinBox, pvQLineEdit, pvQLabel, pvQMessageButton, pvQOZButton, pvQProgressBar
-from hpm.widgets.PltWidget import PltWidget
+
 from hpm.widgets.collapsible_widget import CollapsibleBox, EliderLabel
 
 from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, HorizontalLine, IntegerTextField, VerticalSpacerItem, NoRectDelegate, \
@@ -345,7 +345,7 @@ class Ui_hpMCA(object):
         self.HorizontalScale_btn_group.addButton(self.radioChannel)
         self.HorizontalScale_btn_group.addButton(self.radiod)
         self.HorizontalScale_btn_group.addButton(self.radiotth)
-        self.radioE.setChecked(True)
+        self.radioChannel.setChecked(True)
         
 
         self._groupBoxHorizontalScale_layout.addLayout(self.HorizontalScaleLayout)
@@ -646,9 +646,9 @@ class Ui_hpMCA(object):
                                                         ''')
         self._plot_toolbar_top_widget_layout = QtWidgets.QHBoxLayout(self.plot_toolbar_top_widget)
         self._plot_toolbar_top_widget_layout.setSpacing(15)
-        self._plot_toolbar_top_widget_layout.setContentsMargins(8,0,8,0)
-        self.plot_toolbar_top_widget.setMinimumHeight(15)
-        self.plot_toolbar_top_widget.setMaximumHeight(15)
+        self._plot_toolbar_top_widget_layout.setContentsMargins(8,2,8,2)
+        self.plot_toolbar_top_widget.setMinimumHeight(21)
+        self.plot_toolbar_top_widget.setMaximumHeight(21)
 
         
 
@@ -659,7 +659,8 @@ class Ui_hpMCA(object):
         self.load_calibration_btn = FlatButton('Load Calibration')
         self.calibration_lbl = QtWidgets.QLabel('None')
 
-        '''self._plot_toolbar_top_widget_layout.addWidget(self.save_pattern_btn)
+        
+        '''
         self._plot_toolbar_top_widget_layout.addWidget(self.as_overlay_btn)
         self._plot_toolbar_top_widget_layout.addWidget(self.as_bkg_btn)
         self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
@@ -719,14 +720,14 @@ class Ui_hpMCA(object):
         self._plot_widget_layout.setContentsMargins(10,0,5,10)
         
         
-        self.pg = PltWidget(self.plot_widget,
+        '''self.pg = PltWidget(self.plot_widget,
                         toolbar_widgets=[self.plot_toolbar_right_widget,
                                         self.plot_toolbar_top_widget])
         self.pg.setMinimumSize(QtCore.QSize(205, 100))
         self.pg.setObjectName("pg")
 
         self._plot_widget_layout.addWidget(self.pg)
-        self._plot_widget_layout.addWidget(self.plot_toolbar_right_widget)
+        self._plot_widget_layout.addWidget(self.plot_toolbar_right_widget)'''
 
 
         self._DisplayLayout.addWidget(self.plot_widget)
@@ -790,6 +791,8 @@ class Ui_hpMCA(object):
         self.actionEvironment.setEnabled(False)
         self.actionMultiSpectra = QtWidgets.QAction(hpMCA)
         self.actionMultiSpectra.setObjectName("actionMultiSpectra")
+        self.actionAmorphous = QtWidgets.QAction(hpMCA)
+        self.actionAmorphous.setObjectName("actionAmorphous")
         self.actionExit = QtWidgets.QAction(hpMCA)
         self.actionExit.setObjectName("actionExit")
         self.actionPresets = QtWidgets.QAction(hpMCA)
@@ -805,6 +808,13 @@ class Ui_hpMCA(object):
         self.actionManualWavelength = QtWidgets.QAction(self)
         self.actionManualWavelength.setText("Set wavelength...")
         self.actionManualWavelength.setEnabled(False)
+        self.actionLoadCalibration = QtWidgets.QAction(self)
+        self.actionLoadCalibration.setText("Load energy calibration...")
+        self.actionLoadCalibration.setEnabled(False)
+
+        self.actionShowCalibration = QtWidgets.QAction(self)
+        self.actionShowCalibration.setText("All calibration parameters")
+        self.actionShowCalibration.setEnabled(False)
         
         self.actionJCPDS = QtWidgets.QAction(hpMCA)
         self.actionJCPDS.setEnabled(False)
@@ -817,6 +827,8 @@ class Ui_hpMCA(object):
         self.actionOpen_detector.setObjectName("actionOpen_detector")
         self.actionOpen_file = QtWidgets.QAction(hpMCA)
         self.actionOpen_file.setObjectName("actionOpen_file")
+        self.actionOpen_folder = QtWidgets.QAction(hpMCA)
+        self.actionOpen_folder.setObjectName("actionOpen_folder")
         self.actionCalibrate_2theta = QtWidgets.QAction(hpMCA)
         self.actionCalibrate_2theta.setEnabled(False)
         self.actionCalibrate_2theta.setObjectName("actionCalibrate_2theta")
@@ -843,6 +855,7 @@ class Ui_hpMCA(object):
         self.actionRoiPrefs = QtWidgets.QAction(hpMCA)
         self.actionRoiPrefs.setObjectName("actionRoiPrefs")
         self.menuFile.addAction(self.actionOpen_file)
+        self.menuFile.addAction(self.actionOpen_folder)
         self.menuFile.addAction(self.actionOpen_detector)
         self.menuFile.addAction(self.actionOverlay)
         #self.menuFile.addAction(self.actionSave_next)
@@ -851,6 +864,7 @@ class Ui_hpMCA(object):
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addAction(self.actionEvironment)
         self.menuFile.addAction(self.actionMultiSpectra)
+        #self.menuFile.addAction(self.actionAmorphous)
 
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
@@ -858,6 +872,8 @@ class Ui_hpMCA(object):
         self.menuControl.addAction(self.actionCalibrate_2theta)
         self.menuControl.addAction(self.actionManualTth)
         self.menuControl.addAction(self.actionManualWavelength)
+        self.menuControl.addAction(self.actionLoadCalibration)
+        #self.menuControl.addAction(self.actionShowCalibration)
         self.menuDisplay.addAction(self.actionJCPDS)
         self.menuDisplay.addAction(self.actionFluor)
         self.menuDisplay.addAction(self.actionROIs)
@@ -995,6 +1011,7 @@ class Ui_hpMCA(object):
         self.actionPreferences.setText(_translate("hpMCA", "Preferences"))
         self.actionEvironment.setText(_translate("hpMCA", "Environment"))
         self.actionMultiSpectra.setText(_translate("hpMCA", "Multiple spectra"))
+        self.actionAmorphous.setText(_translate("hpMCA", "Amorphous S(q)"))
         
         self.actionExit.setText(_translate("hpMCA", "Exit"))
         self.actionPresets.setText(_translate("hpMCA", "Presets..."))
@@ -1005,6 +1022,7 @@ class Ui_hpMCA(object):
         self.actionAbout.setText(_translate("hpMCA", "About"))
         self.actionOpen_detector.setText(_translate("hpMCA", "Open detector..."))
         self.actionOpen_file.setText(_translate("hpMCA", "Open file..."))
+        self.actionOpen_folder.setText(_translate("hpMCA", "Open folder..."))
         self.actionCalibrate_2theta.setText(_translate("hpMCA", "Calibrate 2theta..."))
         self.actionFluor.setText(_translate("hpMCA", "Fluorescence"))
         self.actionROIs.setText(_translate("hpMCA", "Regions of interest"))

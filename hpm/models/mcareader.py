@@ -127,7 +127,11 @@ class McaReader():
         return m.group(1).strip() if m else ""
 
     def get_live_time(self):
-        return float(self.get_variable('LIVE_TIME'))
+        var = self.get_variable('LIVE_TIME')
+        if len(var):
+            return float(var)
+        else:
+            return None
     def get_real_time(self):
         return float(self.get_variable('REAL_TIME'))
     def get_start_time(self):

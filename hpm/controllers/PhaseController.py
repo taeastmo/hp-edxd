@@ -18,6 +18,7 @@
 
 # Based on code from Dioptas - GUI program for fast processing of 2D X-ray diffraction data
 
+from enum import auto
 import os
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
@@ -60,7 +61,9 @@ class PhaseController(object):
         self.a_1 = 0.08 
         self.prefs = {
                             "a_0": 6.0,
-                            "a_1": 0.08
+                            "a_1": 0.08,
+                            'e_min':0,
+                            'e_max':100
                         }
         
         self.roi_controller = roiController
@@ -108,7 +111,7 @@ class PhaseController(object):
                 self.prefs[p] = val
                 
 
-    def set_mca(self, mca):
+    def set_mca(self, mca, element=0):
         self.pattern = mca
 
     def show_view(self):
@@ -135,6 +138,7 @@ class PhaseController(object):
         self.phase_widget.tth_lbl.valueChanged.connect(self.tth_changed)
         self.phase_widget.tth_step.editingFinished.connect(self.update_tth_step)
         self.connect_click_function(self.phase_widget.get_tth_btn, self.get_tth_btn_callcack)
+        self.phase_widget.auto_2theta_btn.clicked.connect(self.auto_tth_btn_callback)
 
         # wavelength
         self.phase_widget.wavelength_lbl.valueChanged.connect(self.wavelength_changed)
@@ -157,6 +161,8 @@ class PhaseController(object):
         self.phase_model.phase_removed.connect(self.phase_removed)
         self.phase_model.phase_changed.connect(self.phase_changed)
 
+    
+
     def get_phases(self):
         phases = {}
         for phase in self.phase_model.phases:
@@ -173,34 +179,52 @@ class PhaseController(object):
 
     def get_phase_reflections(self, index):
         # add rois based on selected JCPDS phase
+        element = self.roi_controller.mcaController.element
         phases = self.phase_model.phases
         files = self.phase_model.phase_files
         tth = self.phase_widget.tth_lbl.value()
         wavelength = self.phase_widget.wavelength_lbl.value()
-        calibration = self.pattern.get_calibration()[0]
+        calibration = self.pattern.get_calibration()[element]
         d_to_channel = calibration.d_to_channel
         phase = phases[index]
         filename = files[index]
         name = phase.name
         reflections = phase.get_reflections()
-        rois = []
+        rois = {}
 
         
         a_0 = self.prefs['a_0']
         a_1 = self.prefs['a_1']
 
+        e_min = self.prefs['e_min']
+        e_max = self.prefs['e_max']
+        nchans = self.pattern.nchans
+        e_range_min = calibration.channel_to_energy(0)
+        e_range_max = calibration.channel_to_energy(nchans-1)
+        # coerse the user-selected e_min and e_max to be withing the allowed range:
+        if e_min <= e_range_min:
+            e_min = e_range_min
+        if e_min >= e_range_max:
+            e_min = e_range_min
+        if e_max <=0:
+            e_max = e_range_max
+        if e_max > e_range_max:
+            e_max = e_range_max
+        if e_max <= e_min:
+            e_max = e_range_max
 
         for reflection in reflections:
             channel = d_to_channel(reflection.d,tth = tth, wavelength=wavelength)
-            #E = calibration.channel_to_energy(channel)
-            E = 30
-            lbl = str(name + " " + reflection.get_hkl())
+            E = calibration.channel_to_energy(channel)
+            #E = 30
+            if E >= e_min and E<= e_max:
+                lbl = str(name + " " + reflection.get_hkl())
 
-            hw = round(a_0 + E * a_1)
-            
+                hw = round(a_0 + E * a_1)
+                
 
-            rois.append({'channel':channel,'halfwidth':hw, 'label':lbl, \
-                           'name':name, 'hkl':reflection.get_hkl_list()})
+                rois[lbl]={'channel':channel,'halfwidth':hw, 'label':lbl, \
+                            'name':name, 'hkl':reflection.get_hkl_list()}
         return rois, phase, filename
 
     
@@ -223,6 +247,9 @@ class PhaseController(object):
             
         if len(filenames):
             self.directories.phase = os.path.dirname(str(filenames[0]))
+            mcaUtil.save_folder_settings(self.directories )
+            
+
             progress_dialog = QtWidgets.QProgressDialog("Loading multiple phases.", "Abort Loading", 0, len(filenames),
                                                         None)
             progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
@@ -243,18 +270,18 @@ class PhaseController(object):
             QtWidgets.QApplication.processEvents()
 
     def _add_phase(self, filename):
-        try:
-            if filename.endswith("jcpds"):
-                self.phase_model.add_jcpds(filename)
-            elif filename.endswith(".cif"):
-                self.cif_conversion_dialog.exec_()
-                self.phase_model.add_cif(filename,
-                                                self.cif_conversion_dialog.int_cutoff,
-                                                self.cif_conversion_dialog.min_d_spacing)
-        except:
+        #try:
+        if filename.endswith("jcpds"):
+            self.phase_model.add_jcpds(filename)
+        elif filename.endswith(".cif"):
+            self.cif_conversion_dialog.exec_()
+            self.phase_model.add_cif(filename,
+                                            self.cif_conversion_dialog.int_cutoff,
+                                            self.cif_conversion_dialog.min_d_spacing)
+        '''except:
             self.phase_widget.show_error_msg(
                'Could not load:\n\n{}.\n\nPlease check if the format of the input file is correct.'. \
-                    format(filename))
+                    format(filename))'''
             #mcaUtil.displayErrorMessage('phase')
 
       
@@ -495,14 +522,27 @@ class PhaseController(object):
         tth = self.getTth()
         self.phase_widget.tth_lbl.setValue(tth)
 
+    def auto_tth_btn_callback(self):
+        checked = self.phase_widget.auto_2theta_btn.isChecked()
+        if checked:
+            self.get_tth_btn_callcack()
+
     def get_wavelength_btn_callcack(self):
         wavelength = self.getWavelength()
         self.phase_widget.wavelength_lbl.setValue(wavelength)
         
     def getTth(self):
-        tth = self.pattern.get_calibration()[0].two_theta
+        element = self.roi_controller.mcaController.element
+        tth = self.pattern.get_calibration()[element].two_theta
         return tth
 
     def getWavelength(self):
-        wavelength = self.pattern.get_calibration()[0].wavelength
+        element = self.roi_controller.mcaController.element
+        wavelength = self.pattern.get_calibration()[element].wavelength
         return wavelength
+
+    def pattern_updated(self):
+        auto_checked = self.phase_widget.auto_2theta_btn.isChecked()
+        if auto_checked:
+            self.get_tth_btn_callcack()
+

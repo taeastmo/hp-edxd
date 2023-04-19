@@ -70,6 +70,7 @@ class RoiPreferencesWidget(QWidget):
         for opt in self.opts_fields:
             self._parameter_layout.addWidget(QtWidgets.QLabel(self.opts_fields[opt]['label']), i, 0)
             cb = DoubleSpinBoxAlignRight()
+            cb.setMaximum(1000)
             cb.setObjectName(opt+"_control")
             val = self.opts_fields[opt]['val']
             set_cb_value(cb,val)

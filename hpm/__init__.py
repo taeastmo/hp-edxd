@@ -18,12 +18,11 @@
 
 
 
-__version__ = "0.6.9"
+__version__ = "0.7.2"
 
 
 
 import os
-
 
 import PyQt5
 import pyqtgraph as pg
@@ -33,6 +32,9 @@ from PyQt5 import QtWidgets
 
 import platform
 
+import pathlib
+
+desktop = pathlib.Path.home() / 'Desktop'
 
 
 resources_path = os.path.join(os.path.dirname(__file__), 'resources')
@@ -46,7 +48,7 @@ folder_settings_file='hpMCA_folder_settings.json'
 defaults_settings_file='hpMCA_defaults.json'
 file_naming_settings_file = 'hpMCA_file_naming_settings.json'
 
-epics_sync = True
+epics_sync = False
 
 from pathlib import Path
 home_path = str(Path.home())
@@ -76,59 +78,8 @@ def main():
     controller = hpmcaController(app)
     controller.widget.show()
 
-    # autoload a file, using for debugging
-    pattern = os.path.join(resources_path,'20181010-Au-wire-50um-15deg.hpmca')
-    jcpds = os.path.join(resources_path,'au.jcpds')
-
-    #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
-    #jcpds = os.path.join(resources_path,'LaB6.jcpds')
     
-    #controller.file_save_controller.openFile(filename=pattern)
-    #controller.multiple_datasets_controller.show_view()
-    #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
-    #controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/hrubiak/Desktop/Guoyin/Cell2-HT')
-    
-    #controller.phase_controller.add_btn_click_callback(filenames=[jcpds])
-
-    #controller.phase_controller.show_view()
-    #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
 
     return app.exec_()
 
 
-def mdc():
-  
-    make_dpi_aware()
-    if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
-      PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-
-    if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
-        PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts)
-   
-    app = QtWidgets.QApplication([])
-
-    from hpm.controllers.MultipleDatasetsController import MultipleDatasetsController
-    app.aboutToQuit.connect(app.deleteLater)
-
-    controller = MultipleDatasetsController(None)
-    controller.widget.show()
-
-    # autoload a file, using for debugging
-    pattern = os.path.join(resources_path,'20181010-Au-wire-50um-15deg.hpmca')
-    jcpds = os.path.join(resources_path,'au.jcpds')
-
-    #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
-    #jcpds = os.path.join(resources_path,'LaB6.jcpds')
-    
-    #controller.file_save_controller.openFile(filename=pattern)
-    #controller.multiple_datasets_controller.show_view()
-    #controller.multiple_datasets_controller.widget.file_filter.setText('2nd-8000psi-500C')
-    #controller.multiple_datasets_controller.add_btn_click_callback(folder='/Users/hrubiak/Desktop/Guoyin/Cell2-HT')
-    
-    #controller.phase_controller.add_btn_click_callback(filenames=[jcpds])
-
-    #controller.phase_controller.show_view()
-    #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
-
-    return app.exec_()

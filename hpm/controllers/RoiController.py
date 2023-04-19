@@ -45,6 +45,8 @@ class RoiController(QObject):
         self.mcaController = mainController
         self.roi = []
         self.roi_model = RoiModel()
+        self.roi_model_detector = RoiModel()
+        self.roi_model_file = RoiModel()
         self.rois_widget = RoiWidget()
         self.plot_fit_window = plotFitWindow()
         
@@ -72,12 +74,21 @@ class RoiController(QObject):
         #self.phases =dict()
         self.create_signals()
         
-    def set_mca(self, mca):
+    def set_mca(self, mca, element=0):
         self.mca = mca
-        self.calibration = self.mca.get_calibration()[0]
+        calibrations = self.mca.get_calibration()
+        if not element < len(calibrations):
+            element = 0
+        self.calibration = calibrations[element]
+
     
 
     def get_calibration(self):
+        element = self.mcaController.element
+        calibrations = self.mca.get_calibration()
+        if not element < len(calibrations):
+            element = 0
+        self.calibration = calibrations[element]
         return self.calibration
         
     def create_signals(self):
@@ -163,7 +174,7 @@ class RoiController(QObject):
         
                 self.rois_widget.roi_sets_tw.add_roi(name, roi_sets[name],  silent=True)
         self.blockSignals(False)              
-        self.rois_widget.roi_sets_tw.blockSignals(False)    
+        
         self.rois_widget.roi_sets_tw.blockSignals(False)      
         if self.selectedROIset_persist<len(roi_sets):
             sel = np.clip(self.selectedROIset_persist,0,31)
@@ -175,10 +186,10 @@ class RoiController(QObject):
         
     
 
-    def update_rois(self, use_only=False):
+    def update_rois(self, element, use_only=False):
 
         if not use_only:
-            self.roi = self.get_rois_for_use()
+            self.roi = self.roi_model. get_rois_for_use(element)
 
         unit =self.plotController.get_unit()
         if self.unit !=unit:
@@ -202,14 +213,14 @@ class RoiController(QObject):
             for r in roi:
                 index = roi.index(r)
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
-                self.update_roi_by_ind(index, r.use, r.label, '%.3f'%(centroid), '%.3f'%(fwhm), '%d'%(counts))
+                self.update_roi_by_ind(index, r.use, r.label, '%.3f'%(centroid), '%.3f'%(fwhm), '%d'%(counts), r.fit_ok)
         else:
             while self.rois_widget.roi_tw.rowCount() > 0:
                 self.rois_widget.roi_tw.del_roi(self.rois_widget.roi_tw.rowCount()-1,silent=True)
             for r in roi:
                 centroid, fwhm, counts = self.get_roi_attributes(r, self.unit)
                 self.rois_widget.roi_tw.add_roi(r.use, r.label, 
-                                '%.3f'%(centroid), '%.3f'%(fwhm), roi.index(r),'%d'%(counts),  silent=True)
+                                '%.3f'%(centroid), '%.3f'%(fwhm), roi.index(r),'%d'%(counts), r.fit_ok,  silent=True)
                
        
              
@@ -232,73 +243,111 @@ class RoiController(QObject):
     # roi-related interaction with mca model
     ####################################################################################
 
-    def data_updated(self):
+    def get_roi_model(self):
+        mca_type = self.mcaController.Foreground
+        roi_model = None
+        if mca_type != None:
+            if mca_type =='file':
+                roi_model = self.roi_model_file
+            elif mca_type == 'detector':
+                roi_model = self.roi_model_detector
+        return roi_model
 
-        file_rois = self.mca.get_file_rois()[0]
-        det_rois = self.mca.get_det_rois()[0]
-        rois = self.mca.get_rois()[0]
-        d_rois = []
-        for dr in det_rois:
-            new = True
-            for r in rois:
-                if r == dr:
-                    new = False
-            if new:
-                d_rois.append(dr)
+    def data_updated(self, element):
 
-        
-        self.roi_model.set_file_rois(file_rois)
-        self.roi_model.add_rois(d_rois)
-        rois_for_use = self.roi_model.get_rois_for_use()
-        for r in rois_for_use:
-            self.mca.compute_roi(r, 0)
+        mca_type = self.mcaController.Foreground
+        if mca_type != None:
+            if mca_type == 'file':
+                roi_model = self.roi_model_file
+            elif mca_type == 'epics':
+                roi_model = self.roi_model_detector
+            self.roi_model = roi_model
 
-        # check if rois already in mca, no update if all rois are already in mca
-        for_det = []
-        for r in rois_for_use:
-            not_in_det = True
-            for r_d in rois:
-                if r == r_d:
-                    not_in_det = False
-            if not_in_det:
-                for_det.append(r)
-        if len(for_det):
-            self.set_mca_rois(rois_for_use)
-        
-        self.update_rois()
+            rois_all = self.mca.get_rois()
+            rois = rois_all[element]
 
-    def add_rois_to_mca(self, rois, detector=0):
+            if mca_type == 'file':
+                load_from_file = self.rois_widget.lock_rois_btn.isChecked()
+                if not load_from_file:
+                    file_rois = self.mca.get_file_rois()[element]
+                    self.roi_model.set_file_rois(file_rois, element)
+
+            elif mca_type == 'epics':    
+                det_rois = self.mca.get_det_rois()[element]
+                d_rois = []
+                for dr in det_rois:
+                    new = True
+                    for r in rois:
+                        if r == dr:
+                            new = False
+                    if new:
+                        d_rois.append(dr)
+                self.roi_model.add_rois(d_rois, element)
+            
+            
+
+            rois_for_use = self.roi_model.get_rois_for_use(element)
+            for r in rois_for_use:
+                self.mca.compute_roi(r, element)
+
+            
+            # check if rois already in mca, no update if all rois are already in mca
+            for_mca = []
+            for r in rois_for_use:
+                not_in_mca = True
+                for r_d in rois:
+                    equal = False
+                    if mca_type == 'file':
+                        equal = r.compare_counts(r_d)
+                    if mca_type == 'epics':
+                        equal = r == r_d
+                    if equal:
+                        not_in_mca = False
+                if not_in_mca:
+                    for_mca.append(r)
+            
+            if len(for_mca):
+                self.set_mca_rois(rois_for_use,element)
+            
+            self.update_rois(element)
+
+    
+
+    def add_rois_to_mca(self, rois, detector):
         # rois: list of McaRoi objects
         # adding rois to mca should happen only throgh one place
+
+        
         if type(rois) == list:
             for r in rois:
-                self.mca.compute_roi(r, 0)
-                self.roi_model.add_roi(r)
+        
+                self.mca.compute_roi(r, detector)
+                self.roi_model.add_roi(r,detector)
         else:
-            self.mca.compute_roi(rois, 0)
-            self.roi_model.add_roi(rois)
+            self.mca.compute_roi(rois, detector)
+            self.roi_model.add_roi(rois,detector)
 
-        rois_for_use = self.roi_model.get_rois_for_use()
-        self.set_mca_rois(rois_for_use)
+        rois_for_use = self.roi_model.get_rois_for_use(detector)
+        self.set_mca_rois(rois_for_use, detector)
 
-    def del_roi_from_mca(self, ind, det=0):
+    def del_roi_from_mca(self, ind, det):
         # deleting rois from mca should happen only throgh one place
-        self.roi_model. delete_roi(ind)
-        rois_for_use = self.roi_model.get_rois_for_use()
-        self.set_mca_rois(rois_for_use)
+        self.roi_model. delete_roi(ind, det)
+        rois_for_use = self.roi_model.get_rois_for_use(det)
+        self.set_mca_rois(rois_for_use, det)
 
-    def clear_mca_rois(self):
+    def clear_mca_rois(self, element):
         # clearing rois from mca should happen only throgh one place
-        self.mca.clear_rois(source='controller')
-        self.roi_model.clear_rois()
+        self.mca.clear_rois(source='controller', detector=element)
+        self.roi_model.clear_rois(element)
 
-    def get_rois_for_use(self):
-        rois = self.mca.get_rois()[0]
+    def get_rois_for_use(self, element):
+        rois = self.mca.get_rois()[element]
         return rois
 
-    def set_mca_rois(self, rois):
+    def set_mca_rois(self, rois, det):
         self.mca.auto_process_rois = False
-        self.mca.set_rois(rois, source = 'controller')
+        self.mca.set_rois(rois, detector= det, source = 'controller')
         self.mca.auto_process_rois = True
 
     def save_peaks(self):
@@ -327,7 +376,7 @@ class RoiController(QObject):
                     #self.add_roi_btn()
                     mode = widget.btnROIadd.text()
                     #self.plotController.roi_construct(mode)
-                    widths = {'E': 0.7, 'q': 0.1, 'Channel':20, 'd': 0.1}
+                    widths = {'E': 0.7, 'q': 0.1, 'Channel':25, 'd': 0.1}
                     if mode == 'Add':
                         widget.btnROIadd.setText("Set")
                         if self.unit in widths:
@@ -429,8 +478,12 @@ class RoiController(QObject):
             rois = self.roi
             if ind >=0 and len(rois)>0 and ind < len(rois):
                 x = self.roi[ind].channels
-                fit = self.roi[ind].yFit
-                x_fit = self.roi[ind].x_yfit
+                if self.roi[ind].fit_ok:
+                    fit = self.roi[ind].yFit
+                    x_fit = self.roi[ind].x_yfit
+                else:
+                    x_fit=[]
+                    fit=[]
                 label = self.roi[ind].label
                 if self.unit == 'E':
                     x_fit = self.calibration.channel_to_energy(x_fit)
@@ -470,34 +523,37 @@ class RoiController(QObject):
 
     def change_roi_use(self, ind, use):
         rois = self.roi
+        element = self.mcaController.element
         if ind >=0 and len(rois)>0 and ind < len(rois):
-            self.mca.change_roi_use(ind, use)  
-            self.update_rois(use_only=True)
+            self.mca.change_roi_use(ind, use, element)  
+            self.update_rois(element, use_only=True)
 
     def change_roi_set_use(self, ind, use):
+        element = self.mcaController.element
         sets = list(self.roi_model.get_sets().keys())
         if ind >=0 and len(sets)>0 and ind < len(sets):
             name = sets[ind]
-            self.roi_model.change_roi_set_use(name, use)  
-            rois_for_use = self.roi_model.get_rois_for_use()
-            self.set_mca_rois(rois_for_use)
-            self.update_rois(use_only=False)
+            self.roi_model.change_roi_set_use(name, use, element)  
+            rois_for_use = self.roi_model.get_rois_for_use(element)
+            self.set_mca_rois( rois_for_use, element)
+            self.update_rois(element, use_only=False)
             
     def remove_btn_click_callback(self, *args, **kwargs):
         """
         Deletes the currently selected roi
         """
+        element = self.mcaController.element
         ind = self.rois_widget.roi_tw. get_selected_roi_row()
         if ind >= 0:
             rois = self.roi
             if ind >=0 and len(rois)>0 and ind < len(rois):
                 self.blockSignals(True)
-                self.del_roi_from_mca(ind,0)
-                self.roi = self.roi_model.get_rois_for_use()
+                self.del_roi_from_mca(ind,element)
+                self.roi = self.roi_model.get_rois_for_use(element)
                 self.roi_removed(ind)
                 
                 self.blockSignals(False)
-                self.update_rois()
+                self.update_rois(element)
                 
 
     def roi_removed(self, ind):
@@ -508,13 +564,14 @@ class RoiController(QObject):
         """
         Deletes all rois from the GUI
         """
+        element = self.mcaController.element
         self.blockSignals(True)
         while self.rois_widget.roi_tw.rowCount() > 0:
             self.roi_removed(self.rois_widget.roi_tw.rowCount()-1)
-        self.clear_mca_rois()
+        self.clear_mca_rois(element)
         self.roiLen = 0
         self.blockSignals(False)
-        self.update_rois()
+        self.update_rois(element)
 
 
     def addROISbyE(self, e_rois):
@@ -532,16 +589,51 @@ class RoiController(QObject):
         self.addReflections(rois)
         
     def addJCPDSReflections(self, reflections, phase):
+        element = self.mcaController.element
         self.blockSignals(True)
         rois = []
-        for r in reflections:
+        # when adding reflections for rois that already exist, remove reflections
+        # which the user has deleted previusly. For this we check if the phase already 
+        # is present in the rois. Then only the rois for that phase that in the list
+        # are replaced by the updated specs (channel, start-end), the rest of the reflectons
+        # are ignored.
+        
+
+        # first get the current phases in roi_model
+        phases = self.roi_model.get_sets(element)
+
+        if phase.name in phases:
+            # only keep the intersection between the old and new rois in 
+            # a given phase
+            current_roi_labels_for_phase = []
+            new_rois_labels_for_phase = []
+            for r in reflections:
+                new_rois_labels_for_phase.append(reflections[r]['label'])
+
+            current_rois = self.roi_model.get_rois_for_use(element)
+            for c_roi in current_rois:
+                if phase.name in c_roi.label:
+                    current_roi_labels_for_phase.append(c_roi.label)
+        
+            # remove current rois if not in new reflections
+            for c_roi in current_roi_labels_for_phase:
+                if not c_roi in new_rois_labels_for_phase:
+                    self.roi_model.delete_roi_by_name(c_roi, element)
+
+            # then remove new reflections if not in current rois
+            for n_roi in new_rois_labels_for_phase:
+                if not n_roi in current_roi_labels_for_phase:
+                    del reflections[n_roi]
+
+        for name in reflections:
+            r = reflections[name]
             rois.append(self.make_roi_by_channel(r['channel'],r['halfwidth'], \
                                                  r['label'],r['name'],r['hkl']))
         rois = self.validate_rois(rois)
     
-        self.add_rois_to_mca(rois, detector=0)
+        self.add_rois_to_mca(rois, detector=element)
         self.blockSignals(False)
-        self.update_rois()
+        self.update_rois(element)
 
     def validate_rois(self,rois):
         n = self.mca.nchans
@@ -555,14 +647,15 @@ class RoiController(QObject):
         return rois_valid
 
     def addReflections(self, reflections):
+        element = self.mcaController.element
         self.blockSignals(True)
         rois = []
         for r in reflections:
             rois.append(self.make_roi_by_channel(r['channel'],r['halfwidth'],r['label']))
         rois = self.validate_rois(rois)
-        self.add_rois_to_mca(rois, detector=0)
+        self.add_rois_to_mca(rois, detector=element)
         self.blockSignals(False)
-        self.update_rois()
+        self.update_rois(element)
 
     def make_roi_by_channel(self, channel, halfWidth=10, label='', jcpds='',hkl=[]):
         cP = channel
@@ -579,31 +672,32 @@ class RoiController(QObject):
     def addROIbyChannel(self, channel, halfWidth=10, label=''):
         # adds ROI to mca and triggers 
         # a view update to set it as the selected roi in the widgets
+        element = self.mcaController.element
         cP = channel
         left = cP - halfWidth
         right = cP + halfWidth + 1
         dataLen = self.mca.nchans
         if left >= halfWidth and right <= dataLen-1-halfWidth:
             newRoi = McaROI(left,right,label=label)
-            self.add_rois_to_mca(newRoi, detector=0)
+            self.add_rois_to_mca(newRoi, detector=element)
             ind = self.mca.find_roi(newRoi.left,newRoi.right)
             self.selectedROI = ind
-            self.update_rois()
+            self.update_rois(element)
 
     def edit_roi_name(self, ind, name):
         rois = self.roi
-        
+        element = self.mcaController.element
         if ind >=0 and len(rois)>0 and ind < len(rois):
             
             
-            self.roi_model.edit_roi_name(ind, name)
-            rois = self.roi_model.get_rois_for_use()
-            self.set_mca_rois(rois)
+            self.roi_model.edit_roi_name(ind, name, element)
+            rois = self.roi_model.get_rois_for_use(element)
+            self.set_mca_rois(rois, element)
             
-            self.update_rois()
+            self.update_rois(element)
                 
-    def update_roi_by_ind(self, ind, use, name, centroid, fwhm, counts):
-        self.rois_widget.roi_tw. update_roi(ind, use, name, centroid, fwhm, counts)
+    def update_roi_by_ind(self, ind, use, name, centroid, fwhm, counts, fit_ok):
+        self.rois_widget.roi_tw. update_roi(ind, use, name, centroid, fwhm, counts, fit_ok)
 
     def update_roi_set_by_ind(self, ind, name, use):
         self.rois_widget.roi_sets_tw. update_roi(ind, name, use)
@@ -685,10 +779,10 @@ class RoiController(QObject):
             log_mode = self.plotController.get_log_mode_y()
             if log_mode:
                 baseline = baseline*1.2
-                intensities = intensities *3
+                intensities = intensities * 1.9
             else:
                 baseline=baseline+y_max*0.015
-                intensities=intensities+y_max*0.1
+                intensities=intensities+y_max*0.07
             positions = roi_position
             if intensities <= 1:
                 intensities = 1

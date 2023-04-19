@@ -1,0 +1,7 @@
+﻿Source,bending magnet
+Monochromator,"N/A, white beam"
+Energy range,10-120 keV for parallel beam; 10-65 keV for focused beam
+Beam size & focusing optics,50 μm x 50 μm to 2 mm x 2 mm for parallel beam (slit-limited) 10 micron (H) x 10 micron (V) FWHM with 200 mm Pt-coated Si KB- type mirror
+Established techniques,"Multi-Angle Energy Dispersive X-ray Diffraction, White Beam Radiography, Ultrasonic elastic wave velocity measurement, Falling sphere liquid viscosity measurement"
+Detectors,"Ge Solid State Detector, CCD camera (Prosilica GC1380H), High-speed camera (Photron FASTCAM SA3)"
+Support equipment,"Paris-Edinburgh type large volume press with resistive heating capacity (PE anvils, boron-epoxy gaskets, cylindrical graphite heater, 8V-220A power supplier; temperature and pressure range up to 2500 K under and 7 GPa)"

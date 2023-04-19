@@ -28,6 +28,7 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 
+
 from hpm.widgets.CustomWidgets import NumberTextField, LabelAlignRight, DoubleSpinBoxAlignRight, HorizontalSpacerItem, \
     VerticalSpacerItem, FlatButton, CleanLooksComboBox
 
@@ -43,9 +44,10 @@ class EosGroupbox(QtWidgets.QWidget):
         super().__init__()
         self.equation_of_state = equation_of_state
         self._layout = QtWidgets.QVBoxLayout()
+        
         self.eos_gb = QtWidgets.QGroupBox("Equation of State")
         self._eos_gb_layout = QtWidgets.QVBoxLayout()
-        
+        #self._eos_gb_layout.setContentsMargins(10,25,10,10)
 
         self.EOS_params = equations_of_state
         self.EOS_widgets = {}
@@ -223,6 +225,7 @@ class JcpdsEditorWidget(QtWidgets.QWidget):
 
         self.lattice_parameters_gb = QtWidgets.QGroupBox('Lattice Parameters')
         self._lattice_parameters_layout = QtWidgets.QVBoxLayout()
+       
 
         self._symmetry_layout = QtWidgets.QHBoxLayout()
         self._symmetry_layout.addWidget(LabelAlignRight('Symmetry'))

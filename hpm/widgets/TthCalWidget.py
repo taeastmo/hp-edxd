@@ -94,6 +94,7 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         """
         super().__init__()
         self.input_mca = mca
+        self.detector = detector
         self.roi = copy.deepcopy(mca.get_rois()[detector])
         self.calibration = copy.deepcopy(mca.get_calibration()[detector])   
         #self.data = copy.deepcopy(mca.get_data()[detector])
@@ -110,7 +111,7 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
             if len(temp) >= 2:
                 file = temp[0]
                 self.phase_name = file
-                item = jcpds.find_fname(self.jcpds_directory, file, file+'.jcpds')
+                item = jcpds.find_fname(self.jcpds_directory,  file+'.jcpds')
                 if item is not None:
                     self.fname_label = 'Using phase file: ' + item['full_file']
                     self.phase_found = True
@@ -400,7 +401,8 @@ class mcaCalibrate2theta(QtWidgets.QWidget):
         """ Private method """
         if (button == 'OK') or (button == 'Apply'):
             # Copy calibration and rois to input mca object
-            self.input_mca.set_calibration([self.calibration])
+            self.calibration.set_dx_type('adx')
+            self.input_mca.set_calibration(self.calibration, self.detector)
             #self.input_mca.set_rois(self.roi)
             pass
         if (button == 'OK'):

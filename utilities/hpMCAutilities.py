@@ -13,7 +13,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os.path, os
+import os.path, os, time
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import Qt
 from functools import partial
@@ -124,24 +124,26 @@ class Preferences():
 def readconfig(config_file):
    
    config_dict = {}
-   try:
-      with open(config_file,'r') as f:
-         config_dict = json.loads(f.read(),)
-         f.close()
-         
-   except:
+   if len(config_file):
+      if os.path.isfile(config_file):
+         try:
+            with open(config_file,'r') as f:
+               config_dict = json.loads(f.read(),)
+               f.close()
+               
+         except:
 
-      pass
+            pass
 
-   # support for legacy config files from aEDXD 1.3 (uses single quote style)
-   if config_dict == {}:
-      
-      try:
-         with open(config_file,'r') as f:
-            config_dict = ast.literal_eval(f.read())
-            f.close()
-      except:
-         pass
+         # support for legacy config files from aEDXD 1.3 (uses single quote style)
+         if config_dict == {}:
+            
+            try:
+               with open(config_file,'r') as f:
+                  config_dict = ast.literal_eval(f.read())
+                  f.close()
+            except:
+               pass
    
    return config_dict 
 
@@ -253,15 +255,17 @@ class mcaFilePreferences(QtWidgets.QDialog):
 def restore(file, obj):
 
    attributes  = [key for key, value in obj.__dict__.items() if not key.startswith("__")]
-
-   try:
-      with open(file) as f:
-         openned_file = json.load(f)
-      ok = True
-      
-   except:
-      ok = False
-      #displayErrorMessage( 'opt_read') 
+   ok = False
+   if len(file):
+      if os.path. isfile(file):
+         try:
+            with open(file) as f:
+               openned_file = json.load(f)
+            ok = True
+            
+         except:
+            ok = False
+            #displayErrorMessage( 'opt_read') 
 
 
    
@@ -413,6 +417,7 @@ class mcaDisplay_file:
       self.readdata      = home
       self.exportdata    = home
       self.last_saved_file = ''
+      self.mask = ''
       
       
 
@@ -555,3 +560,39 @@ class mcaControlPresets(QtWidgets.QDialog):
       else : self.ok = [False, self.original_presets]
       self.close()
 
+
+
+class custom_signal(QtCore.QObject):
+   signal = QtCore.pyqtSignal() 
+
+
+   def __init__(self, debounce_time=None):
+      super().__init__()
+      self.debounce_time = debounce_time
+      self.emitted_timestamp = None
+
+
+    
+   def emit(self):
+      if self.debounce_time is None:
+         self.signal.emit()
+         return
+      else:
+         # the following is the de-bouncing code
+         if self.emitted_timestamp is not None:
+               elapsed_since_last_emit = time.time() - self.emitted_timestamp
+            
+         else:
+               elapsed_since_last_emit = -1
+         self.emitted_timestamp = time.time()
+         if elapsed_since_last_emit >= 0 and (elapsed_since_last_emit < self.debounce_time):
+         
+               pass
+         else:
+               self.signal.emit()
+
+   def connect(self, slot):
+      self.signal.connect(slot)
+
+   def disconnect(self, slot):
+      self.signal.disconnect(slot)

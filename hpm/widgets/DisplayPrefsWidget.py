@@ -66,15 +66,46 @@ class DisplayPreferencesWidget(QWidget):
         
         i = 1
         for opt in self.opts_fields:
+            desc = self.opts_fields[opt]['desc']
             self._parameter_layout.addWidget(QtWidgets.QLabel(self.opts_fields[opt]['label']), i, 0)
-            cb = FlatButton()
-            cb.setObjectName(opt+"_control")
-            color = self.opts_fields[opt]['val']
-            set_btn_color(cb,color)
-            self._parameter_layout.addWidget(cb)
-            self.opt_controls[opt]= {'control':cb}
-            cb.clicked.connect(partial(self.color_btn_clicked, cb))
-            self._parameter_layout.addItem(HorizontalSpacerItem(), i, 4)
+            if desc == 'color':
+                
+                cb = FlatButton()
+                cb.setObjectName(opt+"_control")
+                color = self.opts_fields[opt]['val']
+                set_btn_color(cb,color)
+                self._parameter_layout.addWidget(cb)
+                self.opt_controls[opt]= {'control':cb}
+                cb.clicked.connect(partial(self.color_btn_clicked, cb))
+                self._parameter_layout.addItem(HorizontalSpacerItem(), i, 4)
+            
+            if desc == 'num':
+             
+                cb = NumberTextField()
+                cb.setMaximumWidth(50)
+                min = self.opts_fields[opt]['min']
+                max = self.opts_fields[opt]['max']
+                cb.setMaximum(max)
+                cb.setMinimum(min)
+                cb.setObjectName(opt+"_control")
+                num = self.opts_fields[opt]['val']
+                cb.setValue(num)
+                self._parameter_layout.addWidget(cb)
+                self.opt_controls[opt]= {'control':cb}
+                #cb.editingFinished.connect(partial(self.color_btn_clicked, cb))
+                self._parameter_layout.addItem(HorizontalSpacerItem(), i, 4)
+
+            if desc == 'bool':
+             
+                cb = QtWidgets.QCheckBox()
+                cb.setObjectName(opt+"_control")
+                checked = self.opts_fields[opt]['val']
+                cb.setChecked(checked)
+                self._parameter_layout.addWidget(cb)
+                self.opt_controls[opt]= {'control':cb}
+                #cb.editingFinished.connect(partial(self.color_btn_clicked, cb))
+                self._parameter_layout.addItem(HorizontalSpacerItem(), i, 4)
+
             i += 1
 
         self._parameter_layout.addItem(VerticalSpacerItem(), i, 0)
@@ -107,6 +138,8 @@ class DisplayPreferencesWidget(QWidget):
     
         btn.setStyleSheet('background-color:' + color)
 
+    
+
     def set_params(self,params):
         oc = self.opt_controls
         for opt in params: 
@@ -114,16 +147,30 @@ class DisplayPreferencesWidget(QWidget):
                 control=oc[opt]['control']
                 val = params[opt]
                 if val is not None:
-                    set_btn_color(control,val)
+                    if isinstance( control, FlatButton):
+                        set_btn_color(control,val)
+                    elif isinstance( control, NumberTextField):
+                        control.setValue(val)
+                    elif isinstance( control, QtWidgets.QCheckBox):
+                        control.setChecked(val)
 
     def apply(self):
         params = {}
         oc = self.opt_controls
-        for opt in oc:
-            val =  oc[opt]['control'].palette().color(1)
-            color = (val.red(), val.green(), val.blue())
-            color = rgb2hex(*color)
-            params[opt]= color
+        of = self.opts_fields
+        for opt in of:
+            desc = of[opt]['desc']
+            if desc == 'color':
+                val =  oc[opt]['control'].palette().color(1)
+                color = (val.red(), val.green(), val.blue())
+                color = rgb2hex(*color)
+                params[opt]= color
+            elif desc == 'num':
+                val = oc[opt]['control'].value()
+                params[opt]= val
+            elif desc == 'bool':
+                checked = oc[opt]['control'].isChecked()
+                params[opt]= checked
         self.apply_clicked_signal.emit(params)
 
 def set_btn_color(btn, color):

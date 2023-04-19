@@ -25,29 +25,65 @@ from PyQt5 import uic, QtWidgets,QtCore
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
 from PyQt5.QtWidgets import QMainWindow
 
+from hpm.widgets.PltWidget import PltWidget
+
 #qtCreatorFile = 'hpMCA.ui'
 #Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 _platform = platform.system()
 
 from hpm.widgets.hpMCA_ui import Ui_hpMCA
-
+from hpm.widgets.CustomWidgets import FlatButton, DoubleSpinBoxAlignRight, HorizontalLine, IntegerTextField, VerticalSpacerItem, NoRectDelegate, \
+    HorizontalSpacerItem, ListTableWidget, VerticalLine, DoubleMultiplySpinBoxAlignRight, CheckableFlatButton
 
 
 class hpMCAWidget(QMainWindow, Ui_hpMCA):
     file_dragged_in_signal = pyqtSignal(str)
+    folder_dragged_in_signal = pyqtSignal(str)
     key_signal = pyqtSignal(str)
     def __init__(self, app):
         QMainWindow.__init__(self)
         Ui_hpMCA.__init__(self)
         self.app = app
+        desktop = QtWidgets.QDesktopWidget()
+        dpi = desktop.physicalDpiX()
+        self.retina_display = False
+        if dpi > 96:
+            self.retina_display = True
         self.setupUi(self)
+        
+        self._plot_toolbar_top_widget_layout.addSpacerItem(HorizontalSpacerItem())
+        self.element_number_cmb = QtWidgets.QComboBox()
+        self.element_number_cmb.setStyleSheet("QComboBox { color: white; }")
+        self.element_number_lbl = QtWidgets.QLabel('Detector')
+        self._plot_toolbar_top_widget_layout.addWidget(self.element_number_lbl)
+        self._plot_toolbar_top_widget_layout.addWidget(self.element_number_cmb)
+        
+
+        self.pg = PltWidget(self.plot_widget,
+                        toolbar_widgets=[self.plot_toolbar_right_widget,
+                                        self.plot_toolbar_top_widget], retina_display=self.retina_display)
+        self.pg.setMinimumSize(QtCore.QSize(205, 100))
+        self.pg.setObjectName("pg")
+
+        self._plot_widget_layout.addWidget(self.pg)
+        self._plot_widget_layout.addWidget(self.plot_toolbar_right_widget)
+
         self.scales_btns = {'E':self.radioE,
                             'q':self.radioq,
                             'd':self.radiod,
                             'Channel':self.radioChannel,
                             '2 theta':self.radiotth}
+        
         self.add_menu_items()
         self.setAcceptDrops(True)
+
+    def hide_det_cmb(self, hide : bool):
+        if hide:
+            self.element_number_cmb.hide()
+            self.element_number_lbl.hide()
+        else:
+            self.element_number_cmb.show()
+            self.element_number_lbl.show()
 
     def closeEvent(self, QCloseEvent, *event):
         self.app.closeAllWindows()
@@ -78,6 +114,8 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
         self.actionPresets.setEnabled(enabled)
         self.actionhklGen.setEnabled(enabled)
         self.actionEvironment.setEnabled(enabled)
+        self.actionLoadCalibration.setEnabled(enabled)
+        self.actionShowCalibration.setEnabled(enabled)
 
     def keyPressEvent(self, e):
         sig = None
@@ -171,6 +209,24 @@ class hpMCAWidget(QMainWindow, Ui_hpMCA):
     def set_scales_enabled_states(self, enabled=['E','q','d','Channel']):
         for btn in self.scales_btns:
             self.scales_btns[btn].setEnabled(btn in enabled)
+
+    def get_selected_unit(self):
+        horzScale = 'Channel'
+        if self.radioE.isChecked() == True:
+            horzScale = 'E'
+        elif self.radioq.isChecked() == True:
+            horzScale = 'q'
+        
+        elif self.radiod.isChecked() == True:
+            horzScale = 'd'
+        elif self.radiotth.isChecked() == True:
+            horzScale = '2 theta'
+        return horzScale
+
+    def set_unit_btn(self, unit):
+        if unit in self.scales_btns:
+            btn = self.scales_btns[unit]
+            btn.setChecked(True)
 
     ########################################################################################
     ########################################################################################

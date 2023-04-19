@@ -34,15 +34,18 @@ Modifications:
             
 """
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 import pyqtgraph as pg
 
 import copy
 import numpy as Numeric
-import math
 import hpm.models.Xrf as Xrf
 import utilities.CARSMath as CARSMath
 import functools
+from hpm.models.eCalModel import fit_energies
+from hpm.models.mcaModel import MCA
+from hpm.widgets.UtilityWidgets import open_file_dialog
+
 
 
 class mcaCalibrateEnergy_widgets():
@@ -56,8 +59,16 @@ class mcaCalibrateEnergy_widgets():
         self.energy_diff          = [None]*nrois
         self.line                 = [None]*nrois
 
+    def add_widgets(self, nrois):
+        self.use_flag             += [None]*nrois
+        self.centroid             += [None]*nrois
+        self.fwhm                 += [None]*nrois
+        self.energy               += [None]*nrois
+        self.energy_diff          += [None]*nrois
+        self.line                 += [None]*nrois
+
 class mcaCalibrateEnergy(QtWidgets.QWidget):
-    def __init__(self, mca, detector=0, command=None, parent=None):
+    def __init__(self, mca, working_directories, detector=0, command=None, parent=None):
         """
         Creates a new GUI window for calibrating energy for an Mca object.
 
@@ -93,6 +104,9 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         """
         super(mcaCalibrateEnergy, self).__init__()
         self.input_mca = mca
+        self.working_directories = working_directories
+        
+        self.det = detector
         #self.input_mca.auto_process_rois = False
         self.roi = copy.deepcopy(mca.get_rois()[detector])
         self.calibration = copy.deepcopy(mca.get_calibration()[detector])   
@@ -109,8 +123,17 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
         self.fwhm_chan = Numeric.zeros(self.nrois, Numeric.float)
         self.widgets = mcaCalibrateEnergy_widgets(self.nrois)
         
-
         # Compute the centroid and FWHM of each ROI
+        self.compute_centroids()
+                                            
+
+        self.initUI()
+        self.show()
+
+    # start widgets
+
+    def compute_centroids(self):
+        
         for i in range(self.nrois):
             left = self.roi[i].left
             right = self.roi[i].right+1
@@ -135,17 +158,118 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
                                             self.fwhm_chan[i]/2.) - 
                                 self.calibration.channel_to_energy(self.roi[i].centroid - 
                                             self.fwhm_chan[i]/2.))
-                                            
 
-        self.initUI()
-        self.show()
+    def add_row(self, i):
+        row=i+1 
 
-    # start widgets
+        t = QtWidgets.QLabel(self.groupBox)
+        t.setText(str(i))
+        t.setAlignment(QtCore.Qt.AlignHCenter)
+        self.gridLayout.addWidget(t, row, 0, QtCore.Qt.AlignHCenter)  
+
+        self.widgets.use_flag[i] = t = QtWidgets.QCheckBox(self.groupBox)
+        t.setChecked(self.roi[i].use==1)
+        t.toggled.connect(functools.partial(self.menu_use, i)) # lambda expression didn't work so using functools.partial instead
+        self.gridLayout.addWidget(t, row, 1, QtCore.Qt.AlignHCenter)
+        
+        self.widgets.centroid[i] = t = QtWidgets.QLineEdit(self.groupBox)
+        t.setText('%.3f' % self.roi[i].centroid)
+        t.setFixedWidth(70)
+        t.setAlignment(QtCore.Qt.AlignHCenter)
+        t.returnPressed.connect(functools.partial(self.menu_centroid, i))
+        self.gridLayout.addWidget(t, row, 2, QtCore.Qt.AlignHCenter)
+
+        self.widgets.fwhm[i] = t =  QtWidgets.QLineEdit(self.groupBox)
+        t.setText('%.3f' % self.roi[i].fwhm)
+        t.setFixedWidth(70)
+        t.setAlignment(QtCore.Qt.AlignHCenter)
+        self.gridLayout.addWidget(t, row, 3, QtCore.Qt.AlignHCenter)
+
+        # If the ROI energy is zero, then try to use the label to lookup an
+        # XRF line energy
+        self.roi[i].energy = 0
+        if (self.roi[i].energy == 0.0):
+            self.roi[i].energy = Xrf.lookup_xrf_line(self.roi[i].label)
+            if (self.roi[i].energy == None):
+                self.roi[i].energy = Xrf.lookup_gamma_line(self.roi[i].label)
+            if (self.roi[i].energy == None): self.roi[i].energy=0.0
+
+        self.widgets.energy[i] = t = QtWidgets.QLineEdit(self.groupBox)
+        t.setText('%.3f' % self.roi[i].energy)
+        t.setFixedWidth(70)
+        t.setAlignment(QtCore.Qt.AlignHCenter)
+        t.returnPressed.connect(functools.partial(self.menu_energy, i))
+        self.gridLayout.addWidget(t, row, 4, QtCore.Qt.AlignHCenter)
+
+        self.widgets.line[i] = t = QtWidgets.QLineEdit(self.groupBox)
+        t.setText(self.roi[i].label)
+        t.setFixedWidth(70)
+        t.setAlignment(QtCore.Qt.AlignHCenter)
+        self.widgets.line[i].returnPressed.connect(functools.partial(self.menu_line, i))
+        self.gridLayout.addWidget(t, row, 5, QtCore.Qt.AlignHCenter)
+
+        self.widgets.energy_diff[i] = t = QtWidgets.QLineEdit(self.groupBox)
+        t.setText('%.3f' % 0.0)
+        t.setFixedWidth(70)
+        t.setAlignment(QtCore.Qt.AlignHCenter)
+        self.gridLayout.addWidget(t, row, 6, QtCore.Qt.AlignHCenter)
 
     def initUI(self):
         
         
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)
+
+        ### 
+        ### current calibration
+        ###
+
+        self.groupBox_current_calibration = QtWidgets.QGroupBox(self)
+        self.groupBox_current_calibration.setTitle("")
+        self.verticalLayout_current_calibration = QtWidgets.QVBoxLayout(self.groupBox_current_calibration)
+        self.gridLayout_current_calibration = QtWidgets.QGridLayout()
+
+        self.cc_label_12 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_12.setText("Units")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_12, 0, 1, 1, 1)
+        self.cc_label_13 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_13.setText("Offset")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_13, 0, 2, 1, 1)
+        self.cc_label_14 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_14.setText("Slope")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_14, 0, 3, 1, 1)
+        self.cc_label_15 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_15.setText("Quadratic")
+        self.gridLayout_current_calibration.addWidget(self.cc_label_15, 0, 4, 1, 1)
+
+        self.cc_label_11 = QtWidgets.QLabel(self.groupBox_current_calibration)
+        self.cc_label_11.setText("Calibration coefficients:")
+        self.cc_label_11.setAlignment(QtCore.Qt.AlignRight)
+        self.gridLayout_current_calibration.addWidget(self.cc_label_11, 1, 0, 1, 1)
+
+        self.cc_cal_units = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText(self.calibration.units)
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 1, 1, 1)
+
+        self.cc_cal_offset = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText('%.7f'%(self.calibration.offset))
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 2, 1, 1)
+
+        self.cc_cal_slope = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText('%.7f'%(self.calibration.slope))
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 3, 1, 1)
+
+        self.cc_cal_quad = t = QtWidgets.QLabel(self.groupBox_current_calibration)
+        t.setText('%.7f'%(self.calibration.quad))
+        t.setFixedWidth(90)
+        self.gridLayout_current_calibration.addWidget(t, 1, 4, 1, 1)
+
+        self.verticalLayout_current_calibration.addLayout(self.gridLayout_current_calibration)
+
+        self.verticalLayout_4.addWidget(self.groupBox_current_calibration)
+
         self.groupBox = QtWidgets.QGroupBox(self)
         self.container = self.groupBox        
         self.gridLayout = QtWidgets.QGridLayout(self.container)
@@ -164,63 +288,15 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
 
 
         for i in range(self.nrois):
-            row=i+1 
+            self.add_row(i)
             
-            t = QtWidgets.QLabel(self.groupBox)
-            t.setText(str(i))
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.gridLayout.addWidget(t, row, 0, QtCore.Qt.AlignHCenter)  
-
-            self.widgets.use_flag[i] = t = QtWidgets.QCheckBox(self.groupBox)
-            t.setChecked(self.roi[i].use==1)
-            t.toggled.connect(functools.partial(self.menu_use, i)) # lambda expression didn't work so using functools.partial instead
-            self.gridLayout.addWidget(t, row, 1, QtCore.Qt.AlignHCenter)
             
-            self.widgets.centroid[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.3f' % self.roi[i].centroid)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            t.returnPressed.connect(functools.partial(self.menu_centroid, i))
-            self.gridLayout.addWidget(t, row, 2, QtCore.Qt.AlignHCenter)
-
-            self.widgets.fwhm[i] = t =  QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.3f' % self.roi[i].fwhm)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.gridLayout.addWidget(t, row, 3, QtCore.Qt.AlignHCenter)
-
-            # If the ROI energy is zero, then try to use the label to lookup an
-            # XRF line energy
-            self.roi[i].energy = 0
-            if (self.roi[i].energy == 0.0):
-                self.roi[i].energy = Xrf.lookup_xrf_line(self.roi[i].label)
-                if (self.roi[i].energy == None):
-                    self.roi[i].energy = Xrf.lookup_gamma_line(self.roi[i].label)
-                if (self.roi[i].energy == None): self.roi[i].energy=0.0
-
-            self.widgets.energy[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.3f' % self.roi[i].energy)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            t.returnPressed.connect(functools.partial(self.menu_energy, i))
-            self.gridLayout.addWidget(t, row, 4, QtCore.Qt.AlignHCenter)
-
-            self.widgets.line[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText(self.roi[i].label)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.widgets.line[i].returnPressed.connect(functools.partial(self.menu_line, i))
-            self.gridLayout.addWidget(t, row, 5, QtCore.Qt.AlignHCenter)
-
-            self.widgets.energy_diff[i] = t = QtWidgets.QLineEdit(self.groupBox)
-            t.setText('%.3f' % 0.0)
-            t.setFixedWidth(70)
-            t.setAlignment(QtCore.Qt.AlignHCenter)
-            self.gridLayout.addWidget(t, row, 6, QtCore.Qt.AlignHCenter)
-
-        
         self.verticalLayout_4.addWidget(self.groupBox)
 
+        # add button to load rois from file
+        self.addRois = QtWidgets.QPushButton('Load more regions...')
+        self.addRois.clicked.connect(self.add_rois_from_file)
+        self.verticalLayout_4.addWidget(self.addRois)
 
         self.groupBox_2 = QtWidgets.QGroupBox(self)
         self.groupBox_2.setTitle("")
@@ -318,18 +394,47 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
 
         self.setWindowTitle("Energy Calibration")
         self.groupBox.setTitle("Defined regions")
+        self.groupBox_current_calibration.setTitle("Current calibration")
+        self.groupBox_3.setTitle('New calibration')
 
         
-        self.setFixedSize(self.verticalLayout_4.sizeHint())
+        #self.setFixedSize(self.verticalLayout_4.sizeHint())
 
         #self.setWindowFlags(QtCore.Qt.Tool)
         #self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow) 
+
+
+    
 
     def raise_widget(self):
         self.show()
         self.setWindowState(self.windowState() & ~QtCore.Qt.WindowMinimized | QtCore.Qt.WindowActive)
         self.activateWindow()
         self.raise_()
+
+    def add_rois_from_file(self,**kwargs):
+        """
+
+        """
+        filename = kwargs.get('filename', None)
+
+        if filename is None:
+            filename = open_file_dialog(self, "Load hpmca file.",
+                                      self.working_directories.readdata)  
+
+        mca = MCA()
+        [_,self.success]=mca.read_file(filename)
+        rois = mca.rois_from_file[0]
+        nrois = copy.copy(self.nrois)
+        self.widgets.add_widgets(len(rois))
+        for i in range(len(rois)):
+            mca.compute_roi(rois[i])
+            self.roi.append(rois[i])
+            self.add_row(i+nrois)
+        self.nrois = self.nrois + len(rois)
+
+        self.fwhm_chan = Numeric.zeros(self.nrois, Numeric.float)
+        self.compute_centroids()
 
     def menu_plot_calibration(self):
         """ Private method """
@@ -403,63 +508,34 @@ class mcaCalibrateEnergy(QtWidgets.QWidget):
             self.widgets.energy[roi].setText('%.3f' % energy)
         print('line: ' + line)
 
+
     def menu_do_fit(self):
-        """ Private method """
         degree = self.fit_type.currentIndex() + 1
-        use = []
+        roi = self.roi
+        calibration = self.calibration
+        fit_energies(roi, degree, calibration)
+         
         for i in range(self.nrois):
-            if (self.roi[i].use): use.append(i)
-        nuse = len(use)
-        if ((degree == 1) and (nuse < 2)):
-            #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
-            message='Must have at least two valid points for linear calibration'
-            print(message)
-            return
-        elif ((degree == 2) and (nuse < 3)):
-            #tkMessageBox.showerror(title='mcaCalibateEnergy Error', 
-            message='Must have at least three valid points for quadratic calibration'
-            print(message)
-            return
-        chan=Numeric.zeros(nuse, Numeric.float)
-        energy=Numeric.zeros(nuse, Numeric.float)
-        weights=Numeric.ones(nuse, Numeric.float)
-        for i in range(nuse):
-            chan[i] = self.roi[use[i]].centroid
-            energy[i] = self.roi[use[i]].energy
-        coeffs = CARSMath.polyfitw(chan, energy, weights, degree)
-        self.calibration.offset = coeffs[0]
-        self.cal_offset.setText(str('%.7f'%(self.calibration.offset)))
-        self.calibration.slope = coeffs[1]
-        self.cal_slope.setText(str('%.7f'%(self.calibration.slope)))
-        if (degree == 2):
-            self.calibration.quad = coeffs[2]
-        else:
-            self.calibration.quad = 0.0
-        self.cal_quad.setText(str('%.7f'%(self.calibration.quad)))
-        #self.input_mca.set_calibration([self.calibration])
-        for i in range(self.nrois):
+            # Recompute FWHM
+            roi[i].fwhm = (calibration.channel_to_energy(roi[i].centroid + 
+                                    self.fwhm_chan[i]/2.) - 
+                            calibration.channel_to_energy(roi[i].centroid -
+                                    self.fwhm_chan[i]/2.))
             energy_diff = (self.roi[i].energy -
                             self.calibration.channel_to_energy(self.roi[i].centroid))
             self.widgets.energy_diff[i].setText('%.4f' % energy_diff)
-            # Recompute FWHM
-            self.roi[i].fwhm = (self.calibration.channel_to_energy(self.roi[i].centroid + 
-                                    self.fwhm_chan[i]/2.) - 
-                            self.calibration.channel_to_energy(self.roi[i].centroid -
-                                    self.fwhm_chan[i]/2.))
             self.widgets.fwhm[i].setText('%.3f' % self.roi[i].fwhm)
+
+        self.cal_slope.setText(str('%.7f'%(self.calibration.slope)))
+        self.cal_offset.setText(str('%.7f'%(self.calibration.offset)))
+        self.cal_quad.setText(str('%.7f'%(self.calibration.quad)))
 
     def menu_ok_cancel(self, button):
         """ Private method """
-        if (button == 'OK') or (button == 'Apply'):
-            # Copy calibration and rois to input mca object
-            self.input_mca.set_calibration([self.calibration])
-            #self.input_mca.set_rois(self.roi)
-            pass
-
-        if (button == 'OK'):
-            exit_status=1
-        elif (button == 'Apply'):
-            return
+        if button == 'OK':
+            self.calibration.set_dx_type('edx')
+            self.input_mca.set_calibration(self.calibration, self.det)
+            exit_status = 1
         else:
             exit_status = 0
         if (self.exit_command): self.exit_command(exit_status)

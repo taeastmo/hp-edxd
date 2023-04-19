@@ -62,6 +62,7 @@ class pvQWidget(QObject):
             self.connect(as_string=as_string)
 
     def connect(self, pvName=None, as_string = False):
+        self.disconnect()
         if not self.connected:
             if pvName is None:
                 pvName = self.pv_name
@@ -136,7 +137,7 @@ class pvQWidget(QObject):
             value = self.put_value
             if value is not None:
                 self.pv.put(value)
-                print('caput ' + self.pv_name + ' ' +value)
+                #print('caput ' + self.pv_name + ' ' +value)
 
 
 class pvQDoubleSpinBox(QDoubleSpinBox, pvQWidget):

@@ -21,7 +21,7 @@
 import pyqtgraph as pg
 from pyqtgraph import QtCore, mkPen, mkColor, hsvColor
 from PyQt5.QtCore import QObject, pyqtSignal, Qt
-from PyQt5.QtGui import QColor, QPen
+from PyQt5.QtGui import QColor, QPen, QPainter
 from utilities.HelperModule import calculate_color
 from hpm.widgets.ExLegendItem import LegendItem
 from hpm.widgets.PhasePlot import PhasePlot
@@ -201,7 +201,7 @@ class PltWidget(pg.PlotWidget):
     range_changed = QtCore.pyqtSignal(list)
     auto_range_status_changed = QtCore.pyqtSignal(bool)
 
-    def __init__(self, parent=None, colors = None, toolbar_widgets=[]):
+    def __init__(self, parent=None, colors = None, toolbar_widgets=[], retina_display=False):
         """
         Constructor of the widget
         """
@@ -209,30 +209,32 @@ class PltWidget(pg.PlotWidget):
         vb = CustomViewBox()  
         self.parent_widget = parent
         self.toolbar_widgets =toolbar_widgets
-        
+        self.retina_display = retina_display
         super().__init__(parent, viewBox=vb)
         self.viewBox = self.getViewBox() # Get the ViewBox of the widget
         
         self.cursorPoints = [nan,nan]
         # defined default colors
-        self.colors = { 'plot_background_color': '#ffffff',\
-                        'data_color': '#2f2f2f',\
-                        'rois_color': '#00b4ff', \
-                        'roi_cursor_color': '#ff0000', \
-                        'xrf_lines_color': '#969600', \
-                        'mouse_cursor_color': '#00cc00', \
-                        'mouse_fast_cursor_color': '#323232'}
+        self.prefs = { 'plot_background_color': '#ffffff',
+                        'data_color': '#2f2f2f',
+                        'rois_color': '#00b4ff', 
+                        'roi_cursor_color': '#ff0000', 
+                        'xrf_lines_color': '#969600',
+                        'mouse_cursor_color': '#00cc00', 
+                        'mouse_fast_cursor_color': '#323232',
+                        'plot_width': 1,
+                        'plot_antialias': True}
 
         # override default colors here:
         if colors != None:
             for c in colors:
-                if c in self.colors:
-                    self.colors[c] = colors[c]
+                if c in self.prefs:
+                    self.prefs[c] = colors[c]
             
-        plot_background_color = self.colors['plot_background_color']
+        plot_background_color = self.prefs['plot_background_color']
         self.setBackground(background=plot_background_color)
         
-        #mouse_fast_cursor_color = self.colors['mouse_fast_cursor_color']
+        #mouse_fast_cursor_color = self.prefs['mouse_fast_cursor_color']
 
         self.vLine = self.viewBox.vLine
         self.vLineFast  = self.viewBox.vLineFast
@@ -291,17 +293,18 @@ class PltWidget(pg.PlotWidget):
         self.setLogMode(*self.LM)
 
     def get_colors(self):
-        return self.colors
+        return self.prefs
         
     def set_colors(self, params):
-        
+        # originally used to set colors, thus the name, but now used for other parameters as well, width, aliasing, etc.
         for p in params:
-            if p in self.colors:
+            if p in self.prefs:
                 color = params[p]
-                self.colors[p] = color
+                self.prefs[p] = color
                 if p == 'plot_background_color':
                     self.setBackground(color)
-                    self.parent_widget.setStyleSheet( 'background-color: '+ color+';')
+                    if self.parent_widget != None:
+                        self.parent_widget.setStyleSheet( 'background-color: '+ color+';')
                     #toolbar_widgets are widgets containing or surrounding the plot
                     #this sets their backgorund to match the plot
                     for widget in self.toolbar_widgets:
@@ -324,14 +327,27 @@ class PltWidget(pg.PlotWidget):
                     pass
                 elif p == 'mouse_fast_cursor_color':
                     pass
+                elif p == 'plot_width':
+                    # this is currently not used because setting width more than 1 makes the plot slow
+                    # maybe if they fix that issue in a future version of pyqtgraph
+                    if self.plotForeground is not None:
+                        pen = self.foreground_pen # need to rename this consistently at some point, see note above
+                        pen.setWidth(color)
+                        self.plotForeground.setPen(pen)
+                    if self.plotRoi is not None:
+                        pen = self.roi_pen # need to rename this consistently at some point, see note above
+                        pen.setWidth(color)
+                        self.plotRoi.setPen(pen)
+                    
+                
 
     def export_plot_png(self,filename):
         self.vLine.hide()
         self.vLineFast.hide()
         exporter = pg.exporters.ImageExporter(self.plotItem)
-        exporter.params.param('width').setValue(1920, blockSignal=exporter.widthChanged)
-        exporter.params.param('height').setValue(1080, blockSignal=exporter.heightChanged)
-        #exporter.parameters()['width']= 200
+        #exporter.params.param('width').setValue(1920, blockSignal=exporter.widthChanged)
+        #exporter.params.param('height').setValue(1080, blockSignal=exporter.heightChanged)
+     
         exporter.export(filename)
         self.vLine.show()
         self.vLineFast.show()
@@ -340,7 +356,7 @@ class PltWidget(pg.PlotWidget):
         self.vLine.hide()
         self.vLineFast.hide()
         exporter = pg.exporters.SVGExporter(self.plotItem)
-        #exporter.parameters()['width']= 200
+        
         exporter.export(filename)
         self.vLine.show()
         self.vLineFast.show()
@@ -351,10 +367,14 @@ class PltWidget(pg.PlotWidget):
     def create_plots(self, xAxis,data,roiHorz,roiData, xLabel):
         # initialize some plots
         #self.pattern_plot.buttonsHidden = True
+        antialias = self.prefs['plot_antialias']
+        plot_width = self.prefs['plot_width']
         self.setLabel('left', 'Counts')
-        data_color = self.colors['data_color']
+        data_color = self.prefs['data_color']
+        self.foreground_pen = pg.mkPen(color=data_color, width=plot_width)
+      
         self.plotForeground = pg.PlotDataItem(xAxis, data, title="",
-                antialias=True, pen=pg.mkPen(color=data_color, width=1), connect="finite" )
+                 pen=self.foreground_pen, connect="finite" , antialias=antialias)
         self.addItem(self.plotForeground)
 
         # plot legend items 
@@ -373,16 +393,20 @@ class PltWidget(pg.PlotWidget):
 
         
         # initialize roi plot 
-        rois_color = self.colors['rois_color']
+        rois_color = self.prefs['rois_color']
+        self.roi_pen = pg.mkPen(color=rois_color, width=plot_width)
+
         self.plotRoi = pg.PlotDataItem(roiHorz, roiData, 
 
-            antialias=True, pen=rois_color, connect="finite", width=1)
+             pen=self.roi_pen, connect="finite", antialias=antialias)
         self.addItem(self.plotRoi)  
         self.legend.addItem(self.plotRoi, '')
         self.setLabel('bottom', xLabel) 
 
+    def plot_image(self, data):
+        self.plotData(data[0], data[1])
 
-    def plotData(self, xAxis,data,roiHorz,roiData, xLabel, dataLabel=''):
+    def plotData(self, xAxis,data,roiHorz=[],roiData=[], xLabel='', dataLabel=''):
         
         self.xAxis = xAxis
         if self.plotForeground == None:
@@ -535,7 +559,7 @@ class PltWidget(pg.PlotWidget):
     def add_roi_cursor(self, name, positions, intensities, baseline):
         self.roi_cursor.append(PhasePlot(self.pattern_plot, \
                     self.xrf_legend, positions, intensities, \
-                    name, baseline,'solid',line_width=3,color=(255,0,0)))
+                    name, baseline,'solid',line_width=5,color=(255,0,0)))
         return self.roi_cursor[-1].color
 
     def set_roi_cursor_color(self, ind, color):
