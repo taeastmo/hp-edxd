@@ -86,13 +86,18 @@ def main():
     multi_spectra4 =  os.path.normpath( os.path.join(desktop,'dt/20230406_SiO2/0psi'))
     mask_path =  os.path.normpath( os.path.join(resources_path,'my.mask'))
     #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
-    multi_element =  os.path.normpath( os.path.join(desktop,'dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca'))
+    
+    multi_element_calibration =  os.path.normpath( os.path.join(desktop,'dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca'))
+    multi_element = os.path.normpath( os.path.join(desktop, 'dt/GSD/sio2/20221204_Au_60sec_filter-glassy-C_beam-0p05x0p05_angle-2_003.dat.mca'))
     #multi_element =  os.path.normpath( os.path.join(resources_path,'20221116_test_010.hpmca'))
     #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
     #jcpds = os.path.join(resources_path,'LaB6.jcpds')
 
-    
-    #controller.file_save_controller.openFile(filename=multi_element)
+    controller = hpmcaController(app)
+    controller.widget.show()
+
+    controller.file_save_controller.openFile(filename=multi_element)
+    controller.load_calibration(filename=multi_element_calibration)
     #controller.file_save_controller.openFolder(foldername=multi_spectra4)
     #controller.element_number_cmb_currentIndexChanged_callback(1)
     
@@ -105,8 +110,7 @@ def main():
     #controller.phase_controller.show_view()
     #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
 
-    controller = hpmcaController(app)
-    controller.widget.show()
+    
 
     
 
