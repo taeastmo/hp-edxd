@@ -25,6 +25,7 @@ epics_path = os.path.dirname(epics.__file__)
 
 extra_datas = [
     ("hpm/resources", "hpm/resources"),
+    ("axd/resources", "axd/resources"),
     (os.path.join(burnman_path, "data"), "burnman/data")
 ]
 

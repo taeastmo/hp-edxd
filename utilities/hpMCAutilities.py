@@ -416,6 +416,7 @@ class mcaDisplay_file:
       self.savedata      = home          # name of saved or read
       self.readdata      = home
       self.exportdata    = home
+      self.export_ext    = '.xy'
       self.last_saved_file = ''
       self.mask = ''
       
