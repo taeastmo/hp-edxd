@@ -18,7 +18,7 @@
 
 
 
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 
 
 
@@ -75,8 +75,42 @@ def main():
     from hpm.controllers.hpmca_controller import hpmcaController
     app.aboutToQuit.connect(app.deleteLater)
 
+    # autoload a file, using for debugging
+    #pattern = os.path.normpath(os.path.join(resources_path,'20181010-Au-wire-50um-15deg.hpmca'))
+    #pattern2 = os.path.normpath(os.path.join(resources_path,'20181001 Energy Calibration.000'))
+    #jcpds1 = os.path.normpath(os.path.join(resources_path,'au.jcpds'))
+    #jcpds2 = os.path.normpath(os.path.join(resources_path,'mgo.jcpds'))
+    #multi_spectra =  os.path.normpath( os.path.join(desktop,'dt/Guoyin/Cell2-HT/5000psi-800C'))
+    #multi_spectra2 =  os.path.normpath( os.path.join(desktop,'dt/20221213-SiO2'))
+    #multi_spectra3 =  os.path.normpath( os.path.join(desktop,'dt/20230219_Fe/xrd/tth-scan'))
+    #multi_spectra4 =  os.path.normpath( os.path.join(desktop,'dt/20230406_SiO2/0psi'))
+    #mask_path =  os.path.normpath( os.path.join(resources_path,'my.mask'))
+    #multi_element =  os.path.normpath( os.path.join(resources_path,'basalt_xrf.002'))
+    
+    #multi_element_calibration =  os.path.normpath( os.path.join(desktop,'dt/GSD/20221203_Cd109-Co57_5400sec_gain100kev_summed.hpmca'))
+    #multi_element = os.path.normpath( os.path.join(desktop, 'dt/GSD/sio2/20221204_Au_60sec_filter-glassy-C_beam-0p05x0p05_angle-2_003.dat.mca'))
+    #multi_element =  os.path.normpath( os.path.join(resources_path,'20221116_test_010.hpmca'))
+    #pattern = os.path.join(resources_path,'LaB6_40keV_MarCCD.chi')
+    #jcpds = os.path.join(resources_path,'LaB6.jcpds')
+
     controller = hpmcaController(app)
     controller.widget.show()
+
+    #controller.file_save_controller.openFile(filename=multi_element)
+    #controller.load_calibration(filename=multi_element_calibration)
+    #controller.file_save_controller.openFolder(foldername=multi_spectra4)
+    #controller.element_number_cmb_currentIndexChanged_callback(1)
+    
+    #controller.file_save_controller.openFolder(foldername=multi_spectra2)
+    #controller.multiple_datasets_controller.mask_controller.load_mask_btn_click(filename = mask_path)
+    #controller.multiple_datasets_controller.show_view()
+    
+    #controller.phase_controller.add_btn_click_callback(filenames=[jcpds1])
+
+    #controller.phase_controller.show_view()
+    #controller.phase_controller.add_btn_click_callback(filenames=['JCPDS/Oxides/mgo.jcpds'])
+
+    
 
     
 

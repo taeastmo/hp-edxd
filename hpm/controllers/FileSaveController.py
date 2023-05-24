@@ -58,6 +58,8 @@ class FileSaveController(object):
         record_name_file = defaults_options.file_record
         self.record_name_file = record_name_file 
 
+        self.file_types = {'xy':'Data xy','chi':'Data chi','dat':'Data dat','fxye':'GSAS','png':'png'}
+
         if epics_sync:
             if record_name_file != None:
                 self.pvs_file ={'FullFileName_RBV': None}
@@ -83,6 +85,7 @@ class FileSaveController(object):
                 for pv_file in self.pvs_file.keys():
                     name = self.record_name_file + ':' + pv_file
                     self.pvs_file[pv_file] = PV(name)
+        
         
         self.mca_controller = hpmcaController
         self.widget = hpmcaController.widget
@@ -490,13 +493,27 @@ class FileSaveController(object):
     #################### #################### #################### 
 
     def export_pattern(self):
+        ext = self.mca_controller.working_directories.export_ext
+        filters = ''
+        if ext in self.file_types:
+            filters = self.file_types[ext] + ' (*.' + ext + ')'
+            for e in self.file_types:
+                if e != ext:
+                    filters += ';;'+ self.file_types[e] + ' (*.' + e + ')'
+        else:
+            filters = 'Data xy (*.xy);;Data chi (*.chi);;Data dat (*.dat);;GSAS (*.fxye);;png (*.png)'
+            ext = 'xy'
         if self.mca_controller.mca is not None:
             img_filename, _ = os.path.splitext(os.path.basename(self.mca_controller.mca.file_name))
+            if len(ext):
+                extension = "." + ext
+            else:
+                extension = ''
             filename = save_file_dialog(
                 self.widget, "Save Pattern Data.",
-                os.path.join(self.mca_controller.working_directories.savedata,
-                            img_filename + self.mca_controller.working_directories .export_ext),
-                    ('Data (*.xy);;Data (*.chi);;Data (*.dat);;GSAS (*.fxye);;png (*.png)'))
+                os.path.join(self.mca_controller.working_directories.exportdata,
+                            img_filename + extension),
+                    (filters),True)
             if filename != '':
                 self.export(filename)
 
@@ -523,6 +540,15 @@ class FileSaveController(object):
         #    self.widget.pg.export_plot_svg(filename)
         else:
             self.mca_controller.mca.export_pattern(filename, self.mca_controller.unit, self.mca_controller.plotController.units[self.mca_controller.unit])
+
+        folder = os.path.split(filename)[0]
+        self.mca_controller.working_directories.exportdata = os.path.abspath(folder)
+        if '.' in filename:
+            ext = str.split(filename, '.')[-1]
+        else:
+            ext = ''
+        self.mca_controller.working_directories.export_ext = ext
+        mcaUtil.save_folder_settings(self.mca_controller.working_directories )
 
     def epics_connections(self):
 

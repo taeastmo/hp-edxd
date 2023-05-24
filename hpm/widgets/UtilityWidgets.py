@@ -351,17 +351,17 @@ def open_files_dialog(parent_widget, caption, directory=None, filter=None):
     return filenames
 
 
-def save_file_dialog(parent_widget, caption, directory=None, filter=None, warn_overwrite = True):
+def save_file_dialog(parent_widget, caption, directory=None, filter=None,  warn_overwrite = True, selectedFilter=None):
     if not warn_overwrite:
         opt = QtWidgets.QFileDialog.DontConfirmOverwrite
         filename = QtWidgets.QFileDialog.getSaveFileName(parent_widget, caption,
                                                      directory=directory,
-                                                     filter=filter, options =opt)
+                                                     filter=filter, options =opt, initialFilter=selectedFilter)
     else: 
         
         filename = QtWidgets.QFileDialog.getSaveFileName(parent_widget, caption,
                                                      directory=directory,
-                                                     filter=filter)
+                                                     filter=filter,initialFilter=selectedFilter)
     if isinstance(filename, tuple):  # PyQt5 returns a tuple...
         return str(filename[0])
     return str(filename)
