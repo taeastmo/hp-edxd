@@ -252,6 +252,12 @@ class structureFactor(Calculator):
         # Check the GOF between overlapping S(q) segments
         chisq = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
         print("chisq = " + str(chisq))
+        # Check the value of the Rahman correction factor
+        rho0 = 0.06 # average number density
+        L = 0.5 # parameter for Rahman check
+        mu = [1, 1.5, 2, 2.5] # parameter for Rahman check
+        LHS, RHS, c0 = rahman_check(S_q[:,0,:],S_q[:,1,:],rho0,L,mu)
+        print(LHS, RHS, c0)
 
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
@@ -306,7 +312,9 @@ class primaryBeamOptimize(Calculator):
     
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
-        for i in range(4): # Eventually we should allow the user to input the number of iterations from the gui
+
+        k = 10 # iteration at which the Rahman check is initiated
+        for i in range(20): # Eventually we should allow the user to input the number of iterations from the gui
             p_new = rand_param(max_int,polynomial_deg,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
             y_model = model_func(xp,*p_new)*Iq_base
