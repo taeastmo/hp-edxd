@@ -373,11 +373,6 @@ def lowpass(q,r,G,numtaps,cutoff,width):
     return Gfilt
 
 
-
-
-
-
-
 ######## Structure factor reliability check using Rahman's method #######
 
 # COMMENT FOR ROSS: still some work needed to understand the limitations and uses of this method, but the algorithm is working and we can implement

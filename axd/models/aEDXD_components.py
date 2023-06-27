@@ -256,12 +256,14 @@ class structureFactor(Calculator):
         # Check the GOF between overlapping S(q) segments
         chisq = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
         print("chisq = " + str(chisq))
-        # # Check the value of the Rahman correction factor
-        # rho0 = 0.06 # average number density
-        # L = 0.5 # parameter for Rahman check
-        # mu = [1, 1.5, 2, 2.5] # parameter for Rahman check
-        # LHS, RHS, c0 = rahman_check(S_q[:,0,:],S_q[:,1,:],rho0,L,mu)
-        # print(LHS, RHS, c0)
+        # Check the value of the Rahman correction factor
+        rho0 = 0.0662 # atoms/Å^3
+        L = 0.5 # Å
+        mu = np.array([0.5, 1, 1.5, 2, 2.5]) # 1/Å
+        LHS, RHS, c0 = rahman_check(q_even,sq_even,rho0,L,mu)
+        print("LHS = " + str(np.round(LHS,4)))
+        print("RHS = " + str(np.round(RHS,4)))
+        print("Correction factor =" + str(np.round(c0,4)))
 
         # output the original q, S(q) values for comparison plotting in the primary beam optimizer class
         q_sort_0 = q_sort
@@ -281,7 +283,11 @@ class structureFactor(Calculator):
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
         self.out_params['sq_even_err'] = sq_even_err
-        self.out_params['chisq'] = chisq  
+        self.out_params['rho0'] = rho0
+        self.out_params['L'] = L
+        self.out_params['mu'] = mu
+        self.out_params['chisq'] = chisq 
+        self.out_params['c0'] = c0 
         
 
 
@@ -310,7 +316,11 @@ class primaryBeamOptimize(Calculator):
                 'outputsavedirectory',
                 'dataarray',
                 'ttharray',
-                'chisq']
+                'rho0',
+                'L',
+                'mu',
+                'chisq',
+                'c0']
         super().__init__(params)
         self.name = "primary beam optimize"
         self.note = ''
@@ -335,14 +345,18 @@ class primaryBeamOptimize(Calculator):
         model_mre = self.params['model_mre']
         sq_smoothing_factor = self.params['sq_smoothing_factor']
         q_spacing = self.params['q_spacing']
+        rho0 = self.params['rho0']
+        L = self.params['L']
+        mu = self.params['mu']
         chisq = self.params['chisq']
+        c0 = self.params['c0']
 
     
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
 
-        k = 10 # iteration at which the Rahman check is initiated
-        for i in range(20): # Eventually we should allow the user to input the number of iterations from the gui
+        rahman_start = 4 # iteration at which the Rahman check is initiated
+        for k in range(9): # Eventually we should allow the user to input the number of iterations from the gui
             p_new = rand_param(max_int,polynomial_deg,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
             y_model = model_func(xn,*p_new)*Iq_base
@@ -456,12 +470,24 @@ class primaryBeamOptimize(Calculator):
             
             # Calculate the GOF between overlapping S(q) segments
             chisq_new = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
-            # Check the current GOF against the previous value
-            if chisq_new < chisq:
-                p_init = p_new # if GOF decreases, set the new initial coefficients to be the newly obtained coefficients 
-                chisq = chisq_new # update chisq value
+
+            if k >= rahman_start:
+                # calculate the Rahman criteria
+                LHS, RHS, c_new = rahman_check(q_even,sq_even,rho0,L,mu)
+                # check that both the rahman correction and the chisq values have improved
+                if abs(c_new - 1) < abs(c0 - 1) and chisq_new < chisq:
+                    p_init = p_new # if chisq decreases and Rahman factor improves, set the new initial coefficients to be the newly obtained coefficients 
+                    chisq = chisq_new # update chisq value
+                    c0 = c_new # update Rahman correction factor
             else:
-                p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration  
+                # Check the current GOF against the previous value
+                if chisq_new < chisq:
+                    p_init = p_new # if GOF decreases, set the new initial coefficients to be the newly obtained coefficients 
+                    chisq = chisq_new # update chisq value
+                else:
+                    p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration 
+                    
+
         print("chisq = " + str(chisq))
         print(p_opt)
         print(p_new)
@@ -478,7 +504,6 @@ class primaryBeamOptimize(Calculator):
         plt.ylabel('S(q)')
         plt.legend()
         plt.show()
-
 
         x0 = dataarray[-1][0]
         y0 = dataarray[-1][1]
