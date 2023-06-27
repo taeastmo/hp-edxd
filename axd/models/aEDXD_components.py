@@ -267,9 +267,11 @@ class structureFactor(Calculator):
         q_sort_0 = q_sort
         sq_sort_0 = sq_sort
         sq_sort_err_0 = sq_sort_err 
+        y_primary_0 = y_primary
 
         self.out_params['yp'] = yp
         self.out_params['xn'] = xn
+        self.out_params['y_primary_0'] = y_primary_0
         self.out_params['Iq_base'] = Iq_base
         self.out_params['model_func']= model_func
         self.out_params['p_opt'] = p_opt
@@ -292,6 +294,7 @@ class primaryBeamOptimize(Calculator):
                 'sq_par',
                 'yp',
                 'xn',
+                'y_primary_0',
                 'Iq_base',
                 'model_func',
                 'p_opt',
@@ -317,6 +320,7 @@ class primaryBeamOptimize(Calculator):
         sq_par = self.params['sq_par']
         yp = self.params['yp']
         xn = self.params['xn']
+        y_primary_0 = self.params['y_primary_0']
         Iq_base = self.params['Iq_base']
         dataarray=self.params['dataarray']
         ttharray=self.params['ttharray']
@@ -472,6 +476,17 @@ class primaryBeamOptimize(Calculator):
         plt.scatter(q_sort,sq_sort,color = 'red',s = 5, label = 'Optimized')
         plt.xlabel('q (1/Å)')
         plt.ylabel('S(q)')
+        plt.legend()
+        plt.show()
+
+
+        x0 = dataarray[-1][0]
+        y0 = dataarray[-1][1]
+        plt.figure(1)
+        plt.plot(x0,y0, color = 'blue',label = 'Raw intensity, 2θ = ' + str(ttharray[-1]),zorder = 1)
+        plt.scatter(xn,y_primary_0*Iq_base,color = 'black', s = 5, label = 'Original',zorder = 2)
+        plt.scatter(xn,y_primary*Iq_base, color = 'red', s = 5, label = 'Optimized', zorder = 3)
+        
         plt.legend()
         plt.show()
 
