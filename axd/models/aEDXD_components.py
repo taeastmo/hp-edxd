@@ -263,11 +263,19 @@ class structureFactor(Calculator):
         # LHS, RHS, c0 = rahman_check(S_q[:,0,:],S_q[:,1,:],rho0,L,mu)
         # print(LHS, RHS, c0)
 
+        # output the original q, S(q) values for comparison plotting in the primary beam optimizer class
+        q_sort_0 = q_sort
+        sq_sort_0 = sq_sort
+        sq_sort_err_0 = sq_sort_err 
+
         self.out_params['yp'] = yp
         self.out_params['xn'] = xn
         self.out_params['Iq_base'] = Iq_base
         self.out_params['model_func']= model_func
         self.out_params['p_opt'] = p_opt
+        self.out_params['q_sort_0'] = q_sort_0
+        self.out_params['sq_sort_0'] = sq_sort_0
+        self.out_params['sq_sort_err_0'] = sq_sort_err_0
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
         self.out_params['sq_even_err'] = sq_even_err
@@ -293,6 +301,9 @@ class primaryBeamOptimize(Calculator):
                 'model_mre',
                 'sq_smoothing_factor',
                 'q_spacing',
+                'q_sort_0',
+                'sq_sort_0',
+                'sq_sort_err_0',
                 'outputsavedirectory',
                 'dataarray',
                 'ttharray',
@@ -310,6 +321,9 @@ class primaryBeamOptimize(Calculator):
         dataarray=self.params['dataarray']
         ttharray=self.params['ttharray']
         model_func = self.params['model_func']
+        q_sort_0 = self.params['q_sort_0']
+        sq_sort_0 = self.params['sq_sort_0']
+        sq_sort_err_0 = self.params['sq_sort_err_0']
         p_opt = self.params['p_opt']
         Emin = self.params['Emin']
         Emax = self.params['Emax']
@@ -451,6 +465,16 @@ class primaryBeamOptimize(Calculator):
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
         self.out_params['sq_even_err'] = sq_even_err   
+
+        # Generate some plots for devel purposes. These can eventually be put into their own tab in the aEDXD gui
+        plt.figure(0)
+        plt.scatter(q_sort_0,sq_sort_0,color = 'black',s = 5, label = 'Original')
+        plt.scatter(q_sort,sq_sort,color = 'red',s = 5, label = 'Optimized')
+        plt.xlabel('q (1/Å)')
+        plt.ylabel('S(q)')
+        plt.legend()
+        plt.show()
+
         
         def save_structure_factor(self, filename):
             try:
