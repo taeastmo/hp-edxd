@@ -37,7 +37,7 @@ import json
 import numpy as np
 from PyQt5.QtCore import QObject, pyqtSignal
 from utilities.hpMCAutilities import readconfig
-from axd.models.aEDXD_components import primaryBeam, structureFactor, Pdf, PdfInverse
+from axd.models.aEDXD_components import primaryBeam, structureFactor, Pdf, PdfInverse, primaryBeamOptimize
 from .. import data_path
 
 class aEDXD_model(QObject):
@@ -46,6 +46,7 @@ class aEDXD_model(QObject):
     structure_factor_updated = pyqtSignal()
     G_r_updated = pyqtSignal()
     Sf_filtered_updated = pyqtSignal()
+    pb_optimized_updated = pyqtSignal()
 
     config_file_set = pyqtSignal(str)
 
@@ -85,6 +86,7 @@ class aEDXD_model(QObject):
         self.structure_factor = structureFactor()
         self.pdf_object = Pdf()
         self.pdf_inverse_object = PdfInverse()
+        self.pb_optimized = primaryBeamOptimize()
 
     def set_config_file(self,filename):
         self.config_file = filename
@@ -192,6 +194,17 @@ class aEDXD_model(QObject):
             pdf_i.set_config(config)
             pdf_i.set_auto_process(True)
         self.Sf_filtered_updated.emit()
+
+    def pb_optimization(self):
+        if len(self.ttharray):
+            pb_opt = self.pb_optimized
+            data = {'dataarray':self.dataarray, 'ttharray':self.ttharray}
+            config = {**self.params, **data, **self.structure_factor.out_params}
+            pb_opt.set_config(config)
+            pb_opt.set_auto_process(True)
+            pb_opt.update()
+        self.pb_optimized_updated.emit()
+
 
 
     

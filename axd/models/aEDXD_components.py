@@ -118,6 +118,8 @@ class primaryBeam(Calculator):
         # minimizing the sum of deviation not the deviation itself.
         # Also note that the final model_mre is for the function for the primary beam
         # estimated.
+        
+        self.out_params['yp'] = yp
         self.out_params['primary_beam_y'] = y_model
         self.out_params['primary_beam_x'] = xp 
         self.out_params['model_func'] = model_func
@@ -131,6 +133,7 @@ class structureFactor(Calculator):
                 'p_opt', 
                 'Emin',
                 'Emax',
+                'yp',
                 'polynomial_deg',
                 'itr_comp',
                 'sq_par',
@@ -152,6 +155,7 @@ class structureFactor(Calculator):
         p_opt = self.params['p_opt']
         Emin = self.params['Emin']
         Emax = self.params['Emax']
+        yp = self.params['yp']
         polynomial_deg = self.params['polynomial_deg']
         itr_comp = self.params['itr_comp']
         sq_par = self.params['sq_par']
@@ -259,10 +263,16 @@ class structureFactor(Calculator):
         # LHS, RHS, c0 = rahman_check(S_q[:,0,:],S_q[:,1,:],rho0,L,mu)
         # print(LHS, RHS, c0)
 
+        self.out_params['yp'] = yp
+        self.out_params['xn'] = xn
+        self.out_params['Iq_base'] = Iq_base
+        self.out_params['model_func']= model_func
+        self.out_params['p_opt'] = p_opt
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
         self.out_params['sq_even_err'] = sq_even_err
-        self.out_params['chisq'] = chisq ### Is this correct? Trying to pass chisq to the global variable pool so it can be used in the class below 
+        self.out_params['chisq'] = chisq  
+        
 
 
 ########### Class for Monte Carlo Optimization of the primary white beam profile ##########
@@ -272,9 +282,9 @@ class primaryBeamOptimize(Calculator):
                 'inputdatadirectory', # or this
                 'polynomial_deg',
                 'sq_par',
-                'xp',
                 'yp',
-                'thh',
+                'xn',
+                'Iq_base',
                 'model_func',
                 'p_opt',
                 'Emin',
@@ -294,9 +304,9 @@ class primaryBeamOptimize(Calculator):
     def update(self):
         polynomial_deg = self.params['polynomial_deg']
         sq_par = self.params['sq_par']
-        xp = self.params['xp']
         yp = self.params['yp']
-        tth = self.params['thh']
+        xn = self.params['xn']
+        Iq_base = self.params['Iq_base']
         dataarray=self.params['dataarray']
         ttharray=self.params['ttharray']
         model_func = self.params['model_func']
@@ -317,9 +327,9 @@ class primaryBeamOptimize(Calculator):
         for i in range(20): # Eventually we should allow the user to input the number of iterations from the gui
             p_new = rand_param(max_int,polynomial_deg,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
-            y_model = model_func(xp,*p_new)*Iq_base
-            I_p = model_func(xp,*p_new)
-            xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+            y_model = model_func(xn,*p_new)*Iq_base
+            I_p = model_func(xn,*p_new)
+            xpc = xn-2.4263e-2*(1-np.cos(np.radians(ttharray[-1]/2))) # E' for Compton source
             I_p_inc = model_func(xpc,*p_new)
             fs = I_p_inc/I_p
             # propagate the mean residual error - NEED TO CHECK IF THIS IS STILL APPROPRIATE GIVEN THE ITERATIONS ON THE BEAM PROFILE 
@@ -331,7 +341,7 @@ class primaryBeamOptimize(Calculator):
             # Also note that the final model_mre is for the function for the primary beam
             # estimated.
             self.out_params['primary_beam_y'] = y_model
-            self.out_params['primary_beam_x'] = xp 
+            self.out_params['primary_beam_x'] = xn 
             self.out_params['model_func'] = model_func
             self.out_params['model_mre'] = model_mre
             self.out_params['p_opt'] = p_new
