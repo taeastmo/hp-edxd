@@ -98,6 +98,7 @@ class aEDXDWidget(QMainWindow):
         self.sq_btn = FlatButton('Sq')
         self.pdf_btn = FlatButton('Gr')
         self.peaks_btn = FlatButton()
+        self.monte_carlo_btn = FlatButton('MC')
 
 
         self._menu_layout.addSpacerItem(
@@ -118,8 +119,8 @@ class aEDXDWidget(QMainWindow):
         self._menu_layout.addWidget(self.pdf_btn)
         self._menu_layout.addSpacerItem(
             QtWidgets.QSpacerItem(10, 30, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed))
-        
         self._menu_layout.addWidget(self.peaks_btn)
+        self._menu_layout.addWidget(self.monte_carlo_btn)
 
         self._menu_layout.addSpacerItem(VerticalSpacerItem())
 
@@ -368,6 +369,13 @@ class aEDXDWidget(QMainWindow):
         self.peaks_btn.setMinimumWidth(button_width)
         self.peaks_btn.setMaximumWidth(button_width)
 
+        # self.peaks_btn.setIcon(QtGui.QIcon(os.path.join(icons_path, 'cut.ico')))
+        self.monte_carlo_btn.setIconSize(icon_size)
+        self.monte_carlo_btn.setMinimumHeight(button_height)
+        self.monte_carlo_btn.setMaximumHeight(button_height)
+        self.monte_carlo_btn.setMinimumWidth(button_width)
+        self.monte_carlo_btn.setMaximumWidth(button_width)
+
         
 
     def add_tooltips(self):
@@ -382,6 +390,7 @@ class aEDXDWidget(QMainWindow):
         self.sq_btn.setToolTip('Scattering Factor options')
         self.pdf_btn.setToolTip('PDF options')
         self.peaks_btn.setToolTip('Peak cutting')
+        self.monte_carlo_btn.setToolTip('S(q) optimization algorithm')
 
 
 class customWidget(QtWidgets.QWidget):

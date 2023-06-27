@@ -162,3 +162,4 @@ tmp/**
 hpMCA_folder_settings.json
 hpMCA_color_settings.json
 
+axd/models/aEDXD_components.py

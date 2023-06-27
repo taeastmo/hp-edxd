@@ -252,12 +252,12 @@ class structureFactor(Calculator):
         # Check the GOF between overlapping S(q) segments
         chisq = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
         print("chisq = " + str(chisq))
-        # Check the value of the Rahman correction factor
-        rho0 = 0.06 # average number density
-        L = 0.5 # parameter for Rahman check
-        mu = [1, 1.5, 2, 2.5] # parameter for Rahman check
-        LHS, RHS, c0 = rahman_check(S_q[:,0,:],S_q[:,1,:],rho0,L,mu)
-        print(LHS, RHS, c0)
+        # # Check the value of the Rahman correction factor
+        # rho0 = 0.06 # average number density
+        # L = 0.5 # parameter for Rahman check
+        # mu = [1, 1.5, 2, 2.5] # parameter for Rahman check
+        # LHS, RHS, c0 = rahman_check(S_q[:,0,:],S_q[:,1,:],rho0,L,mu)
+        # print(LHS, RHS, c0)
 
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
