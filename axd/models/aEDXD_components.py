@@ -351,12 +351,22 @@ class primaryBeamOptimize(Calculator):
         chisq = self.params['chisq']
         c0 = self.params['c0']
 
+        # save the most up-to-date q, S(q), and S(q)_err to revert to if the optimization criteria don't improve
+        q_best = q_sort_0
+        sq_best = sq_sort_0
+        sq_err_best = sq_sort_err_0
+
+        # initiate arrays to store the chisq and Rahman values for convergence plotting
+        chisq_array = [chisq]
+        rahman_array =[c0]
+        n_itr = [0] # array of iteration #s for convergence plotting
     
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
 
         rahman_start = 25 # iteration at which the Rahman check is initiated
         for k in range(100): # Eventually we should allow the user to input the number of iterations from the gui
+            n_itr.append(k+1)
             p_new = rand_param(max_int,polynomial_deg,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
             y_model = model_func(xn,*p_new)*Iq_base
@@ -443,7 +453,12 @@ class primaryBeamOptimize(Calculator):
             q_sort = np.array(q_sort)
             sq_sort = np.array(sq_sort)
             sq_sort_err = np.array(sq_sort_err)
-            
+
+            # assign optimized values to temporary arrays that will be "promoted" if the optimization parameters improve
+            q_new = q_sort
+            sq_new = sq_sort
+            sq_err_new = sq_sort_err
+
             # make evenly spaced [q,sq,sq_err] array using spline interpolation
             weight = sq_smoothing_factor/sq_sort_err
             spl = interpolate.UnivariateSpline(
@@ -470,10 +485,12 @@ class primaryBeamOptimize(Calculator):
             
             # Calculate the GOF between overlapping S(q) segments
             chisq_new = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
+            chisq_array.append(chisq_new)
 
             if k >= rahman_start:
                 # calculate the Rahman criteria
                 LHS, RHS, c_new = rahman_check(q_even,sq_even,rho0,L,mu)
+                rahman_array.append(c_new)
                 # check that the rahman correction factor has reduced
                 c_check = 1 # a boolean that is triggered to be false if the Rahman criteria degrades
                 for m in range(len(c_new)):
@@ -487,43 +504,78 @@ class primaryBeamOptimize(Calculator):
                     p_init = p_new # if chisq decreases and Rahman factor improves, set the new initial coefficients to be the newly obtained coefficients 
                     chisq = chisq_new # update chisq value
                     c0 = c_new # update Rahman correction factor
+                    q_best = q_new # update q, sq, and sq_err to the optimized values
+                    sq_best = sq_new
+                    sq_err_best = sq_err_new
                 else:
                     p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration
+                    # the following are redundant but they help make the algorithm logic more clear
+                    q_best = q_best
+                    sq_best = sq_best
+                    sq_err_best = sq_err_best
             else:
+                # calculate the Rahman correction just for plotting purposes
+                LHS, RHS, c_new = rahman_check(q_even,sq_even,rho0,L,mu)
+                rahman_array.append(c_new)
                 # Check the current GOF against the previous value
                 if chisq_new < chisq:
                     p_init = p_new # if GOF decreases, set the new initial coefficients to be the newly obtained coefficients 
                     chisq = chisq_new # update chisq value
+                    q_best = q_new # update q, sq, and sq_err to the optimized values
+                    sq_best = sq_new
+                    sq_err_best = sq_err_new
                 else:
                     p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration 
-                    
+                    q_best = q_best
+                    sq_best = sq_best
+                    sq_err_best = sq_err_best
 
         print("chisq = " + str(chisq))
         print("Rahman correction = " + str(c0))
         print(p_opt)
         print(p_new)
 
+        # TODO need to make sure I am updating the most optimized values here, not just the last calculated values
         self.out_params['q_even'] = q_even
         self.out_params['sq_even'] = sq_even
         self.out_params['sq_even_err'] = sq_even_err   
 
         # Generate some plots for devel purposes. These can eventually be put into their own tab in the aEDXD gui
+        # Structure factors
         plt.figure(0)
         plt.scatter(q_sort_0,sq_sort_0,color = 'black',s = 5, label = 'Original')
-        plt.scatter(q_sort,sq_sort,color = 'red',s = 5, label = 'Optimized')
+        plt.scatter(q_best,sq_best,color = 'red',s = 5, label = 'Optimized')
         plt.xlabel('q (1/Å)')
         plt.ylabel('S(q)')
         plt.legend()
         plt.show()
 
+        # Highest 2theta spectrum and white beam estimation
         x0 = dataarray[-1][0]
         y0 = dataarray[-1][1]
         plt.figure(1)
         plt.plot(x0,y0, color = 'blue',label = 'Raw intensity, 2θ = ' + str(ttharray[-1]),zorder = 1)
         plt.scatter(xn,y_primary_0*Iq_base,color = 'black', s = 5, label = 'Original',zorder = 2)
         plt.scatter(xn,y_primary*Iq_base, color = 'red', s = 5, label = 'Optimized', zorder = 3)
-        
+        plt.xlabel('E (keV)')
+        plt.ylabel('Intensity (arb.)')
         plt.legend()
+        plt.show()
+
+        # chisq as a function of iteration #
+        plt.figure(2)
+        plt.plot(n_itr,chisq_array)
+        plt.xlabel('Iteration #')
+        plt.ylabel('χ^2')
+        plt.show()
+
+        # Rahman criteria as a function of iteration #
+        rahman_array = np.array(rahman_array) # convert list to numpy array
+        plt.figure(3)
+        for k in range(len(mu)):
+            plt.plot(n_itr,rahman_array[:,k])
+        plt.xlabel('Iteration #')
+        plt.ylabel('Rahman correction factor')
         plt.show()
 
         
