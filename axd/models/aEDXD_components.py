@@ -355,8 +355,8 @@ class primaryBeamOptimize(Calculator):
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
 
-        rahman_start = 4 # iteration at which the Rahman check is initiated
-        for k in range(9): # Eventually we should allow the user to input the number of iterations from the gui
+        rahman_start = 25 # iteration at which the Rahman check is initiated
+        for k in range(100): # Eventually we should allow the user to input the number of iterations from the gui
             p_new = rand_param(max_int,polynomial_deg,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
             y_model = model_func(xn,*p_new)*Iq_base
@@ -474,11 +474,21 @@ class primaryBeamOptimize(Calculator):
             if k >= rahman_start:
                 # calculate the Rahman criteria
                 LHS, RHS, c_new = rahman_check(q_even,sq_even,rho0,L,mu)
-                # check that both the rahman correction and the chisq values have improved
-                if abs(c_new - 1) < abs(c0 - 1) and chisq_new < chisq:
+                # check that the rahman correction factor has reduced
+                c_check = 1 # a boolean that is triggered to be false if the Rahman criteria degrades
+                for m in range(len(c_new)):
+                    if abs(c_new[m] - 1) < abs(c0[m] - 1):
+                        c_check = 1
+                    else: 
+                        c_check = 0
+                        break
+                # check that the rahman correction factor and chisq values have improved
+                if c_check == 1 and chisq_new < chisq:
                     p_init = p_new # if chisq decreases and Rahman factor improves, set the new initial coefficients to be the newly obtained coefficients 
                     chisq = chisq_new # update chisq value
                     c0 = c_new # update Rahman correction factor
+                else:
+                    p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration
             else:
                 # Check the current GOF against the previous value
                 if chisq_new < chisq:
@@ -489,6 +499,7 @@ class primaryBeamOptimize(Calculator):
                     
 
         print("chisq = " + str(chisq))
+        print("Rahman correction = " + str(c0))
         print(p_opt)
         print(p_new)
 
