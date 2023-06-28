@@ -201,7 +201,7 @@ class aEDXD_model(QObject):
             data = {'dataarray':self.dataarray, 'ttharray':self.ttharray}
             config = {**self.params, **data, **self.structure_factor.out_params}
             pb_opt.set_config(config)
-            pb_opt.set_auto_process(True)
+            # pb_opt.set_auto_process(True) # Needs to be disabled to avoid automatically running the optimization
             pb_opt.update()
         self.pb_optimized_updated.emit()
 
