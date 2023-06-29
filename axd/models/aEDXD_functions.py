@@ -316,23 +316,23 @@ def GOF_test(q,Sq,e):
 #### For now, only 3rd order polynomials are possible
 def rand_param(max_int,p_deg,p_init): # inputs are the maximum intensity of the highest 2theta spectrum, and the polynomial order and coefficients of the initial guess
     
-    # Calculate the bounds on the random changes to the polynomial coefficients
-    # The values are calculated according to a calibration based on the intensity of the highest 2theta spectrum
-    p_change_ratio = np.array([(1e-5*max_int - 0.0066)/100, (-1e-7*max_int + 0.0097)/100, \
-        (-7e-6*max_int + 0.5246)/100, (7e-7*max_int + 0.0395)/100])
-    p_change_bnd = np.abs(np.multiply(p_init,p_change_ratio))
-    # Randomly change the polynomial coefficients within calibrated limits
-    p_change = np.array([p_change_bnd[0]/100*random.randrange(-100,100,1), p_change_bnd[1]/100*random.randrange(-100,100,1), \
-        p_change_bnd[2]/100*random.randrange(-100,100,1), p_change_bnd[3]/10*random.randrange(-10,10,1)])
-
- # Calculate the bounds on the random changes to the polynomial coefficients
-    # The values are calculated according to a calibration based on molten Fe
-    # p_change_ratio = np.array([(-4.48E-04)/100, (9.68E-3)/100, \
-    #     (5.23E-1)/100, (3.96E-2)/100])
+    # # Calculate the bounds on the random changes to the polynomial coefficients
+    # # The values are calculated according to a calibration based on the intensity of the highest 2theta spectrum
+    # p_change_ratio = np.array([(1e-5*max_int - 0.0066)/100, (-1e-7*max_int + 0.0097)/100, \
+    #     (-7e-6*max_int + 0.5246)/100, (7e-7*max_int + 0.0395)/100])
     # p_change_bnd = np.abs(np.multiply(p_init,p_change_ratio))
     # # Randomly change the polynomial coefficients within calibrated limits
     # p_change = np.array([p_change_bnd[0]/100*random.randrange(-100,100,1), p_change_bnd[1]/100*random.randrange(-100,100,1), \
     #     p_change_bnd[2]/100*random.randrange(-100,100,1), p_change_bnd[3]/10*random.randrange(-10,10,1)])
+
+    #  Calculate the bounds on the random changes to the polynomial coefficients
+    # The values are calculated according to a calibration based on molten Fe
+    p_change_ratio = np.array([(-4.48E-04)/100, (9.68E-3)/100, \
+        (5.23E-1)/100, (3.96E-2)/100])
+    p_change_bnd = np.abs(np.multiply(p_init,p_change_ratio))
+    # Randomly change the polynomial coefficients within calibrated limits
+    p_change = np.array([p_change_bnd[0]/100*random.randrange(-100,100,1), p_change_bnd[1]/100*random.randrange(-100,100,1), \
+        p_change_bnd[2]/100*random.randrange(-100,100,1), p_change_bnd[3]/10*random.randrange(-10,10,1)])
 
     p_new = p_init + p_change
     return p_new # returns the randomly-varied polynomial coefficients

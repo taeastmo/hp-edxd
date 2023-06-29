@@ -371,8 +371,8 @@ class primaryBeamOptimize(Calculator):
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
 
-        rahman_start = 50 # iteration at which the Rahman check is initiated
-        for k in range(100): # Eventually we should allow the user to input the number of iterations from the gui
+        rahman_start = 200 # iteration at which the Rahman check is initiated
+        for k in range(500): # Eventually we should allow the user to input the number of iterations from the gui
             n_itr.append(k+1)
             p_new = rand_param(max_int,polynomial_deg,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
@@ -520,6 +520,7 @@ class primaryBeamOptimize(Calculator):
                     q_even_best = q_even_new
                     sq_even_best = sq_even_new
                     sq_even_err_best = sq_even_err_new
+                    
                 elif c_check == 1 and chisq_new > chisq:
                     dchisq = abs(chisq_new - chisq)
                     p_accept = np.exp(-dchisq/2) # acceptance probability to relax the chisq constraint a bit
@@ -534,6 +535,7 @@ class primaryBeamOptimize(Calculator):
                         q_even_best = q_even_new
                         sq_even_best = sq_even_new
                         sq_even_err_best = sq_even_err_new 
+                        
                     else:
                         p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration
                         # the following are redundant but they help make the algorithm logic more clear
@@ -541,6 +543,7 @@ class primaryBeamOptimize(Calculator):
                         sq_best = sq_best
                         sq_err_best = sq_err_best
                         c0 = c0
+                        
                 else:
                     p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration
                     # the following are redundant but they help make the algorithm logic more clear
@@ -548,6 +551,7 @@ class primaryBeamOptimize(Calculator):
                     sq_best = sq_best
                     sq_err_best = sq_err_best
                     c0 = c0
+                   
             else:
                 # Check the current GOF against the previous value
                 if chisq_new < chisq:
@@ -560,12 +564,14 @@ class primaryBeamOptimize(Calculator):
                     sq_even_best = sq_even_new
                     sq_even_err_best = sq_even_err_new
                     c0 = c0
+                    
                 else:
                     p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration 
                     q_best = q_best
                     sq_best = sq_best
                     sq_err_best = sq_err_best
                     c0 = c0
+                    
 
             # store the best acheived chisq value
             chisq_array.append(chisq)
@@ -596,7 +602,7 @@ class primaryBeamOptimize(Calculator):
         x0 = dataarray[-1][0]
         y0 = dataarray[-1][1]
         plt.figure(1)
-        plt.plot(x0,y0, color = 'blue',label = 'Raw intensity, 2θ = ' + str(ttharray[-1]),zorder = 1)
+        plt.plot(x0,y0, color = 'blue',label = 'Raw intensity, 2θ = ' + str(round(ttharray[-1],2)),zorder = 1)
         plt.scatter(xn,y_primary_0*Iq_base,color = 'black', s = 5, label = 'Original',zorder = 2)
         plt.scatter(xn,y_primary*Iq_base, color = 'red', s = 5, label = 'Optimized', zorder = 3)
         plt.xlabel('E (keV)')
@@ -606,7 +612,7 @@ class primaryBeamOptimize(Calculator):
 
         # chisq as a function of iteration #
         plt.figure(2)
-        plt.plot(n_itr,chisq_array)
+        plt.plot(n_itr,chisq_array, color = 'blue')
         plt.xlabel('Iteration #')
         plt.ylabel('$χ^2$')
         plt.show()
@@ -615,7 +621,7 @@ class primaryBeamOptimize(Calculator):
         rahman_array = np.array(rahman_array) # convert list to numpy array
         plt.figure(3)
         for k in range(len(mu)):
-            plt.plot(n_itr,rahman_array[:,k], linewidth = 0.5)
+            plt.plot(n_itr,rahman_array[:,k], linewidth = 1)
         plt.axhline(y = 1, color = 'black', linestyle = "--")
         plt.xlabel('Iteration #')
         plt.ylabel('Rahman correction factor')
