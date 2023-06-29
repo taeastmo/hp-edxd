@@ -18,6 +18,7 @@ from axd.models.aEDXD_functions import *
 import copy
 import os
 import time
+import random
 
 from utilities.hpMCAutilities import compare
 from utilities.hpMCAutilities import Preferences as Calculator
@@ -257,19 +258,25 @@ class structureFactor(Calculator):
         chisq = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
         print("chisq = " + str(chisq))
         # Check the value of the Rahman correction factor
-        rho0 = 0.0662 # atoms/Å^3
+        rho0 = 0.06 # atoms/Å^3
         L = 0.5 # Å
-        mu = np.array([0.5, 1, 1.5, 2, 2.5]) # 1/Å
+        mu = np.array([1, 1.5, 2, 2.5]) # 1/Å
         LHS, RHS, c0 = rahman_check(q_even,sq_even,rho0,L,mu)
-        print("LHS = " + str(np.round(LHS,4)))
-        print("RHS = " + str(np.round(RHS,4)))
+        # print("LHS = " + str(np.round(LHS,4)))
+        # print("RHS = " + str(np.round(RHS,4)))
         print("Correction factor =" + str(np.round(c0,4)))
 
         # output the original q, S(q) values for comparison plotting in the primary beam optimizer class
+        # these are sorted data points combined from all specta (original spacing)
         q_sort_0 = q_sort
         sq_sort_0 = sq_sort
         sq_sort_err_0 = sq_sort_err 
+        # original primary beam estimation
         y_primary_0 = y_primary
+        # these are the data points from the spline fit
+        q_even_0 = q_even
+        sq_even_0 = sq_even
+        sq_even_err_0 = sq_even_err
 
         self.out_params['yp'] = yp
         self.out_params['xn'] = xn
@@ -280,9 +287,9 @@ class structureFactor(Calculator):
         self.out_params['q_sort_0'] = q_sort_0
         self.out_params['sq_sort_0'] = sq_sort_0
         self.out_params['sq_sort_err_0'] = sq_sort_err_0
-        self.out_params['q_even'] = q_even
-        self.out_params['sq_even'] = sq_even
-        self.out_params['sq_even_err'] = sq_even_err
+        self.out_params['q_even'] = q_even_0
+        self.out_params['sq_even'] = sq_even_0
+        self.out_params['sq_even_err'] = sq_even_err_0
         self.out_params['rho0'] = rho0
         self.out_params['L'] = L
         self.out_params['mu'] = mu
@@ -364,7 +371,7 @@ class primaryBeamOptimize(Calculator):
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
 
-        rahman_start = 25 # iteration at which the Rahman check is initiated
+        rahman_start = 50 # iteration at which the Rahman check is initiated
         for k in range(100): # Eventually we should allow the user to input the number of iterations from the gui
             n_itr.append(k+1)
             p_new = rand_param(max_int,polynomial_deg,p_init)
@@ -454,7 +461,7 @@ class primaryBeamOptimize(Calculator):
             sq_sort = np.array(sq_sort)
             sq_sort_err = np.array(sq_sort_err)
 
-            # assign optimized values to temporary arrays that will be "promoted" if the optimization parameters improve
+            # assign raw optimized values to temporary arrays that will be "promoted" if the optimization parameters improve
             q_new = q_sort
             sq_new = sq_sort
             sq_err_new = sq_sort_err
@@ -481,16 +488,19 @@ class primaryBeamOptimize(Calculator):
                     msres = sum((spl(q_sort[indxb:indxe])-sq_sort[indxb:indxe])**2)/len(sq_sort[indxb:indxe])
                     rmserr = np.sqrt(mserr+msres) # geometric average of the errors
                     sq_even_err.append(rmserr)
-            sq_even_err = np.array(sq_even_err)    
-            
+            sq_even_err = np.array(sq_even_err)  
+
+            # assign optimized spline fit values to temporary arrays that will be "promoted" if the optimization parameters improve
+            q_even_new = q_even
+            sq_even_new = sq_even
+            sq_even_err_new = sq_even_err  
+
             # Calculate the GOF between overlapping S(q) segments
             chisq_new = GOF_test(S_q[:,0,:],S_q[:,1,:],S_q[:,2,:])
-            chisq_array.append(chisq_new)
+            # Calculate the Rahman correction factor
+            LHS, RHS, c_new = rahman_check(q_even_new,sq_even_new,rho0,L,mu)
 
-            if k >= rahman_start:
-                # calculate the Rahman criteria
-                LHS, RHS, c_new = rahman_check(q_even,sq_even,rho0,L,mu)
-                rahman_array.append(c_new)
+            if k >= rahman_start: # begin checking the Rahman criteria
                 # check that the rahman correction factor has reduced
                 c_check = 1 # a boolean that is triggered to be false if the Rahman criteria degrades
                 for m in range(len(c_new)):
@@ -507,16 +517,38 @@ class primaryBeamOptimize(Calculator):
                     q_best = q_new # update q, sq, and sq_err to the optimized values
                     sq_best = sq_new
                     sq_err_best = sq_err_new
+                    q_even_best = q_even_new
+                    sq_even_best = sq_even_new
+                    sq_even_err_best = sq_even_err_new
+                elif c_check == 1 and chisq_new > chisq:
+                    dchisq = abs(chisq_new - chisq)
+                    p_accept = np.exp(-dchisq/2) # acceptance probability to relax the chisq constraint a bit
+                    accept_change = random.random() < p_accept
+                    if accept_change == True:
+                        p_init = p_new # if chisq decreases and Rahman factor improves, set the new initial coefficients to be the newly obtained coefficients 
+                        chisq = chisq_new # update chisq value
+                        c0 = c_new # update Rahman correction factor
+                        q_best = q_new # update q, sq, and sq_err to the optimized values
+                        sq_best = sq_new
+                        sq_err_best = sq_err_new 
+                        q_even_best = q_even_new
+                        sq_even_best = sq_even_new
+                        sq_even_err_best = sq_even_err_new 
+                    else:
+                        p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration
+                        # the following are redundant but they help make the algorithm logic more clear
+                        q_best = q_best
+                        sq_best = sq_best
+                        sq_err_best = sq_err_best
+                        c0 = c0
                 else:
                     p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration
                     # the following are redundant but they help make the algorithm logic more clear
                     q_best = q_best
                     sq_best = sq_best
                     sq_err_best = sq_err_best
+                    c0 = c0
             else:
-                # calculate the Rahman correction just for plotting purposes
-                LHS, RHS, c_new = rahman_check(q_even,sq_even,rho0,L,mu)
-                rahman_array.append(c_new)
                 # Check the current GOF against the previous value
                 if chisq_new < chisq:
                     p_init = p_new # if GOF decreases, set the new initial coefficients to be the newly obtained coefficients 
@@ -524,21 +556,30 @@ class primaryBeamOptimize(Calculator):
                     q_best = q_new # update q, sq, and sq_err to the optimized values
                     sq_best = sq_new
                     sq_err_best = sq_err_new
+                    q_even_best = q_even_new
+                    sq_even_best = sq_even_new
+                    sq_even_err_best = sq_even_err_new
+                    c0 = c0
                 else:
                     p_init = p_init # otherwise, keep the initial coefficients as they are for the next iteration 
                     q_best = q_best
                     sq_best = sq_best
                     sq_err_best = sq_err_best
+                    c0 = c0
+
+            # store the best acheived chisq value
+            chisq_array.append(chisq)
+            # store the best acheived rahman correction factor
+            rahman_array.append(c0)
 
         print("chisq = " + str(chisq))
         print("Rahman correction = " + str(c0))
         print(p_opt)
         print(p_new)
 
-        # TODO need to make sure I am updating the most optimized values here, not just the last calculated values
-        self.out_params['q_even'] = q_even
-        self.out_params['sq_even'] = sq_even
-        self.out_params['sq_even_err'] = sq_even_err   
+        self.out_params['q_even_best'] = q_even_best
+        self.out_params['sq_even_best'] = sq_even_best
+        self.out_params['sq_even_err_best'] = sq_even_err_best   
 
         # Generate some plots for devel purposes. These can eventually be put into their own tab in the aEDXD gui
         # Structure factors
@@ -551,6 +592,7 @@ class primaryBeamOptimize(Calculator):
         plt.show()
 
         # Highest 2theta spectrum and white beam estimation
+        y_primary = model_func(xn,*p_init) # calculate the most optimized primary beam estimation
         x0 = dataarray[-1][0]
         y0 = dataarray[-1][1]
         plt.figure(1)
@@ -566,14 +608,15 @@ class primaryBeamOptimize(Calculator):
         plt.figure(2)
         plt.plot(n_itr,chisq_array)
         plt.xlabel('Iteration #')
-        plt.ylabel('χ^2')
+        plt.ylabel('$χ^2$')
         plt.show()
 
         # Rahman criteria as a function of iteration #
         rahman_array = np.array(rahman_array) # convert list to numpy array
         plt.figure(3)
         for k in range(len(mu)):
-            plt.plot(n_itr,rahman_array[:,k])
+            plt.plot(n_itr,rahman_array[:,k], linewidth = 0.5)
+        plt.axhline(y = 1, color = 'black', linestyle = "--")
         plt.xlabel('Iteration #')
         plt.ylabel('Rahman correction factor')
         plt.show()

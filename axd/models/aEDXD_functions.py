@@ -262,13 +262,13 @@ def GOF_test(q,Sq,e):
     ############# BIN THE DATA AND CALCULATE A CHI^2 VALUE #############
     CHISQ = np.zeros((len(roi)-1,1)) # stores chi^2 values for each ROI
     for i in range(len(roi)-1): # loop over each ROI
-        Sq_all_roi = []; e_all_roi = [] # arrays containing S(q) and error values for all S(q) fragments in a given ROI
+        Sq_all_roi = []; e_all_roi = []; q_all_roi = [] # arrays containing S(q) and error values for all S(q) fragments in a given ROI
         chisq_roi = [] # stores summed chi^2 values between S(q) fragments in a given ROI
         # create bins
         nbins = int(np.round((roi[i+1]-roi[i])/(1.5*dq_avg_roi[i]))) # calculates number of bins in the current ROI based on a width of 1.5x the avg q spacing
         edges = np.linspace(roi[i],roi[i+1],num = nbins + 1) # the number of edges for the binning is always nbins + 1 
         for j in range(len(q[0,:])): # loops over S(q) fragments
-            Sq_bin_avg = np.zeros(len(edges)-1); e_bin_avg = np.zeros(len(edges)-1)  
+            Sq_bin_avg = np.zeros(len(edges)-1); e_bin_avg = np.zeros(len(edges)-1); q_bin_avg = np.zeros(len(edges)-1);  
             roi_data_q = []; roi_data_Sq = []; roi_data_e = [] # stores q, S(q), and error for values of a fragmented S(q) that lie in the ROI
             n_frags_true = False # Used as a trigger later on
             counter = 0 # used to track number of q values from each S(q) within the ROI
@@ -289,8 +289,10 @@ def GOF_test(q,Sq,e):
                 for m in range(len(roi_data_q)):
                     Sq_bin_avg[bin_id[m]-1] += roi_data_Sq[m]/n_in_bin[bin_id[m]] # calculates the cumulative average S(q) value in each bin
                     e_bin_avg[bin_id[m]-1] += roi_data_e[m]/n_in_bin[bin_id[m]] # calculates the cumulative average S(q) error value in each bin
+                    q_bin_avg[bin_id[m]-1] += roi_data_q[m]/n_in_bin[bin_id[m]] # calculates the cumulative average q value in each bin
                 Sq_all_roi.append(Sq_bin_avg)
                 e_all_roi.append(e_bin_avg)
+                q_all_roi.append(q_bin_avg)
 
         # Check for zeros in Sq_all_roi - do not use these elements for the chi^2 calculation - COME BACK TO THIS LATER
         # indx_zero = [] # will be used to store indexes of null values 
@@ -301,7 +303,8 @@ def GOF_test(q,Sq,e):
         # Calculation of chi^2 terms between the uth and wth S(q) fragment
         for u in range(len(Sq_all_roi)): 
             for w in range((u + 1),(len(Sq_all_roi)),1):
-                chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((e_all_roi[:][u] + e_all_roi[:][w])/2)))
+                # chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((e_all_roi[:][u] + e_all_roi[:][w])/2)))
+                chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((q_all_roi[:][u] + q_all_roi[:][w])/2)))
         CHISQ[i] = np.sum(chisq_roi)
 
     # CHISQ_TOT = np.sum(CHISQ)/np.size(q) # total chisq normalized by the number of data points
@@ -321,6 +324,16 @@ def rand_param(max_int,p_deg,p_init): # inputs are the maximum intensity of the 
     # Randomly change the polynomial coefficients within calibrated limits
     p_change = np.array([p_change_bnd[0]/100*random.randrange(-100,100,1), p_change_bnd[1]/100*random.randrange(-100,100,1), \
         p_change_bnd[2]/100*random.randrange(-100,100,1), p_change_bnd[3]/10*random.randrange(-10,10,1)])
+
+ # Calculate the bounds on the random changes to the polynomial coefficients
+    # The values are calculated according to a calibration based on molten Fe
+    # p_change_ratio = np.array([(-4.48E-04)/100, (9.68E-3)/100, \
+    #     (5.23E-1)/100, (3.96E-2)/100])
+    # p_change_bnd = np.abs(np.multiply(p_init,p_change_ratio))
+    # # Randomly change the polynomial coefficients within calibrated limits
+    # p_change = np.array([p_change_bnd[0]/100*random.randrange(-100,100,1), p_change_bnd[1]/100*random.randrange(-100,100,1), \
+    #     p_change_bnd[2]/100*random.randrange(-100,100,1), p_change_bnd[3]/10*random.randrange(-10,10,1)])
+
     p_new = p_init + p_change
     return p_new # returns the randomly-varied polynomial coefficients
 
