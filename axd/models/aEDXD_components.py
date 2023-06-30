@@ -106,10 +106,7 @@ class primaryBeam(Calculator):
         ypb = np.sqrt(yp) # Poisson distribution error
         p_opt,p_stdev,p_cov,p_corp,schi2,r = \
                         custom_fit(model_func,xp,yp/Iq_base,p0,ypb/Iq_base)
-        
-        # UNCOMMENT FOR TUTORIAL ONLY
-        p_opt[1] = p_opt[1] + p_opt[1]*0.02
-        p_opt[3] = p_opt[3] + p_opt[3]*0.02
+    
 
         y_model = model_func(xp,*p_opt)*Iq_base
         I_p = model_func(xp,*p_opt)
@@ -369,26 +366,27 @@ class primaryBeamOptimize(Calculator):
         sq_err_best = sq_sort_err_0
 
         # initiate arrays to store the chisq and Rahman values for convergence plotting
-        chisq_array = [chisq0]
+        chisq_array_accept = [chisq0]
+        chisq_array_all = [chisq0]
         rahman_array =[c0]
         n_itr = [0] # array of iteration #s for convergence plotting
     
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
         # create some empty arrays for convergence plotting
-        itr_accept = []
-        err_accept_array = []
-        err_accept = 100
-        k = 0
+        # itr_accept = []
+        # err_accept_array = []
+        # err_accept = 100
+        # k = 0
 
-        err_tol = 0.00001 # error tolerance value (will be user-defined)
-        max_itr = 500 # maximum number of iterations
-        rahman_start = 250 # iteration at which the Rahman check is initiated
-        while err_accept > err_tol:
-            k = k + 1
-            if k > max_itr:
-                break
-        # for k in range(500): # Eventually we should allow the user to input the number of iterations from the gui
+        # err_tol = 0.00001 # error tolerance value (will be user-defined)
+        # max_itr = 500 # maximum number of iterations
+        rahman_start = 50 # iteration at which the Rahman check is initiated
+        # while err_accept > err_tol:
+        #     k = k + 1
+        #     if k > max_itr:
+        #         break
+        for k in range(100): # Eventually we should allow the user to input the number of iterations from the gui
             n_itr.append(k + 1)
             p_new = rand_param(max_int,polynomial_deg,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
@@ -527,9 +525,9 @@ class primaryBeamOptimize(Calculator):
                         break
                 # check that the rahman correction factor and chisq values have improved
                 if c_check == 1 and chisq_new < chisq0:
-                    err_accept = abs(chisq0 - chisq_new)
-                    err_accept_array.append(err_accept)
-                    itr_accept.append(k)
+                    # err_accept = abs(chisq0 - chisq_new)
+                    # err_accept_array.append(err_accept)
+                    # itr_accept.append(k)
                     p_init = p_new # if chisq decreases and Rahman factor improves, set the new initial coefficients to be the newly obtained coefficients 
                     chisq0 = chisq_new # update chisq value
                     c0 = c_new # update Rahman correction factor
@@ -546,9 +544,9 @@ class primaryBeamOptimize(Calculator):
                     p_accept = np.exp(-dchisq/2) # acceptance probability to relax the chisq constraint a bit
                     accept_change = random.random() < p_accept
                     if accept_change == True:
-                        err_accept = abs(chisq_new-chisq0)
-                        err_accept_array.append(err_accept)
-                        itr_accept.append(k)
+                        # err_accept = abs(chisq_new-chisq0)
+                        # err_accept_array.append(err_accept)
+                        # itr_accept.append(k)
                         p_init = p_new # if chisq decreases and Rahman factor improves, set the new initial coefficients to be the newly obtained coefficients 
                         chisq0 = chisq_new # update chisq value
                         c0 = c_new # update Rahman correction factor
@@ -578,9 +576,9 @@ class primaryBeamOptimize(Calculator):
             else:
                 # Check the current GOF against the previous value
                 if chisq_new < chisq0:
-                    err_accept = abs(chisq0 - chisq_new)
-                    err_accept_array.append(err_accept)
-                    itr_accept.append(k)
+                    # err_accept = abs(chisq0 - chisq_new)
+                    # err_accept_array.append(err_accept)
+                    # itr_accept.append(k)
                     p_init = p_new # if GOF decreases, set the new initial coefficients to be the newly obtained coefficients 
                     chisq0 = chisq_new # update chisq value
                     q_best = q_new # update q, sq, and sq_err to the optimized values
@@ -600,7 +598,8 @@ class primaryBeamOptimize(Calculator):
                     
 
             # store the best acheived chisq value
-            chisq_array.append(chisq0)
+            chisq_array_accept.append(chisq0)
+            chisq_array_all.append(chisq_new)
             # store the best acheived rahman correction factor
             rahman_array.append(c0)
 
@@ -639,7 +638,8 @@ class primaryBeamOptimize(Calculator):
 
         # chisq as a function of iteration #
         plt.figure(2)
-        plt.plot(n_itr,chisq_array, color = 'blue')
+        plt.plot(n_itr,chisq_array_all, linewidth = 0.5, color = 'grey')
+        plt.plot(n_itr,chisq_array_accept, linewidth = 2, color = 'blue')
         plt.xlabel('Iteration #')
         plt.ylabel('$χ^2$')
         plt.show()
