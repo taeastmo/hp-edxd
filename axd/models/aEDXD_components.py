@@ -373,6 +373,8 @@ class primaryBeamOptimize(Calculator):
     
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
+        p_change_max = [4.48e-5, 9.68e-5, 0.00523, 0.000396] # maximum percentage that a polynomial bound can vary
+
         # create some empty arrays for convergence plotting
         # itr_accept = []
         # err_accept_array = []
@@ -381,14 +383,14 @@ class primaryBeamOptimize(Calculator):
 
         # err_tol = 0.00001 # error tolerance value (will be user-defined)
         # max_itr = 500 # maximum number of iterations
-        rahman_start = 50 # iteration at which the Rahman check is initiated
+        rahman_start = 250 # iteration at which the Rahman check is initiated
         # while err_accept > err_tol:
         #     k = k + 1
         #     if k > max_itr:
         #         break
-        for k in range(100): # Eventually we should allow the user to input the number of iterations from the gui
+        for k in range(500): # Eventually we should allow the user to input the number of iterations from the gui
             n_itr.append(k + 1)
-            p_new = rand_param(max_int,polynomial_deg,p_init)
+            p_new = rand_param(max_int,polynomial_deg,p_change_max,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
             y_model = model_func(xn,*p_new)*Iq_base
             I_p = model_func(xn,*p_new)
@@ -541,7 +543,7 @@ class primaryBeamOptimize(Calculator):
                     
                 elif c_check == 1 and chisq_new > chisq0:
                     dchisq = abs(chisq_new - chisq0)
-                    p_accept = np.exp(-dchisq/2) # acceptance probability to relax the chisq constraint a bit
+                    p_accept = np.exp(-100*dchisq/2) # acceptance probability to relax the chisq constraint a bit
                     accept_change = random.random() < p_accept
                     if accept_change == True:
                         # err_accept = abs(chisq_new-chisq0)
