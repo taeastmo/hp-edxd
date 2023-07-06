@@ -65,6 +65,14 @@ class primaryBeam(Calculator):
             model_func = simple_polynomial
         xp = x[Emin_indx:Emax_indx]
         yp = y[Emin_indx:Emax_indx]
+
+        # # plot xp and yp
+        # plt.figure(0)
+        # plt.scatter(xp,yp)
+        # plt.xlabel('xp')
+        # plt.ylabel('yp')
+        # plt.show()
+
         pln = polynomial_fit(xp,yp,deg=polynomial_deg)
         if model_func == stepped_polynomial:
             p_erf = [0.4, 1.0, 70] # s:scale, w: width, x0: reference
@@ -94,12 +102,22 @@ class primaryBeam(Calculator):
         # find [Ip(E')/Ip(E)] ratio iteratively:
         fs = np.ones(len(xp),dtype=float) # initial relative scale assumed one
         qp = 4*np.pi/(12.3984/xp)*np.sin(np.radians(tth/2))
-        xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+        # xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source (THIS APPEARS TO BE INCORRECT - Tyler Eastmond)
+        xpc = xp/(1 + xp/5.1102e2*(1-np.cos(np.radians(tth/2)))) # E' for Compton source (CORRECTED EQN. - Tyler Eastmond)
         qpc = 4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
+
+        # plt.figure(0)
+        # plt.grid()
+        # plt.scatter(xp,xpc, label = 'Original')
+        # plt.scatter(xp,xpc_2, label = 'Corrected')
+        # plt.xlabel('E (keV)', fontsize = 12)
+        # plt.ylabel('E_comp (keV)',fontsize = 12)
+        # plt.legend()
+        # plt.show()
         
         # start iteration; UPDATED: iretation was replaced at some point in time by custom_fit
-        #for itr in range(itr_comp):
+        # for itr in range(itr_comp):
         # re-adjust the primary beam model to fit mean_fqsqure + mean_I_inc 
         Iq_base = mean_fqsquare + fs*mean_I_inc 
         # custom fit(func,x,y,p0,yb):
@@ -181,7 +199,8 @@ class structureFactor(Calculator):
             yn = yi[Emin_indx:Emax_indx]
             tth = ttharray[i]
             qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
-            xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source
+            # xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source (THIS APPEARS TO BE INCORRECT - Tyler Eastmond)
+            xnc = xn/(1 + xn/5.1102e2*(1-np.cos(np.radians(tth/2)))) # E' for Compton source (CORRECTED EQN. - Tyler Eastmond)
             qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
             mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
             y_primary = model_func(xn,*p_opt)
@@ -297,6 +316,25 @@ class structureFactor(Calculator):
         self.out_params['mu'] = mu
         self.out_params['chisq0'] = chisq0 
         self.out_params['c0'] = c0 
+
+    def save_structure_factor(self, filename):
+        try:
+            outfilename = filename
+            q_even = self.out_params['q_even']
+            sq_even = self.out_params['sq_even']
+            sq_even_err = self.out_params['sq_even_err']
+            outputsavedirectory = os.path.dirname(filename)
+            self.params['outputsavedirectory'] =  outputsavedirectory
+            np.savetxt(outfilename, np.transpose([q_even,sq_even,sq_even_err]),fmt='%.4e')
+            S_q = self.out_params['S_q_fragments']
+            for i in range(len(S_q)):
+                fname = os.path.join(outputsavedirectory,'S_q_'+str("%03d" % i))
+                q = S_q[i][0]
+                sq =S_q[i][1]
+                sq_err=S_q[i][2]
+                np.savetxt(fname,np.transpose([q,sq,sq_err]),fmt='%.4e')
+        except:
+            print("\nThe file has not been saved!")
         
 
 
