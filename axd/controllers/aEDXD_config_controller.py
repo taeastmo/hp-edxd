@@ -51,10 +51,12 @@ class aEDXDConfigController(QObject):
         self.gr_opts_window = aEDXDOptionsWidget(opt_fields('gr'), 'PDF options')
         self.sq_opts_window = aEDXDOptionsWidget(opt_fields('sq'), 'Structure factor options')
         self.opts_window = aEDXDOptionsWidget(opt_fields('spectra'), 'Spectra options')
+        self.pb_optimize_opts_window = aEDXDOptionsWidget(opt_fields('pb_optimize'), 'Primary beam optimizer options')
         mp = self.model.params
         self.gr_opts_window.set_params(mp)
         self.sq_opts_window.set_params(mp)
         self.opts_window.set_params(mp)
+        self.pb_optimize_opts_window.set_params(mp)
         
         self.atom_controller = aEDXDAtomController()
         self.files_controller = aEDXDFilesController(self.model,self.display_window,self)
@@ -73,6 +75,7 @@ class aEDXDConfigController(QObject):
         self.gr_opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 
         self.sq_opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 
         self.opts_window.apply_clicked_signal.connect(self.apply_clicked_readback) 
+        self.pb_optimize_opts_window.apply_clicked_signal.connect(self.apply_clicked_readback)
         self.atom_controller.apply_clicked_signal.connect(self.apply_clicked_readback) 
         self.display_window.undo_btn.clicked.connect(self.undo)
         self.display_window.reset_btn.clicked.connect(self.reset)
@@ -220,6 +223,7 @@ class aEDXDConfigController(QObject):
         self.gr_opts_window.set_params(mp)
         self.sq_opts_window.set_params(mp)
         self.opts_window.set_params(mp)
+        self.pb_optimize_opts_window.set_params(mp)
         self.atom_controller.set_params(mp)
         self.files_controller.set_params(mp)
 
@@ -241,6 +245,9 @@ class aEDXDConfigController(QObject):
 
     def show_sq_options(self):
         self.sq_opts_window.raise_widget() 
+
+    def show_pb_optimize_options(self):
+        self.pb_optimize_opts_window.raise_widget()
 
     def show_files(self):
         self.files_controller.show_files()
@@ -335,6 +342,32 @@ def opt_fields(opt):
                                  'label': 'Hard sphere limit',
                                  'step' : 0.05,
                                  'unit' : 'Å'}
+                            },
+                             'pb_optimize':
+                            {'max_dp0': 
+                                {'val'  : 2.0, 
+                                 'desc' : 'maximum percent change in the coefficient p0',
+                                 'label': 'Max Δp0',
+                                 'step' : 0.5,
+                                 'unit' : '%'}, 
+                            'max_dp1': 
+                                {'val'  : 2.0, 
+                                 'desc' : 'maximum percent change in the coefficient p1',
+                                 'label': 'Max Δp1',
+                                 'step' : 0.5,
+                                 'unit' : '%'},
+                            'max_dp2': 
+                                {'val'  : 2.0, 
+                                 'desc' : 'maximum percent change in the coefficient p2',
+                                 'label': 'Max Δp2',
+                                 'step' : 0.5,
+                                 'unit' : '%'},
+                            'max_dp3': 
+                                {'val'  : 2.0, 
+                                 'desc' : 'maximum percent change in the coefficient p3',
+                                 'label': 'Max Δp3',
+                                 'step' : 0.5,
+                                 'unit' : '%'},   
                             }
 
     }

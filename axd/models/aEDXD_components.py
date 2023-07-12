@@ -103,10 +103,11 @@ class primaryBeam(Calculator):
         fs = np.ones(len(xp),dtype=float) # initial relative scale assumed one
         qp = 4*np.pi/(12.3984/xp)*np.sin(np.radians(tth/2))
         # xpc = xp-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source (THIS APPEARS TO BE INCORRECT - Tyler Eastmond)
-        xpc = xp/(1 + xp/5.1102e2*(1-np.cos(np.radians(tth/2)))) # E' for Compton source (CORRECTED EQN. - Tyler Eastmond)
+        xpc = xp/(1 + xp/5.1102e2*(1-np.cos(np.radians(tth/2)))) # E' for Compton source (CORRECTED EQN. - Tyler Eastmond, 7/6/23)
         qpc = 4*np.pi/(12.3984/xpc)*np.sin(np.radians(tth/2)) # q' for the Compton source
         mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qp,qpc,sq_par)
 
+        # # plot Compton shifted energy values
         # plt.figure(0)
         # plt.grid()
         # plt.scatter(xp,xpc, label = 'Original')
@@ -114,6 +115,13 @@ class primaryBeam(Calculator):
         # plt.xlabel('E (keV)', fontsize = 12)
         # plt.ylabel('E_comp (keV)',fontsize = 12)
         # plt.legend()
+        # plt.show()
+
+        # plot the atomic scattering factors and I_inc
+        # plt.figure(0)
+        # plt.plot(qp,mean_fq)
+        # plt.plot(qp,mean_fqsquare)
+        # plt.plot(qpc,mean_I_inc)
         # plt.show()
         
         # start iteration; UPDATED: iretation was replaced at some point in time by custom_fit
@@ -130,6 +138,17 @@ class primaryBeam(Calculator):
         I_p = model_func(xp,*p_opt)
         I_p_inc = model_func(xpc,*p_opt)
         fs = I_p_inc/I_p
+
+        # plt.figure(0)
+        # plt.plot(xp,y_model,label = "y_model")
+        # plt.plot(xp,model_func(xp,*p0), label = "y_model, original",linestyle = "--",color = "black")
+        # plt.plot(xp,I_p,label = "I_p")
+        # plt.plot(xpc,I_p_inc,label = "I_p_inc")
+        # plt.yscale('log')
+        # plt.xlabel('E (keV)')
+        # plt.ylabel('I (arb)')
+        # plt.show()
+        # plt.legend()
 
         # propagate the mean residual error
         model_mre = np.sqrt(sum((yp/Iq_base - y_model/Iq_base))**2/len(yp))
@@ -200,13 +219,14 @@ class structureFactor(Calculator):
             tth = ttharray[i]
             qi = 4*np.pi/(12.3984/xn)*np.sin(np.radians(tth/2.0))
             # xnc = xn-2.4263e-2*(1-np.cos(np.radians(tth/2))) # E' for Compton source (THIS APPEARS TO BE INCORRECT - Tyler Eastmond)
-            xnc = xn/(1 + xn/5.1102e2*(1-np.cos(np.radians(tth/2)))) # E' for Compton source (CORRECTED EQN. - Tyler Eastmond)
+            xnc = xn/(1 + xn/5.1102e2*(1-np.cos(np.radians(tth/2)))) # E' for Compton source (CORRECTED EQN. - Tyler Eastmond, 7/6/23)
             qic = 4*np.pi/(12.3984/xnc)*np.sin(np.radians(tth/2)) # q' for the Compton source
             mean_fqsquare,mean_fq,mean_I_inc = I_base_calc(qi,qic,sq_par)
             y_primary = model_func(xn,*p_opt)
             Iq_base = mean_fqsquare + mean_I_inc
             s = (Iq_base*y_primary).mean()/yn.mean()
-            sqi = (s*yn-Iq_base*y_primary)/y_primary/mean_fq**2 + 1.0
+            # sqi = (s*yn-Iq_base*y_primary)/y_primary/mean_fq**2 + 1.0
+            sqi = (s*yn-Iq_base*y_primary)/(y_primary)/mean_fq**2 + 1.0
             sqi_err = s*yn/y_primary/mean_fq**2*np.sqrt(1.0/yn+(model_mre/y_primary)**2)
             S_q.append([qi,sqi,sqi_err])
             #tth_used.append(tth)
@@ -367,7 +387,11 @@ class primaryBeamOptimize(Calculator):
                 'L',
                 'mu',
                 'chisq0',
-                'c0']
+                'c0',
+                'max_dp0',
+                'max_dp1',
+                'max_dp2',
+                'max_dp3']
         super().__init__(params)
         self.name = "primary beam optimize"
         self.note = ''
@@ -397,6 +421,10 @@ class primaryBeamOptimize(Calculator):
         mu = self.params['mu']
         chisq0 = self.params['chisq0']
         c0 = self.params['c0']
+        max_dp0 = self.params['max_dp0']
+        max_dp1 = self.params['max_dp1']
+        max_dp2 = self.params['max_dp2']
+        max_dp3 = self.params['max_dp3']
 
         # save the most up-to-date q, S(q), and S(q)_err to revert to if the optimization criteria don't improve
         q_best = q_sort_0

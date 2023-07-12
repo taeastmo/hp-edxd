@@ -73,7 +73,12 @@ class aEDXD_model(QObject):
                 'Emin',
                 'sq_par',
                 'mcadata',
-                'E_cut']
+                'E_cut',
+                'max_dp0',
+                'max_dp1',
+                'max_dp2',
+                'max_dp3']
+        
         self.params = dict.fromkeys(params)
         self.dataarray = []
         self.ttharray = []

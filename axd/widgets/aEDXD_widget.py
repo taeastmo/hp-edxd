@@ -218,6 +218,8 @@ class aEDXDWidget(QMainWindow):
         self.opts_menu.addAction(self.tools_atoms_act)
         self.opts_sq_act = QtWidgets.QAction('Scattering factor', self)        
         self.opts_menu.addAction(self.opts_sq_act)
+        self.opts_PBoptimize_act = QtWidgets.QAction('Primary beam optimizer', self)
+        self.opts_menu.addAction(self.opts_PBoptimize_act)
         self.opts_gr_act = QtWidgets.QAction('PDF', self)        
         self.opts_menu.addAction(self.opts_gr_act)
 

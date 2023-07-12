@@ -90,6 +90,7 @@ class aEDXDController(QObject):
         self.display_window.sq_btn.clicked.connect(self.show_sq_options)
         self.display_window.opts_gr_act.triggered.connect(self.show_gr_options)
         self.display_window.pdf_btn.clicked.connect(self.show_gr_options)
+        self.display_window.opts_PBoptimize_act.triggered.connect(self.show_pb_optimize_options)
         self.display_window.monte_carlo_btn.clicked.connect(self.model.pb_optimization)
 
         self.display_window.all_spectra_widget.export_IE_btn.clicked.connect(self.save_data)
@@ -409,6 +410,9 @@ class aEDXDController(QObject):
 
     def show_sq_options(self):
         self.config_controller.show_sq_options() 
+
+    def show_pb_optimize_options(self):
+        self.config_controller.show_pb_optimize_options()
 
     def show_files(self):
         self.config_controller.show_files()
