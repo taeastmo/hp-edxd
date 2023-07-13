@@ -439,7 +439,8 @@ class primaryBeamOptimize(Calculator):
     
         p_init = p_opt
         max_int = max(yp) # find the max intensity of the highest 2th spectrum
-        p_change_max = [4.48e-5, 9.68e-5, 0.00523, 0.000396] # maximum percentage that a polynomial bound can vary
+        # p_change_max = [4.48e-5, 9.68e-5, 0.00523, 0.000396] # maximum % of poly coeff. This works well for Fe
+        p_change_max = [max_dp0/1e5, max_dp1/1e5, max_dp2/1e3, max_dp3/1e4]
 
         # create some empty arrays for convergence plotting
         # itr_accept = []
@@ -449,12 +450,12 @@ class primaryBeamOptimize(Calculator):
 
         # err_tol = 0.00001 # error tolerance value (will be user-defined)
         # max_itr = 500 # maximum number of iterations
-        rahman_start = 250 # iteration at which the Rahman check is initiated
+        rahman_start = 150 # iteration at which the Rahman check is initiated
         # while err_accept > err_tol:
         #     k = k + 1
         #     if k > max_itr:
         #         break
-        for k in range(500): # Eventually we should allow the user to input the number of iterations from the gui
+        for k in range(250): # Eventually we should allow the user to input the number of iterations from the gui
             n_itr.append(k + 1)
             p_new = rand_param(max_int,polynomial_deg,p_change_max,p_init)
             """Re-calculate the primary beam model after randomly varying the polynomial coefficients (p_opt)"""
@@ -752,7 +753,10 @@ class Pdf(Calculator):
                 'q_even',
                 'sq_even',
                 'sq_even_err',
-                'q_spacing']
+                'q_spacing',
+                'numtaps',
+                'cutoff',
+                'width']
 
         super().__init__(params)
         self.name = 'pdf'
@@ -768,6 +772,10 @@ class Pdf(Calculator):
         qmax = self.params['qmax']
         r_spacing = self.params['r_spacing']
         rmax = self.params['rmax']
+
+        numtaps = self.params['numtaps']
+        cutoff = self.params['cutoff']
+        width = self.params['width']
         
         
 

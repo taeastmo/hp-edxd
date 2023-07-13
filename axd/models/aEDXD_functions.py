@@ -303,8 +303,10 @@ def GOF_test(q,Sq,e):
         # Calculation of chi^2 terms between the uth and wth S(q) fragment
         for u in range(len(Sq_all_roi)): 
             for w in range((u + 1),(len(Sq_all_roi)),1):
-                # chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((e_all_roi[:][u] + e_all_roi[:][w])/2)))
-                chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((q_all_roi[:][u] + q_all_roi[:][w])/2)))
+                # chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((e_all_roi[:][u] + e_all_roi[:][w])/2))) # Normalized by error
+                chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((q_all_roi[:][u] + q_all_roi[:][w])/2))) # Normalized by q
+                # chisq_roi.append(np.sum(((Sq_all_roi[:][u] - Sq_all_roi[:][w])**2) / ((Sq_all_roi[:][u] + Sq_all_roi[:][w])/2))) # Normalized by S(q)
+
         CHISQ[i] = np.sum(chisq_roi)
 
     # CHISQ_TOT = np.sum(CHISQ)/np.size(q) # total chisq normalized by the number of data points
@@ -327,13 +329,13 @@ def rand_param(max_int,p_deg,p_change_max,p_init): # inputs are the maximum inte
 
     #  Calculate the bounds on the random changes to the polynomial coefficients
     # The values are calculated according to a calibration based on molten Fe
-    p_change_ratio = np.array([(-4.48E-04)/100, (9.68E-3)/100, \
-        (5.23E-1)/100, (3.96E-2)/100])
+    # p_change_ratio = np.array([(-4.48E-04)/100, (9.68E-3)/100, \
+        # (5.23E-1)/100, (3.96E-2)/100])
     p_change_bnd = np.abs(np.multiply(p_init,p_change_max))
     # Randomly change the polynomial coefficients within calibrated limits
     p_change = np.array([p_change_bnd[0]/100*random.randrange(-100,100,1), p_change_bnd[1]/100*random.randrange(-100,100,1), \
         p_change_bnd[2]/100*random.randrange(-100,100,1), p_change_bnd[3]/10*random.randrange(-10,10,1)])
-
+   
     p_new = p_init + p_change
     return p_new # returns the randomly-varied polynomial coefficients
 

@@ -77,7 +77,10 @@ class aEDXD_model(QObject):
                 'max_dp0',
                 'max_dp1',
                 'max_dp2',
-                'max_dp3']
+                'max_dp3',
+                'numtaps',
+                'cutoff',
+                'width']
         
         self.params = dict.fromkeys(params)
         self.dataarray = []

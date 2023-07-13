@@ -226,6 +226,8 @@ class aEDXDWidget(QMainWindow):
         self.tools_menu = self.menubar.addMenu('Tools')
         self.tools_peaks_act = QtWidgets.QAction('Peak cutting', self)        
         self.tools_menu.addAction(self.tools_peaks_act)
+        self.tools_lpFilter_act = QtWidgets.QAction('PDF ripple correction', self)
+        self.tools_menu.addAction(self.tools_lpFilter_act)
         
         self.setMenuBar(self.menubar)
 
